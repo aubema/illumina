@@ -1,0 +1,9 @@
+parse_1min-page2.py
+-------------------
+Parse National Climatic Data Center data set 6406:
+ASOS SURFACE 1-MINUTE, PAGE 2 DATA
+Specification can be found at:
+http://www1.ncdc.noaa.gov/pub/data/documentlibrary/tddoc/td6406.pdf 
+
+example dataset is 64060KFLG200606.dat
+

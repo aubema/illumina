@@ -1,0 +1,28 @@
+#!/bin/bash
+echo "************************************************"
+echo "*                                              *"
+echo "*                     mkpsd                    *"
+echo "*                                              *"
+echo "*        Create a PSD file for imies.f         *"
+echo "*                                              *"
+echo "*     Martin Aube 2000                         *"
+echo "*                                              *"
+echo "************************************************"
+echo " "
+folder=`pwd`
+rm -f core
+echo " Experiment directory "$folder
+ln -s $HOME/svn/illumina/trunk/bin/MakePSD MakePSD
+echo " Executing MakePSD..."
+./MakePSD
+echo " Deleting temporary files in " $folder
+rm -f MakePSD
+if [ -f core ] 
+   then   echo "******** An error occured during execution of mkpsd! ********"
+   rm -f core
+   echo "Hit <CTRL-c> or <CRTL-z> to kill that process"
+   read bidon
+else
+  echo " Normal end of mkpsd." 
+fi 
+

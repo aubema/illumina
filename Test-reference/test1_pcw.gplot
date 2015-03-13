@@ -1,0 +1,4 @@
+ set dgrid3d 21, 21
+ set hidden3d
+ set pm3d
+ splot "test1_pcw.txt" with dots

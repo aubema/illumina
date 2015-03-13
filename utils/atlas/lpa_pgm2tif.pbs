@@ -1,0 +1,12 @@
+#!/bin/bash
+
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/python64/2.7.1/lib:/opt/gdal/1.8.0/lib
+export PATH=$PATH:/opt/python64/2.7.1/bin:$HOME/illumina/utils/atlas
+export PYTHONPATH=/opt/proj/4.8.0/lib/python2.7/site-packages/
+#cd $HOME/atlas2013/OMM-b_midnight_winter_2009
+
+for f in `ls -1 PCL*.pgm | head`; do
+  echo $f
+  lpa_pgm2tif.py $f
+done
+

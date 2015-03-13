@@ -1,0 +1,30 @@
+#!/bin/bash
+echo "************************************************"
+echo "*                                              *"
+echo "*                     imies                    *"
+echo "*                                              *"
+echo "*         Mie's computations for any PSD       *"
+echo "*     definition, particle type, wavelength    *"
+echo "*            and relative humidity             *"
+echo "*                                              *"
+echo "*     Martin Aube 2000                         *"
+echo "*                                              *"
+echo "************************************************"
+echo " "
+folder=`pwd`
+rm -f core
+echo " Experiment directory "$folder
+ln -s $HOME/svn/illumina/trunk/bin/intermie intermie
+echo " Executing intermie..."
+./intermie
+echo " Deleting temporary files in " $folder
+rm -f intermie
+if [ -f core ] 
+   then   echo "******** An error occured during execution of imies! ********"
+   rm -f core
+   echo "Hit <CTRL-c> or <CRTL-z> to kill that process"
+   read bidon
+else
+  echo " Normal end of imies." 
+fi 
+
