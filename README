@@ -3,12 +3,6 @@ README
 GNU General Public License as published by the Free Software Foundation, version 3
 Cite: Martin Aubé martin.aube@cegepsherbrooke.qc.ca
 
-utils scripts need the following python libraries:
-pyproj, matplotlib, numpy, gdal
-
-Under ubuntu installation command is:
-
-sudo apt-get install python-pyproj python-matplotlib python-numpy python-gdal
 1) Prerequisites
 You need a fortran compiler installed in your system
 Please dont forget to set the F77 variable in the makeILLUMINA script according to that compiler
