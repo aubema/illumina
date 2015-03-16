@@ -1,12 +1,6 @@
 README
-Add this line in your .bashrc file
 
-PATH=$PATH:$HOME/illumina/trunk/bin:$HOME/illumina/trunk:$HOME/illumina/trunk/utils/dataprep/gdal2pgm
-
-
-Do bash makeILLUMINA
-to compile the code
-
+1) Prerequisites
 You need a fortran compiler installed in your system
 Please dont forget to set the F77 variable in the makeILLUMINA script according to that compiler
 
@@ -14,6 +8,19 @@ utils scripts need the following python libraries:
 pyproj, matplotlib, numpy, gdal
 
 Under ubuntu installation command is:
-
 sudo apt-get install python-pyproj python-matplotlib python-numpy python-gdal
 
+2) Add this line in your .bashrc file:
+PATH=$PATH:$HOME/hg/illumina/bin:$HOME/hg/illumina:$HOME/hg/illumina/utils/dataprep/gdal2pgm
+
+3) Download the code:
+mkdir hg
+cd hg
+hg clone  https://aubema@bitbucket.org/aubema/illumina
+
+4) Compile the code:
+cd illumina
+bash makeILLUMINA
+
+5) Read the Users manual
+http://cegepsherbrooke.qc.ca/~aubema/index.php/Prof/IlluminaGuide2014
