@@ -81,7 +81,16 @@ do mkdir $griddir/"x"${x_sites[$ns]}"y"${y_sites[$ns]}
              nl=0
              while [ $nl -lt ${#lamp_l[*]} ]
              do let nolp=nl+1
-                cp $folder"/"$exp_name"_"${wav[$wl]}${lamp_l[$nl]} "./"$exp_name"_lumlp_0"$nolp".pgm"
+                if [ $nolp -lt 1000 ]
+                then numlp=$nolp
+                fi
+                if [ $nolp -lt 100 ]
+                then numlp="0"$nolp
+                fi
+                if [ $nolp -lt 10 ]
+                then numlp="00"$nolp
+                fi                    
+                cp $folder"/"$exp_name"_"${wav[$wl]}${lamp_l[$nl]} "./"$exp_name"_lumlp_"$numlp".pgm"
                 let nl=nl+1
              done
              cp -f *lumlp* original_files
@@ -101,9 +110,9 @@ do mkdir $griddir/"x"${x_sites[$ns]}"y"${y_sites[$ns]}
              ./pgmcombine16bit < comblp.in
 
 
-             echo $exp_name"_lumlp_0"$nolp".pgm"  > varres.in
+             echo $exp_name"_lumlp_"$numlp".pgm"  > varres.in
              echo $exp_name"_reflect.pgm" >> varres.in
-             echo $exp_name"_lumlp_0"$nolp"_new.pgm"  >> varres.in
+             echo $exp_name"_lumlp_"$numlp"_new.pgm"  >> varres.in
              echo $exp_name"_reflect_new.pgm"  >> varres.in
              echo ${x_sites[$ns]} >> varres.in
              echo ${y_sites[$ns]} >> varres.in 
@@ -228,8 +237,17 @@ cd $folder
                                  nl=0        
                                  while [ $nl -lt ${#lamp_l[*]} ]
                                  do let nolp=nl+1
-                                    ln -s $folder"/"${lamp_h[$nl]} "./"$exp_name"_altlp_0"$nolp".pgm"
-                                    ln -s $folder"/"${lamp_p[$nl]} "./"$exp_name"_fctem_0"$nolp".dat"
+                                    if [ $nolp -lt 1000 ]
+                                    then numlp=$nolp
+                                    fi
+                                    if [ $nolp -lt 100 ]
+                                    then numlp="0"$nolp
+                                    fi
+                                    if [ $nolp -lt 10 ]
+                                    then numlp="00"$nolp
+                                    fi                    
+                                    ln -s $folder"/"${lamp_h[$nl]} "./"$exp_name"_altlp_"$numlp".pgm"
+                                    ln -s $folder"/"${lamp_p[$nl]} "./"$exp_name"_fctem_"$numlp".dat"
                                     let nl=nl+1
                                  done
                                  ln -s $griddir/"x"${x_sites[$ns]}"y"${y_sites[$ns]}/"wl"${wav[$wl]}/* .
