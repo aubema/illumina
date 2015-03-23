@@ -59,6 +59,19 @@ lamp_p=( cobrahead_fctem_01.dat )
 # ===================================
 # begin of script
 #
+
+
+
+# find domain size and resolution
+grep -v "#" $mna_file | head -2 |tail -1 > size.tmp
+read nbx nby bidon < size.tmp
+grep "pixsiz" $mna_file > size.tmp
+read bidon bidon pixsiz bidon
+
+
+
+
+#
 nmam=0
 folder=`pwd`
 griddir=$folder"/gridmap"
@@ -69,7 +82,23 @@ echo $griddir
 # accelerate computation from a subset of initial lumlp file data
 ns=0
 while [ $ns -lt ${#x_sites[*]} ]
-do mkdir $griddir/"x"${x_sites[$ns]}"y"${y_sites[$ns]}
+do let xdist=nbx-x_sites[$ns]
+   if [ ${x_sites[$ns]} -lt $xdist ] 
+   then let xdist=x_sites[$ns]
+   fi
+   let ydist=nby-y_sites[$ns]
+   if [ ${y_sites[$ns]} -lt $ydist ] 
+   then let ydist=y_sites[$ns]
+   fi
+   let dist=xdist
+   if [ $ydist -lt $xdist ]
+   then let dist=ydist
+   fi
+   min_elev=`/bin/echo "180.0/3.14159*atan(27345.16/" $dist")" | /usr/bin/bc -l`
+   echo "min_elev=" $min_elev
+   exit 0
+
+   mkdir $griddir/"x"${x_sites[$ns]}"y"${y_sites[$ns]}
    echo "Site: x"${x_sites[$ns]}"y"${y_sites[$ns]}
    wl=0
    while [ $wl -lt ${#wav[*]} ]
