@@ -31,7 +31,7 @@ folder=`pwd`
 #
 #  copying retres   
 #
-cp -f $HOME/svn/illumina/trunk/bin/retres .
+cp -f $HOME/hg/illumina/bin/retres .
 #
 #  creating result directory
 #    

@@ -7,7 +7,7 @@
 rm -f gri-*.ps
 rm -f data.polar
 rm -f rad2polar.tmp
-cp -f $HOME/svn/illumina/trunk/contourplot.gri ./contourplot.gri.tmp
+cp -f $HOME/hg/illumina/contourplot.gri ./contourplot.gri.tmp
 cp -f $1 rad2polar.tmp
 
 nligne=`grep -c "" $1`
