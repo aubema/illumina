@@ -1670,9 +1670,9 @@ c puis load 'fichier.gplot'
        endif                                                              ! end of condition for creating contrib and sensit maps
           print*,'====================================================='
           print*,'          Total flux entering instrument (W)'
-          print*,'                   ',flux_total_capteur*real(vistep)  
+          write(*,2001) flux_total_capteur*real(vistep)  
           print*,'              Sky luminance (W/str/m**2)'       
-          print*,'                   ',flux_total_capteur/(largefente*
+          write(*,2001) flux_total_capteur/(largefente*
      +          longfente/distfocal**2.)/(pi*(diamobj/2.)**2.)*
      +          real(vistep)
        print*,'  '
@@ -1681,9 +1681,9 @@ c puis load 'fichier.gplot'
        print*,'======================================================='
        write(2,*) '==================================================='
        write(2,*) '          Total flux entering instrument (W)'
-       write(2,*) '                   ',flux_total_capteur*real(vistep)
+       write(2,2001) flux_total_capteur*real(vistep)
         write(2,*) '            Sky luminance (W/str/m**2)          '      
-       write(2,*) '                   ',flux_total_capteur/(largefente*
+       write(2,2001) flux_total_capteur/(largefente*
      +          longfente/distfocal**2.)/(pi*(diamobj/2.)**2.)*
      +          real(vistep)
        write(2,*) '  '                                                
@@ -1691,6 +1691,7 @@ c puis load 'fichier.gplot'
      +          flux_total_capteur-fluxcumule
        write(2,*) '==================================================='
       close(2)
+ 2001 format('                   ',E9.2E2)
       stop
       end
 c***********************************************************************************************************************
