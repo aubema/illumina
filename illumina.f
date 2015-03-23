@@ -711,7 +711,7 @@ c    ------------------------------------
                   endif
 
 
-                   omega2=omega1
+c                   omega2=omega1
 
 
 
@@ -752,7 +752,7 @@ c                                                                         ! pour
 
 
 
-                  omega=omega2
+c                  omega=omega2
 c=======================================================================
 c    Estimation du demi angle directeur de l'angle solide                 ! Cet angle servira a obtenir un meilleur estime (moyenne) de 
 c                                                                         ! P_dir pour le cas de grans angles solides ou p_valnorm 
@@ -1028,7 +1028,7 @@ c    ------------------------------------
                          omega1=0.
                         endif
 
-            omega2=omega1
+c            omega2=omega1
 
 c     ------------------------------------
 c     Angle solide pour le plan central zx
@@ -1067,7 +1067,7 @@ c                                                                         ! pour
                         omega=omega1     
 
 
-               omega=omega2
+c               omega=omega2
 
 
  
@@ -1202,7 +1202,7 @@ c    ------------------------------------
                      endif
 
 
-          omega2=omega1
+c          omega2=omega1
 
 c     ------------------------------------
 c     Angle solide pour le plan central zx
@@ -1241,7 +1241,7 @@ c                                                                         ! pour
                      omega=omega1
 
 
-               omega=omega2
+c               omega=omega2
 
 
 c=======================================================================
@@ -1358,7 +1358,7 @@ c    ------------------------------------
                        omega1=0.
                       endif
 
-              omega2=omega1
+c              omega2=omega1
 
 
 c     ------------------------------------
@@ -1398,7 +1398,7 @@ c                                                                         ! pour
                       omega=omega1
 
 
-            omega=omega2
+c            omega=omega2
 
 
 c=======================================================================
@@ -1564,7 +1564,7 @@ c    ------------------------------------
            endif
 
 
-         omega2=omega1
+c         omega2=omega1
 
 
 c     ------------------------------------
@@ -1602,7 +1602,7 @@ c                                                                         ! pour
            omega=omega1
 
 
-           omega=omega2
+c           omega=omega2
 
 c=======================================================================
 c        Calcul du flux atteignant l'objectif du telescope en provenance de la cellule cible
