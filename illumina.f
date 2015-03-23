@@ -154,7 +154,7 @@ c                                                                         ! lumi
       real*8 xc,yc,zc,xn,yn,zn                                            ! Position (metre) des elements (arrivee, depart) pour le calcul 
 c                                                                         ! de l'angle solide.  
       real*8 r1x,r1y,r1z,r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z              ! Composantes des vecteurs utilises dans la routine angle solide.
-      real omega,omega1                                                   ! Angle solide couvert par une cellule vue d'une autre, angle de 
+      real omega,omega1,omega2                                                   ! Angle solide couvert par une cellule vue d'une autre, angle de 
 c                                                                         ! comparaison.
       real flux_direct                                                    ! Flux provenant d'une cellule source dans une cellule cible (watt).
       real flux_indirect                                                  ! Flux provenant d'une cellule reflectrice dans une cellule cible (watt).
@@ -709,6 +709,12 @@ c    ------------------------------------
                   else
                    omega1=0.
                   endif
+
+
+                   omega2=omega1
+
+
+
 c     ------------------------------------
 c     Angle solide pour le plan central zx
 c     ------------------------------------
@@ -743,7 +749,10 @@ c                                                                         ! pour
                   if (omega.gt.0.) then
                    if (omega .gt. omega1) omega1 = omega                  ! On garde l'angle solide le plus grand
                   endif
-                  omega=omega1
+
+
+
+                  omega=omega2
 c=======================================================================
 c    Estimation du demi angle directeur de l'angle solide                 ! Cet angle servira a obtenir un meilleur estime (moyenne) de 
 c                                                                         ! P_dir pour le cas de grans angles solides ou p_valnorm 
@@ -1018,6 +1027,9 @@ c    ------------------------------------
                         else
                          omega1=0.
                         endif
+
+            omega2=omega1
+
 c     ------------------------------------
 c     Angle solide pour le plan central zx
 c     ------------------------------------
@@ -1052,7 +1064,13 @@ c                                                                         ! pour
                         if (omega.gt.0.) then
                          if (omega.gt.omega1) omega1=omega                ! On garde l'angle solide le plus grand.
                         endif
-                        omega=omega1      
+                        omega=omega1     
+
+
+               omega=omega2
+
+
+ 
 c=======================================================================
 c        Calcul du flux indirect atteignant la cellule cible
 c=======================================================================
@@ -1182,6 +1200,10 @@ c    ------------------------------------
                      else
                       omega1=0.
                      endif
+
+
+          omega2=omega1
+
 c     ------------------------------------
 c     Angle solide pour le plan central zx
 c     ------------------------------------
@@ -1217,6 +1239,11 @@ c                                                                         ! pour
                       if (omega .gt. omega1) omega1 = omega               ! On garde l'angle solide le plus grand.
                      endif
                      omega=omega1
+
+
+               omega=omega2
+
+
 c=======================================================================
 c    Estimation du demi angle directeur de l'angle solide                 ! Cet angle servira a obtenir un meilleur estime (moyenne) de 
 c                                                                         ! P_dir pour le cas de grands angles solides ou p_valnorm
@@ -1330,6 +1357,10 @@ c    ------------------------------------
                       else
                        omega1=0.
                       endif
+
+              omega2=omega1
+
+
 c     ------------------------------------
 c     Angle solide pour le plan central zx
 c     ------------------------------------
@@ -1365,6 +1396,11 @@ c                                                                         ! pour
                        if (omega .gt. omega1) omega1 = omega              ! On garde l'angle solide le plus grand.
                       endif
                       omega=omega1
+
+
+            omega=omega2
+
+
 c=======================================================================
 c        Calcul du flux diffuse atteignant la cellule cible
 c=======================================================================
@@ -1526,6 +1562,11 @@ c    ------------------------------------
            else
             omega1=0.
            endif
+
+
+         omega2=omega1
+
+
 c     ------------------------------------
 c     Angle solide pour le plan central zx
 c     ------------------------------------
@@ -1559,6 +1600,10 @@ c                                                                         ! pour
             if (omega.gt.omega1) omega1=omega                             ! On garde l'angle solide le plus grand.
            endif
            omega=omega1
+
+
+           omega=omega2
+
 c=======================================================================
 c        Calcul du flux atteignant l'objectif du telescope en provenance de la cellule cible
 c=======================================================================
