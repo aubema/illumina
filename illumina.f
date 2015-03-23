@@ -594,6 +594,10 @@ c        Debut de la boucle sur les cellules cibles
 c=======================================================================
        call lignevisee(x_obs,y_obs,z_obs,dx,dy,angle_visee,               ! Determination de la ligne de visee (cellules cibles).
      + angle_azimut,nbx,nby,lignecible,ncible,vistep)
+          
+
+       print*,angle_azimuth,ncible,vistep
+
        flux_total_capteur=0.                                              ! Initialisation de la valeur du flux recu par le capteur.
        do icible=1,ncible                                                 ! Debut de la boucle sur les cellules cibles.
         if (icible.ge.nvis0) then                                         ! Debut condition pour la reprise d'un calcul arrete   .
