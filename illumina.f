@@ -15,8 +15,11 @@ c **                            Martin Aube, Loic Franchomme-Fosse,  Mathieu Pro
 c **                            Alex Neron, Etienne Rousseau                                                          ** 
 c **                            William Desroches, Maxime Girardin, Tom Neron                                         **
 c **                                                                                                                  **
-c ** Illumina can be downloaded via:   svn checkout http://illumina.googlecode.com/svn/trunk/ illumina                **
-c ** To compile, run bash makeILLUMINA         makeILLUMINA                                                           **
+c ** Illumina can be downloaded via:   hg clone  https://aubema@bitbucket.org/aubema/illumina                         **
+c ** To compile:                                                                                                      **
+c **    cd hg/illumina                                                                                                **
+c **    mkdir bin                                                                                                     **
+c **    bash makeILLUMINA                                                                                             **
 c **                                                                                                                  **
 c **  Current version features/limitations :                                                                          **
 c **                                                                                                                  **
@@ -27,17 +30,18 @@ c **    - Lambertian reflexion on the ground                                    
 c **    - Terrain slope considered (apparent surface and shadows)                                                     **
 c **    - Angular photometry of a lamp is considered uniform along the azimuth                                        **
 c **    - Sub-grid obstacles considered (with the mean free path of light toward ground and mean obstacle height      **
+c **      but these parameters are fixed on the modelling domain                                                      **
 c **    - Molecules and aerosol optics (phase function, scattering probability, aerosol absorption)                   **  
-c **    - Exponential concentrations vertical profile                                                                 **
-c **    - Exponential vertical resolution                                                                             **
+c **    - Exponential concentrations vertical profile (H aerosol= 2km, H molecules= 8km                               **
+c **    - Exponential vertical resolution (max height= 30 km)                                                         **
 c **    - Accounting for heterogeneity of ground reflectance, luminaires number, luminaire height, angular photometry **
-c **      de fut.                                                                                                     **
 c **    - Wavelength dependant                                                                                        **
 c **    - Ignore the flux scattered by the voxel occupied by the observer (cellobs=cellcible)                         **
 c **    - Do not support direct observation of a source                                                               ** 
 c **    - Direct observation of the ground not implemented                                                            **
 c **    - Not accounting for molecular absorption                                                                     **
 c **    - Do not consider earth curvature (i.e. local/regional model)                                                 **
+c **    - No clouds                                                                                                   **
 c **                                                                                                                  **
 c ** Theoritical equations by Martin Aube, CEGEP de Sherbrooke (in french)                                            **
 c **      http://cegepsherbrooke.qc.ca/~aubema/index.php/Prof/IllumEn?action=download&upname=intensite_lumineuse.pdf  **
