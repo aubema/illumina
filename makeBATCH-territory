@@ -75,6 +75,12 @@ lamp_p=( cobrahead_fctem_01.dat )
 # ===================================
 # begin of script
 #
+# find domain size and resolution
+grep -v "#" $mna_file | head -2 |tail -1 > size.tmp
+read nbx nby bidon < size.tmp
+grep "pixsiz" $mna_file > size.tmp
+read bidon bidon pixsiz bidon < size.tmp
+#
 nmam=0
 folder=`pwd`
 griddir=$folder"/gridmap"
@@ -85,7 +91,26 @@ echo $griddir
 # accelerate computation from a subset of initial lumlp file data
 ns=0
 while [ $ns -lt ${#x_sites[*]} ]
-do mkdir $griddir/"x"${x_sites[$ns]}"y"${y_sites[$ns]}
+do xsit=${x_sites[$ns]}
+   let xdist=nbx-xsit
+   if [ ${x_sites[$ns]} -lt $xdist ] 
+   then let xdist=xsit
+   fi
+   ysit=${y_sites[$ns]}
+   let ydist=nby-ysit
+   if [ $ysit -lt $ydist ] 
+   then let ydist=ysit
+   fi
+   let dist=xdist
+   if [ $ydist -lt $xdist ]
+   then let dist=ydist
+   fi
+   min_elev=`/bin/echo "180.0/3.14159*a(27345.16/("$pixsiz"*" $dist"))" | /usr/bin/bc -l`
+   min_elev=`/bin/echo "("$min_elev"+0.5)/1" | /usr/bin/bc `
+   echo "min_elev=" $min_elev
+
+
+   mkdir $griddir/"x"${x_sites[$ns]}"y"${y_sites[$ns]}
    echo "Site: x"${x_sites[$ns]}"y"${y_sites[$ns]}
    wl=0
    while [ $wl -lt ${#wav[*]} ]
@@ -105,7 +130,7 @@ do mkdir $griddir/"x"${x_sites[$ns]}"y"${y_sites[$ns]}
                 fi
                 if [ $nolp -lt 10 ]
                 then numlp="00"$nolp
-                fi
+                fi                    
                 cp $folder"/"$exp_name"_"${wav[$wl]}${lamp_l[$nl]} "./"$exp_name"_lumlp_"$numlp".pgm"
                 let nl=nl+1
              done
@@ -124,6 +149,8 @@ do mkdir $griddir/"x"${x_sites[$ns]}"y"${y_sites[$ns]}
              done             
              cp -f $HOME/hg/illumina/bin/pgmcombine16bit .
              ./pgmcombine16bit < comblp.in
+
+
              echo $exp_name"_lumlp_"$numlp".pgm"  > varres.in
              echo $exp_name"_reflect.pgm" >> varres.in
              echo $exp_name"_lumlp_"$numlp"_new.pgm"  >> varres.in
@@ -178,107 +205,112 @@ cd $folder
                      cd "rd"${r_dif[$nrd]} 
                      ne=0
                      while [ $ne -lt ${#elevation[*]} ]
-                     do mkdir "el"${elevation[$ne]}
+                     do if [ ${elevation[$ne]} -ge $min_elev ]
+                        then mkdir "el"${elevation[$ne]}
 # Elevation viewing angle
-                        cd "el"${elevation[$ne]}
-                        if [ ${elevation[$ne]} -eq 90 ]
-                        then natot=1
+                             cd "el"${elevation[$ne]}
+                             if [ ${elevation[$ne]} -eq 90 ]
+                             then natot=1
 # Pointing toward zenith
-                        else natot=${#azimut[*]}
-                        fi     
-                        na=0
-                        while [ $na -lt $natot ]
-                        do mkdir "az"${azimut[$na]}
+                             else natot=${#azimut[*]}
+                             fi     
+                             na=0
+                             while [ $na -lt $natot ]
+                             do mkdir "az"${azimut[$na]}
 # Azimuth viewing angle                    
-                           cd "az"${azimut[$na]}
-                           nt=0
-                           while [ $nt -lt ${#tau[*]} ]
-                           do mkdir "ta"${tau[$nt]}
+                                cd "az"${azimut[$na]}
+                                nt=0
+                                while [ $nt -lt ${#tau[*]} ]
+                                do mkdir "ta"${tau[$nt]}
 # Aerosol Optical Depth
-                              cd "ta"${tau[$nt]}
-                              wl=0
-                              while [ $wl -lt ${#wav[*]} ]
-                              do mkdir "wl"${wav[$wl]}
+                                   cd "ta"${tau[$nt]}
+                                   wl=0
+                                   while [ $wl -lt ${#wav[*]} ]
+                                   do mkdir "wl"${wav[$wl]}
 # wavelength
-                                 cd "wl"${wav[$wl]}
-                                 ln -s $folder"/"${mie_files[$wl]} ./
-                                 nlamp=${#lamp_l[*]}
+                                      cd "wl"${wav[$wl]}
+                                      ln -s $folder"/"${mie_files[$wl]} ./
+                                      nlamp=${#lamp_l[*]}
 #                           
 # creating illumina.in 
-                                 echo "                ! Input file for ILLUMINA" > illumina.in
-                                 echo  $exp_name "     ! ROOT FILE NAME (every usefull files have to begin with this)" >> illumina.in
-                                 echo "                !" >> illumina.in
-                                 echo $pixsize $pixsize "                ! CELL SIZE [m]" >> illumina.in
-                                 echo "                !" >> illumina.in
-                                 echo ${mie_files[$wl]} "              ! AEROSOL OPTICAL CROSS SECTIONS FILE [-]" >> illumina.in
-                                 echo "                !" >> illumina.in
-                                 echo ${r_dif[$nrd]} ${saut_dif[$nsd]} "   ! DOUBLE SCATTERING RADIUS [m] ; SCATTERING STEP [-]" >> illumina.in
-                                 echo "                 ! (1=complete, 2= 2 times faster, ...)" >> illumina.in 
-                                 echo ${wav[$wl]} "  ! WAVELENGTH [nm]" >> illumina.in
-                                 echo $pressure "   ! GROUND LEVEL PRESSURE [kPa]"  >> illumina.in
-                                 echo ${tau[$nt]} "   ! AEROSOL OPTICAL DEPTH [-]"  >> illumina.in
-                                 echo ${#lamp_l[*]} "    ! NUMBER OF SOURCE TYPES [-]"  >> illumina.in
-                                 echo "                !" >> illumina.in
-                                 echo ${d_reflect[$ndr]} ${h_obstacle[$nh]} "   ! MAXIMUM REFLECTION RADIUS [m] ; MEAN OBSTACLE HEIGHT [m]" >> illumina.in
-                                 echo "                !" >> illumina.in
-                                 echo ${x_sites[$ns]} ${y_sites[$ns]} ${z_sites[$ns]}  " 1   ! OBSERVER X POSITION [cell unit] ; OBS Y POS [-] ; OBS Z POS [-] ; BEGINNING CELL ALONG THE LINE OF SIGHT (1=complete)" >> illumina.in
-                                 echo "    ! (usefull in case of computer crash) (x=1 et y=1 is the south-west cell)" >> illumina.in
-                                 echo ${elevation[$ne]} ${azimut[$na]} "   ! ELEVATION VIEWING ANGLE [deg] ; AZIMUTAL VIEWING ANGLE [deg]" >> illumina.in
-                                 echo "   ! (0=east, 90=north, 180=west, 270=south)" >> illumina.in
-                                 echo ".0001 .00001 .35 .07    ! SLIT WIDTH [m] ; PIXEL SIZE [m] ; FOCAL LENGTH [m] ; APPERTURE DIAMETER [m]" >> illumina.in
+                                      echo "                ! Input file for ILLUMINA" > illumina.in
+                                      echo  $exp_name "     ! ROOT FILE NAME (every usefull files have to begin with this)" >> illumina.in
+                                      echo "                !" >> illumina.in
+                                      echo $pixsize $pixsize "                ! CELL SIZE [m]" >> illumina.in
+                                      echo "                !" >> illumina.in
+                                      echo ${mie_files[$wl]} "              ! AEROSOL OPTICAL CROSS SECTIONS FILE [-]" >> illumina.in
+                                      echo "                !" >> illumina.in
+                                      echo ${r_dif[$nrd]} ${saut_dif[$nsd]} "   ! DOUBLE SCATTERING RADIUS [m] ; SCATTERING STEP [-]" >> illumina.in
+                                      echo "                 ! (1=complete, 2= 2 times faster, ...)" >> illumina.in 
+                                      echo ${wav[$wl]} "  ! WAVELENGTH [nm]" >> illumina.in
+                                      echo $pressure "   ! GROUND LEVEL PRESSURE [kPa]"  >> illumina.in
+                                      echo ${tau[$nt]} "   ! AEROSOL OPTICAL DEPTH [-]"  >> illumina.in
+                                      echo ${#lamp_l[*]} "    ! NUMBER OF SOURCE TYPES [-]"  >> illumina.in
+                                      echo "                !" >> illumina.in
+                                      echo ${d_reflect[$ndr]} ${h_obstacle[$nh]} "   ! MAXIMUM REFLECTION RADIUS [m] ; MEAN OBSTACLE HEIGHT [m]" >> illumina.in
+                                      echo "                !" >> illumina.in
+                                      echo ${x_sites[$ns]} ${y_sites[$ns]} ${z_sites[$ns]}  " 1   ! OBSERVER X POSITION [cell unit] ; OBS Y POS [-] ; OBS Z POS [-] ; BEGINNING CELL ALONG THE LINE OF SIGHT (1=complete)" >> illumina.in
+                                      echo "    ! (usefull in case of computer crash) (x=1 et y=1 is the south-west cell)" >> illumina.in
+                                      echo ${elevation[$ne]} ${azimut[$na]} "   ! ELEVATION VIEWING ANGLE [deg] ; AZIMUTAL VIEWING ANGLE [deg]" >> illumina.in
+                                      echo "   ! (0=east, 90=north, 180=west, 270=south)" >> illumina.in
+                                      echo ".0001 .00001 .35 .07    ! SLIT WIDTH [m] ; PIXEL SIZE [m] ; FOCAL LENGTH [m] ; APPERTURE DIAMETER [m]" >> illumina.in
 # copie de illumina dans ./
-                                 ln -s $HOME/hg/illumina/bin/illumina .
+                                      ln -s $HOME/hg/illumina/bin/illumina .
 #
 # creation du script pour qsub dans $folder
-                                 ici=`pwd`
+                                      ici=`pwd`
 # create batch run files for 500 jobs blocks
-                                 let nmam=nmam+1
-                                 let jobno=nmam/500+1
-                                 outscript=$outscpt"_"$jobno
-                                 echo "cd " $ici >> $HOME/$outscript
-                                 echo "qsub  -q qwork@ms  ./execute" >> $HOME/$outscript
-                                 echo "sleep 0.1"  >> $HOME/$outscript
-                                 echo "#!/bin/csh" > $ici/execute
-                                 echo "#PBS -l cput="$est_time":00:00" >> $ici/execute
-                                 echo "#PBS -l walltime="$est_time":00:00" >> $ici/execute
-                                 echo "#PBS -m bea" >> $ici/execute
+                                      let nmam=nmam+1
+                                      let jobno=nmam/500+1
+                                      outscript=$outscpt"_"$jobno
+                                      echo "cd " $ici >> $HOME/$outscript
+                                      echo "qsub  -q qwork@ms  ./execute" >> $HOME/$outscript
+                                      echo "sleep 0.05"  >> $HOME/$outscript
+                                      echo "#!/bin/csh" > $ici/execute
+                                      echo "#PBS -l cput="$est_time":00:00" >> $ici/execute
+                                      echo "#PBS -l walltime="$est_time":00:00" >> $ici/execute
+                                      echo "#PBS -m bea" >> $ici/execute
 #                                 echo "#PBS -M aubema@gmail.com" >> $ici/execute
-                                 echo "cd " $ici >> $ici/execute
-                                 echo "./illumina" >> $ici/execute
-                                 chmod u+x $ici/execute
+                                      echo "cd " $ici >> $ici/execute
+                                      echo "./illumina" >> $ici/execute
+                                      chmod u+x $ici/execute
 #                                 echo "cd " $ici >> $HOME/$outscpt
 #                                 echo "bqsub -P \"command=./illumina >illumina.out\" -q qwork@ms -l walltime="$est_time":00:00" >> $HOME/$outscpt
-                                 nl=0        
-                                 while [ $nl -lt ${#lamp_l[*]} ]
-                                 do let nolp=nl+1
-                                    if [ $nolp -lt 1000 ]
-                                    then numlp=$nolp
-                                    fi
-                                    if [ $nolp -lt 100 ]
-                                    then numlp="0"$nolp
-                                    fi
-                                    if [ $nolp -lt 10 ]
-                                    then numlp="00"$nolp
-                                    fi                                    
-                                    ln -s $folder"/"${lamp_h[$nl]} "./"$exp_name"_altlp_"$numlp".pgm"
-                                    ln -s $folder"/"${lamp_p[$nl]} "./"$exp_name"_fctem_"$numlp".dat"
-                                    let nl=nl+1
-                                 done
-                                 ln -s $griddir/"x"${x_sites[$ns]}"y"${y_sites[$ns]}/"wl"${wav[$wl]}/* .
+                                      nl=0        
+                                      while [ $nl -lt ${#lamp_l[*]} ]
+                                      do let nolp=nl+1
+                                         if [ $nolp -lt 1000 ]
+                                         then numlp=$nolp
+                                         fi
+                                         if [ $nolp -lt 100 ]
+                                         then numlp="0"$nolp
+                                         fi
+                                         if [ $nolp -lt 10 ]
+                                         then numlp="00"$nolp
+                                         fi                    
+                                         ln -s $folder"/"${lamp_h[$nl]} "./"$exp_name"_altlp_"$numlp".pgm"
+                                         ln -s $folder"/"${lamp_p[$nl]} "./"$exp_name"_fctem_"$numlp".dat"
+                                         let nl=nl+1
+                                      done
+                                      ln -s $griddir/"x"${x_sites[$ns]}"y"${y_sites[$ns]}/"wl"${wav[$wl]}/* .
 # copie des autres fichiers d intrants
-                                 ln -s $folder/$mna_file "./"$exp_name"_topogra.pgm"
-                                 cd ..
-                                 let ncas=ncas+1
-                                 let wl=wl+1
-                              done
-                              cd ..
-                              let nt=nt+1
-                           done
-                           cd ..
-                           let na=na+1
-                        done
-                        cd ..
-                        let ne=ne+1
+                                      ln -s $folder/$mna_file "./"$exp_name"_topogra.pgm"
+                                      cd ..
+                                      let ncas=ncas+1
+                                      let wl=wl+1
+                                   done
+                                   cd ..
+                                   let nt=nt+1
+                                done
+                                cd ..
+                                let na=na+1
+                             done
+                             cd ..
+                        else     echo ${elevation[$ne]} "is lower than the minimal elevation angle allowed for your modelling geometry (min="$min_elev")"
+
+                        fi     #end of the lowest allowed angle verification
+                             let ne=ne+1
+
                      done
                      cd ..
                      let nrd=nrd+1
