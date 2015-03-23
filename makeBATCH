@@ -290,10 +290,11 @@ cd $folder
                                 let na=na+1
                              done
                              cd ..
-                             let ne=ne+1
-                        else 
-                           echo ${elevation[$ne]} "is lower than the minimal elevation angle allowed for your modelling geometry (min="$min_elev")"
+                        else     echo ${elevation[$ne]} "is lower than the minimal elevation angle allowed for your modelling geometry (min="$min_elev")"
+
                         fi     #end of the lowest allowed angle verification
+                             let ne=ne+1
+
                      done
                      cd ..
                      let nrd=nrd+1
