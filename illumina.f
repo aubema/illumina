@@ -596,7 +596,7 @@ c=======================================================================
      + angle_azimut,nbx,nby,lignecible,ncible,vistep)
           
 
-       print*,angle_azimuth,ncible,vistep
+       print*,angle_azimut,ncible,vistep
 
        flux_total_capteur=0.                                              ! Initialisation de la valeur du flux recu par le capteur.
        do icible=1,ncible                                                 ! Debut de la boucle sur les cellules cibles.

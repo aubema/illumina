@@ -32,7 +32,7 @@ c
 
       integer x1,y1,cx,cy,visee(1024,3),alim,vistep,pos,visfin(1024,3)
       integer viseef(1024,3),ncellulef,cxm,cym,czm,elimflag
-      integer ncellule,nbx,nby,a,cxp,cyp,czp,cz
+      integer ncellule,nbx,nby,a,cxp,cyp,czp,cz,ncfinal
       real z1,xn,yn,zn,dx,dy,distance
       real cell_thickness(50),cell_height(50),pi
       real anglevisee,angleazimut,ix,iy,iz,amax,da
@@ -176,15 +176,34 @@ c    un cas a eliminer
       viseef(ncellulef,1)=visee(ncellule,1)
       viseef(ncellulef,2)=visee(ncellule,2)
       viseef(ncellulef,3)=visee(ncellule,3)
-c intruduce a skipping factor along the line of sight for low elevation angles
-      vistep=ncellulef/75+1
-      ncfinal=ncellulef/vistep
-      do i=1,ncfinal
-         pos=(i-1)*vistep+1
-         visfin(i,1)=viseef(pos,1)
-         visfin(i,2)=viseef(pos,2)
-         visfin(i,3)=viseef(pos,3)
-      enddo
+
+
+
+
+
+
+c introduce a skipping factor along the line of sight for low elevation angles
+c      vistep=ncellulef/75+1
+c      ncfinal=ncellulef/vistep
+c      do i=1,ncfinal
+c         pos=(i-1)*vistep+1
+c         visfin(i,1)=viseef(pos,1)
+c         visfin(i,2)=viseef(pos,2)
+c         visfin(i,3)=viseef(pos,3)
+c      enddo
+       do i=1,50
+          do ii=1,ncellulef
+             if (viseef(ii,3).eq.i) then
+                 visfin(i,1)=viseef(ii,1)
+                 visfin(i,2)=viseef(ii,2)
+                 visfin(i,3)=viseef(ii,3)
+             endif
+          enddo
+       enddo
+
+       ncfinal=50
+       vistep=1
+
               
       
       print*,'Total original cells: ',ncellulef
