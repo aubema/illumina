@@ -122,7 +122,7 @@ do mkdir $griddir/"x"${x_sites[$ns]}"y"${y_sites[$ns]}
              for nlp in $listlp
              do echo $nlp >> comblp.in
              done             
-             cp -f $HOME/svn/illumina/trunk/bin/pgmcombine16bit .
+             cp -f $HOME/hg/illumina/bin/pgmcombine16bit .
              ./pgmcombine16bit < comblp.in
              echo $exp_name"_lumlp_"$numlp".pgm"  > varres.in
              echo $exp_name"_reflect.pgm" >> varres.in
@@ -132,7 +132,7 @@ do mkdir $griddir/"x"${x_sites[$ns]}"y"${y_sites[$ns]}
              echo ${y_sites[$ns]} >> varres.in 
              echo "traitement de :"
              pwd
-             cp -f $HOME/svn/illumina/trunk/bin/varres .
+             cp -f $HOME/hg/illumina/bin/varres .
              ./varres 
 
 
@@ -227,7 +227,7 @@ cd $folder
                                  echo "   ! (0=east, 90=north, 180=west, 270=south)" >> illumina.in
                                  echo ".0001 .00001 .35 .07    ! SLIT WIDTH [m] ; PIXEL SIZE [m] ; FOCAL LENGTH [m] ; APPERTURE DIAMETER [m]" >> illumina.in
 # copie de illumina dans ./
-                                 ln -s $HOME/svn/illumina/trunk/bin/illumina .
+                                 ln -s $HOME/hg/illumina/bin/illumina .
 #
 # creation du script pour qsub dans $folder
                                  ici=`pwd`
