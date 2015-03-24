@@ -27,17 +27,17 @@ c    Contact: martin.aube@cegepsherbrooke.qc.ca
 c
 c
       subroutine horizon(x_c,y_c,z_c,d2,alt_sol,nbx,nby,dx,
-     +dy,zen_horiz,latitude) 
+     +dy,zen_horiz,latitu) 
       integer nbx,nby,ii,jj,x_c,y_c,az,daz,azin,n,nn
-      real dx,dy,pi,angleazi,anglezen,alt_sol(1024,1024)
-      real zen_horiz(360),z_c,d2,d2p,altitude
-      real latitude,cor_curvature,a,b,rterre
+      real dx,dy,pi,angazi,angzen,alt_sol(1024,1024)
+      real zen_horiz(360),z_c,d2,d2p,altitu
+      real latitu,corcur,a,b,rterre
       parameter (pi=3.1415926)   
-      latitude=latitude*pi/180.
-      cor_curvature=0.
+      latitu=latitu*pi/180.
+      corcur=0.
       a=6378137.0                                                       ! earth equatorial radius
       b=6356752.3                                                       ! earth polar radius
-      rterre=a**2.*b**2./((a*cos(latitude))**2.+(b*sin(latitude))**2.)
+      rterre=a**2.*b**2./((a*cos(latitu))**2.+(b*sin(latitu))**2.)
      + **(1.5)
 c      print*,'===',x_c,y_c,z_c,d2,'==='
       do jj=1,360
@@ -58,7 +58,7 @@ c Anyway the correction will result in blocking the light ray if the
 c curvature should block the ray.
 c 
 c To fall back to non correction, please simply comment 2 lines below
-c        cor_curvature=sqrt(rterre**2.-(d2/2.-d2p)**2.)-sqrt(rterre**2.-
+c        corcur=sqrt(rterre**2.-(d2/2.-d2p)**2.)-sqrt(rterre**2.-
 c     +  (d2/2.)**2)
 
 
@@ -66,21 +66,21 @@ c     +  (d2/2.)**2)
          if ((ii.eq.x_c).and.(jj.eq.y_c)) then
 c calcul de l'angle azimutal de la cell cible à la ligne d'horizon
          else
-          call angleazimutal(x_c,y_c,ii,jj,dx,dy,angleazi)
-          az=nint(angleazi*180./pi)+1
+          call angleazimutal(x_c,y_c,ii,jj,dx,dy,angazi)
+          az=nint(angazi*180./pi)+1
           daz=nint(atan(1./sqrt(real(x_c-ii)**2.+real(y_c-jj)**2.))*
      +    180./pi/2.)+2
-          altitude=alt_sol(ii,jj)+cor_curvature
+          altitu=alt_sol(ii,jj)+corcur
           call anglezenithal
-     +    (x_c,y_c,z_c,ii,jj,altitude,dx,dy,
-     +    anglezen) 
-c            if (anglezen.lt.zen_horiz(az)) then
+     +    (x_c,y_c,z_c,ii,jj,altitu,dx,dy,
+     +    angzen) 
+c            if (angzen.lt.zen_horiz(az)) then
           azin=az-daz
           if (azin.lt.1) azin=azin+360
           n=azin
           do nn=1,2*daz+1
-           if (anglezen.lt.zen_horiz(n)) then              
-            zen_horiz(n)=anglezen                                          ! horizon est l'angle azmutal maximal en rad
+           if (angzen.lt.zen_horiz(n)) then              
+            zen_horiz(n)=angzen                                          ! horizon est l'angle azmutal maximal en rad
            endif
            n=n+1
            if (n.gt.360) n=1

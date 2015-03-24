@@ -28,14 +28,14 @@ c    Contact: martin.aube@cegepsherbrooke.qc.ca
 c
 c
        subroutine zone_diffusion(x_1,y_1,z1,x_2,y_2,z_2,dx,dy,effet,
-     +         nbx,nby,alt_sol,zonedif,ncell)
+     +         nbx,nby,alt_sol,zondif,ncell)
        integer x_1,y_1,x_2,y_2,z_2,nbx,nby,i,j,k
        integer ncell,neffet,imin,imax,jmin,jmax
-       integer zonedif(3000000,4)
+       integer zondif(3000000,4)
        real x1,y1,z1,x2,y2,z2,x0,y0,z0,alt_sol(1024,1024)
-       real dx,dy,effet,dmin,aire,a,b,c,s,delta,d,deltamax
-       real cell_height(50) 
-      data cell_height /0.25,0.8,1.46,2.25,3.2,4.35,5.74,7.42,9.45,        ! Hauteur du centre de chaque niveau
+       real dx,dy,effet,dmin,aire,a,b,c,s,delta,d,deltmx
+       real cell_h(50) 
+      data cell_h /0.25,0.8,1.46,2.25,3.2,4.35,5.74,7.42,9.45,            ! Hauteur du centre de chaque niveau
      a 11.9,14.86,18.44,22.77,28.,34.31,41.93,51.14,62.27,75.72,91.97,
      b 111.6,135.31,163.95,198.55,240.35,290.85,351.86,425.56,514.59,
      c 622.14,752.06,909.,1098.58,1327.59,1604.23,1938.41,2342.1,
@@ -49,7 +49,7 @@ c calcul de position en metre
        y1=real(y_1)*dy
        x2=real(x_2)*dx
        y2=real(y_2)*dy
-       z2=cell_height(z_2)
+       z2=cell_h(z_2)
        if (x_1.lt.x_2) then
          imin=x_1-neffet
        else
@@ -83,7 +83,7 @@ c
          do k=1,50
           x0=real(i)*dx
           y0=real(j)*dy
-          z0=cell_height(k)
+          z0=cell_h(k)
           if (z0.gt.alt_sol(i,j)) then
            a=sqrt((x1-x0)**2.+(y1-y0)**2.+(z1-z0)**2.)                     ! voir http://mathworld.wolfram.com/Point-LineDistance3-Dimensional.html
            b=sqrt((x1-x2)**2.+(y1-y2)**2.+(z1-z2)**2.)                     ! et http://mathworld.wolfram.com/TriangleArea.html
@@ -94,12 +94,12 @@ c
            dmin=2.*aire/b                                                  ! dmin entre la droite definie par les points 1 et 2 et le point 0
            if ((a.gt.c)) then                                              ! Cas ou le dmin pointe hors du segment 1-2 
             d=sqrt(b**2.+a**2.)                                           ! alors l'un des angles touchant b est superieur a 90deg dans ce cas
-            deltamax=abs(a-d)
-            if (delta.gt.deltamax) dmin=c                                 ! on prendra le plus petit cote entre c et a
+            deltmx=abs(a-d)
+            if (delta.gt.deltmx) dmin=c                                 ! on prendra le plus petit cote entre c et a
            else 
             d=sqrt(b**2.+c**2.)
-            deltamax=abs(c-d)
-            if (delta.gt.deltamax) dmin=a                                           
+            deltmx=abs(c-d)
+            if (delta.gt.deltmx) dmin=a                                           
            endif                                                             
            if (dmin.le.effet) then      
             ncell=ncell+1
@@ -108,9 +108,9 @@ c
              print*,'Reducing 2nd order scat radius:',effet
              goto 10
             endif
-            zonedif(ncell,1)=i                                   
-            zonedif(ncell,2)=j 
-            zonedif(ncell,3)=k
+            zondif(ncell,1)=i                                   
+            zondif(ncell,2)=j 
+            zondif(ncell,3)=k
 c           print*,i,j,k
            endif
           endif                                                           ! fin condition au-dessus du sol

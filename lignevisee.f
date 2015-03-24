@@ -4,7 +4,7 @@ c
 c  Determine les cellules se trouvant dans la ligne de visee (cellules cibles)
 c  entre les cellules (x1,y1,z1) et (x2,y2,z2) 
 c  Retourne la matrice des cellules cibles (visee) ainsi que le nombre
-c  de cellules cibles (ncellule)
+c  de cellules cibles (ncell)
 c
 c-----------------------------------------------------------------------
 c   
@@ -27,20 +27,20 @@ c    Contact: martin.aube@cegepsherbrooke.qc.ca
 c
 c
 
-      subroutine lignevisee (x1,y1,z1,dx,dy,anglevisee,angleazimut,
-     + nbx,nby,visfin,ncfinal,vistep)
+      subroutine lignevisee (x1,y1,z1,dx,dy,angvis,angazi,
+     + nbx,nby,visfin,ncfin,vistep)
 
       integer x1,y1,cx,cy,visee(1024,3),alim,vistep,pos,visfin(1024,3)
-      integer viseef(1024,3),ncellulef,cxm,cym,czm,elimflag
-      integer ncellule,nbx,nby,a,cxp,cyp,czp,cz,ncfinal
+      integer viseef(1024,3),ncellf,cxm,cym,czm,elimf
+      integer ncell,nbx,nby,a,cxp,cyp,czp,cz,ncfin
       real z1,xn,yn,zn,dx,dy,distance
-      real cell_thickness(50),cell_height(50),pi
-      real anglevisee,angleazimut,ix,iy,iz,amax,da
+      real celthi(50),cell_height(50),pi
+      real angvis,angazi,ix,iy,iz,amax,da,angaz1,angvi1
       real dminx,dminy,dminz,r,dr
 
       parameter (pi=3.1415926)
 
-      data cell_thickness /0.5,0.6,0.72,0.86,1.04,1.26,1.52,1.84,2.22,   ! Epaisseur des niveaux
+      data celthi /0.5,0.6,0.72,0.86,1.04,1.26,1.52,1.84,2.22,            ! Epaisseur des niveaux
      a 2.68,3.24,3.92,4.74,5.72,6.9,8.34,10.08,12.18,14.72,17.78,21.48,
      b 25.94,31.34,37.86,45.74,55.26,66.76,80.64,97.42,117.68,142.16,
      c 171.72,207.44,250.58,302.7,365.66,441.72,533.6,644.58,778.66,
@@ -55,38 +55,38 @@ c
      e 10628.87,12840.16,15511.4,18738.26,22636.31,27345.16/
                                            !
       print*,'Calcul des cellules traversees par la ligne de visee...'
-      ncellule=0
-      xn=nint((real(x1-1)*dx)) 						 ! Transfert des coordonnees des cellules en mtre
-      yn=nint((real(y1-1)*dy))                                           ! Le zero du systeme de reference est au coin superieur gauche du pixel observateur
-      zn=z1                                                              !
-      anglevisee = (pi*anglevisee)/180.
-      angleazimut = (pi*angleazimut)/180.
-      ix = ( sin((pi/2.)-anglevisee) ) * (cos(angleazimut))              ! determiner les projections du vecteur de visee selon chaque axe
-      iy = ( sin((pi/2.)-anglevisee) ) * (sin(angleazimut))
-      iz = (cos((pi/2.)-anglevisee))
+      ncell=0
+      xn=nint((real(x1-1)*dx)) 						  ! Transfert des coordonnees des cellules en mtre
+      yn=nint((real(y1-1)*dy))                                            ! Le zero du systeme de reference est au coin superieur gauche du pixel observateur
+      zn=z1                                                               !
+      angvi1 = (pi*angvis)/180.
+      angaz1 = (pi*angazi)/180.
+      ix = ( sin((pi/2.)-angvi1) ) * (cos(angaz1))                        ! determiner les projections du vecteur de visee selon chaque axe
+      iy = ( sin((pi/2.)-angvi1) ) * (sin(angaz1))
+      iz = (cos((pi/2.)-angvi1))
       cxp=0
       cyp=0
       czp=0
 
       do k = 1,50                                                         ! trouver le niveau initial
-         if ((z1 .lt. cell_height(k)+cell_thickness(k)/2.) .and. 
-     +   (z1 .ge. cell_height(k)-cell_thickness(k)/2.)) then
+         if ((z1 .lt. cell_height(k)+celthi(k)/2.) .and. 
+     +   (z1 .ge. cell_height(k)-celthi(k)/2.)) then
             cz= k
          endif
       enddo
-      if (cell_thickness(cz).gt.dx) then
+      if (celthi(cz).gt.dx) then
          da=(dx+dy)/2./1000.
       else
-         da=cell_thickness(cz)/1000.
+         da=celthi(cz)/1000.
       endif                                                               ! determiner l'increment lineaire pour le calcul de la ligne de visee
       if ((real(nbx)*dx.gt.real(nby)*dy).and.(real(nbx)*dx.gt.
-     +cell_height(50)+cell_thickness(50)/2.)) then                        ! determiner la dimension maximale a parcourir
+     +cell_height(50)+celthi(50)/2.)) then                                ! determiner la dimension maximale a parcourir
          amax=real(nbx)*dx
       elseif ((real(nby)*dy.gt.real(nbx)*dx).and.(real(nby)*dy.gt.
-     +cell_height(50)+cell_thickness(50)/2.)) then
+     +cell_height(50)+celthi(50)/2.)) then
          amax=real(nby)*dy
       else
-         amax=cell_height(50)+cell_thickness(50)/2.
+         amax=cell_height(50)+celthi(50)/2.
       endif
       if (amax.lt.cell_height(50)) amax=cell_height(50)
 
@@ -103,18 +103,22 @@ c           print*,'horizontal'
 
       r=0
       dr=da
-      do a = 0,90000
+      do a = 0,100000000
 c                            			                          ! scanner la ligne de vise a intervalle de da en posant que la cellule est largement plus grande que da
          r=r+dr
-         dr=dr*1.2**0.001
+
+         dr=dr*1.0001
+
+
+
 c            print*,'R=',r
          cx = x1 + nint(ix*r/dx)
          cy = y1 + nint(iy*r/dy)
          z = z1 + iz*r
 
          do k = 1,50
-            if ((z .lt.cell_height(k)+cell_thickness(k)/2.).and. 
-     +      (z .ge. cell_height(k)-cell_thickness(k)/2.)) then
+            if ((z .lt.cell_height(k)+celthi(k)/2.).and. 
+     +      (z .ge. cell_height(k)-celthi(k)/2.)) then
                cz= k
             endif
          enddo
@@ -124,15 +128,15 @@ c            print*,'R=',r
      +      da/dx))))
             dminy=abs((iy*real(a)*da/dy-real(nint(iy*real(a)*
      +      da/dy))))
-            dminz=abs((z-cell_height(cz))/cell_thickness(cz))
+            dminz=abs((z-cell_height(cz))/celthi(cz))
             distance=sqrt(dminx**2.+dminy**2.+dminz**2.)
             if (distance.lt.0.5) then                                      ! ne retenir que les positions s'approchant a moins de la demi d'une cellule
                if ((cx.eq.cxp).and.(cy.eq.cyp).and.(cz.eq.czp)) then       ! s'assurer de ne pas compter plus d'une fois la meme cellule
                else   
-                     ncellule=ncellule+1
-                     visee(ncellule,1)=cx
-                     visee(ncellule,2)=cy
-                     visee(ncellule,3)=cz  
+                     ncell=ncell+1
+                     visee(ncell,1)=cx
+                     visee(ncell,2)=cy
+                     visee(ncell,3)=cz  
                      cxp=cx
                      cyp=cy
                      czp=cz 
@@ -143,12 +147,12 @@ c            print*,'R=',r
 c
 c  eviter les angles droits successifs
 c
-      elimflag=0
-      ncellulef=1
-      viseef(ncellulef,1)=visee(1,1)
-      viseef(ncellulef,2)=visee(1,2)
-      viseef(ncellulef,3)=visee(1,3)
-      do i=2,ncellule-1
+      elimf=0
+      ncellf=1
+      viseef(ncellf,1)=visee(1,1)
+      viseef(ncellf,2)=visee(1,2)
+      viseef(ncellf,3)=visee(1,3)
+      do i=2,ncell-1
          cx=visee(i,1)
          cy=visee(i,2)
          cz=visee(i,3)
@@ -161,21 +165,21 @@ c
          if ((((cxp.eq.cx).and.(cyp.eq.cy).and.(czp.eq.cz+1).and.
      +   ((cxm.ne.cxp).or.(cym.ne.cyp))).or.((cxm.eq.cx).and.
      +   (cym.eq.cy).and.(czm.eq.cz-1).and.((cxm.ne.cxp).or.
-     +   (cym.ne.cyp)))).and.(elimflag.ne.1)) then
+     +   (cym.ne.cyp)))).and.(elimf.ne.1)) then
 c    un cas a eliminer
-            elimflag=1
+            elimf=1
          else      
-            ncellulef=ncellulef+1
-            viseef(ncellulef,1)=cx
-            viseef(ncellulef,2)=cy
-            viseef(ncellulef,3)=cz  
-            elimflag=0 
+            ncellf=ncellf+1
+            viseef(ncellf,1)=cx
+            viseef(ncellf,2)=cy
+            viseef(ncellf,3)=cz  
+            elimf=0 
          endif
       enddo
-      ncellulef=ncellulef+1
-      viseef(ncellulef,1)=visee(ncellule,1)
-      viseef(ncellulef,2)=visee(ncellule,2)
-      viseef(ncellulef,3)=visee(ncellule,3)
+      ncellf=ncellf+1
+      viseef(ncellf,1)=visee(ncell,1)
+      viseef(ncellf,2)=visee(ncell,2)
+      viseef(ncellf,3)=visee(ncell,3)
 
 
 
@@ -183,35 +187,34 @@ c    un cas a eliminer
 
 
 c introduce a skipping factor along the line of sight for low elevation angles
-c      vistep=ncellulef/75+1
-c      ncfinal=ncellulef/vistep
-c      do i=1,ncfinal
+c
+c cela introduit des erreurs de l'ordre de 10%!!!!!!!!!!
+c      vistep=ncellf/75+1
+c      ncfin=ncellf/vistep
+c      do i=1,ncfin
 c         pos=(i-1)*vistep+1
 c         visfin(i,1)=viseef(pos,1)
 c         visfin(i,2)=viseef(pos,2)
 c         visfin(i,3)=viseef(pos,3)
 c      enddo
-       do i=1,50
-          do ii=1,ncellulef
-             if (viseef(ii,3).eq.i) then
-                 visfin(i,1)=viseef(ii,1)
-                 visfin(i,2)=viseef(ii,2)
-                 visfin(i,3)=viseef(ii,3)
-             endif
-          enddo
-       enddo
 
-       ncfinal=50
-       vistep=1
+
+          do ii=1,ncellf
+                 visfin(ii,1)=viseef(ii,1)
+                 visfin(ii,2)=viseef(ii,2)
+                 visfin(ii,3)=viseef(ii,3)
+          enddo
+          ncfin=ncellf
+          vistep=1
 
               
       
-      print*,'Total original cells: ',ncellulef
-      print*,'Total final cells: ',ncfinal
+      print*,'Total original cells: ',ncellf
+      print*,'Total final cells: ',ncfin
       print*,'============'
       print*,'x   y   z'
       print*,'------------'
-      do i=1,ncfinal
+      do i=1,ncfin
            write(*,1110) visfin(i,1),visfin(i,2),visfin(i,3)
       enddo
  1110 format(I3,1x,I3,1x,I3)

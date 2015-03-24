@@ -26,27 +26,27 @@ c
 c    Contact: martin.aube@cegepsherbrooke.qc.ca
 c
 c
-      subroutine angleazimutal(x1,y1,x2,y2,dx,dy,angleazi) 
+      subroutine angleazimutal(x1,y1,x2,y2,dx,dy,angazi) 
       integer x1,y1,x2,y2
-      real dx,dy,pi,angleazi                                                   
+      real dx,dy,pi,angazi                                                   
       parameter (pi=3.1415926)   
-      angleazi=abs(atan(real(y2-y1)*dy/(real(x2-x1)*dx)))
+      angazi=abs(atan(real(y2-y1)*dy/(real(x2-x1)*dx)))
       if (((x2-x1).eq.0).and.((y2-y1).eq.0)) then
-         angleazi=0.
+         angazi=0.
       else
         if (x2-x1.ge.0.) then
          if (y2-y1.lt.0.) then
-           angleazi=2.*pi-angleazi 
+           angazi=2.*pi-angazi 
          endif 
         else
          if (y2-y1.lt.0.) then
-           angleazi=angleazi+pi 
+           angazi=angazi+pi 
          else
-           angleazi=pi-angleazi
+           angazi=pi-angazi
          endif       
         endif
-        if ((angleazi.lt.0.).or.(angleazi.gt.2.*pi)) then
-          print*,'ERREUR angleazi=',angleazi,x1,y2,x2,y2
+        if ((angazi.lt.0.).or.(angazi.gt.2.*pi)) then
+          print*,'ERREUR angazi=',angazi,x1,y2,x2,y2
           stop
         endif
 c        if ((x1.eq.x2).and.(y1.eq.y2)) then

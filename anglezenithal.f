@@ -5,7 +5,7 @@ c  debugge par Martin Aube 2004 (cette routine ne calculait pas du tout
 c  l'angle zenithal
 c
 c  Determine l'angle zenithal entre les points (x1,y1,z1) et (x2,y2,z2)
-c  Retourne l'angle anglezen en radians
+c  Retourne l'angle angzen en radians
 c
 c  pour utilisation avec Illumina 
 c-----------------------------------------------------------------------
@@ -28,20 +28,20 @@ c
 c    Contact: martin.aube@cegepsherbrooke.qc.ca
 c
 c
-      subroutine anglezenithal(x1,y1,z1,x2,y2,z2,dx,dy,anglezen) 
+      subroutine anglezenithal(x1,y1,z1,x2,y2,z2,dx,dy,angzen) 
       integer x1,y1,x2,y2
-      real z1,z2,dx,dy,pi,anglezen                                                    
+      real z1,z2,dx,dy,pi,angzen                                                    
       parameter (pi=3.1415926)   
       hdist=sqrt((real(x2-x1)*(dx))**2.
      a    +(real(y2-y1)*(dy))**2.)
       if (z2-z1.ne.0.) then
-         anglezen=atan(hdist/abs(z2-z1))
-         if (z2-z1.lt.0.) anglezen=pi-anglezen 
+         angzen=atan(hdist/abs(z2-z1))
+         if (z2-z1.lt.0.) angzen=pi-angzen 
       else
-         anglezen=pi/2.
+         angzen=pi/2.
       endif
-      if ((anglezen.lt.0.).or.(anglezen.gt.pi)) then
-        print*,'ERREUR anglezen2=',anglezen
+      if ((angzen.lt.0.).or.(angzen.gt.pi)) then
+        print*,'ERREUR angzen2=',angzen
         stop
       endif
       return

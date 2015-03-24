@@ -4,11 +4,11 @@ c=======================================================================
 c  Routine diffusion (Alex Neron 2004) (Modifie par Martin Aube, Valerie Houle, Philippe Robert-Staehler)
 c
 c  Determine la probabilite de diffusion de la lumiere par unite d'angle solide
-c  dans la direction angle_dif. Les parametres de diffusion sont donnes
+c  dans la direction angdif. Les parametres de diffusion sont donnes
 c  par secdif (rapport de la section efficace de diffusion sur la section
 c  efficace d'extinction totale), fonc_anorm (fonction de diffusion
 c  normalisees des aerosols)
-c  Retourne la probabilite de diffusion probdif
+c  Retourne la probabilite de diffusion pdif
 c
 c  pour utilisation avec Illumina
 c-----------------------------------------------------------------------
@@ -31,20 +31,20 @@ c
 c    Contact: martin.aube@cegepsherbrooke.qc.ca
 c
 c
-      subroutine diffusion (omega,angle_dif,trans_a,trans_m,secdif,
-     +   fonc_a,probdif)
-      real angle_dif,probdif,prob_a,prob_m,trans_a,trans_m,secdif 
-      real fonc_mol,pi,fonc_a(181),fonc_ae
-      real angle_deg
+      subroutine diffusion (omega,angdif,transa,transm,secdif,
+     +   fonc_a,pdif)
+      real angdif,pdif,prob_a,prob_m,transa,transm,secdif 
+      real fctmol,pi,fonc_a(181),fonc_ae
+      real angdeg
       real omega,ouvang,nbang
       integer rang,na,naz
       parameter (pi=3.1415926)
 c--------------------------------------------------------
 c   Calcul et normalisation des fonctions de diffusion
 c--------------------------------------------------------      
-      if (angle_dif.lt.0.) angle_dif=-angle_dif      
-      if (angle_dif-pi.gt.0.00001) angle_dif=pi
-      angle_deg=((angle_dif*180.)/pi)
+      if (angdif.lt.0.) angdif=-angdif      
+      if (angdif-pi.gt.0.00001) angdif=pi
+      angdeg=((angdif*180.)/pi)
 c
 c=======================================================================
 c    Estimation du demi angle directeur de l'angle solide                 ! Cet angle servira a obtenir un meilleur estime (moyenne) de 
@@ -59,7 +59,8 @@ c=======================================================================
 c                                                                         ! Transformer l'angle en deg entier en position dans la matrice.
 c  moyenner sur +- ouvang       
 c
-                rang=int(angle_deg)+1
+                naz=0
+                rang=int(angdeg)+1
                 nbang=0.
                 fonc_ae=0.
                 do na=-nint(ouvang),nint(ouvang)
@@ -71,22 +72,22 @@ c
                 enddo
                 fonc_ae=fonc_ae/nbang 
                 nbang=0.
-                fonc_mol=0.
+                fctmol=0.
                 do na=-nint(ouvang),nint(ouvang)
-       fonc_mol=fonc_mol+0.75*(1.+((cos(angle_dif+real(na)*pi/180.))
+       fctmol=fctmol+0.75*(1.+((cos(angdif+real(na)*pi/180.))
      +                  **2.))/(4.*pi)                                    ! L'integrale de la fonction de diffusion des molecules sur tous 
 c                                                                         ! les angles solides est de 4pi  fonc_ae=fonc_ae+fonc_a(naz).
                   nbang=nbang+1.
                 enddo
-                fonc_mol=fonc_mol/nbang                      
+                fctmol=fctmol/nbang                      
 c      
 c----------------------------------------
 c  Calcul des probabilites de diffusion par unite d'angle solide 
 c----------------------------------------    
-      prob_a=(1.-trans_a)*secdif*fonc_ae                                  ! Les fonctions utilisees ici sont deja normalisees
-      prob_m=(1.-trans_m)*fonc_mol                                        ! Fonc_ae normalisee dans le MAIN, fonc_mol dans la routine (voir 
+      prob_a=(1.-transa)*secdif*fonc_ae                                   ! Les fonctions utilisees ici sont deja normalisees
+      prob_m=(1.-transm)*fctmol                                           ! Fonc_ae normalisee dans le MAIN, fctmol dans la routine (voir 
 c                                                                         ! la division par 4 pi).
-      probdif = prob_a+prob_m                                             ! Ce calcul est approximatif et bon seulement si 1-trans_a et
-c                                                                         ! 1-trans_m sont tres petits.
+      pdif = prob_a+prob_m                                                ! Ce calcul est approximatif et bon seulement si 1-transa et
+c                                                                         ! 1-transm sont tres petits.
       return
       end
