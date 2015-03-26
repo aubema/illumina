@@ -1292,14 +1292,14 @@ c           omega=omega2
 
 
 c=======================================================================
-c    Estimation du demi angle directeur de l'angle solide                 ! Cet angle servira a obtenir un meilleur estime (moyenne) de 
+c Estimation of the subtended angle of the solid angle                    ! Cet angle servira a obtenir un meilleur estime (moyenne) de 
 c                                                                         ! P_dir pour le cas de grands angles solides ou pvalno
 c=======================================================================  ! varie significativement sur +- ouvang.
                      ouvang=sqrt(omega/pi)                                ! Angle en radian.
                      ouvang=ouvang*180./pi                                ! Angle en degres.
 c 
 c=======================================================================
-c        Calcul de la fonction d'emission de la source vers la cellule diffusante
+c Computing emission function of the source toward the scattering cell    
 c=======================================================================
 c    
                      anglez=nint(angzen/pi*180.)
@@ -1322,12 +1322,12 @@ c
                      P_dif1=P_dif1/nbang 
 c
 c=======================================================================
-c        Calcul du flux atteignant la cellule diffusante
+c Computing flux reaching the scattering cell
 c=======================================================================
                      fldif1=lamplu(x_s,y_s,stype)*P_dif1*
      +               omega*transm*transa
 c=======================================================================
-c   Calcul de la probabilite de diffusion de la lumiere diffuse vers la cellule cible
+c Computing the scattering probability toward the line of sight cell
 c=======================================================================
                      if (angzen.lt.(pi/2.)) then                          ! Attribution des limites initiale et finale du parcours de 
 c                                                                         ! diffusion dans la cellule.
@@ -1346,11 +1346,11 @@ c                                                                         ! diff
                      call diffusion(omega,angdif,tran1a,tran1m,           ! Probabilite de diffusion de la lumiere directe.
      +               secdif,fdifan,pdifd1)
 c=======================================================================
-c   Calcul de l'intensite diffusee dirigee vers la cellule cible en provenance de la cellule diffusante
+c Computing scattered intensity toward the line of sight cell from the scattering cell  
 c=======================================================================
                      idif1=fldif1*pdifd1
 c=======================================================================
-c        Calcul de l'angle zenithal entre la cellule diffusante et la cellule cible
+c Computing zenith angle between the scattering cell and the line of sight cell
 c=======================================================================
         d2=sqrt((real(x_dif-x_c)*dx)**2.+(real(y_dif-y_c)*dy)**2.)        ! dist max pour l'horiz (i.e. l horizon passe la cell-diff ne compte pas)
         call horizon(x_dif,y_dif,z_dif,d2,altsol,nbx,nby,dx,dy,
@@ -1362,26 +1362,21 @@ c                                                                         ! cell
         az=nint(angazi*180./pi)+1
         if ((angzen).lt.zhoriz(az)) then                                  ! debut condition ombrage diffuse-cible  
 c                                                                 
-c obstacle sous maille                
+c subgrid obstacles                
                      angmin=pi/2.-atan((obsH+altsol(x_dif,
      +               y_dif)-z_dif)/drefle)
                      if (angzen.lt.angmin) then                           ! debut condition obstacle sous maille diffuse->cible.
 c                                                                   
 c=======================================================================
-c        Calcul de la transmittance entre la cellule diffusante et la cellule cible
+c Computing transmittance between the scattering cell and the line of sight cell
 c=======================================================================
                       call transmitm (angzen,x_dif,y_dif,z_dif,x_c,
      +                y_c,z_c,lambda,dx,dy,pressi,transm)
                       call transmita (angzen,x_dif,y_dif,z_dif,x_c,
      +                y_c,z_c,dx,dy,taua,transa) 
 c=======================================================================
-c     Calcul de l'angle solide couvert par la cellule cible vue de la cellule diffusante
+c Computing the solid angle of the line of sight cell as seen from the scattering cell
 c=======================================================================
-
-
-c               omega2=0.
-
-
                       xc=dble(x_c)*dble(dx)                               ! Position en metres de la cellule cible (longitude).
                       yc=dble(y_c)*dble(dy)                               ! Position en metres de la cellule cible (latitu).
                       zc=dble(z_c)                                        ! Position en metres de la cellule cible (altitude).
@@ -1401,12 +1396,6 @@ c    ------------------------------------
                       else
                        omega1=0.
                       endif
-
-
-c           omega2=omega2+omega1
-
-
-
 c     ------------------------------------
 c     Angle solide pour le plan central zx
 c     ------------------------------------
@@ -1424,12 +1413,6 @@ c                                                                         ! pour
                       if (omega.gt.0.) then
                        if (omega .gt. omega1) omega1 = omega              ! On garde l'angle solide le plus grand jusqu'a present.
                       endif
-
-
-c           omega2=omega2+omega1
-
-
-
 c     ------------------------------------
 c     Angle solide pour le plan central yz
 c     ------------------------------------
@@ -1448,12 +1431,6 @@ c                                                                         ! pour
                        if (omega .gt. omega1) omega1 = omega              ! On garde l'angle solide le plus grand.
                       endif
                       omega=omega1
-
-
-c           omega2=omega2+omega1
-c           omega=omega2
-
-
 c=======================================================================
 c        Calcul du flux diffuse atteignant la cellule cible
 c=======================================================================
@@ -1479,7 +1456,7 @@ c                                                                         ! diff
                       call diffusion(omega,angdif,tran1a,tran1m,          ! Probabilite de diffusion de la lumiere directe.
      +                secdif,fdifan,pdifd2)
 c=======================================================================
-c   Calcul de l'intensite diffusee dirigee vers l'observateur en provenance de la cellule cible
+c Computing scattered intensity toward the observer from the line of sight cell
 c=======================================================================
                       idiff2=fldiff*pdifd2
                       idiff2=
@@ -1487,7 +1464,6 @@ c=======================================================================
                       itodif=                                             ! afin d'accelerer le calcul.
      +                itodif+idiff2
                      endif                                                ! Fin condition obstacle diffuse->cible.
-                     
        else
 c          print*,'ombrage diff-cible1',x_dif,y_dif,z_dif,x_c,y_c,z_c
         endif                                                             ! fin condition ombrage diffuse-cible                     
@@ -1499,7 +1475,7 @@ c        print*,'ombrage source-diff',x_s,y_s,z_s,x_dif,y_dif,z_dif
                  endif                                                    ! Fin de la condition "cellule a l'interieur du domaine".      
                 enddo                                                     ! Fin de la boucle sur les cellules diffusante.
                endif                                                      ! fin de la condition ou effdif > dx.
-c    fin du calcul de l'intensite diffusee    
+c End of scattered intensity calculations    
 c**********************************************************************
 c        Calcul de l'intensite provenant d'une source dans la cible vers le capteur
 c**********************************************************************
@@ -1684,20 +1660,14 @@ c=======================================================================
             enddo
            enddo
            omefov=lfente*longfe/focal**2.                                 ! Calcul de l'angle solide de la fente projete sur le ciel.
-c      portio=omefov/omega                                                ! Methode obsolete pour calculer la fraction de la cellule 
-c                                                                         ! cible vue par le fov (Fraction peut etre superieure a 1 si 
-c                                                                         ! omefov.gt.omega).
            if (cos(pi-angzen).eq.0.) then 
             print*,'ERREUR la visee est pafaitement horizontale!'
             stop
            else
 
 
-        portio=omefov/omega
-c            portio=(omefov*dis_obs*dis_obs)/(cos(pi-angzen)*dx*dy)        ! Fraction de la cellule cible vue par le fov (Fraction peut 
-
-
-
+             portio=omefov/omega
+c            portio=(omefov*dis_obs*dis_obs)/(cos(pi-angzen)*dx*dy)       ! Fraction de la cellule cible vue par le fov (Fraction peut 
 c                                                                         ! etre superieure a 1). Le pi ici est du au fait
 c                                                                         ! que angzen est calcule sur le trajet cible vers l'observateur
            endif
