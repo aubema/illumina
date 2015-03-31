@@ -8,7 +8,7 @@ do  bash $i
     read toto que req run toto < currentjobs.tmp
     let njob=que+run
     echo $njob "initial"
-    while  [ $njob -gt 500 ]
+    while  [ $njob -gt 750 ]
     do bqmon -u | grep maube > currentjobs.tmp
        read toto que req run toto < currentjobs.tmp
        let njob=que+run
