@@ -1,0 +1,6 @@
+#!/bin/csh
+#PBS -l cput=110:00:00
+#PBS -l walltime=110:00:00
+#PBS -m bea
+cd  /home/aubema/hg/illumina/Test/x151y151/ho7/ro15/sd71/rd0/el60/az240/ta0.4/wl498
+./illumina

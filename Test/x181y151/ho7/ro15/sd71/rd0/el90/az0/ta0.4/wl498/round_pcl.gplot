@@ -1,0 +1,4 @@
+ set dgrid3d         301 ,         301
+ set hidden3d
+ set pm3d
+ splot "round_pcl.txt"               with dots

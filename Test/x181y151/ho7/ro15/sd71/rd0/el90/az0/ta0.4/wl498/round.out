@@ -1,0 +1,369 @@
+ FICHIERS UTILISES
+ round_topogra.pgm                                                       round_reflect.pgm                                                       urban_RH70_0.4980um.mie.out                                             
+ Longueur d'onde (nm):   498.000000      epaisseur optique:  0.400000006    
+ Zone de diffusion:   0.00000000      m
+ Saut de diffusion:          71
+ Portee de la reflexion:   15.0000000      m
+ Position observateur(x,y,z)         181         151           1
+ Angle d elevation:   90.0000000      angle azim (horaire      p/r au nord)   90.0000000    
+ Largeur du domaine [NS](m):   301000.000     #cases:         301
+ Largeur du domaine [EO](m):   301000.000     #cases:         301
+ Taille d'une cellule (m):   1000.00000      X    1000.00000    
+ latitu sud-ouest:   45.5299988      Longitude sud-ouest:  -71.2799988    
+ ==================================================
+  Avancement le long de la ligne de visee :           1 /          50 (         181 ,         151 )
+  Hauteur de la cible   =  0.250000000      m
+  Epaisseur de la cible =  0.500000000      m
+  Flux capteur          =   1.00000000    
+  Flux capteur cumule   =   0.00000000    
+ ==================================================
+  Avancement le long de la ligne de visee :           2 /          50 (         181 ,         151 )
+  Hauteur de la cible   =  0.800000012      m
+  Epaisseur de la cible =  0.600000024      m
+  Turning on lamp           1
+  Flux capteur          =   0.00000000    
+  Flux capteur cumule   =   0.00000000    
+ ==================================================
+  Avancement le long de la ligne de visee :           3 /          50 (         181 ,         151 )
+  Hauteur de la cible   =   1.46000004      m
+  Epaisseur de la cible =  0.720000029      m
+  Turning on lamp           1
+  Flux capteur          =   0.00000000    
+  Flux capteur cumule   =   0.00000000    
+ ==================================================
+  Avancement le long de la ligne de visee :           4 /          50 (         181 ,         151 )
+  Hauteur de la cible   =   2.25000000      m
+  Epaisseur de la cible =  0.860000014      m
+  Turning on lamp           1
+  Flux capteur          =   0.00000000    
+  Flux capteur cumule   =   0.00000000    
+ ==================================================
+  Avancement le long de la ligne de visee :           5 /          50 (         181 ,         151 )
+  Hauteur de la cible   =   3.20000005      m
+  Epaisseur de la cible =   1.03999996      m
+  Turning on lamp           1
+  Flux capteur          =   0.00000000    
+  Flux capteur cumule   =   0.00000000    
+ ==================================================
+  Avancement le long de la ligne de visee :           6 /          50 (         181 ,         151 )
+  Hauteur de la cible   =   4.34999990      m
+  Epaisseur de la cible =   1.25999999      m
+  Turning on lamp           1
+  Flux capteur          =   0.00000000    
+  Flux capteur cumule   =   0.00000000    
+ ==================================================
+  Avancement le long de la ligne de visee :           7 /          50 (         181 ,         151 )
+  Hauteur de la cible   =   5.73999977      m
+  Epaisseur de la cible =   1.51999998      m
+  Turning on lamp           1
+  Flux capteur          =   0.00000000    
+  Flux capteur cumule   =   0.00000000    
+ ==================================================
+  Avancement le long de la ligne de visee :           8 /          50 (         181 ,         151 )
+  Hauteur de la cible   =   7.42000008      m
+  Epaisseur de la cible =   1.84000003      m
+  Turning on lamp           1
+  Flux capteur          =   3.16944873E-17
+  Flux capteur cumule   =   3.16944873E-17
+ ==================================================
+  Avancement le long de la ligne de visee :           9 /          50 (         181 ,         151 )
+  Hauteur de la cible   =   9.44999981      m
+  Epaisseur de la cible =   2.22000003      m
+  Turning on lamp           1
+  Flux capteur          =   2.33408151E-17
+  Flux capteur cumule   =   5.50353040E-17
+ ==================================================
+  Avancement le long de la ligne de visee :          10 /          50 (         181 ,         151 )
+  Hauteur de la cible   =   11.8999996      m
+  Epaisseur de la cible =   2.68000007      m
+  Turning on lamp           1
+  Flux capteur          =   1.76750349E-17
+  Flux capteur cumule   =   7.27103405E-17
+ ==================================================
+  Avancement le long de la ligne de visee :          11 /          50 (         181 ,         151 )
+  Hauteur de la cible   =   14.8599997      m
+  Epaisseur de la cible =   3.24000001      m
+  Turning on lamp           1
+  Flux capteur          =   1.37008506E-17
+  Flux capteur cumule   =   8.64111911E-17
+ ==================================================
+  Avancement le long de la ligne de visee :          12 /          50 (         181 ,         151 )
+  Hauteur de la cible   =   18.4400005      m
+  Epaisseur de la cible =   3.92000008      m
+  Turning on lamp           1
+  Flux capteur          =   1.07774876E-17
+  Flux capteur cumule   =   9.71886795E-17
+ ==================================================
+  Avancement le long de la ligne de visee :          13 /          50 (         181 ,         151 )
+  Hauteur de la cible   =   22.7700005      m
+  Epaisseur de la cible =   4.73999977      m
+  Turning on lamp           1
+  Flux capteur          =   8.60926190E-18
+  Flux capteur cumule   =   1.05797942E-16
+ ==================================================
+  Avancement le long de la ligne de visee :          14 /          50 (         181 ,         151 )
+  Hauteur de la cible   =   28.0000000      m
+  Epaisseur de la cible =   5.71999979      m
+  Turning on lamp           1
+  Flux capteur          =   6.93587015E-18
+  Flux capteur cumule   =   1.12733812E-16
+ ==================================================
+  Avancement le long de la ligne de visee :          15 /          50 (         181 ,         151 )
+  Hauteur de la cible   =   34.3100014      m
+  Epaisseur de la cible =   6.90000010      m
+  Turning on lamp           1
+  Flux capteur          =   5.63312851E-18
+  Flux capteur cumule   =   1.18366938E-16
+ ==================================================
+  Avancement le long de la ligne de visee :          16 /          50 (         181 ,         151 )
+  Hauteur de la cible   =   41.9300003      m
+  Epaisseur de la cible =   8.34000015      m
+  Turning on lamp           1
+  Flux capteur          =   4.64929850E-18
+  Flux capteur cumule   =   1.23016236E-16
+ ==================================================
+  Avancement le long de la ligne de visee :          17 /          50 (         181 ,         151 )
+  Hauteur de la cible   =   51.1399994      m
+  Epaisseur de la cible =   10.0799999      m
+  Turning on lamp           1
+  Flux capteur          =   3.84932634E-18
+  Flux capteur cumule   =   1.26865564E-16
+ ==================================================
+  Avancement le long de la ligne de visee :          18 /          50 (         181 ,         151 )
+  Hauteur de la cible   =   62.2700005      m
+  Epaisseur de la cible =   12.1800003      m
+  Turning on lamp           1
+  Flux capteur          =   3.23737709E-18
+  Flux capteur cumule   =   1.30102937E-16
+ ==================================================
+  Avancement le long de la ligne de visee :          19 /          50 (         181 ,         151 )
+  Hauteur de la cible   =   75.7200012      m
+  Epaisseur de la cible =   14.7200003      m
+  Turning on lamp           1
+  Flux capteur          =   2.72659203E-18
+  Flux capteur cumule   =   1.32829523E-16
+ ==================================================
+  Avancement le long de la ligne de visee :          20 /          50 (         181 ,         151 )
+  Hauteur de la cible   =   91.9700012      m
+  Epaisseur de la cible =   17.7800007      m
+  Turning on lamp           1
+  Flux capteur          =   2.32897809E-18
+  Flux capteur cumule   =   1.35158506E-16
+ ==================================================
+  Avancement le long de la ligne de visee :          21 /          50 (         181 ,         151 )
+  Hauteur de la cible   =   111.599998      m
+  Epaisseur de la cible =   21.4799995      m
+  Turning on lamp           1
+  Flux capteur          =   2.02826961E-18
+  Flux capteur cumule   =   1.37186780E-16
+ ==================================================
+  Avancement le long de la ligne de visee :          22 /          50 (         181 ,         151 )
+  Hauteur de la cible   =   135.309998      m
+  Epaisseur de la cible =   25.9400005      m
+  Turning on lamp           1
+  Flux capteur          =   1.76449536E-18
+  Flux capteur cumule   =   1.38951282E-16
+ ==================================================
+  Avancement le long de la ligne de visee :          23 /          50 (         181 ,         151 )
+  Hauteur de la cible   =   163.949997      m
+  Epaisseur de la cible =   31.3400002      m
+  Turning on lamp           1
+  Flux capteur          =   1.58907817E-18
+  Flux capteur cumule   =   1.40540355E-16
+ ==================================================
+  Avancement le long de la ligne de visee :          24 /          50 (         181 ,         151 )
+  Hauteur de la cible   =   198.550003      m
+  Epaisseur de la cible =   37.8600006      m
+  Turning on lamp           1
+  Flux capteur          =   1.42060867E-18
+  Flux capteur cumule   =   1.41960962E-16
+ ==================================================
+  Avancement le long de la ligne de visee :          25 /          50 (         181 ,         151 )
+  Hauteur de la cible   =   240.350006      m
+  Epaisseur de la cible =   45.7400017      m
+  Turning on lamp           1
+  Flux capteur          =   1.33502794E-18
+  Flux capteur cumule   =   1.43295992E-16
+ ==================================================
+  Avancement le long de la ligne de visee :          26 /          50 (         181 ,         151 )
+  Hauteur de la cible   =   290.850006      m
+  Epaisseur de la cible =   55.2599983      m
+  Turning on lamp           1
+  Flux capteur          =   1.25086097E-18
+  Flux capteur cumule   =   1.44546847E-16
+ ==================================================
+  Avancement le long de la ligne de visee :          27 /          50 (         181 ,         151 )
+  Hauteur de la cible   =   351.859985      m
+  Epaisseur de la cible =   66.7600021      m
+  Turning on lamp           1
+  Flux capteur          =   1.25844291E-18
+  Flux capteur cumule   =   1.45805287E-16
+ ==================================================
+  Avancement le long de la ligne de visee :          28 /          50 (         181 ,         151 )
+  Hauteur de la cible   =   425.559998      m
+  Epaisseur de la cible =   80.6399994      m
+  Turning on lamp           1
+  Flux capteur          =   1.28479544E-18
+  Flux capteur cumule   =   1.47090077E-16
+ ==================================================
+  Avancement le long de la ligne de visee :          29 /          50 (         181 ,         151 )
+  Hauteur de la cible   =   514.590027      m
+  Epaisseur de la cible =   97.4199982      m
+  Turning on lamp           1
+  Flux capteur          =   1.31829315E-18
+  Flux capteur cumule   =   1.48408365E-16
+ ==================================================
+  Avancement le long de la ligne de visee :          30 /          50 (         181 ,         151 )
+  Hauteur de la cible   =   622.140015      m
+  Epaisseur de la cible =   117.680000      m
+  Turning on lamp           1
+  Flux capteur          =   1.41799468E-18
+  Flux capteur cumule   =   1.49826364E-16
+ ==================================================
+  Avancement le long de la ligne de visee :          31 /          50 (         181 ,         151 )
+  Hauteur de la cible   =   752.059998      m
+  Epaisseur de la cible =   142.160004      m
+  Turning on lamp           1
+  Flux capteur          =   1.57368868E-18
+  Flux capteur cumule   =   1.51400059E-16
+ ==================================================
+  Avancement le long de la ligne de visee :          32 /          50 (         181 ,         151 )
+  Hauteur de la cible   =   909.000000      m
+  Epaisseur de la cible =   171.720001      m
+  Turning on lamp           1
+  Flux capteur          =   1.84044667E-18
+  Flux capteur cumule   =   1.53240502E-16
+ ==================================================
+  Avancement le long de la ligne de visee :          33 /          50 (         181 ,         151 )
+  Hauteur de la cible   =   1098.57996      m
+  Epaisseur de la cible =   207.440002      m
+  Turning on lamp           1
+  Flux capteur          =   2.29185443E-18
+  Flux capteur cumule   =   1.55532362E-16
+ ==================================================
+  Avancement le long de la ligne de visee :          34 /          50 (         181 ,         151 )
+  Hauteur de la cible   =   1327.58997      m
+  Epaisseur de la cible =   250.580002      m
+  Turning on lamp           1
+  Flux capteur          =   2.57744412E-18
+  Flux capteur cumule   =   1.58109804E-16
+ ==================================================
+  Avancement le long de la ligne de visee :          35 /          50 (         181 ,         151 )
+  Hauteur de la cible   =   1604.22998      m
+  Epaisseur de la cible =   302.700012      m
+  Turning on lamp           1
+  Flux capteur          =   3.48726277E-18
+  Flux capteur cumule   =   1.61597065E-16
+ ==================================================
+  Avancement le long de la ligne de visee :          36 /          50 (         181 ,         151 )
+  Hauteur de la cible   =   1938.41003      m
+  Epaisseur de la cible =   365.660004      m
+  Turning on lamp           1
+  Flux capteur          =   4.31590666E-18
+  Flux capteur cumule   =   1.65912976E-16
+ ==================================================
+  Avancement le long de la ligne de visee :          37 /          50 (         181 ,         151 )
+  Hauteur de la cible   =   2342.10010      m
+  Epaisseur de la cible =   441.720001      m
+  Turning on lamp           1
+  Flux capteur          =   4.76125864E-18
+  Flux capteur cumule   =   1.70674240E-16
+ ==================================================
+  Avancement le long de la ligne de visee :          38 /          50 (         181 ,         151 )
+  Hauteur de la cible   =   2829.76001      m
+  Epaisseur de la cible =   533.599976      m
+  Turning on lamp           1
+  Flux capteur          =   5.81421737E-18
+  Flux capteur cumule   =   1.76488460E-16
+ ==================================================
+  Avancement le long de la ligne de visee :          39 /          50 (         181 ,         151 )
+  Hauteur de la cible   =   3418.85010      m
+  Epaisseur de la cible =   644.580017      m
+  Turning on lamp           1
+  Flux capteur          =   8.55042868E-18
+  Flux capteur cumule   =   1.85038887E-16
+ ==================================================
+  Avancement le long de la ligne de visee :          40 /          50 (         181 ,         151 )
+  Hauteur de la cible   =   4130.47021      m
+  Epaisseur de la cible =   778.659973      m
+  Turning on lamp           1
+  Flux capteur          =   9.01359606E-18
+  Flux capteur cumule   =   1.94052482E-16
+ ==================================================
+  Avancement le long de la ligne de visee :          41 /          50 (         181 ,         151 )
+  Hauteur de la cible   =   4990.10986      m
+  Epaisseur de la cible =   940.619995      m
+  Turning on lamp           1
+  Flux capteur          =   1.09005820E-17
+  Flux capteur cumule   =   2.04953068E-16
+ ==================================================
+  Avancement le long de la ligne de visee :          42 /          50 (         181 ,         151 )
+  Hauteur de la cible   =   6028.54980      m
+  Epaisseur de la cible =   1136.26001      m
+  Turning on lamp           1
+  Flux capteur          =   1.52429187E-17
+  Flux capteur cumule   =   2.20195982E-16
+ ==================================================
+  Avancement le long de la ligne de visee :          43 /          50 (         181 ,         151 )
+  Hauteur de la cible   =   7282.97998      m
+  Epaisseur de la cible =   1372.59998      m
+  Turning on lamp           1
+  Flux capteur          =   1.66716565E-17
+  Flux capteur cumule   =   2.36867629E-16
+ ==================================================
+  Avancement le long de la ligne de visee :          44 /          50 (         181 ,         151 )
+  Hauteur de la cible   =   8798.33008      m
+  Epaisseur de la cible =   1658.09998      m
+  Turning on lamp           1
+  Flux capteur          =   1.74072732E-17
+  Flux capteur cumule   =   2.54274897E-16
+ ==================================================
+  Avancement le long de la ligne de visee :          45 /          50 (         181 ,         151 )
+  Hauteur de la cible   =   10628.8701      m
+  Epaisseur de la cible =   2002.97998      m
+  Turning on lamp           1
+  Flux capteur          =   1.47990486E-17
+  Flux capteur cumule   =   2.69073939E-16
+ ==================================================
+  Avancement le long de la ligne de visee :          46 /          50 (         181 ,         151 )
+  Hauteur de la cible   =   12840.1602      m
+  Epaisseur de la cible =   2419.60010      m
+  Turning on lamp           1
+  Flux capteur          =   2.28846696E-17
+  Flux capteur cumule   =   2.91958599E-16
+ ==================================================
+  Avancement le long de la ligne de visee :          47 /          50 (         181 ,         151 )
+  Hauteur de la cible   =   15511.4004      m
+  Epaisseur de la cible =   2922.87988      m
+  Turning on lamp           1
+  Flux capteur          =   2.17632692E-17
+  Flux capteur cumule   =   3.13721866E-16
+ ==================================================
+  Avancement le long de la ligne de visee :          48 /          50 (         181 ,         151 )
+  Hauteur de la cible   =   18738.2598      m
+  Epaisseur de la cible =   3530.84009      m
+  Turning on lamp           1
+  Flux capteur          =   1.76839701E-17
+  Flux capteur cumule   =   3.31405823E-16
+ ==================================================
+  Avancement le long de la ligne de visee :          49 /          50 (         181 ,         151 )
+  Hauteur de la cible   =   22636.3105      m
+  Epaisseur de la cible =   4265.25977      m
+  Turning on lamp           1
+  Flux capteur          =   6.77940686E-18
+  Flux capteur cumule   =   3.38185236E-16
+ ==================================================
+  Avancement le long de la ligne de visee :          50 /          50 (         181 ,         151 )
+  Hauteur de la cible   =   27345.1602      m
+  Epaisseur de la cible =   5152.43994      m
+  Turning on lamp           1
+  Flux capteur          =   8.23597597E-18
+  Flux capteur cumule   =   3.46421202E-16
+ ===================================================
+           Total flux entering instrument (W)
+                    0.346E-15
+             Sky luminance (W/str/m**2)          
+                    0.110E-07
+   
+ Interpolation flux errror=   -7.94093388E-23
+ ===================================================

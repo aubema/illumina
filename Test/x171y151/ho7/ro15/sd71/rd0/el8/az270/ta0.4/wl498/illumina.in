@@ -1,0 +1,21 @@
+                ! Input file for ILLUMINA
+round      ! ROOT FILE NAME (every usefull files have to begin with this)
+                !
+1000 1000                 ! CELL SIZE [m]
+                !
+urban_RH70_0.4980um.mie.out               ! AEROSOL OPTICAL CROSS SECTIONS FILE [-]
+                !
+0 71    ! DOUBLE SCATTERING RADIUS [m] ; SCATTERING STEP [-]
+                 ! (1=complete, 2= 2 times faster, ...)
+498   ! WAVELENGTH [nm]
+101.3    ! GROUND LEVEL PRESSURE [kPa]
+0.4    ! AEROSOL OPTICAL DEPTH [-]
+1     ! NUMBER OF SOURCE TYPES [-]
+                !
+15 7    ! MAXIMUM REFLECTION RADIUS [m] ; MEAN OBSTACLE HEIGHT [m]
+                !
+171 151 1  1   ! OBSERVER X POSITION [cell unit] ; OBS Y POS [-] ; OBS Z POS [-] ; BEGINNING CELL ALONG THE LINE OF SIGHT (1=complete)
+    ! (usefull in case of computer crash) (x=1 et y=1 is the south-west cell)
+8 270    ! ELEVATION VIEWING ANGLE [deg] ; AZIMUTAL VIEWING ANGLE [deg]
+   ! (0=east, 90=north, 180=west, 270=south)
+.0001 .00001 .35 .07    ! SLIT WIDTH [m] ; PIXEL SIZE [m] ; FOCAL LENGTH [m] ; APPERTURE DIAMETER [m]
