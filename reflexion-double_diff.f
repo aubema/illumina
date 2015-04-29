@@ -29,12 +29,12 @@ c
      +       ,pressi,taua,zcup,zcdown,secdif,fdifan,
      +       x_obs,y_obs,z_obs,epsilx,epsily,
      +       irefdi,drefl,hobst,
-     +       alt_sol,latitu)
+     +       alt_sol,latitu,cloudt,cloudh,icloud)
 c
 c   declarations de variables
 c  
       integer width
-      parameter (width=1024)      
+      parameter (width=1024)  
       integer x_sr,y_sr,x_dif,y_dif,zcell_dif                             ! Positions source, surface reflectrice, celldiffusantes (cellule)
       integer x_c,y_c,zcell_c,nbx,nby
       real z_sr,z_dif,dx,dy                             
@@ -74,6 +74,14 @@ c
       real zenhor(360),d2,angazi                                          ! angle zenithal de l'horizon,distance horizon, angle azimut
       integer az
       real latitu
+      integer cloudt                                                      ! cloud type 0=clear, 1=Thin Cirrus/Cirrostratus, 2=Thick Cirrus/Cirrostratus, 3=Altostratus/Altocumulus, 4=Cumulus/Cumulonimbus, 5=Stratocumulus
+      integer cloudh(5)                                                   ! cloud base layer relative to the lower elevation 
+      real rcloud                                                         ! cloud relfecicloudtance 
+      real azencl                                                         ! zenith angle from cloud to observer
+      real icloud                                                         ! cloud reflected intensity
+
+
+
       data cell_t /0.5,0.6,0.72,0.86,1.04,1.26,1.52,1.84,2.22,            ! Epaisseur des niveaux
      a 2.68,3.24,3.92,4.74,5.72,6.9,8.34,10.08,12.18,14.72,17.78,21.48,
      b 25.94,31.34,37.86,45.74,55.26,66.76,80.64,97.42,117.68,142.16,
@@ -88,6 +96,9 @@ c
      e 10628.87,12840.16,15511.4,18738.26,22636.31,27345.16/
       iun=1
       ideux=2
+
+
+
   
 c      print*,'refdif'
       call zone_diffusion(x_sr,y_sr,z_sr,x_c,y_c,zcell_c,                ! Determiner la zone de diffusion
@@ -375,6 +386,59 @@ c=======================================================================
 c        Calcul du flux diffuse atteignant la cellule cible
 c=======================================================================
             fdiff=idiff1*omega*transm*transa
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+c verifie mais je crosi que le calcul de azencl est facultatif ici
+                if ((cloudt.ne.0).and.(cloudh(cloudt).eq.zcellc)) then          ! target cell = cloud
+                     call anglezenithal(x_c,y_c,z_c,x_obs,y_obs,z_obs,
+     +               dx,dy,azencl)                                        ! zenith angle from cloud to observer                     
+                     call cloudreflectance(angzen,cloudt,rcloud)                 ! cloud intensity from direct illum
+                     icloud=icloud+
+     +               fdiff*rcloud*abs(cos(azencl))/pi
+                endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 c=======================================================================
 c   Calcul de la probabilite de diffusion de la lumiere diffuse vers la cellule observatrice(SORTANT de cell_c)
 c=======================================================================
@@ -397,8 +461,7 @@ c=======================================================================
 c   Calcul de l'intensite diffusee dirigee vers l'observateur en provenance de la cellule cible
 c=======================================================================
             idiff2=fdiff*pdifd2*real(stpdif)                              ! corriger le result pr avoir passe des cell afin d'accel le calcul
-            irefdi=
-     +      irefdi+idiff2      
+            irefdi=irefdi+idiff2      
            endif                                                          ! fin condition obstacle sous maille diffuse->cible 
         else
 c          print*,'ombrage diff-cible2',x_dif,y_dif,z_dif,x_c,y_c,z_c

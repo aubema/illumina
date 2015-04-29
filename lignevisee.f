@@ -28,10 +28,10 @@ c
 c
 
       subroutine lignevisee (x1,y1,z1,dx,dy,angvis,angazi,
-     + nbx,nby,visfin,ncfin,vistep)
+     + nbx,nby,vistep,cloudz,visfin,ncfin)
 
       integer x1,y1,cx,cy,visee(1024,3),alim,vistep,pos,visfin(1024,3)
-      integer viseef(1024,3),ncellf,cxm,cym,czm,elimf
+      integer viseef(1024,3),ncellf,cxm,cym,czm,elimf,cloudz
       integer ncell,nbx,nby,a,cxp,cyp,czp,cz,ncfin
       real z1,xn,yn,zn,dx,dy,distance
       real celthi(50),cell_height(50),pi
@@ -55,6 +55,10 @@ c
      e 10628.87,12840.16,15511.4,18738.26,22636.31,27345.16/
                                            !
       print*,'Calcul des cellules traversees par la ligne de visee...'
+      if (cloudz.ne.50) then
+         print*,'Cloud base vertical level:',cloudz,'/50'
+         print*,'Cloud base height (m):',cell_height(cloudz)
+      endif
       ncell=0
       xn=nint((real(x1-1)*dx)) 						  ! Transfert des coordonnees des cellules en mtre
       yn=nint((real(y1-1)*dy))                                            ! Le zero du systeme de reference est au coin superieur gauche du pixel observateur
@@ -198,13 +202,18 @@ c         visfin(i,2)=viseef(pos,2)
 c         visfin(i,3)=viseef(pos,3)
 c      enddo
 
-
+          ncfin=0
           do ii=1,ncellf
+c arreter le ligne de visee au nuage
+             if (viseef(ii,3).le.cloudz) then
+                 ncfin=ncfin+1
                  visfin(ii,1)=viseef(ii,1)
                  visfin(ii,2)=viseef(ii,2)
                  visfin(ii,3)=viseef(ii,3)
+             endif
+        
           enddo
-          ncfin=ncellf
+c          ncfin=ncellf
           vistep=1
 
               
