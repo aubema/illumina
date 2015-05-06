@@ -32,27 +32,33 @@ c=======================================================================
 
       integer cloudt
 c  fitted parameters for the cloud reflectance as a function of the incident zenith angle
-c  rho(z)=A1+A2*exp(-1.*(cos(z)/A3)**2.) 
-      real rhocld(5,3)
+c  rho(z)=a0+a1*cos z + a2 * cos^2 z + a3 * cos^3 z according to Shapiro 1982 Table 10
+      real rhocld(5,4)
       real angzen,rcloud                                               
 
-      rhocld(1,1)=0.1
-      rhocld(1,2)=0.146
-      rhocld(1,3)=0.357
-      rhocld(2,1)=0.24
-      rhocld(2,2)=0.3327
-      rhocld(2,3)=0.344
-      rhocld(3,1)=0.56
-      rhocld(3,2)=0.0932
-      rhocld(3,3)=0.34
-      rhocld(4,1)=0.515
-      rhocld(4,2)=0.144
-      rhocld(4,3)=0.49
-      rhocld(5,1)=0.61
-      rhocld(5,2)=0.0907
-      rhocld(5,3)=0.4087
-      rcloud=rhocld(cloudt,1)+rhocld(cloudt,2)*exp(-1.*(cos(angzen)/
-     +rhocld(cloudt,3))**2.)
+      rhocld(1,1)=0.25674
+      rhocld(1,2)=-0.18077
+      rhocld(1,3)=-0.21961
+      rhocld(1,4)=-0.25272
+      rhocld(2,1)=0.60540
+      rhocld(2,2)=-0.55142
+      rhocld(2,3)=-0.23389
+      rhocld(2,4)=0.43648
+      rhocld(3,1)=0.66152
+      rhocld(3,2)=-0.14863
+      rhocld(3,3)=-0.08193
+      rhocld(3,4)=0.13442
+      rhocld(4,1)=0.71214
+      rhocld(4,2)=-0.15033
+      rhocld(4,3)=0.00696
+      rhocld(4,4)=0.03904
+      rhocld(5,1)=0.67072
+      rhocld(5,2)=-0.13805
+      rhocld(5,3)=-0.10895
+      rhocld(5,4)=0.09460
+      rcloud=rhocld(cloudt,1)+rhocld(cloudt,2)*cos(angzen)+
+     +rhocld(cloudt,3)*(cos(angzen))^2.+rhocld(cloudt,4)*
+     +(cos(angzen))^3.
 c        print*,rcloud,angzen,cos(angzen)
       return
       end
