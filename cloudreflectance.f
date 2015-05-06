@@ -27,9 +27,6 @@ c
 c=======================================================================
 c     Variables declaration
 c=======================================================================
-      integer width,height                                                ! Matrix dimension in Length/width and height
-      parameter (width=1024,height=50)
-
       integer cloudt
 c  fitted parameters for the cloud reflectance as a function of the incident zenith angle
 c  rho(z)=a0+a1*cos z + a2 * cos^2 z + a3 * cos^3 z according to Shapiro 1982 Table 10
@@ -56,9 +53,9 @@ c  rho(z)=a0+a1*cos z + a2 * cos^2 z + a3 * cos^3 z according to Shapiro 1982 Ta
       rhocld(5,2)=-0.13805
       rhocld(5,3)=-0.10895
       rhocld(5,4)=0.09460
-      rcloud=rhocld(cloudt,1)+rhocld(cloudt,2)*cos(angzen)+
-     +rhocld(cloudt,3)*(cos(angzen))^2.+rhocld(cloudt,4)*
-     +(cos(angzen))^3.
+       rcloud=rhocld(cloudt,1)+rhocld(cloudt,2)*cos(angzen)
+     + +rhocld(cloudt,3)*(cos(angzen))**2.+rhocld(cloudt,4)*
+     + (cos(angzen))**3.
 c        print*,rcloud,angzen,cos(angzen)
       return
       end
