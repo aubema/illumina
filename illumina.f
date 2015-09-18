@@ -300,6 +300,8 @@ c=======================================================================
        read(1,*)
        read(1,*) cloudt  
        read(1,*) dminlp 
+       if (verbose.eq.1) then
+         print*,'Minimum distance to the source=',dminlp       
       close(1)
 c
 c  determiner la longueur du nom
