@@ -33,6 +33,8 @@ exp_name='round'                                                      # Base nam
 pressure='101.3'                                                           # Atm pressure of the lowest point
 est_time="110"                                                             # Estimated number of hour per individual run
 mna_file="round_topogra.pgm"                                                     # Numrerical terrain model file name
+cloud=0    # Cloud model selection 0=clear, 1=Thin Cirrus/Cirrostratus, 2=Thick Cirrus/Cirrostratus, 3=Altostratus/Altocumulus, 4=Cumulus/Cumulonimbus, 5=Stratocumulus
+dmin=150  
 #
 # ===================================
 #  Vectors
@@ -239,6 +241,10 @@ cd $folder
                                       echo ${elevation[$ne]} ${azimut[$na]} "   ! ELEVATION VIEWING ANGLE [deg] ; AZIMUTAL VIEWING ANGLE [deg]" >> illumina.in
                                       echo "   ! (0=east, 90=north, 180=west, 270=south)" >> illumina.in
                                       echo ".0001 .00001 .35 .07    ! SLIT WIDTH [m] ; PIXEL SIZE [m] ; FOCAL LENGTH [m] ; APPERTURE DIAMETER [m]" >> illumina.in
+                                      echo "                        ! to get the radiance in W/str/m**2, SW*PS*pi*AD**2/4/FL**2 should equal 1" >> illumina.in
+                                      echo "                        ! 1. 1. 1. 1.1283791671 is doing exactly that">> illumina.in
+                                      echo $cloud "                 ! Cloud model selection 0=clear, 1=Thin Cirrus/Cirrostratus, 2=Thick Cirrus/Cirrostratus, 3=Altostratus/Altocumulus, 4=Cumulus/Cumulonimbus, 5=Stratocumulus">> illumina.in
+                                      echo $dmin "          ! Minimal distance to the nearest light source (m)">> illumina.in
 # copie de illumina dans ./
                                       ln -s $HOME/hg/illumina/bin/illumina .
 #
