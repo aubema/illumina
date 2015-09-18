@@ -300,9 +300,9 @@ c=======================================================================
        read(1,*)
        read(1,*) cloudt  
        read(1,*) dminlp 
-       if (verbose.eq.1) then
+
          print*,'Minimum distance to the source=',dminlp
-       endif
+
       close(1)
 c
 c  determiner la longueur du nom
@@ -1683,7 +1683,6 @@ c**********************************************************************
      +         +isourc*real(step(stype)*step(stype))                      ! Somme des intensites de chaque source a une cellule cible.
                                                                           ! Vers le calcul du poids de chaque cellule source i.e. ITT (equivaut 
                ITT(x_s,y_s,stype)=ITT(x_s,y_s,stype)+isourc               ! a itotty mais sous forme matricielle 
-
 
 
 

@@ -22,4 +22,4 @@ urban_RH70_0.5500um.mie.out                      ! AEROSOL OPTICAL CROSS SECTION
                                 ! to get the radiance in W/str/m**2, SW*PS*pi*AD**2/4/FL**2 should equal 1                               
                                 ! 1. 1. 1. 1.1283791671 is doing exactly that
 0                               ! Cloud model selection 0=clear, 1=Thin Cirrus/Cirrostratus, 2=Thick Cirrus/Cirrostratus, 3=Altostratus/Altocumulus, 4=Cumulus/Cumulonimbus, 5=Stratocumulus
-150                             ! Minimal distance to the nearest light source (m)
+15                             ! Minimal distance to the nearest light source (m)
