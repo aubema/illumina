@@ -1,1 +1,1 @@
-/home/aubema/hg/illumina/Test/gridmap/x171y151/wl498/grid.txt
+/home/graphycs1/hg/illumina/Test/gridmap/x171y151/wl498/grid.txt
