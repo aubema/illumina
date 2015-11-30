@@ -114,9 +114,9 @@ c                                                                         ! de p
       integer stype                                                       ! Identification du type de source.
       character*72 pafile,lufile,alfile                                   ! Fichiers relatifs aux sources lumineuses (fonction d'emission 
 c                                                                         ! des sources (lampadaires), luminosite (DIMENSIONS??), altitude (metre).    
-      real lamplu(width,width,99)                                          ! Luminosite des sources dans chaque case (DIMENSION???).
-      real lampal(width,width,99)                                         ! Altitude des sources lumineuses par rapport au sol (metre).
-      real pval(181,99),pvalto,pvalno(181,99)                               ! Valeurs des fonctions angulaires d'emission (arbitraires, 
+      real lamplu(width,width,120)                                          ! Luminosite des sources dans chaque case (DIMENSION???).
+      real lampal(width,width,120)                                         ! Altitude des sources lumineuses par rapport au sol (metre).
+      real pval(181,120),pvalto,pvalno(181,120)                               ! Valeurs des fonctions angulaires d'emission (arbitraires, 
 c                                                                         ! totale non-matrice, normalisees).
       real dtheta                                                         ! Increment d'angle de la fonction d'emission des sources 
       real dx,dy,dxp,dyp,pixsiz                                           ! Largeur d'une cellule (metre), nombre de cellule dans la portee 
@@ -222,7 +222,7 @@ c                                                                         ! norm
 c                                                                         ! duquel un faisceau ne peut etre propage en raison de l'obstacle 
 c                                                                         ! sous-maille.
       integer naz,na 
-      real ITT(width,width,99)                                             ! Intensite totale type en forme matricielle
+      real ITT(width,width,120)                                             ! Intensite totale type en forme matricielle
       real ITC(width,width)                                               ! Intensite totale cible en forme matricielle
       real FC(width,width)                                                ! Flux cible en forme matricielle
       real FTC(width,width)                                               ! Fraction du Flux total au capteur en forme matricielle
@@ -231,7 +231,7 @@ c                                                                         ! sous
       real lpluto(width,width)                                            ! Luminosite totale de la cellule de surface toutes lampes confondues
       real fctnto,ftcmax                                                  ! FTCN total pour tout le domaine pour toutes lampes
       character*3 lampno                                                  ! mot de trois lettres contenant le numero de lampe
-      integer imin(99),imax(99),jmin(99),jmax(99),step(99)                     ! bornes x et y de la zone contenant un type de lampe
+      integer imin(120),imax(120),jmin(120),jmax(120),step(120)                     ! bornes x et y de la zone contenant un type de lampe
       real defval                                                         ! valeur ignoree dans l'interpolation
       real dat(1024,1024)                                                 ! matrice a interpoler
       integer autom,intype,ii,jj                                          ! switch manuel automatique pour l'interpolation; interpolation type
@@ -370,7 +370,7 @@ c=======================================================================
          FTC(i,j)=0.
          FTCN(i,j)=0.
          FCA(i,j)=0.
-         do k=1,99
+         do k=1,120
           lamplu(i,j,k)=0.
           lampal(i,j,k)=0.
           ITT(i,j,k)=0.
@@ -378,7 +378,7 @@ c=======================================================================
         enddo
        enddo
        do i=1,181
-        do j=1,99
+        do j=1,120
          pval(i,j)=0.
          pvalno(i,j)=0.
         enddo
@@ -445,16 +445,13 @@ c  Lecture des valeurs de P(theta), luminosites et positions des sources
 c========================================================================
 c
        dtheta=.017453293                                                  ! Un degre.
-       do stype=1,ntype                                                   ! Debut de la boucle pour les 99 types de sources.
+       do stype=1,ntype                                                   ! Debut de la boucle pour les 120 types de sources.
         imin(stype)=nbx
         jmin(stype)=nby
         imax(stype)=1
         jmax(stype)=1       
         pvalto=0.
-c        if (stype.lt.10) then
-c          lampno=char(48)//char(48+stype)
-c        endif
-        write(lampno, '(I3.3)' ) stype                                    ! support de 999 sources differentes (3 digits)
+        write(lampno, '(I3.3)' ) stype                                    ! support de 120 sources differentes (3 digits)
         pafile=basenm(1:lenbase)//'_fctem_'//lampno//'.dat'               ! Attribution du nom du fichier  fonction angulaire d'emission.
         lufile=basenm(1:lenbase)//'_lumlp_'//lampno//'.pgm'               ! Attribution du nom du fichier de la luminosite des cases.
         alfile=basenm(1:lenbase)//'_altlp_'//lampno//'.pgm'               ! Attribution du nom du fichier  hauteur des sources lumineuse.
@@ -537,7 +534,7 @@ c        dzone=nint(sqrt(real(((imax(stype)+imin(stype))/2-x_obs)**2+
 c     +  ((jmax(stype)+jmin(stype))/2-y_obs)**2)))
         step(stype)=1
 c        if (dzone.gt.50) step(stype)=2                                   ! saut pour le calcul des cellules au sol ce saut augmente
-c        if (dzone.gt.100) step(stype)=3                                  ! avec la distance
+c        if (dzone.gt.120) step(stype)=3                                  ! avec la distance
 c        if (dzone.gt.150) step(stype)=4 
 c        if (dzone.gt.200) step(stype)=5
 c    ==================================================================
@@ -549,7 +546,7 @@ c    ==================================================================
           lampal(i,j,stype)=val2d(i,j)                                    ! Remplissage de la matrice pour la lampe stype
          enddo                                                            ! Fin de la boucle sur toutes les cases en y.
         enddo                                                             ! Fin de la boucle sur toutes les cases en x.
-       enddo                                                              ! Fin de la boucle sur les 99 types de sources.    
+       enddo                                                              ! Fin de la boucle sur les 120 types de sources.    
 c=======================================================================
 c        Lecture des parametres de diffusion
 c=======================================================================
