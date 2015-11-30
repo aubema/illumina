@@ -41,7 +41,6 @@ c l3 must be an odd multiple of 9 and l3>l1
        l3=nint(real(l3)/2.-1.)
        lx=0
        ly=0
-       print*,l1,l3
        do i=1,width
        do j=1,width
           lumlpo(i,j)=0.
@@ -71,7 +70,6 @@ c load lumlp file
      +    nx,ny)
           maxi=0.
           n=0
-          print*,nx,ny
 c create new lumlp file using a variable mesh grid 
           nx9ma=(nx-px)/9
           nx9mi=(px-1)/9

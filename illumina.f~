@@ -1689,8 +1689,6 @@ c**********************************************************************
 
 
 
-          else
-              print*,'dx/2',dsco,dminlp
           endif                                                           ! fin condition distance source-cible-observateur <= dx/2
 
 

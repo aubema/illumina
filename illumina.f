@@ -114,9 +114,9 @@ c                                                                         ! de p
       integer stype                                                       ! Identification du type de source.
       character*72 pafile,lufile,alfile                                   ! Fichiers relatifs aux sources lumineuses (fonction d'emission 
 c                                                                         ! des sources (lampadaires), luminosite (DIMENSIONS??), altitude (metre).    
-      real lamplu(width,width,9)                                          ! Luminosite des sources dans chaque case (DIMENSION???).
-      real lampal(width,width,9)                                         ! Altitude des sources lumineuses par rapport au sol (metre).
-      real pval(181,9),pvalto,pvalno(181,9)                               ! Valeurs des fonctions angulaires d'emission (arbitraires, 
+      real lamplu(width,width,99)                                          ! Luminosite des sources dans chaque case (DIMENSION???).
+      real lampal(width,width,99)                                         ! Altitude des sources lumineuses par rapport au sol (metre).
+      real pval(181,99),pvalto,pvalno(181,99)                               ! Valeurs des fonctions angulaires d'emission (arbitraires, 
 c                                                                         ! totale non-matrice, normalisees).
       real dtheta                                                         ! Increment d'angle de la fonction d'emission des sources 
       real dx,dy,dxp,dyp,pixsiz                                           ! Largeur d'une cellule (metre), nombre de cellule dans la portee 
@@ -222,7 +222,7 @@ c                                                                         ! norm
 c                                                                         ! duquel un faisceau ne peut etre propage en raison de l'obstacle 
 c                                                                         ! sous-maille.
       integer naz,na 
-      real ITT(width,width,9)                                             ! Intensite totale type en forme matricielle
+      real ITT(width,width,99)                                             ! Intensite totale type en forme matricielle
       real ITC(width,width)                                               ! Intensite totale cible en forme matricielle
       real FC(width,width)                                                ! Flux cible en forme matricielle
       real FTC(width,width)                                               ! Fraction du Flux total au capteur en forme matricielle
@@ -231,7 +231,7 @@ c                                                                         ! sous
       real lpluto(width,width)                                            ! Luminosite totale de la cellule de surface toutes lampes confondues
       real fctnto,ftcmax                                                  ! FTCN total pour tout le domaine pour toutes lampes
       character*3 lampno                                                  ! mot de trois lettres contenant le numero de lampe
-      integer imin(9),imax(9),jmin(9),jmax(9),step(9)                     ! bornes x et y de la zone contenant un type de lampe
+      integer imin(99),imax(99),jmin(99),jmax(99),step(99)                     ! bornes x et y de la zone contenant un type de lampe
       real defval                                                         ! valeur ignoree dans l'interpolation
       real dat(1024,1024)                                                 ! matrice a interpoler
       integer autom,intype,ii,jj                                          ! switch manuel automatique pour l'interpolation; interpolation type
@@ -370,7 +370,7 @@ c=======================================================================
          FTC(i,j)=0.
          FTCN(i,j)=0.
          FCA(i,j)=0.
-         do k=1,9
+         do k=1,99
           lamplu(i,j,k)=0.
           lampal(i,j,k)=0.
           ITT(i,j,k)=0.
@@ -378,7 +378,7 @@ c=======================================================================
         enddo
        enddo
        do i=1,181
-        do j=1,9
+        do j=1,99
          pval(i,j)=0.
          pvalno(i,j)=0.
         enddo
