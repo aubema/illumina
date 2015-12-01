@@ -262,7 +262,7 @@ echo "Starting from "$folder
 
 
 #################
-                                      echo $aero_mod"_RH"$RH"_0."${wav[$wl]}"0um.mie.out               ! AEROSOL OPTICAL CROSS SECTIONS FILE [-]" >> illumina.in
+                                      echo $aero_mod"_RH"$rh"_0."${wav[$wl]}"0um.mie.out               ! AEROSOL OPTICAL CROSS SECTIONS FILE [-]" >> illumina.in
                                       echo "                !" >> illumina.in
                                       echo ${r_dif[$nrd]} ${saut_dif[$nsd]} "   ! DOUBLE SCATTERING RADIUS [m] ; SCATTERING STEP [-]" >> illumina.in
                                       echo "                 ! (1=complete, 2= 2 times faster, ...)" >> illumina.in 
@@ -317,7 +317,7 @@ echo "Starting from "$folder
 #                                         then numlp="00"$nolp
 #                                         fi                    
                                          ln -s $folder"/"${lamp_h[$nl]} "./"$exp_name"_altlp_"${lamp_l[$nl]}".pgm"
-                                         ln -s $folder"/fctem_wl"${wav[$wl]}"_zon"${lamp_l[$nl]}".dat" "./"$exp_name"_fctem_"${lamp_l[$nl]}".dat"
+                                         ln -s $folder"/fctem_wl_"${wav[$wl]}"_zon_"${lamp_l[$nl]}".dat" "./"$exp_name"_fctem_"${lamp_l[$nl]}".dat"
                                          let nl=nl+1
                                       done
                                       ln -s $griddir/"x"${x_sites[$ns]}"y"${y_sites[$ns]}/"wl"${wav[$wl]}/* .

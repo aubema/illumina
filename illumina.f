@@ -231,7 +231,7 @@ c                                                                         ! sous
       real lpluto(width,width)                                            ! Luminosite totale de la cellule de surface toutes lampes confondues
       real fctnto,ftcmax                                                  ! FTCN total pour tout le domaine pour toutes lampes
       character*3 lampno                                                  ! mot de trois lettres contenant le numero de lampe
-      integer imin(120),imax(120),jmin(120),jmax(120),step(120)                     ! bornes x et y de la zone contenant un type de lampe
+      integer imin(120),imax(120),jmin(120),jmax(120),step(120)            ! bornes x et y de la zone contenant un type de lampe
       real defval                                                         ! valeur ignoree dans l'interpolation
       real dat(1024,1024)                                                 ! matrice a interpoler
       integer autom,intype,ii,jj                                          ! switch manuel automatique pour l'interpolation; interpolation type
@@ -252,6 +252,7 @@ c                                                                         ! sous
       real fctcld                                                         ! total flux from cloud at the sensor level
       real dsco                                                           ! distance source-cible-observateur
       real dminlp                                                         ! minimum distance between the observer and a lamp (m)
+      real totlu(120)                                                     ! total flux of a source type
       data cthick /0.5,0.6,0.72,0.86,1.04,1.26,1.52,1.84,2.22,            ! Epaisseur des niveaux.
      a 2.68,3.24,3.92,4.74,5.72,6.9,8.34,10.08,12.18,14.72,17.78,21.48,
      b 25.94,31.34,37.86,45.74,55.26,66.76,80.64,97.42,117.68,142.16,
@@ -280,8 +281,8 @@ c=======================================================================
        read(1,*) 
        read(1,*) effdif,stepdi
        if (verbose.eq.1) then
-         print*,'Rayon de diffusion=',effdif,'m   1 calcul sur ',
-     a   stepdi
+         print*,'2nd order scattering radius=',effdif,'m   1 voxel over
+     a    ',stepdi
        endif
        read(1,*)
        read(1,*) lambda
@@ -329,24 +330,25 @@ c  ouverture en ecriture du fichier de sortie
       open(unit=2,file=outfile,status='unknown')      
        write(2,*) 'FICHIERS UTILISES'
        write(2,*) mnaf,reflf,diffil
-       print*,'Longueur d''onde (nm):',lambda,
-     +       ' epaisseur optique:',taua
-       write(2,*) 'Longueur d''onde (nm):',lambda,
-     +       ' epaisseur optique:',taua
-       write(2,*) 'Zone de diffusion:',effdif,' m'
-       print*,'Zone de diffusion:',effdif,' m'
-       write(2,*) 'Saut de diffusion:',stepdi
-       print*,'Saut de diffusion:',stepdi
-       write(2,*) 'Portee de la reflexion:',drefle,' m'
-       write(2,*) 'Position observateur(x,y,z)',x_obs,y_obs,zcello
-       print*,'Position observateur(x,y,z)',x_obs,y_obs,zcello
-       write(2,*) 'Angle d elevation:',angvis,' angle azim (horaire
-     + p/r au nord)',azim     
-       print*,'Angle d elevation:',angvis,' angle azim (anti-horair
-     +e p/r a l est)',azim 
+       print*,'Wavelength (nm):',lambda,
+     +       ' Aerosol optical depth:',taua
+       write(2,*) 'Wavelength (nm):',lambda,
+     +       ' Aerosol optical depth:',taua
+       write(2,*) '2nd order scattering radius:',effdif,' m'
+       print*,'2nd order scattering radius:',effdif,' m'
+       write(2,*) 'Scattering step:',stepdi
+       print*,'Scattering step:',stepdi
+       write(2,*) 'Mean free path to the ground:',drefle,' m'
+       write(2,*) 'Observer position (x,y,z)',x_obs,y_obs,zcello
+       print*,'Observer position (x,y,z)',x_obs,y_obs,zcello
+       write(2,*) 'Elevation angle:',angvis,' azim angle (clockwise fro
+     + m north)',azim     
+       print*,'Elevation angle:',angvis,' azim angle (counterclockwise f
+     + rom east)',azim 
 c=======================================================================
 c        Initialisation des matrices et variables
 c=======================================================================
+       print*,'Initializing variables...'
        if (cloudt.eq.0) then
           cloudz=50
        else
@@ -378,16 +380,14 @@ c=======================================================================
         enddo
        enddo
        do i=1,181
+        fdifa(i)=0.
+        fdifan(i)=0.
+        anglea(i)=0.
         do j=1,120
          pval(i,j)=0.
          pvalno(i,j)=0.
         enddo
-       enddo
-       do i=1,181
-        fdifa(i)=0.
-        fdifan(i)=0.
-        anglea(i)=0.
-       enddo     
+       enddo  
        do i=1,1024
         do j=1,3
          lcible(i,j)=1
@@ -473,7 +473,7 @@ c    ===================================================================
        do i=1,nbx                                                         ! Debut de la boucle sur toutes les cases en x.
         do j=1,nby                                                        ! Debut de la boucle sur toutes les cases en y.
          if (val2d(i,j).lt.0.) then                                       ! Recherche de luminosites negatives
-           print*,'***Negative lamp luminosity!, stopping execution'
+           print*,'***Negative lamp flux!, stopping execution'
            stop
          endif
         enddo                                                             ! Fin de la boucle sur toutes les cases en y.
@@ -521,8 +521,10 @@ c    ===================================================================
  336    do i=1,nbx                                                        ! Debut de la boucle sur toutes les cases en x.
          do j=1,nby                                                       ! Debut de la boucle sur toutes les cases en y.
           lamplu(i,j,stype)=val2d(i,j)                                    ! remplir la matrice du type de lampe stype
+          totlu(stype)=totlu(stype)+lamplu(i,j,stype)                     ! the total lamp flux should be non-null to proceed to the calculations
          enddo                                                            ! Fin de la boucle sur toutes les cases en y.
         enddo                                                             ! Fin de la boucle sur toutes les cases en x.
+
 c
 c determination de la distance du centroide d un type de lampes (utiles lorsque une lampe est definie par 
 c zone geographique regroupee comme une ile ou un ville
@@ -620,6 +622,7 @@ c=======================================================================
        fcapt=1.
        do icible=1,ncible                                                 ! Debut de la boucle sur les cellules cibles.
       if ((fcapt.ge.ftocap/5000.).or.(cloudt.ne.0)) then                  ! arreter de calculer la ligne de visee lorsque l'increment est inferieur a 1/5000
+        if (fcapt.eq.1.) fcapt=0.
         if (icible.ge.nvis0) then                                         ! Debut condition pour la reprise d'un calcul arrete   .
          itotci=0.                                                        ! Initialisation de la contribution d'une cible au capteur.
          do i=1,nbx
@@ -632,15 +635,15 @@ c=======================================================================
          y_c=lcible(icible,2)                                             ! Definition de la position (cellule) de la cible.
          x_c=lcible(icible,1)                                             ! Definition de la position (cellule) de la cible.
          print*,'=================================================='
-         print*,' Avancement le long de la ligne de visee :',
+         print*,' Progression along the line of sight :',
      +   icible,'/',ncible,'(',x_c,',',y_c,')'
-         print*,' Hauteur de la cible   =',z_c,' m'
-         print*,' Epaisseur de la cible =',cthick(zcellc),' m'
+         print*,' Voxel height =',z_c,' m'
+         print*,' Voxel thickness =',cthick(zcellc),' m'
          write(2,*) '=================================================='
-         write(2,*) ' Avancement le long de la ligne de visee :',
+         write(2,*) ' Progression along the line of sight :',
      +   icible,'/',ncible,'(',x_c,',',y_c,')'
-         write(2,*) ' Hauteur de la cible   =',z_c,' m'
-      write(2,*) ' Epaisseur de la cible =',cthick(zcellc),' m'
+         write(2,*) ' Voxel height =',z_c,' m'
+      write(2,*) ' Voxel thickness =',cthick(zcellc),' m'
          if( (x_c.gt.nbx).or.(x_c.lt.1).or.(y_c.gt.nby).or.(y_c.lt.1)     ! Condition Cellule cible dans le domaine de calcul.
      +      .or.(zcellc.gt.50).or.(zcellc.lt.1) )then
          else
@@ -648,7 +651,7 @@ c=======================================================================
 c                                                                         ! on ne calcule pas le flux diffuse.
      +    (zcellc.eq.zcello))then
            if (verbose.eq.1) then
-             print*,'Cellule Cible = Cellule Observateur'
+             print*,'Scat voxel = Observer voxel'
            endif
           else
            zcdown=z_c-0.5*cthick(zcellc)                                  ! Limite inferieure de la cellule cible.
@@ -657,6 +660,8 @@ c=======================================================================
 c        Debut de la boucle sur les types de sources lumineuses
 c=======================================================================
            do stype=1,ntype                                               ! Debut de la boucle sur les type de source.
+            if (totlu(stype).ne.0.) then                                  ! check if there are any flux in that source type
+                                                                          ! otherwise skip this lamp
             print*,' Turning on lamp',stype
             write(2,*) ' Turning on lamp',stype
             itotty=0.                                                     ! Initialisation de la contribution d'un type de source a 
@@ -670,14 +675,6 @@ c                                                                         ! l'in
              do y_s=jmin(stype),jmax(stype),step(stype)                   ! Debut de la boucle sur les rangees (latitud) du domaine.
               if (lamplu(x_s,y_s,stype) .ne. 0.) then                     ! Si la luminosite d'une case est nulle, le programme ignore cette case.
                z_s=(altsol(x_s,y_s)+lampal(x_s,y_s,stype))                ! Definition de la position (metre) verticale de la source.
-
-
-
-
-
-
-
-
 c calcul de la distance source-cible-observateur si cette distance est inferieure a dx/2, pas de calcul effectue
 c la raison est que autrement on passe par des cellules tres proches de la source et on est jamais dans de telles
 c conditions lorsqu'on observe le ciel. C est un probleme cree par le fait que les sources et l observateur
@@ -686,14 +683,6 @@ c sont toujours consideres au centre des cellules.
      +         (z_s-z_c)**2.)+sqrt((real(x_obs-x_c)*dx)**2.+(real(y_obs
      +         -y_c)*dx)**2.+(z_obs-z_c)**2.)
           if (dsco.ge.dminlp) then                                    ! debut condition distance source-cible-observateur >= dx/2
-
-
-
-
-
-
-
-
 
 c **********************************************************************************************************************
 c *     Calcul de l'intensite directe dirigee vers le capteur par une cellule cible en provenance d'une source         *
@@ -704,7 +693,7 @@ c                                                                         ! meme
      +         .lt.(cthick(zcellc)/2.) ) )then
                 dirck=1
                 if (verbose.eq.1) then
-                 print*,'Source dans Cellule cible'
+                 print*,'Source inside scat voxel'
                 endif
                endif                                                      ! Fin du cas positions x et y source et cible identiques.
                if (dirck.ne.1) then                                       ! Cas ou la source n'est pas dans la cellule cible.
@@ -870,36 +859,13 @@ c   Calcul de la contribution d'une source a l'intensite directe dirigee vers le
 c=======================================================================
                   intdir=fldir*pdifdi
 
-
-
-
-
-
-
-
-c                print*,'balise1',cloudh(cloudt),zcellc
-
                 if ((cloudt.ne.0).and.(cloudh(cloudt).eq.zcellc)) then    ! target cell = cloud
                      call anglezenithal(x_c,y_c,z_c,x_obs,y_obs,z_obs,
      +               dx,dy,azencl)                                        ! zenith angle from cloud to observer                     
                      call cloudreflectance(angzen,cloudt,rcloud)          ! cloud intensity from direct illum
                      icloud=icloud+
      +               fldir*rcloud*abs(cos(azencl))/pi
-c        print*,'balise1b',icloud
                 endif
-
-
-
-
-
-
-
-
-
-
-
-
-
                  else 
                   intdir=0.                                      
                  endif                                                    ! Fin condition obstacle sous maille direct.
@@ -934,13 +900,13 @@ c=======================================================================
                   if( (x_sr.gt.nbx).or.(x_sr.lt.1).or.(y_sr.gt.nby)
      +            .or.(y_sr.lt.1) )then  
                    if (verbose.eq.1) then
-                    print*,'Cell Reflectrice a l''exterieur du domaine'
+                    print*,'Ground cell out of the borders'
                    endif
                   else  
                    if((x_s.eq.x_sr).and.(y_s.eq.y_sr).and.(z_s.eq.z_sr))
      +             then
                     if (verbose.eq.1) then
-                     print*,'Pos Source = Pos Cell Reflectrice'
+                     print*,'Source pos = Ground Cell'
                     endif
                    else
                     if (srefl(x_sr,y_sr).ne.0.) then                      ! Condition: la surface reflectrice n'a pas une reflectance nulle.
@@ -1046,19 +1012,12 @@ c        Calcul de l'intensite reflechie quittant la surface reflectrice
 c=======================================================================
                       irefl1=flrefl*srefl(x_sr,y_sr)/pi                   ! Le facteur 1/pi vient de la normalisation de la fonction 
                       if (effdif.gt.(dx+dy)/2.) then 
-
-c                  print*,'balise3',cloudt,cloudh,icloud
-
                        call reflexdbledif (x_sr,y_sr,z_sr,x_c,y_c,
      +                 zcellc,dx,dy,effdif,nbx,nby,stepdi,
      +                 irefl1,lambda,pressi,taua,zcup,
      +                 zcdown,secdif,fdifan,x_obs,y_obs,z_obs,
      +                 epsilx,epsily,irefdi,
      +                 drefle,obsH,altsol,latitu,cloudt,cloudh,icloud)
-
-
-c                 print*,'balise3b',icloud
-
                       endif
                       itotrd=itotrd+irefdi      
 c
@@ -1088,8 +1047,6 @@ c verifier s'il y a ombrage entre sr et cible ici
                       if (projap.lt.0.) projap=0.
                       irefl=irefl1*
      +                projap
-                 else
-c                  print*,'ombrage reflexion',x_sr,y_sr,z_sr,x_c,y_c,z_c
                  endif                                                    ! fin condition surf. reflectrice au-dessus horizon
 c=======================================================================
 c        Cas Position Cible = Position Cellule reflectrice
@@ -1195,56 +1152,13 @@ c        Calcul du flux indirect atteignant la cellule cible
 c=======================================================================
                         flindi=irefl*omega*transm*
      +                  transa     
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-c                print*,'balise2',cloudh(cloudt),zcellc
-
                 if ((cloudt.ne.0).and.(cloudh(cloudt).eq.zcellc)) then    ! target cell = cloud
                      call anglezenithal(x_c,y_c,z_c,x_obs,y_obs,z_obs,
      +               dx,dy,azencl)                                        ! zenith angle from cloud to observer                     
                      call cloudreflectance(angzen,cloudt,rcloud)          ! cloud intensity from indirect illum
                      icloud=icloud+
      +               flindi*rcloud*abs(cos(azencl))/pi
-c                  print*,'balise2',icloud
                 endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- 
 c=======================================================================
 c   Calcul de la probabilite de diffusion de la lumiere indirecte
 c=======================================================================
@@ -1309,7 +1223,7 @@ c
                   if ((x_s.eq.x_dif).and.(y_s.eq.y_dif).and.(z_s.eq. 
      +            z_dif)) then
                    if (verbose.eq.1) then
-                     print*,'Position Cell Diffusante = Position Source'
+                     print*,'Scat voxel = Source position'
                    endif
                   elseif ((x_c.eq.x_dif).and.(y_c.eq.y_dif).and. 
      +                 (z_c.eq.z_dif)) then
@@ -1568,21 +1482,6 @@ c        Calcul du flux diffuse atteignant la cellule cible
 c=======================================================================
                       fldiff=idif1*omega*transm*
      +                transa
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 c verifie mais je crosi que le calcul de azencl est facultatif ici
                 if ((cloudt.ne.0).and.(cloudh(cloudt).eq.zcellc)) then           ! target cell = cloud
                      call anglezenithal(x_c,y_c,z_c,x_obs,y_obs,z_obs,
@@ -1590,30 +1489,7 @@ c verifie mais je crosi que le calcul de azencl est facultatif ici
                      call cloudreflectance(angzen,cloudt,rcloud)                 ! cloud intensity from direct illum
                      icloud=icloud+
      +               fldiff*rcloud*abs(cos(azencl))/pi
-c                    print*,'balise4',icloud
                 endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 c=======================================================================
 c   Calcul de la probabilite de diffusion de la lumiere diffuse vers la cellule observatrice(SORTANT de cell_c)
 c=======================================================================
@@ -1643,11 +1519,9 @@ c=======================================================================
      +                itodif+idiff2
                      endif                                                ! Fin condition obstacle diffuse->cible.
        else
-c          print*,'ombrage diff-cible1',x_dif,y_dif,z_dif,x_c,y_c,z_c
         endif                                                             ! fin condition ombrage diffuse-cible                     
                     endif                                                 ! Fin condition obstacle source->diffuse.
                    else
-c        print*,'ombrage source-diff',x_s,y_s,z_s,x_dif,y_dif,z_dif
                    endif                                                  ! Fin condition ombrage source-diffusante
                   endif                                                   ! Fin du cas Diffusante = Source ou Cible.
                  endif                                                    ! Fin de la condition "cellule a l'interieur du domaine".      
@@ -1663,13 +1537,13 @@ c**********************************************************************
 c                                                                         ! atteignant une cellule cible.
 c                                                                         ds l ordre 1st scat; refl->1st scat; 1st scat->2nd scat, refl->1st scat->2nd scat
                if (verbose.eq.1) then
-                print*,' Composantes de l''intensite totale:'
-                print*,' source->diffuse=',intdir
-                print*,' source->reflexion->diffuse=',
+                print*,' Total intensity components:'
+                print*,' source->scattering=',intdir
+                print*,' source->reflexion->scattering=',
      +          itotind
-                print*,' source->diffuse->diffuse=',
+                print*,' source->scattering->scattering=',
      +          itodif
-                print*,' source->reflexion->diffuse->diffuse=',
+                print*,' source->reflexion->scattering->scattering=',
      a          itotrd  
                endif
 c                   
@@ -1740,6 +1614,7 @@ c calculer lpluto
      +         lamplu(x_s,y_s,stype)
              enddo
             enddo
+           endif                                                          ! end of condition if there are any flux in that source type
            enddo                                                          ! Fin de la boucle sur les types de sources (stype).
 c    fin du calcul de l'intensite provenant d'une cellule cible se dirigeant vers le capteur
 c
@@ -1844,7 +1719,7 @@ c=======================================================================
      a     +((real(x_c-x_obs))*dx)**2.)
            ometif=pi*(diamobj/2.)**2./dis_obs**2.
            if (dis_obs.eq.0.) then
-            print*,'ERREUR probleme avec dis_obs',dis_obs
+            print*,'ERROR problem with dis_obs',dis_obs
             stop
            endif
            flcib=itotci*ometif*transa*transm                              ! computation of the flux reaching the intrument from the line of sight cell
@@ -1855,33 +1730,19 @@ c=======================================================================
            enddo
            omefov=lfente*longfe/focal**2.                                 ! Calcul de l'angle solide de la fente projete sur le ciel.
            if (cos(pi-angzen).eq.0.) then 
-            print*,'ERREUR la visee est pafaitement horizontale!'
+            print*,'ERROR perfectly horizontal sight is forbidden!'
             stop
            else
-
-
              portio=omefov/omega
 c            portio=(omefov*dis_obs*dis_obs)/(cos(pi-angzen)*dx*dy)       ! Fraction de la cellule cible vue par le fov (Fraction peut 
 c                                                                         ! etre superieure a 1). Le pi ici est du au fait
 c                                                                         ! que angzen est calcule sur le trajet cible vers l'observateur
            endif
            if (omega.eq.0.) then
-            print*,'ERREUR omega=0 (1)'
+            print*,'ERROR omega=0 (1)'
             stop
            endif
            fcapt=flcib*portio                                             ! correction for the FOV to the flux reaching the intrument from the line of sight cell
-
-
-
-
-
-
-
-
-
-
-
-
            do x_s=1,nbx
             do y_s=1,nby
              FCA(x_s,y_s)=FC(x_s,y_s)*portio
@@ -1901,15 +1762,6 @@ c   fin du calcul du flux atteignant la cellule observatrice en provenance d'une
           endif                                                           ! Fin de la condition cellule cible n'est pas cellule observatrice.
          endif                                                            ! Fin de la condition cellule cible dans le domaine de calcul.
         endif                                                             ! Fin condition pour la reprise d'un calcul arrete.
-
-
-
-
-
-
-
-
-
 c correction for the FOV to the flux reaching the intrument from the cloud cell
            if ((cloudt.ne.0).and.(cloudh(cloudt).eq.zcellc)) then         ! target cell = cloud
 c=======================================================================
@@ -1936,19 +1788,15 @@ c computation of the flux reaching the intrument from the cloud cell
               fcloud=icloud*ometif*transa*transm
               fccld=fcloud*omefov/omega
               fctcld=fctcld+fccld
-              print*,'tot',icloud,fcloud,fccld,fctcld
             endif          
-
-
-
-
-
-
-
-        print*,' Flux capteur (air/cloud)         =',fcapt,fccld
-        print*,' Flux capteur cumule (air/cloud)  =',ftocap,fctcld
-        write(2,*) ' Flux capteur (air/cloud)         =',fcapt,fccld
-        write(2,*) ' Flux capteur cumule (air/cloud)  =',ftocap,fctcld   
+        print*,' Flux @ sensor (clear & cloudy)             =',fcapt,
+     +  fccld
+        print*,' Flux @ sensor accumulated (clear & cloudy) =',ftocap,
+     +  fctcld
+        write(2,*) ' Flux sensor (clear & cloudy)             =',fcapt
+     +  ,fccld
+        write(2,*) ' Flux sensor accumulated (clear & cloudy) =',ftocap
+     +  ,fctcld   
       endif                                                               ! fin condition cellule cibles 1/5000
        enddo                                                              ! Fin de la boucle sur les cellules cibles.
        if (prmaps.eq.1) then
@@ -2011,7 +1859,7 @@ c puis load 'fichier.gplot'
           print*,'====================================================='
           print*,'          Total flux entering instrument (W)'
           write(*,2001) ftocap*real(vistep)+fctcld  
-          print*,'              Sky luminance (W/str/m**2)'       
+          print*,'              Sky radiance (W/str/m**2)'       
           write(*,2001) (ftocap+fctcld)/(lfente*
      +          longfe/focal**2.)/(pi*(diamobj/2.)**2.)*
      +          real(vistep)
@@ -2022,7 +1870,7 @@ c puis load 'fichier.gplot'
        write(2,*) '==================================================='
        write(2,*) '          Total flux entering instrument (W)'
        write(2,2001) ftocap*real(vistep)+fctcld
-        write(2,*) '            Sky luminance (W/str/m**2)          '      
+        write(2,*) '            Sky radiance (W/str/m**2)          '      
        write(2,2001) (ftocap+fctcld)/(lfente*
      +          longfe/focal**2.)/(pi*(diamobj/2.)**2.)*
      +          real(vistep)

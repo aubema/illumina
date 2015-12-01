@@ -54,7 +54,7 @@ c
      d 2829.76,3418.85,4130.47,4990.11,6028.55,7282.98,8798.33,
      e 10628.87,12840.16,15511.4,18738.26,22636.31,27345.16/
                                            !
-      print*,'Calcul des cellules traversees par la ligne de visee...'
+      print*,'Determining voxels crossed by the line of sight...'
       if (cloudz.ne.50) then
          print*,'Cloud base vertical level:',cloudz,'/50'
          print*,'Cloud base height (m):',cell_height(cloudz)
@@ -98,7 +98,7 @@ c
 
       if (abs(iz).gt.0.017) then 
            alim=2*nint(amax/da/iz)
-c           print*,'oblique ou vertical'
+c           print*,'oblique or vertical'
       else
            alim=2*nint(amax/da)
 c           print*,'horizontal'

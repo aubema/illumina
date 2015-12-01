@@ -29,7 +29,7 @@ c
          integer hcnt,i,j,nbx,nby,valmax
          character*12 nom
          character*72 infile,tag,bidon
-         print*,'Chargement du fichier de ',nom,': ',infile
+         print*,'Loading file : ',infile
          bidon='#'                                                        ! Le caractere # indique que la ligne contient une constante.
          hcnt=0                                                           ! Le nombre de lignes de constantes au debut du fichier (hcnt) est 
 c                                                                         ! fixe a 0.

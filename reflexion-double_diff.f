@@ -96,15 +96,9 @@ c
      e 10628.87,12840.16,15511.4,18738.26,22636.31,27345.16/
       iun=1
       ideux=2
-
-
-
-  
-c      print*,'refdif'
       call zone_diffusion(x_sr,y_sr,z_sr,x_c,y_c,zcell_c,                ! Determiner la zone de diffusion
      +dx,dy,effdif,nbx,nby,alt_sol,zondif,ndiff)
       z_c=cell_h(zcell_c)
-c       print*,'ndiff,effdif',ndiff,effdif,stpdif 
       irefdi=0.                                                          ! Initialisation de l'intensite diffus par une source ds 1 cell cible         
       do idi=1,ndiff,stpdif                                              ! Debut de la boucle sur les cellules diffusantes
        x_dif=zondif(idi,1)
@@ -122,24 +116,16 @@ c
        if (projap.lt.0.) projap=0.    
         if((x_dif.gt.nbx).or.(x_dif.lt.1).or.(y_dif.gt.nby).or.           ! Condition cellule diffusante a l'interieur du domaine
      +  (y_dif.lt.1)) then     
-c        print*,'Cellule diffusante a l''exterieur du domaine'
         else
          if(((x_sr.eq.x_dif).and.(y_sr.eq.y_dif).and.
      +   (z_sr.eq.z_dif)) .or.
      +   ((x_c.eq.x_dif).and.(y_c.eq.y_dif).and. 
      +   (z_c.eq.z_dif))) then
-c         print*,'Position Cellule Diffusante = Position Source ou Cible'
-c         print*,'sr dif c',x_sr,y_sr,z_sr,x_dif,y_dif,z_dif,x_c,y_c,z_c
          else
-
 c ombrage s_reflechissante-diffusante
           d2=sqrt((real(x_dif-x_sr)*dx)**2.+(real(y_dif-y_sr)*dy)**2.)    ! dist max pour l'horiz (i.e. l horizon passe la cell-diff ne compte pas)
           call horizon(x_sr,y_sr,z_sr,d2,alt_sol,nbx,nby,dx,dy,
      +    zenhor,latitu) 
-c          print*,zenhor
-c          print*,x_sr,y_sr,z_sr,d2,nbx,nby,dx,dy
-c          print*,'========='
-c          stop
           call anglezenithal(x_sr,y_sr,z_sr,x_dif,y_dif,z_dif,dx,dy,      ! Calcul de l'angle zenithal entre la surf reflechissante et la cell diff
      +    angzen)                                                       
           call angleazimutal(x_sr,y_sr,x_dif,y_dif,dx,dy,angazi)          ! calcul de l'angle azimutal surf refl-cell diffusante
@@ -387,24 +373,6 @@ c        Calcul du flux diffuse atteignant la cellule cible
 c=======================================================================
             fdiff=idiff1*omega*transm*transa
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 c verifie mais je crosi que le calcul de azencl est facultatif ici
                 if ((cloudt.ne.0).and.(cloudh(cloudt).eq.zcellc)) then          ! target cell = cloud
                      call anglezenithal(x_c,y_c,z_c,x_obs,y_obs,z_obs,
@@ -413,29 +381,6 @@ c verifie mais je crosi que le calcul de azencl est facultatif ici
                      icloud=icloud+
      +               fdiff*rcloud*abs(cos(azencl))/pi
                 endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -463,13 +408,8 @@ c=======================================================================
             idiff2=fdiff*pdifd2*real(stpdif)                              ! corriger le result pr avoir passe des cell afin d'accel le calcul
             irefdi=irefdi+idiff2      
            endif                                                          ! fin condition obstacle sous maille diffuse->cible 
-        else
-c          print*,'ombrage diff-cible2',x_dif,y_dif,z_dif,x_c,y_c,z_c
-c      print*,'dif-c,-sr',x_dif,y_dif,z_dif,'|',x_c,y_c,z_c,'|',x_sr,y_sr
         endif                                                             ! fin condition ombrage diffuse-cible
           endif                                                           ! fin condition obstacle reflechie->diffuse    
-         else
-c          print*,'ombrage ref-diff2',x_sr,y_sr,z_sr,x_dif,y_dif,z_dif
          endif                                                            ! fin  condition ombrage surface refl - diffuse 
         endif                                                             ! Fin du cas Diffusante = Source ou Cible        
        endif                                                              ! Fin de la condition "cellule a l'interieur du domaine"             
