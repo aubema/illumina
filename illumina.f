@@ -464,11 +464,11 @@ c                                                                         ! (i-1
         enddo                                                             ! Fin de la boucle sur les 181 donnees du fichier pa#.dat.
         close(1)                                                          ! Fermeture du fichier pa#.dat, fonction angulaire d'emission.
         do i=1,181
-         pvalno(i,stype)=pval(i,stype)/pvalto                             ! Normalisation de la fonction d'emission.
-        enddo                                                       
+         if (pvalto.ne.0.) pvalno(i,stype)=pval(i,stype)/pvalto           ! Normalisation de la fonction d'emission.
+        enddo   
 c    ===================================================================
         nom='luminosite'
-        call intrants2d  (lufile,val2d,nom,xcell0,ycell0,pixsiz,
+        call intrants2d(lufile,val2d,nom,xcell0,ycell0,pixsiz,
      +  nbx,nby)
        do i=1,nbx                                                         ! Debut de la boucle sur toutes les cases en x.
         do j=1,nby                                                        ! Debut de la boucle sur toutes les cases en y.
