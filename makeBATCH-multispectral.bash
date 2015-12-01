@@ -45,17 +45,18 @@ dmin="150"                                                     # Minimal distanc
 #  Vectors
 #
 # sites in order:  ORM OT
-x_sites=( 151 )                                                # list of x observer positions 
-y_sites=( 151 )                                                # list of y observer positions (with respect to x_sites)
-z_sites=(  7  )                                                # list of z observer positions (with respect to x_sites)
+x_sites=( 269 )                                                # list of x observer positions 
+y_sites=( 245 )                                                # list of y observer positions (with respect to x_sites)
+z_sites=(  38  )                                                # list of z observer positions (with respect to x_sites)
                                                                # 0   0   0   0 0.04 .68 5.9  37 164 1141 2000   94  0   equivalent elevations (m)
-d_reflect=( 15 )                                               # list of Mean light free path toward ground 
+d_reflect=( 25 )                                               # list of Mean light free path toward ground 
 h_obstacle=( 7 )                                               # list of subgrid obstacle height
 saut_dif=( 71 )                                                # list of 2nd scattering computing acceleration factor (ideally a prime number
 r_dif=( 4000 )                                                 # list of 2nd scattering radius
-elevation=( 15 30 )                              # list of elevation viewing angles  
-azimut=( 0 90 )                         # list of azimut viewing angles
-tau=( 0.1 )                                                # list of AOD values
+elevation=( 90 45 )                              # list of elevation viewing angles  
+azimut=( 0 45 90 135 180 225 270 315 292 )                         # list of azimut viewing angles
+tau=( 0.11 )                                                # list of AOD values at 500 nm
+alpha=( 0.7 )                                       # list of angstrom exponents values
 #
 # =========================
 # Vectors determined from local files with .lst extensions
@@ -268,7 +269,7 @@ echo "Starting from "$folder
                                       echo "                 ! (1=complete, 2= 2 times faster, ...)" >> illumina.in 
                                       echo ${wav[$wl]} "  ! WAVELENGTH [nm]" >> illumina.in
                                       echo $pressure "   ! GROUND LEVEL PRESSURE [kPa]"  >> illumina.in
-                                      echo ${tau[$nt]} "   ! AEROSOL OPTICAL DEPTH [-]"  >> illumina.in
+                                      echo ${tau[$nt]} ${alpha[$nt]} "   ! 500nm AEROSOL OPTICAL DEPTH ; angstrom exponent [-]"  >> illumina.in
                                       echo ${#lamp_l[*]} "    ! NUMBER OF SOURCE TYPES [-]"  >> illumina.in
                                       echo "                !" >> illumina.in
                                       echo ${d_reflect[$ndr]} ${h_obstacle[$nh]} "   ! MAXIMUM REFLECTION RADIUS [m] ; MEAN OBSTACLE HEIGHT [m]" >> illumina.in

@@ -56,11 +56,11 @@ reflect_files=( round_reflect-0.1.pgm  )        # list of reflectance files (w r
 mie_files=( urban_RH70_0.4980um.mie.out )                 # list of Mie parameter files (w respect to wav)
 lamp_l=( _lumlp_001.pgm  )        # list of lamp luminosity distribution files, $wav will be add before
 lamp_h=( round_altlp.pgm  )                                     # list of lamp height files (w respect to lamp_l)
-lamp_p=( cobrahead_fctem_01.dat )   
+lamp_p=( fctem_wl_$wav_zon_$zon.dat )   # list of photometry (w respect to lamp_l)
 #
 # ===================================
 # begin of script
-#
+
 # find domain size and resolution
 grep -v "#" $mna_file | head -2 |tail -1 > size.tmp
 read nbx nby bidon < size.tmp

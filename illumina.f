@@ -150,7 +150,8 @@ c                                                                         ! d'em
 c                                                                         ! lumineuses.
       real transa,transm                                                  ! Transmittance entre deux cellules (aerosols,molecules).
       real tran1a,tran1m                                                  ! Transmittance a l'interieur d'une cellule (aerosols,molecules).
-      real taua                                                           ! epaisseur optique des aerosols.
+      real taua                                                           ! epaisseur optique des aerosols @ 500nm.
+      real alpha                                                          ! Angstrom coefficient of aerosol AOD
       real*8 xc,yc,zc,xn,yn,zn                                            ! Position (metre) des elements (arrivee, depart) pour le calcul 
 c                                                                         ! de l'angle solide.  
       real*8 r1x,r1y,r1z,r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z              ! Composantes des vecteurs utilises dans la routine angle solide.
@@ -287,7 +288,7 @@ c=======================================================================
        read(1,*)
        read(1,*) lambda
        read(1,*) pressi
-       read(1,*) taua
+       read(1,*) taua,alpha
        read(1,*) ntype
        read(1,*) 
        read(1,*) drefle,obsH
@@ -305,6 +306,10 @@ c=======================================================================
          print*,'Minimum distance to the source=',dminlp
 
       close(1)
+c
+c computing the actual AOD at the wavelength lambda
+c      
+       taua=taua*(lambda/500.)**(-1.*alpha)
 c
 c  determiner la longueur du nom
 c 
