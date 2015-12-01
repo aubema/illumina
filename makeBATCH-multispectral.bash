@@ -47,7 +47,7 @@ dmin="150"                                                     # Minimal distanc
 # sites in order:  ORM OT
 x_sites=( 151 )                                                # list of x observer positions 
 y_sites=( 151 )                                                # list of y observer positions (with respect to x_sites)
-z_sites=(  1  )                                                # list of z observer positions (with respect to x_sites)
+z_sites=(  7  )                                                # list of z observer positions (with respect to x_sites)
                                                                # 0   0   0   0 0.04 .68 5.9  37 164 1141 2000   94  0   equivalent elevations (m)
 d_reflect=( 15 )                                               # list of Mean light free path toward ground 
 h_obstacle=( 7 )                                               # list of subgrid obstacle height
