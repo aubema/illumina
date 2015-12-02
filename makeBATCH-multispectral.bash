@@ -61,9 +61,12 @@ alpha=( 0.7 )                                       # list of angstrom exponents
 # =========================
 # Vectors determined from local files with .lst extensions
 #
-readarray wav < wav.lst                                       # list of wavelength (nm)
-readarray lamp_l < zon.lst 
-readarray lamp_h < altlp.lst                                     # list of lamp height files (w respect to lamp_l) i.e. one altlp file per element of the zon.lst file  
+#readarray wav < wav.lst                                       # list of wavelength (nm)
+while IFS=\= read value; do wav+=($value);done < wav.lst
+#readarray lamp_l < zon.lst 
+while IFS=\= read value; do lamp_l+=($value);done < zon.lst
+#readarray lamp_h < altlp.lst                                     # list of lamp height files (w respect to lamp_l) i.e. one altlp file per element of the zon.lst file  
+while IFS=\= read value; do lamp_h+=($value);done < altlp.lst
 # removing unwanted white spaces in arrays
 n=0; while [ $n -lt ${#wav[*]} ] ; do wav[$n]="$(echo -e "${wav[$n]}" | tr -d ' ')" ; let n=n+1; done
 n=0; while [ $n -lt ${#lamp_l[*]} ] ; do lamp_l[$n]="$(echo -e "${lamp_l[$n]}" | tr -d ' ')" ; let n=n+1; done
