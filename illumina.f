@@ -440,8 +440,8 @@ c=======================================================================
        do i=1,nbx                                                         ! Debut de la boucle sur toutes les cases en x.
         do j=1,nby                                                        ! Debut de la boucle sur toutes les cases en y.
          if (srefl(i,j).lt.0.) then                                       ! Recherche de reflectances negatives
-           print*,'***Negative reflectance!, stopping execution'
-           stop
+           print*,'***,WARNING - Negative reflectance replacing by 0.!'
+           srefl(i,j)=0.
          endif
         enddo                                                             ! Fin de la boucle sur toutes les cases en y.
        enddo

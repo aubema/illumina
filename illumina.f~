@@ -309,9 +309,7 @@ c=======================================================================
 c
 c computing the actual AOD at the wavelength lambda
 c      
-       print*,taua,lambda,alpha
-       taua=taua*(lamda/500.)**(-1.*alpha)
-       print*,taua,lamda/500.,(lamda/500.)**(-1.*alpha),(-1.*alpha)
+       taua=taua*(lambda/500.)**(-1.*alpha)
 c
 c  determiner la longueur du nom
 c 
