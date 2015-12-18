@@ -46,10 +46,12 @@ c     Gn=barG file name
       real pi,maxim,gain,offset,xcell0,ycell0,pixsiz,rho(wid,wid),dwav
       real sp(nbd,nag),lum(wid,wid,nbd),rad,bands(nbd,2)
       real G_moy(nwa,nzo),Fdown(nwa,nzo),fctem(nzo,nbd),avgwav(nbd)
-      real tlamb,nwi
+      real tlamb,nwi,dbnunits
 c nzo nombre max de bandes
       character*3 zonenu,waven,lambda
 c default values
+c converting to nanoW/cm2/sr en W/m2/sr DNB=DNB*dnbunits
+      dnbunits=1.-5
       pi=3.14159
       rad=pi/180.
       valmax=65535
@@ -137,6 +139,7 @@ c reading the right modis file
         enddo
         do i=1,nbx
           do j=1,nbx
+              dnb(i,j)*dnb(i,j)*dnbunits
               if (rho(i,j).lt.0.05) then
                  dnb(i,j)=0.
               endif
