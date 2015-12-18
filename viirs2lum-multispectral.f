@@ -139,7 +139,7 @@ c reading the right modis file
         enddo
         do i=1,nbx
           do j=1,nbx
-              dnb(i,j)*dnb(i,j)*dnbunits
+              dnb(i,j)=dnb(i,j)*dnbunits
               if (rho(i,j).lt.0.05) then
                  dnb(i,j)=0.
               endif
