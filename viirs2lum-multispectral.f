@@ -134,7 +134,7 @@ c reading the right modis file
              rfile='modis_'//lambda//'.pgm'
              nom='MODIS ref.'
              call intrants2d(rfile,rho,nom,xcell0,ycell0,pixsiz,nbx,nby)
-             cycle
+             exit
           endif
         enddo
         do i=1,nbx
