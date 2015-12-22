@@ -51,7 +51,7 @@ c nzo nombre max de bandes
       character*3 zonenu,waven,lambda
 c default values
 c converting to nanoW/cm2/sr en W/m2/sr DNB=DNB*dnbunits
-      dnbunits=1.-5
+      dnbunits=1.E-5
       pi=3.14159
       rad=pi/180.
       valmax=65535
