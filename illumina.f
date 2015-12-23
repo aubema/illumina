@@ -205,7 +205,7 @@ c                                                                         ! by d
 c                                                                         ! when we redo a previous calculation qui a ete stopped anormalement.
       real fldif1                                                         ! flux reaching a scattering cell.
       real idif1                                                          ! intensity toward a target cell by a scattering cell.
-      real ratio                                                          ! ratio of cell observee in the field of view of the sensor.
+      real portio                                                         ! ratio of cell observee in the field of view of the sensor.
       real dis_obs                                                        ! Distance d'observation between the target and the observer.
       real ometif                                                         ! Solid angle of the by the telescope objective as seen from the target cell
       real omefov                                                         ! Solid angle of the sur le ciel vu par the fente.
@@ -867,7 +867,7 @@ c     +  transm,transa
 c        print*,omega,angdif,tran1a,tran1m,secdif,pdifdi    
 c        print*,x_s,y_s,z_s,x_c,y_c,z_c,x_obs,y_obs,z_obs 
 c ok=lamplu,fldir
-c        if (itargeteq.23) stop
+c        if (icible.eq.23) stop
 
 
 
@@ -1167,7 +1167,7 @@ c                                                                         ! scat
 c=======================================================================
 c   computation of the indirect intensity toward the sensor by a reflecting cell
 c=======================================================================
-                        intind=flindi*pdiend 
+                        intind=flindi*pdifin 
                        else
                         intind=0.
                        endif                                              ! end condition obstacle indirect.
@@ -1728,7 +1728,7 @@ c                                                                         ! que 
             print*,'ERROR omega=0 (1)'
             stop
            endif
-           fcapt=flcib*ratio                                             ! correction for the FOV to the flux reaching the intrument from the line of sight cell
+           fcapt=flcib*portio                                             ! correction for the FOV to the flux reaching the intrument from the line of sight cell
            do x_s=1,nbx
             do y_s=1,nby
              FCA(x_s,y_s)=FC(x_s,y_s)*portio
