@@ -72,16 +72,12 @@ c converting to nanoW/cm2/sr en W/m2/sr DNB=DNB*dnbunits
       print*,' '
       print*,'================'
       print*,'Output root name of the experiment ?'
-c      read*,basename
- 
-      basename='Hawaii'
+      read*,basename
       lenbase=index(basename,' ')-1 
       print*,'viirs-dnb file name? [e.g. stable-light.pgm]'
-c      read*,viirs_file
-      viirs_file='stable_lights_lowcut.pgm'
+      read*,viirs_file
       print*,'zonal file name? [e.g. Hawaii.zon]'
-c      read*,zonfile
-      zonfile='Hawaii.zon'
+      read*,zonfile
       bands_file='integration_limits.dat'
       viirs_resp='viirs.dat'
 c Reading the spectral bands file
