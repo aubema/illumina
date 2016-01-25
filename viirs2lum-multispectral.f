@@ -84,10 +84,13 @@ c Reading the spectral bands file
       print*,'Reading spectral bands...'
       OPEN(UNIT=42,FILE=bands_file,STATUS='OLD')
         READ(42,*) n_bands
-        DO nb=1,n_bands
-          READ(42,*) bands(nb,1),bands(nb,2)
-          avgwav(nb)=(bands(nb,2)+bands(nb,1))/2.
+        DO nb=1,n_bands+1
+          READ(42,*) bands(nb,1)
         ENDDO
+        do nb=1,n_bands
+          bands(nb,2)=bands(nb+1,1)
+          avgwav(nb)=(bands(nb,2)+bands(nb,1))/2.
+        enddo
       close(unit=42)
 c Reading VIIRS-dnb spectral response
       print*,'Reading VIIRS-dnb spectral response...'

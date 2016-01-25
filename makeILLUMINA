@@ -36,10 +36,9 @@ $F77 L569-546toVmag-OT.f -o L569-546toVmag-OT
 echo $F77" L569-615toVmag-ORM.f -o bin/L569-615toVmag-ORM"
 $F77 L569-615toVmag-ORM.f -o L569-615toVmag-ORM
 echo $F77" circular-pgm-integ.f intrants2d.f -o bin/circular-pgm-integ"
+$F77 circular-pgm-integ.f intrants2d.f -o bin/circular-pgm-integ
 echo $F77" CompareToMiro.f -o bin/CompareToMiro"
 $F77 CompareToMiro.f -o bin/CompareToMiro
-
-$F77 circular-pgm-integ.f intrants2d.f -o bin/circular-pgm-integ
 echo $F77" moypondpgm16bit.f intrants2d.f extrants2d.f -o bin/moypondpgm16bit"
 $F77 moypondpgm16bit.f intrants2d.f extrants2d.f -o bin/moypondpgm16bit
 echo $F77" interp-pgm16bit.f intrants2d.f extrants2d.f -o bin/interp-pgm16bit"
@@ -74,8 +73,6 @@ echo $F77" ratiopmg16bit.f intrants2d.f extrants2d.f -o bin/ratiopgm16bit"
 $F77 ratiopgm16bit.f intrants2d.f extrants2d.f -o bin/ratiopgm16bit
 echo $F77" substractpmg16bit.f intrants2d.f extrants2d.f -o bin/substractpgm16bit"
 $F77 substractpgm16bit.f intrants2d.f extrants2d.f -o bin/substractpgm16bit
-echo $F77" circular-pgm-integ.f intrants2d.f extrants2d.f -o bin/circular-pgm-integ"
-$F77 circular-pgm-integ.f intrants2d.f extrants2d.f -o bin/circular-pgm-integ
 echo $F77" varres.f intrants2d.f extrants2d.f -o bin/varres"
 $F77 varres.f intrants2d.f extrants2d.f -o bin/varres
 echo $F77" retres.f intrants2d.f extrants2d.f -o bin/retres"
@@ -84,7 +81,7 @@ echo $F77" viirs2lum.f intrants2d.f extrants2d.f -o bin/viirs2lum"
 $F77 viirs2lum.f intrants2d.f extrants2d.f -o bin/viirs2lum
 echo $F77" writevalue16bit.f extrants2d.f -o bin/writevalue16bit"
 $F77 writevalue16bit.f extrants2d.f -o bin/writevalue16bit
-echo $F77" viirs2lum-multispectral.f extrants2d.f intrants2d.f interp_modis.f -o bin/viirs2lum"
+echo $F77" viirs2lum-multispectral.f extrants2d.f intrants2d.f interp_modis.f -o bin/viirs2lum "
 $F77 viirs2lum-multispectral.f extrants2d.f intrants2d.f interp_modis.f -o bin/viirs2lum
 chmod a+x bin/*
 chmod a+x *.bash
