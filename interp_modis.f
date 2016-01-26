@@ -64,8 +64,11 @@ c
       OPEN(UNIT=42,FILE=bands_file,STATUS='OLD')
         READ(42,*) n_bands
         ALLOCATE(bands(n_bands,2))
-        DO nb=1,n_bands
-          READ(42,*) bands(nb,1),bands(nb,2)
+        DO nb=1,n_bands+1
+          READ(42,*) bands(nb,1)
+        enddo
+        do nb=1,n_bands
+          bands(nb,2)=bands(nb+1,1)
           avgwav=(bands(nb,1)+bands(nb,2))/2.
           write(lambda, '(I3.3)' ) int(avgwav)
           outfile='modis_'//lambda//'.pgm'
