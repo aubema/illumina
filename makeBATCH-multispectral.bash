@@ -321,13 +321,14 @@ echo "Starting from "$folder
                                          ln -s $folder"/"$exp_name"_altlp_"${lamp_l[$nl]}".pgm" "./"$exp_name"_altlp_"${lamp_l[$nl]}".pgm"
 
                                          ln -s $folder"/fctem_wl_"${wav[$wl]}"_zon_"${lamp_l[$nl]}".dat" "./"$exp_name"_fctem_"${lamp_l[$nl]}".dat"
+
+                                         ln -s $folder"/"$exp_name"_obsth_"${lamp_l[$nl]}".pgm" "./"$exp_name"_obsth_"${lamp_l[$nl]}".pgm"
+                                         ln -s $folder"/"$exp_name"_obstd_"${lamp_l[$nl]}".pgm" "./"$exp_name"_obstd_"${lamp_l[$nl]}".pgm"
                                          let nl=nl+1
                                       done
                                       ln -s $griddir/"x"${x_sites[$ns]}"y"${y_sites[$ns]}/"wl"${wav[$wl]}/* .
 # copie des autres fichiers d intrants
                                       ln -s $folder/$mna_file "./"$exp_name"_topogra.pgm"
-                                      ln -s $folder"/"$exp_name"_obsth_"${lamp_l[$nl]}".pgm" "./"$exp_name"_obsth_"${lamp_l[$nl]}".pgm"
-                                      ln -s $folder"/"$exp_name"_obstd_"${lamp_l[$nl]}".pgm" "./"$exp_name"_obstd_"${lamp_l[$nl]}".pgm"
                                       cd ..
                                       let ncas=ncas+1
                                       let wl=wl+1
