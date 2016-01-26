@@ -53,8 +53,8 @@ d_reflect=( 25 )                                               # list of Mean li
 h_obstacle=( 7 )                                               # list of subgrid obstacle height
 saut_dif=( 71 )                                                # list of 2nd scattering computing acceleration factor (ideally a prime number
 r_dif=( 4000 )                                                 # list of 2nd scattering radius
-elevation=( 90 45 )                              # list of elevation viewing angles  
-azimut=( 0 45 90 135 180 225 270 315 292 )                         # list of azimut viewing angles
+elevation=( 90 )                              # list of elevation viewing angles  
+azimut=( 0  )                         # list of azimut viewing angles
 tau=( 0.11 )                                                # list of AOD values at 500 nm
 alpha=( 0.7 )                                       # list of angstrom exponents values
 #
@@ -63,11 +63,11 @@ alpha=( 0.7 )                                       # list of angstrom exponents
 #
 i=0; for line in $(<wav.lst); do wav[i]="$line";let i=i+1;done
 i=0; for line in $(<zon.lst); do lamp_l[i]="$line";let i=i+1;done
-i=0; for line in $(<altlp.lst); do lamp_h[i]="$line";let i=i+1;done
+# i=0; for line in $(<altlp.lst); do lamp_h[i]="$line";let i=i+1;done
 # removing unwanted white spaces in arrays
 n=0; while [ $n -lt ${#wav[*]} ] ; do wav[$n]="$(echo -e "${wav[$n]}" | tr -d ' ')" ; let n=n+1; done
 n=0; while [ $n -lt ${#lamp_l[*]} ] ; do lamp_l[$n]="$(echo -e "${lamp_l[$n]}" | tr -d ' ')" ; let n=n+1; done
-n=0; while [ $n -lt ${#lamp_h[*]} ] ; do lamp_h[$n]="$(echo -e "${lamp_h[$n]}" | tr -d ' ')" ; let n=n+1; done
+# n=0; while [ $n -lt ${#lamp_h[*]} ] ; do lamp_h[$n]="$(echo -e "${lamp_h[$n]}" | tr -d ' ')" ; let n=n+1; done
 #
 # ===================================
 # begin of script
@@ -151,8 +151,10 @@ echo "Making variable resolution grid lumlp files..."
                 echo ${y_sites[$ns]} >> varres.in 
                 cp -f $HOME/hg/illumina/bin/varres .
                 ./varres 
+echo "toto" ;exit 0
                 let nl=nl+1
              done
+
 # creating the variable resolution reflectance
 # this reflectance is a weighted average with the lumlp files on the variable res grid
                 echo $exp_name"_lumlp_recombined.pgm"  > varres.in
@@ -272,7 +274,6 @@ echo "Starting from "$folder
                                       echo ${tau[$nt]} ${alpha[$nt]} "   ! 500nm AEROSOL OPTICAL DEPTH ; angstrom exponent [-]"  >> illumina.in
                                       echo ${#lamp_l[*]} "    ! NUMBER OF SOURCE TYPES [-]"  >> illumina.in
                                       echo "                !" >> illumina.in
-                                      echo ${d_reflect[$ndr]} ${h_obstacle[$nh]} "   ! MAXIMUM REFLECTION RADIUS [m] ; MEAN OBSTACLE HEIGHT [m]" >> illumina.in
                                       echo "                !" >> illumina.in
                                       echo ${x_sites[$ns]} ${y_sites[$ns]} ${z_sites[$ns]}  " 1   ! OBSERVER X POSITION [cell unit] ; OBS Y POS [-] ; OBS Z POS [-] ; BEGINNING CELL ALONG THE LINE OF SIGHT (1=complete)" >> illumina.in
                                       echo "    ! (usefull in case of computer crash) (x=1 et y=1 is the south-west cell)" >> illumina.in
@@ -317,13 +318,17 @@ echo "Starting from "$folder
 #                                         if [ $nolp -lt 10 ]
 #                                         then numlp="00"$nolp
 #                                         fi                    
-                                         ln -s $folder"/"${lamp_h[$nl]} "./"$exp_name"_altlp_"${lamp_l[$nl]}".pgm"
+#                                         ln -s $folder"/"${lamp_h[$nl]} "./"$exp_name"_altlp_"${lamp_l[$nl]}".pgm"
+                                         ln -s $folder"/"$exp_name"_altlp_"${lamp_l[$nl]}".pgm" "./"$exp_name"_altlp_"${lamp_l[$nl]}".pgm"
+
                                          ln -s $folder"/fctem_wl_"${wav[$wl]}"_zon_"${lamp_l[$nl]}".dat" "./"$exp_name"_fctem_"${lamp_l[$nl]}".dat"
                                          let nl=nl+1
                                       done
                                       ln -s $griddir/"x"${x_sites[$ns]}"y"${y_sites[$ns]}/"wl"${wav[$wl]}/* .
 # copie des autres fichiers d intrants
                                       ln -s $folder/$mna_file "./"$exp_name"_topogra.pgm"
+                                      ln -s $folder"/"$exp_name"_obsth_"${lamp_l[$nl]}".pgm" "./"$exp_name"_obsth_"${lamp_l[$nl]}".pgm"
+                                      ln -s $folder"/"$exp_name"_obstd_"${lamp_l[$nl]}".pgm" "./"$exp_name"_obstd_"${lamp_l[$nl]}".pgm"
                                       cd ..
                                       let ncas=ncas+1
                                       let wl=wl+1

@@ -31,6 +31,11 @@ c
        integer k,l,lx,ly,xi,xf,yi,yf,point(width*width,3),m,p
        character*72 lin,rin,lout,rout
        character*12 nom
+       xcell0=0.
+       ycell0=0.
+       pixsiz=1.
+       print*,xcell0
+       nom='varres'
        l1=27
 c width of the 1x1 resolution window
 c l1 must be an odd multiple of 9 (e.g. 9, 27, 45, 63, 81, ...) 
@@ -51,23 +56,35 @@ c l3 must be an odd multiple of 9 and l3>l1
        point(i,3)=0
        enddo
        max=0.
-       open(unit=1,file='varres.in',status='unknown')
-          read(1,*) lin
+       open(unit=11,file='varres.in',status='unknown')
+       print*,'reading varres.in'
+          read(11,*) lin
 c initial lumlp file
-          read(1,*) rin
+          read(11,*) rin
 c initial reflectance file
-          read(1,*) lout
+          read(11,*) lout
 c final lumlp file
-          read(1,*) rout
+          read(11,*) rout
 c final reflectance file
-          read(1,*) px
+          read(11,*) px
 c observer x position
-          read(1,*) py
+          read(11,*) py
 c observer y position
-       close(unit=1)
+       close(unit=11)
 c load lumlp file
+         print*,'toto',lin,rin,lout,rout,px,py  
+         print*,'nom=',nom
+         print*,pixsiz
+         print*,'xcell0=',xcell0
+         print*,'ycell0=',ycell0
+        print*,pixsiz,nx,ny
+
           call intrants2d(lin,lumlp,nom,xcell0,ycell0,pixsiz,
      +    nx,ny)
+
+           print*,nom,xcell0,ycell0,pixsiz,nx,ny
+
+ 
           maxi=0.
           n=0
 c create new lumlp file using a variable mesh grid 
@@ -176,11 +193,13 @@ c writing lumlp output file with variable resolution
        call extrants2d(lout,lumlpo,nom,xcell0,ycell0,pixsiz,
      + gain,offset,nx,ny,valmax)
 c writing grid points informations
+       print*,'Writing grid points informations'
        open(unit=1,file='grid.txt',status='unknown')
          write(1,*) n
          do i=1,n
            write(1,*) i,point(i,1),point(i,2),point(i,3)
          enddo
        close(unit=1)
+       print*,'End of varres'
        stop
        end

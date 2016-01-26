@@ -52,9 +52,9 @@ c                                                                         ! coor
          close(1)                                                         ! Fermeture du fichier relief.pgm.
 
  1000 format('P2')
- 1001 format('# lon0 ',F9.5)
- 1002 format('# lat0 ',F9.5)
- 1003 format('# pixsiz ',F9.3)
+ 1001 format('# lon0 ',F12.5)
+ 1002 format('# lat0 ',F12.5)
+ 1003 format('# pixsiz ',F12.3)
  1004 format('# gain ',E15.9)
  1005 format('# offset ',F17.11)
       return

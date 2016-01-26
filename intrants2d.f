@@ -29,13 +29,15 @@ c
          integer hcnt,i,j,nbx,nby,valmax
          character*12 nom
          character*72 infile,tag,bidon
+         xcell0=0.
+         ycell0=0.
          print*,'Loading file : ',infile
          bidon='#'                                                        ! Le caractere # indique que la ligne contient une constante.
          hcnt=0                                                           ! Le nombre de lignes de constantes au debut du fichier (hcnt) est 
 c                                                                         ! fixe a 0.
          open(unit=1,file=infile,status='old')
          read(1,*)                                                        ! Passe la premiere ligne (il y a toujours un p2).
-         do i=1,50                                                        ! Debut de la boucle sur les 50 premieres lignes du fichier.
+         do i=1,12                                                        ! Debut de la boucle sur les 12 premieres lignes du fichier.
             read(1,*,end=3,err=1) bidon,tag,val                           ! Lecture du fichier relief.pgm.
             goto 2
  1         backspace 1
@@ -54,7 +56,8 @@ c                                                                         ! donn
             else
                goto 3
             endif  
-         enddo                                                            ! Fin de la boucle sur les 50 premieres lignes du fichier.     
+         enddo                                                            ! Fin de la boucle sur les 12 premieres lignes du fichier.    
+
  3      rewind 1
          read(1,*)                                                        ! Passe la premiere ligne (il y a toujours un p2).
          do i=1,hcnt                                                      ! Debut de la boucle sur les lignes de constantes au debut du fichier.
@@ -62,7 +65,7 @@ c                                                                         ! donn
          enddo                                                            ! Fin de la boucle sur les lignes de constantes au debut du fichier.
          read(1,*) nbx,nby,valmax                                         ! Lecture de la taille du fichier (en cases) et la valeur maximale 
 c                                                                         ! des donnees.
-          read(1,*) ((valeur(i,j),i=1,nbx),j=nby,1,-1)                   ! Lecture de toutes les donnees qui sont ensuite inscrites
+          read(1,*) ((valeur(i,j),i=1,nbx),j=nby,1,-1)                    ! Lecture de toutes les donnees qui sont ensuite inscrites
 c                                                                         ! dans la matrice alt_sol. Ce sont des boucles imbriquees dans la
 c                                                                         ! fonction "read" qui couvrent tout le domaine delimite par nbx et nby.
 c                                                                         ! L'increment de la boucle sur les ranges (latitute) est de -1 car 
@@ -72,7 +75,7 @@ c                                                                         ! coor
       close(1)                                                            ! Fermeture du fichier relief.pgm.
       do i=1,nbx                                                          ! Debut de la boucle sur toutes les cases en x.
         do j=1,nby                                                        ! Debut de la boucle sur toutes les cases en y.
-           valeur(i,j)=valeur(i,j)*gain+offset                          ! Transformation des donnees avec le gain et l'offset et recherche 
+           valeur(i,j)=valeur(i,j)*gain+offset                            ! Transformation des donnees avec le gain et l'offset et recherche 
         enddo                                                             ! Fin de la boucle sur toutes les cases en y.
       enddo 
       return

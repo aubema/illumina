@@ -36,7 +36,7 @@ c
       integer width
       parameter (width=1024)  
       integer x_sr,y_sr,x_dif,y_dif,zcell_dif                             ! Positions source, surface reflectrice, celldiffusantes (cellule)
-      integer x_c,y_c,zcell_c,nbx,nby
+      integer x_c,y_c,zcell_c,nbx,nby,stype
       real z_sr,z_dif,dx,dy                             
       real cell_t(50),alt_sol(width,width)                                ! Matrice de l'epaisseur des niveaux (metre)
 
@@ -69,7 +69,7 @@ c
       integer x_obs,y_obs                                                 ! Position de l'observateur (cellule)
       real z_obs
       real epsilx,epsily                                                  ! inclinaison de la surface reflechissante
-      real angmin,hobst,drefl
+      real angmin,hobst(width,width,120),drefl(width,width,120)
       parameter (pi=3.1415926)
       real zenhor(360),d2,angazi                                          ! angle zenithal de l'horizon,distance horizon, angle azimut
       integer az
@@ -134,7 +134,8 @@ c ombrage s_reflechissante-diffusante
 c MA j'ai verifie que angzen ne depasse  jamais pi ou jamais moins que 0
                                                                           ! Fin du cas "observateur a la meme latitu/longitude que la source"
 c obstacle sous maille
-           angmin=pi/2.-atan(hobst/drefl)
+           angmin=pi/2.-atan(hobst(x_sr,y_sr,stype)/
+     +     drefl(x_sr,y_sr,stype))
            if (angzen.lt.angmin) then                                     ! debut condition obstacle reflechi->diffuse               
 c=======================================================================
 c        Calcul de la transmittance entre la surface reflechissane et la cellule diffusante
@@ -280,8 +281,8 @@ c ombrage s_reflechissante-diffusante
      
      
 c obstacle sous maille
-            angmin=pi/2.-atan((hobst+alt_sol(x_dif,y_dif)
-     +      -z_dif)/drefl)
+            angmin=pi/2.-atan((hobst(x_dif,y_dif,stype)+
+     +      alt_sol(x_dif,y_dif)-z_dif)/drefl(x_dif,y_dif,stype))
             if (angzen.lt.angmin) then                                    ! debut condition obstacle sous maille diffuse->cible                                                                                    
                                                                           ! Fin du cas "observateur a la meme latitu/longitude que la source"
 c=======================================================================

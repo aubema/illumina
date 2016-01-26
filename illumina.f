@@ -96,7 +96,7 @@ c
       character*72 basenm                                                 ! Base name of files.
       character*12 nom                                                    ! Variable name 2d read or written
       integer lenbase                                                     ! Length du Base name of the experiment.
-      real lambda,pressi,drefle                                           ! Wavelength (nanometre), atmospheric pressure (kPa), zone 
+      real lambda,pressi,drefle(width,width,120)                          ! Wavelength (nanometre), atmospheric pressure (kPa), zone 
 c                                                                         ! of mean free path to the ground (metre).
       integer ntype                                                       ! Number of light source types considered.
       real largx                                                          ! Width (valeur x) of the modelling domain (metre).
@@ -112,10 +112,11 @@ c                                                                         ! of m
       real offset                                                         ! Constante d'addition of the valeurs of files source.
       integer valmax                                                      ! Maximum value of the output pgms
       integer stype                                                       ! Identification du source types.
-      character*72 pafile,lufile,alfile                                   ! Fichiers relatifs aux light sources (photometric function 
-c                                                                         ! of the sources (lampadaires), luminosite (DIMENSIONS??), altituof (metre).    
+      character*72 pafile,lufile,alfile,ohfile,odfile                     ! Files related to light sources and obstacles (photometric function 
+c                                                                         ! of the sources (sr-1), luminosity (W), height (m), obstacle height (m), 
+c                                                                         ! obstacle distance (m).    
       real lamplu(width,width,120)                                        ! Source luminositys dans chaque case (DIMENSION???).
-      real lampal(width,width,120)                                        ! Altituof of the light sources relative to the ground (metre).
+      real lampal(width,width,120)                                        ! Height of the light sources relative to the ground (metre).
       real pval(181,120),pvalto,pvalno(181,120)                           ! Values of the angular photometry functions (arbitraires, 
 c                                                                         ! totale non-array, normalisees).
       real dtheta                                                         ! Increment d'angle the photometric function of the sources 
@@ -216,7 +217,7 @@ c                                                                         ! when
       real projap                                                         ! Fraction of the  surface reflectance vue par rapport a the direction 
 c                                                                         ! normale. useful for the calculation of the lambertian reflectance.
       real nbang                                                          ! for the averaging of the photometric function
-      real obsH,angmin                                                    ! averaged height of the sub-grid obstacles, minimum angle under wich 
+      real obsH(width,width,120),angmin                                   ! averaged height of the sub-grid obstacles, minimum angle under wich 
 c                                                                         ! a light ray cannot propagate because it is blocked by a sub-grid obstable
       integer naz,na 
       real ITT(width,width,120)                                           ! total intensity per type of lamp
@@ -287,7 +288,6 @@ c=======================================================================
        read(1,*) taua,alpha
        read(1,*) ntype
        read(1,*) 
-       read(1,*) drefle,obsH
        read(1,*)
        read(1,*) x_obs,y_obs,zcello,nvis0
        read(1,*)
@@ -307,10 +307,10 @@ c computing the actual AOD at the wavelength lambda
 c      
        taua=taua*(lambda/500.)**(-1.*alpha)
 c
-c  determinedthe Length du nom
+c  determine the Length of nom
 c 
       lenbase=index(basenm,' ')-1  
-      mnaf=basenm(1:lenbase)//'_topogra.pgm'                              ! determine the names of fichiers input and output
+      mnaf=basenm(1:lenbase)//'_topogra.pgm'                              ! determine the names of input and output files
       reflf=basenm(1:lenbase)//'_reflect.pgm' 
       outfile=basenm(1:lenbase)//'.out'  
       pclf=basenm(1:lenbase)//'_pcl.txt'
@@ -319,10 +319,11 @@ c
       pcwimg=basenm(1:lenbase)//'_pcw.pgm'
       pclgp=basenm(1:lenbase)//'_pcl.gplot'
       pcwgp=basenm(1:lenbase)//'_pcw.gplot'    
-c  conversion of the geographical viewing angles toward the cartesian angle
-c  we assume that the angle in the file illumina.in
+c  conversion of the geographical viewing angles toward the cartesian 
+c  angle we assume that the angle in the file illumina.in
 c  is consistent with the geographical definition 
-c  geographical, azim=0 toward north, 90 toward east, 180 toward south etc
+c  geographical, azim=0 toward north, 90 toward east, 180 toward south 
+c  etc
 c  cartesian, azim=0 toward east, 90 toward north, 180 toward west etc
       azim=90.-azim
       if (azim.lt.0.) azim=azim+360.
@@ -339,7 +340,7 @@ c  opening output file
        print*,'2nd order scattering radius:',effdif,' m'
        write(2,*) 'Scattering step:',stepdi
        print*,'Scattering step:',stepdi
-       write(2,*) 'Mean free path to the ground:',drefle,' m'
+
        write(2,*) 'Observer position (x,y,z)',x_obs,y_obs,zcello
        print*,'Observer position (x,y,z)',x_obs,y_obs,zcello
        write(2,*) 'Elevation angle:',angvis,' azim angle (clockwise fro
@@ -441,9 +442,10 @@ c=======================================================================
          endif
         enddo                                                             ! end of the loop over all cells along y.
        enddo
-c========================================================================
-c  reading of the valeurs of P(theta), luminosites and positions of the sources
-c========================================================================
+c=======================================================================
+c  reading of the values of P(theta), luminosities and positions of the 
+c  sources, obstacle height and distance
+c=======================================================================
 c
        dtheta=.017453293                                                  ! one degree
        do stype=1,ntype                                                   ! beginning of the loop for the 120 types of sources.
@@ -456,6 +458,8 @@ c
         pafile=basenm(1:lenbase)//'_fctem_'//lampno//'.dat'               ! setting the file name of angular photometry.
         lufile=basenm(1:lenbase)//'_lumlp_'//lampno//'.pgm'               ! setting the file name of the luminosite of the cases.
         alfile=basenm(1:lenbase)//'_altlp_'//lampno//'.pgm'               ! setting the file name of height of the sources lumineuse.
+        ohfile=basenm(1:lenbase)//'_obsth_'//lampno//'.pgm'
+        odfile=basenm(1:lenbase)//'_obstd_'//lampno//'.pgm'
         open(UNIT=1, FILE=pafile,status='OLD')                            ! opening file pa#.dat, angular photometry.
         do i=1,181                                                        ! beginning of the loop for the 181 data points
          read(1,*) pval(i,stype)                                          ! reading of the donnees qui sont inscrites dans the array pval.
@@ -468,7 +472,8 @@ c                                                                         ! (i-1
          if (pvalto.ne.0.) pvalno(i,stype)=pval(i,stype)/pvalto           ! Normalisation of the photometric function.
         enddo   
 c    ===================================================================
-        nom='luminosite'
+c    reading luminosity files
+        nom='luminosity'
         call intrants2d(lufile,val2d,nom,xcell0,ycell0,pixsiz,
      +  nbx,nby)
        do i=1,nbx                                                         ! beginning of the loop over all cells along x.
@@ -527,6 +532,7 @@ c    ===================================================================
         enddo                                                             ! end of the loop over all cells along x.
         step(stype)=1
 c    ==================================================================
+c    reading lamp heights
         nom='Heights'
         call intrants2d(alfile,val2d,nom,xcell0,ycell0,pixsiz,nbx,
      +  nby)
@@ -535,6 +541,25 @@ c    ==================================================================
           lampal(i,j,stype)=val2d(i,j)                                    ! Remplissage of the array for the lampe stype
          enddo                                                            ! end of the loop over all cells along y.
         enddo                                                             ! end of the loop over all cells along x.
+c    ==================================================================
+        nom='ObstH'
+        call intrants2d(ohfile,val2d,nom,xcell0,ycell0,pixsiz,nbx,
+     +  nby)
+        do i=1,nbx                                                        ! beginning of the loop over all cells along x.
+         do j=1,nby                                                       ! beginning of the loop over all cells along y.
+          obsH(i,j,stype)=val2d(i,j)                                      ! Remplissage of the array for the lampe stype
+         enddo                                                            ! end of the loop over all cells along y.
+        enddo 
+c    ==================================================================
+        nom='ObstD'
+        call intrants2d(odfile,val2d,nom,xcell0,ycell0,pixsiz,nbx,
+     +  nby)
+        do i=1,nbx                                                        ! beginning of the loop over all cells along x.
+         do j=1,nby                                                       ! beginning of the loop over all cells along y.
+          drefle(i,j,stype)=val2d(i,j)                                    ! Remplissage of the array for the lampe stype
+         enddo                                                            ! end of the loop over all cells along y.
+        enddo 
+
        enddo                                                              ! end of the loop over the 120 types of sources.    
 c=======================================================================
 c        reading of the parametres of scattering
@@ -567,10 +592,7 @@ c======================================================================
        z_obs=cellh(zcello)                                                ! Attribution of the value in meter to the position z of the observateur.
        largx=dx*real(nbx)                                                 ! computation of the Width along x of the case.
        largy=dy*real(nby)                                                 ! computation of the Width along y of the case.
-       boxx=nint(drefle/dx)                                               ! Number of column to consider left/right of the source 
-c                                                                         ! for the reflexion.
-       boxy=nint(drefle/dy)                                               ! Number of column to consider up/down of the source for 
-c                                                                         ! the reflexion.
+
        write(2,*) 'Width of the domain [NS](m):',largx,'#cases:',nbx
        write(2,*) 'Width of the domain [EO](m):',largy,'#cases:',nby
        write(2,*) 'Taille d''a cell (m):',dx,' X ',dy
@@ -700,8 +722,8 @@ c computation of the horizon for the resolved shadows direct              ! Il y
                 if ((angzen).lt.zhoriz(az)) then                          ! the ligne target-source n'est pas below the horizon => on calcule
 c                                                                         ! beginning condition below the horizon direct
 c sub-grid obstacles             
-                 angmin=pi/2.-atan((altsol(x_s,y_s)+obsH-z_s)/
-     +           drefle)
+                 angmin=pi/2.-atan((altsol(x_s,y_s)+obsH(x_s,y_s,stype)
+     +           -z_s)/drefle(x_s,y_s,stype))
                  if (angzen.lt.angmin) then                               ! beginning condition sub-grid obstacles direct.
 c
 c=======================================================================
@@ -880,6 +902,10 @@ c        etablissement of the conditions ands boucles
 c=======================================================================
                itotind=0.                                                 ! Initialisation of the indirect intensity of the source target    
                itotrd=0.
+       boxx=nint(drefle(x_s,y_s,stype)/dx)                                ! Number of column to consider left/right of the source 
+c                                                                         ! for the reflexion.
+       boxy=nint(drefle(x_s,y_s,stype)/dy)                                ! Number of column to consider up/down of the source for 
+c                                                                         ! the reflexion.
                do x_sr=x_s-boxx,x_s+boxx                                  ! beginning of the loop over the column (longitude) reflectrices.
                 do y_sr=y_s-boxy,y_s+boxy                                 ! beginning of the loop over the ranges (latitu) relfectrices.
                  irefl=0.
@@ -915,7 +941,7 @@ c=======================================================================
                       call transmita (angzen,x_s,y_s,z_s,x_sr,y_sr,
      +                z_sr,dx,dy,taua,transa)
 c=======================================================================
-c     computation of the Solid angle of the par the reflecting cell vue of the source
+c     computation of the Solid angle of the reflecting cell seen from the source
 c=======================================================================
                       xc=dble(x_sr)*dble(dx)                              ! Position in meters of the observer cell (longitude).
                       yc=dble(y_sr)*dble(dy)                              ! Position in meters of the observer cell (latitu).
@@ -925,16 +951,16 @@ c=======================================================================
                       zn=dble(z_s)                                        ! Position in meters of the source (altitude).
                       epsilx=inclix(x_sr,y_sr)                            ! tilt along x of the ground reflectance
                       epsily=incliy(x_sr,y_sr)                            ! tilt along x of the ground reflectance
-                      if (dx.gt.drefle*2.) then                           ! use a sub-grid surface when the mean free path to the ground is smaller than the cell size
+                      if (dx.gt.drefle(x_s,y_s,stype)*2.) then            ! use a sub-grid surface when the mean free path to the ground is smaller than the cell size
                        if ((x_sr.eq.x_s).and.(y_sr.eq.y_s)) then
-                        dxp=drefle*2.
+                        dxp=drefle(x_s,y_s,stype)*2.
                        endif
                       else
                        dxp=dx
                       endif
-                      if (dy.gt.drefle*2.) then
+                      if (dy.gt.drefle(x_s,y_s,stype)*2.) then
                        if ((x_sr.eq.x_s).and.(y_sr.eq.y_s)) then         
-                        dyp=drefle*2.
+                        dyp=drefle(x_s,y_s,stype)*2.
                        endif
                       else
                        dyp=dy
@@ -1002,8 +1028,8 @@ c=======================================================================
      +                 zcellc,dx,dy,effdif,nbx,nby,stepdi,
      +                 irefl1,lambda,pressi,taua,zcup,
      +                 zcdown,secdif,fdifan,x_obs,y_obs,z_obs,
-     +                 epsilx,epsily,irefdi,
-     +                 drefle,obsH,altsol,latitu,cloudt,cloudh,icloud)
+     +                 epsilx,epsily,irefdi,drefle,obsH,altsol,
+     +                 latitu,cloudt,cloudh,icloud,stype)
                       endif
                       itotrd=itotrd+irefdi      
 c
@@ -1044,7 +1070,8 @@ c=======================================================================
 c
 c            
 c obstacle                 
-                       angmin=pi/2.-atan(obsH/drefle)
+                       angmin=pi/2.-atan(obsH(x_sr,y_sr,stype)/
+     +                 drefle(x_sr,y_sr,stype))
                        if (angzen.lt.angmin) then                         ! beginning condition obstacle indirect.
 c
 c=======================================================================
@@ -1232,8 +1259,8 @@ c ombrage source-scattering cell
                    if ((angzen).lt.zhoriz(az)) then                       ! beginning condition ombrage source-diffusante
 c                                                                   
 c sub-grid obstacles               
-                    angmin=pi/2.-atan((obsH+altsol(x_s,y_s)-z_s
-     +              )/drefle)
+                    angmin=pi/2.-atan((obsH(x_s,y_s,stype)+
+     +              altsol(x_s,y_s)-z_s)/drefle(x_s,y_s,stype))
                     if (angzen.lt.angmin) then                            ! beginning condition obstacle source->diffuse.
 c                                                                    
 c=======================================================================
@@ -1395,8 +1422,9 @@ c                                                                         ! targ
         if ((angzen).lt.zhoriz(az)) then                                  ! beginning condition ombrage diffuse-cible  
 c                                                                 
 c subgrid obstacles                
-                     angmin=pi/2.-atan((obsH+altsol(x_dif,
-     +               y_dif)-z_dif)/drefle)
+                     angmin=pi/2.-atan((obsH(x_dif,y_dif,stype)+
+     +               altsol(x_dif,y_dif)-z_dif)/drefle(x_dif,y_dif,
+     +               stype))
                      if (angzen.lt.angmin) then                           ! beginning condition sub-grid obstacles diffuse->target
 c                                                                   
 c=======================================================================
