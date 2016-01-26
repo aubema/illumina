@@ -151,7 +151,6 @@ echo "Making variable resolution grid lumlp files..."
                 echo ${y_sites[$ns]} >> varres.in 
                 cp -f $HOME/hg/illumina/bin/varres .
                 ./varres 
-echo "toto" ;exit 0
                 let nl=nl+1
              done
 
