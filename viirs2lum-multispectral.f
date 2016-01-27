@@ -316,23 +316,23 @@ c pour obtenir le lumlp de chaque zone et chaque bande
         enddo
         do nb=1,n_bands
           write(waven, '(I3.3)' ) int(avgwav(nb))
-            write(zonenu, '(I3.3)' ) n
-            lumfile=basename(1:lenbase)//'_'//waven//'_lumlp_'//
-     +                zonenu//'.pgm'
-            nom='Luminosity'
-            maxim=0.
-            do i=1,nbx
-              do j=1,nby
-                dat(i,j)=lum(i,j,nb)
-                  if (maxim.lt.dat(i,j)) then
-                    maxim=dat(i,j)
-                  endif
-                enddo
-              enddo
-              gain=maxim/real(valmax)
-              if (gain.eq.0.) gain=1.
-              call extrants2d(lumfile,dat,nom,xcell0,ycell0,pixsiz,
-     +        gain,offset,nbx,nby,valmax)
+          write(zonenu, '(I3.3)' ) n
+          lumfile=basename(1:lenbase)//'_'//waven//'_lumlp_'//
+     +    zonenu//'.pgm'
+          nom='Luminosity'
+          maxim=0.
+          do i=1,nbx
+            do j=1,nby
+              dat(i,j)=lum(i,j,nb)
+                if (maxim.lt.dat(i,j)) then
+                  maxim=dat(i,j)
+                endif
+            enddo
+          enddo
+          gain=maxim/real(valmax)
+          if (gain.eq.0.) gain=1.
+          call extrants2d(lumfile,dat,nom,xcell0,ycell0,pixsiz,
+     +    gain,offset,nbx,nby,valmax)
         enddo
 c
 c
