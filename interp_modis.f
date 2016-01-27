@@ -54,7 +54,7 @@ c
         DO i=1,n_modis
           READ(42,*) modis_wav(i),mod_file
           nom='reflexion '
-          CALL intrants2d(mod_file,refl(:,:,i),nom,xcell0,ycell0,
+          CALL intrants2d(mod_file,refl(:,:,i),xcell0,ycell0,
      +    pixsiz,nbx,nby)
         ENDDO
       CLOSE(42)
