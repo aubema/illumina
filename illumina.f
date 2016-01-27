@@ -34,7 +34,7 @@ c **      but these parameters are fixed on the modelling domain                
 c **    - Molecules and aerosol optics (phase function, scatte probability, aerosol absorption)                   **  
 c **    - Exponential concentrations vertical profile (H aerosol= 2km, H molecules= 8km                               **
 c **    - Exponential vertical resolution (max height= 30 km)                                                         **
-c **    - Accounting for hetecloudh(cloudt)rogeneity of ground reflectance, luminaires number, luminaire height, angular photometry **
+c **    - Accounting for heterogeneity of ground reflectance, luminaires number, luminaire height, angular photometry **
 c **    - Wavelength dependant                                                                                        **
 c **    - Ignore the flux scattered by the voxel occupied by the observer (cellobs=cellcible)                         **
 c **    - Do not support direct observation of a source                                                               ** 
@@ -96,7 +96,7 @@ c
       character*72 basenm                                                 ! Base name of files.
       character*12 nom                                                    ! Variable name 2d read or written
       integer lenbase                                                     ! Length du Base name of the experiment.
-      real lambda,pressi,drefle(width,width,120)                          ! Wavelength (nanometre), atmospheric pressure (kPa), zone 
+      real lambda,pressi,drefle(width,width)                              ! Wavelength (nanometre), atmospheric pressure (kPa), zone 
 c                                                                         ! of mean free path to the ground (metre).
       integer ntype                                                       ! Number of light source types considered.
       real largx                                                          ! Width (valeur x) of the modelling domain (metre).
@@ -155,7 +155,7 @@ c                                                                         ! lumi
       real*8 xc,yc,zc,xn,yn,zn                                            ! Position (metre) of the elements (arrivee, depart) for the calculation 
 c                                                                         ! of the angle solide.  
       real*8 r1x,r1y,r1z,r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z              ! Composantes of the vecteurs utilises dans the routine angle solide.
-      real omega,omega1,omega2                                            ! Solid angle of the by a cell vue of the autre, angle 
+      real omega,omega1                                                   ! Solid angle of the by a cell vue of the autre, angle 
 c                                                                         ! comparaison.
       real fldir                                                          ! Flux coming from a source cell dans a target cell (watt).
       real flindi                                                         ! Flux coming from a reflecting cell dans a target cell (watt).
@@ -217,7 +217,7 @@ c                                                                         ! when
       real projap                                                         ! Fraction of the  surface reflectance vue par rapport a the direction 
 c                                                                         ! normale. useful for the calculation of the lambertian reflectance.
       real nbang                                                          ! for the averaging of the photometric function
-      real obsH(width,width,120),angmin                                   ! averaged height of the sub-grid obstacles, minimum angle under wich 
+      real obsH(width,width),angmin                                       ! averaged height of the sub-grid obstacles, minimum angle under wich 
 c                                                                         ! a light ray cannot propagate because it is blocked by a sub-grid obstable
       integer naz,na 
       real ITT(width,width,120)                                           ! total intensity per type of lamp
@@ -403,15 +403,14 @@ c=======================================================================
        redudi=1
        irefdi=0.
        angmin=0.
-       vistep=1.
+       vistep=1
 c***********************************************************************
 c        reading of the environment variables                          *
 c***********************************************************************
 c=======================================================================
 c  reading of the elevation file
 c=======================================================================
-       nom='relief'
-       call intrants2d(mnaf,altsol,nom,xcell0,ycell0,pixsiz,
+       call intrants2d(mnaf,altsol,xcell0,ycell0,pixsiz,
      + nbx,nby)
 
        latitu=ycell0
@@ -431,8 +430,7 @@ c                                                                         ! sear
 c=======================================================================
 c reading du fichier of reflexion
 c=======================================================================
-       nom='reflexion'
-       call intrants2d(reflf,srefl,nom,xcell0,ycell0,
+       call intrants2d(reflf,srefl,xcell0,ycell0,
      + pixsiz,nbx,nby)
        do i=1,nbx                                                         ! beginning of the loop over all cells along x.
         do j=1,nby                                                        ! beginning of the loop over all cells along y.
@@ -447,6 +445,8 @@ c  reading of the values of P(theta), luminosities and positions of the
 c  sources, obstacle height and distance
 c=======================================================================
 c
+       ohfile=basenm(1:lenbase)//'_obsth.pgm'
+       odfile=basenm(1:lenbase)//'_obstd.pgm'
        dtheta=.017453293                                                  ! one degree
        do stype=1,ntype                                                   ! beginning of the loop for the 120 types of sources.
         imin(stype)=nbx
@@ -458,8 +458,6 @@ c
         pafile=basenm(1:lenbase)//'_fctem_'//lampno//'.dat'               ! setting the file name of angular photometry.
         lufile=basenm(1:lenbase)//'_lumlp_'//lampno//'.pgm'               ! setting the file name of the luminosite of the cases.
         alfile=basenm(1:lenbase)//'_altlp_'//lampno//'.pgm'               ! setting the file name of height of the sources lumineuse.
-        ohfile=basenm(1:lenbase)//'_obsth_'//lampno//'.pgm'
-        odfile=basenm(1:lenbase)//'_obstd_'//lampno//'.pgm'
         open(UNIT=1, FILE=pafile,status='OLD')                            ! opening file pa#.dat, angular photometry.
         do i=1,181                                                        ! beginning of the loop for the 181 data points
          read(1,*) pval(i,stype)                                          ! reading of the donnees qui sont inscrites dans the array pval.
@@ -473,8 +471,7 @@ c                                                                         ! (i-1
         enddo   
 c    ===================================================================
 c    reading luminosity files
-        nom='luminosity'
-        call intrants2d(lufile,val2d,nom,xcell0,ycell0,pixsiz,
+        call intrants2d(lufile,val2d,xcell0,ycell0,pixsiz,
      +  nbx,nby)
        do i=1,nbx                                                         ! beginning of the loop over all cells along x.
         do j=1,nby                                                        ! beginning of the loop over all cells along y.
@@ -526,41 +523,34 @@ c    reading luminosity files
         jmax(stype)=1
  336    do i=1,nbx                                                        ! beginning of the loop over all cells along x.
          do j=1,nby                                                       ! beginning of the loop over all cells along y.
-          lamplu(i,j,stype)=val2d(i,j)                                    ! remplir the array du type of thempe stype
+          lamplu(i,j,stype)=val2d(i,j)                                    ! remplir the array of the lamp type: stype
           totlu(stype)=totlu(stype)+lamplu(i,j,stype)                     ! the total lamp flux should be non-null to proceed to the calculations
          enddo                                                            ! end of the loop over all cells along y.
         enddo                                                             ! end of the loop over all cells along x.
         step(stype)=1
 c    ==================================================================
 c    reading lamp heights
-        nom='Heights'
-        call intrants2d(alfile,val2d,nom,xcell0,ycell0,pixsiz,nbx,
-     +  nby)
+        call intrants2d(alfile,val2d,xcell0,ycell0,pixsiz,nbx,nby)
         do i=1,nbx                                                        ! beginning of the loop over all cells along x.
          do j=1,nby                                                       ! beginning of the loop over all cells along y.
-          lampal(i,j,stype)=val2d(i,j)                                    ! Remplissage of the array for the lampe stype
+          lampal(i,j,stype)=val2d(i,j)                                    ! Remplissage of the array for the lamp stype
          enddo                                                            ! end of the loop over all cells along y.
         enddo                                                             ! end of the loop over all cells along x.
+       enddo                                                              ! end of the loop over the 120 types of sources. 
 c    ==================================================================
-        nom='ObstH'
-        call intrants2d(ohfile,val2d,nom,xcell0,ycell0,pixsiz,nbx,
-     +  nby)
+        call intrants2d(ohfile,val2d,xcell0,ycell0,pixsiz,nbx,nby)
         do i=1,nbx                                                        ! beginning of the loop over all cells along x.
          do j=1,nby                                                       ! beginning of the loop over all cells along y.
-          obsH(i,j,stype)=val2d(i,j)                                      ! Remplissage of the array for the lampe stype
+          obsH(i,j)=val2d(i,j)                                            ! filling of the array
          enddo                                                            ! end of the loop over all cells along y.
         enddo 
 c    ==================================================================
-        nom='ObstD'
-        call intrants2d(odfile,val2d,nom,xcell0,ycell0,pixsiz,nbx,
-     +  nby)
+        call intrants2d(odfile,val2d,xcell0,ycell0,pixsiz,nbx,nby)
         do i=1,nbx                                                        ! beginning of the loop over all cells along x.
          do j=1,nby                                                       ! beginning of the loop over all cells along y.
-          drefle(i,j,stype)=val2d(i,j)                                    ! Remplissage of the array for the lampe stype
+          drefle(i,j)=val2d(i,j)                                          ! Filling of the array
          enddo                                                            ! end of the loop over all cells along y.
-        enddo 
-
-       enddo                                                              ! end of the loop over the 120 types of sources.    
+        enddo    
 c=======================================================================
 c        reading of the parametres of scattering
 c=======================================================================
@@ -630,7 +620,7 @@ c=======================================================================
        ftocap=0.                                                          ! Initialisation of the value of flux received by the sensor
        fcapt=1.
        do icible=1,ncible                                                 ! beginning of the loop over the target cells
-      if ((fcapt.ge.ftocap/5000.).or.(cloudt.ne.0)) then                  ! stop the calculation of the viewing line when the increment is inferieur a 1/5000
+      if ((fcapt.ge.ftocap/5000.).or.(cloudt.ne.0)) then                  ! stop the calculation of the viewing line when the increment is lower than 1/5000
         if (fcapt.eq.1.) fcapt=0.
         if (icible.ge.nvis0) then                                         ! beginning condition for continuing of a computation stopped
          itotci=0.                                                        ! Initialisation of the contribution of the cible at the sensor level
@@ -722,8 +712,8 @@ c computation of the horizon for the resolved shadows direct              ! Il y
                 if ((angzen).lt.zhoriz(az)) then                          ! the ligne target-source n'est pas below the horizon => on calcule
 c                                                                         ! beginning condition below the horizon direct
 c sub-grid obstacles             
-                 angmin=pi/2.-atan((altsol(x_s,y_s)+obsH(x_s,y_s,stype)
-     +           -z_s)/drefle(x_s,y_s,stype))
+                 angmin=pi/2.-atan((altsol(x_s,y_s)+obsH(x_s,y_s)
+     +           -z_s)/drefle(x_s,y_s))
                  if (angzen.lt.angmin) then                               ! beginning condition sub-grid obstacles direct.
 c
 c=======================================================================
@@ -749,8 +739,8 @@ c    ------------------------------------
 c    solid angle for the central plane xy
 c    ------------------------------------
                   if (z_c .ne. z_s) then
-                   call planxy(dx,dy,xc,xn,yc,yn,zc,zn,cthick,
-     +             zcellc,r1x,r1y,r1z,r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,
+                   call planxy(dx,dy,xc,xn,yc,yn,zc,zn,
+     +             r1x,r1y,r1z,r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,
      +             r4z) 
                    call anglesolide(omega,r1x,r1y,r1z,                    ! Appel of the routine anglesoliof qui calcule the solid angle 
      +             r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z)                   ! selon le plan xy.
@@ -868,12 +858,14 @@ c   computation of the source contribution a the direct intensity toward the sen
 c=======================================================================
                   intdir=fldir*pdifdi
 
-                if ((cloudt.ne.0).and.(cloudh(cloudt).eq.zcellc)) then    ! target cell = cloud
+                if (cloudt.ne.0) then                                     ! target cell = cloud
+                  if (cloudh(cloudt).eq.zcellc) then
                      call anglezenithal(x_c,y_c,z_c,x_obs,y_obs,z_obs,
      +               dx,dy,azencl)                                        ! zenith angle from cloud to observer                     
                      call cloudreflectance(angzen,cloudt,rcloud)          ! cloud intensity from direct illum
                      icloud=icloud+
      +               fldir*rcloud*abs(cos(azencl))/pi
+                  endif
                 endif
                  else 
                   intdir=0.                                      
@@ -902,9 +894,9 @@ c        etablissement of the conditions ands boucles
 c=======================================================================
                itotind=0.                                                 ! Initialisation of the indirect intensity of the source target    
                itotrd=0.
-       boxx=nint(drefle(x_s,y_s,stype)/dx)                                ! Number of column to consider left/right of the source 
+       boxx=nint(drefle(x_s,y_s)/dx)                                      ! Number of column to consider left/right of the source 
 c                                                                         ! for the reflexion.
-       boxy=nint(drefle(x_s,y_s,stype)/dy)                                ! Number of column to consider up/down of the source for 
+       boxy=nint(drefle(x_s,y_s)/dy)                                      ! Number of column to consider up/down of the source for 
 c                                                                         ! the reflexion.
                do x_sr=x_s-boxx,x_s+boxx                                  ! beginning of the loop over the column (longitude) reflectrices.
                 do y_sr=y_s-boxy,y_s+boxy                                 ! beginning of the loop over the ranges (latitu) relfectrices.
@@ -951,16 +943,16 @@ c=======================================================================
                       zn=dble(z_s)                                        ! Position in meters of the source (altitude).
                       epsilx=inclix(x_sr,y_sr)                            ! tilt along x of the ground reflectance
                       epsily=incliy(x_sr,y_sr)                            ! tilt along x of the ground reflectance
-                      if (dx.gt.drefle(x_s,y_s,stype)*2.) then            ! use a sub-grid surface when the mean free path to the ground is smaller than the cell size
+                      if (dx.gt.drefle(x_s,y_s)*2.) then                  ! use a sub-grid surface when the mean free path to the ground is smaller than the cell size
                        if ((x_sr.eq.x_s).and.(y_sr.eq.y_s)) then
-                        dxp=drefle(x_s,y_s,stype)*2.
+                        dxp=drefle(x_s,y_s)*2.
                        endif
                       else
                        dxp=dx
                       endif
-                      if (dy.gt.drefle(x_s,y_s,stype)*2.) then
+                      if (dy.gt.drefle(x_s,y_s)*2.) then
                        if ((x_sr.eq.x_s).and.(y_sr.eq.y_s)) then         
-                        dyp=drefle(x_s,y_s,stype)*2.
+                        dyp=drefle(x_s,y_s)*2.
                        endif
                       else
                        dyp=dy
@@ -1070,8 +1062,8 @@ c=======================================================================
 c
 c            
 c obstacle                 
-                       angmin=pi/2.-atan(obsH(x_sr,y_sr,stype)/
-     +                 drefle(x_sr,y_sr,stype))
+                       angmin=pi/2.-atan(obsH(x_sr,y_sr)/
+     +                 drefle(x_sr,y_sr))
                        if (angzen.lt.angmin) then                         ! beginning condition obstacle indirect.
 c
 c=======================================================================
@@ -1099,7 +1091,7 @@ c    solid angle for the central plane xy
 c    ------------------------------------
                         if (z_c .ne. z_sr) then
                          call planxy(dx,dy,xc,xn,yc,yn,zc,zn,
-     +                   cthick,zcellc,r1x,r1y,r1z,r2x,r2y,
+     +                   r1x,r1y,r1z,r2x,r2y,
      +                   r2z,r3x,r3y,r3z,r4x,r4y,r4z)
                          call anglesolide(omega,r1x,r1y,r1z,              ! Appel of the routine anglesoliof qui calcule the solid angle 
      +                   r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z)             ! selon le plan xy.
@@ -1165,12 +1157,14 @@ c        computation du flux indirect atteignant the target cell
 c=======================================================================
                         flindi=irefl*omega*transm*
      +                  transa     
-                if ((cloudt.ne.0).and.(cloudh(cloudt).eq.zcellc)) then    ! target cell = cloud
+                if (cloudt.ne.0) then                                     ! target cell = cloud
+                  if (cloudh(cloudt).eq.zcellc) then
                      call anglezenithal(x_c,y_c,z_c,x_obs,y_obs,z_obs,
      +               dx,dy,azencl)                                        ! zenith angle from cloud to observer                     
                      call cloudreflectance(angzen,cloudt,rcloud)          ! cloud intensity from indirect illum
                      icloud=icloud+
      +               flindi*rcloud*abs(cos(azencl))/pi
+                  endif
                 endif
 c=======================================================================
 c   computation of the scattering probability of the lumiere indirect
@@ -1259,8 +1253,8 @@ c ombrage source-scattering cell
                    if ((angzen).lt.zhoriz(az)) then                       ! beginning condition ombrage source-diffusante
 c                                                                   
 c sub-grid obstacles               
-                    angmin=pi/2.-atan((obsH(x_s,y_s,stype)+
-     +              altsol(x_s,y_s)-z_s)/drefle(x_s,y_s,stype))
+                    angmin=pi/2.-atan((obsH(x_s,y_s)+
+     +              altsol(x_s,y_s)-z_s)/drefle(x_s,y_s))
                     if (angzen.lt.angmin) then                            ! beginning condition obstacle source->diffuse.
 c                                                                    
 c=======================================================================
@@ -1289,7 +1283,7 @@ c    solid angle for the central plane xy
 c    ------------------------------------
                      if (z_dif .ne. z_s) then
                       call planxy(dx,dy,xc,xn,yc,yn,zc,zn,
-     +                cthick,zcellc,r1x,r1y,r1z,r2x,r2y,r2z,
+     +                r1x,r1y,r1z,r2x,r2y,r2z,
      +                r3x,r3y,r3z,r4x,r4y,r4z)
                       call anglesolide(omega,r1x,r1y,r1z,                 ! Appel of the routine anglesoliof qui calcule the solid angle 
      +                r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z)                ! selon le plan xy.
@@ -1375,8 +1369,10 @@ c
                       naz=anglez+na
                       if (naz.lt.0) naz=-naz
                       if (naz.gt.181) naz=362-naz                         ! symetric function
-                      P_dif1=P_dif1+pvalno(naz,stype)
-                      nbang=nbang+1. 
+                      if (naz.ne.0) then
+                        P_dif1=P_dif1+pvalno(naz,stype)
+                        nbang=nbang+1. 
+                      endif
                      enddo
                      P_dif1=P_dif1/nbang 
 c
@@ -1422,9 +1418,8 @@ c                                                                         ! targ
         if ((angzen).lt.zhoriz(az)) then                                  ! beginning condition ombrage diffuse-cible  
 c                                                                 
 c subgrid obstacles                
-                     angmin=pi/2.-atan((obsH(x_dif,y_dif,stype)+
-     +               altsol(x_dif,y_dif)-z_dif)/drefle(x_dif,y_dif,
-     +               stype))
+                     angmin=pi/2.-atan((obsH(x_dif,y_dif)+
+     +               altsol(x_dif,y_dif)-z_dif)/drefle(x_dif,y_dif))
                      if (angzen.lt.angmin) then                           ! beginning condition sub-grid obstacles diffuse->target
 c                                                                   
 c=======================================================================
@@ -1448,7 +1443,7 @@ c    solid angle for the central plane xy
 c    ------------------------------------
                       if (z_c .ne. z_dif) then
                        call planxy(dx,dy,xc,xn,yc,yn,zc,zn,
-     +                 cthick,zcellc,r1x,r1y,r1z,r2x,r2y,r2z
+     +                 r1x,r1y,r1z,r2x,r2y,r2z
      +                 ,r3x,r3y,r3z,r4x,r4y,r4z)
                        call anglesolide(omega,r1x,r1y,r1z,                ! Appel of the routine anglesoliof qui calcule the solid angle 
      +                 r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z)               ! selon le plan xy.   
@@ -1497,12 +1492,14 @@ c=======================================================================
                       fldiff=idif1*omega*transm*
      +                transa
 c verifie mais je crosi que the calculation of azencl is facultatif ici
-                if ((cloudt.ne.0).and.(cloudh(cloudt).eq.zcellc)) then           ! target cell = cloud
+                if (cloudt.ne.0) then                                     ! target cell = cloud
+                  if (cloudh(cloudt).eq.zcellc) then
                      call anglezenithal(x_c,y_c,z_c,x_obs,y_obs,z_obs,
      +               dx,dy,azencl)                                        ! zenith angle from cloud to observer                     
                      call cloudreflectance(angzen,cloudt,rcloud)                 ! cloud intensity from direct illum
                      icloud=icloud+
      +               fldiff*rcloud*abs(cos(azencl))/pi
+                  endif
                 endif
 c=======================================================================
 c   computation of the scattering probability of the lumiere diffuse toward the observer cell(SORTANT of cell_c)
@@ -1545,11 +1542,9 @@ c End of 2nd scattered intensity calculations
 c**********************************************************************
 c        computation of the intensity coming from a source dans the target toward the sensor
 c**********************************************************************
-               isourc=intdir
-     a         +itotind+itodif 
-     +         +itotrd                                                    ! Somme of the intensitys of chaque type propre source  
+               isourc=intdir+itotind+itodif+itotrd                        ! Somme of the intensitys of chaque type propre source  
 c                                                                         ! atteignant a target cell.
-c                                                                         ds l ordre 1st scat; refl->1st scat; 1st scat->2nd scat, refl->1st scat->2nd scat
+c                                                                         ! ds l ordre 1st scat; refl->1st scat; 1st scat->2nd scat, refl->1st scat->2nd scat
                if (verbose.eq.1) then
                 print*,' Total intensity components:'
                 print*,' source->scattering=',intdir
@@ -1668,7 +1663,7 @@ c    ------------------------------------
 c    solid angle for the central plane xy
 c    ------------------------------------
            if (z_c .ne. z_obs) then
-            call planxy(dx,dy,xc,xn,yc,yn,zc,zn,cthick,zcellc,
+            call planxy(dx,dy,xc,xn,yc,yn,zc,zn,
      +      r1x,r1y,r1z,r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z)  
             call anglesolide(omega,r1x,r1y,r1z,                           ! Appel of the routine anglesoliof qui calcule the solid angle 
      +      r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z)                          ! selon le plan xy.
@@ -1777,7 +1772,8 @@ c   end du computation du flux reaching the observer cell en provenance of the t
          endif                                                            ! end of the condition target cell inside the modelling domain
         endif                                                             ! end condition for continuing of a computation stopped.
 c correction for the FOV to the flux reaching the intrument from the cloud cell
-           if ((cloudt.ne.0).and.(cloudh(cloudt).eq.zcellc)) then         ! target cell = cloud
+           if (cloudt.ne.0) then
+            if (cloudh(cloudt).eq.zcellc) then                           ! target cell = cloud
 c=======================================================================
 c  solid angle of the cloud pixel as seen from observer position
 c=======================================================================
@@ -1791,7 +1787,7 @@ c    ------------------------------------
 c    solid angle for the central plane xy
 c    ------------------------------------
               if (z_c .ne. z_obs) then
-                 call planxy(dx,dy,xc,xn,yc,yn,zc,zn,cthick,zcellc,
+                 call planxy(dx,dy,xc,xn,yc,yn,zc,zn,
      +           r1x,r1y,r1z,r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z)  
                  call anglesolide(omega,r1x,r1y,r1z,                      ! Appel of the routine anglesoliof qui calcule the solid angle 
      +           r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z)                     ! selon le plan xy.
@@ -1802,7 +1798,8 @@ c computation of the flux reaching the intrument from the cloud cell
               fcloud=icloud*ometif*transa*transm
               fccld=fcloud*omefov/omega
               fctcld=fctcld+fccld
-            endif          
+            endif
+           endif          
         print*,' Flux @ sensor (clear & cloudy)             =',fcapt,
      +  fccld
         print*,' Flux @ sensor accumulated (clear & cloudy) =',ftocap,

@@ -25,13 +25,12 @@ c
 c    Contact: martin.aube@cegepsherbrooke.qc.ca
 c
 c
-      subroutine planxy(dx,dy,xc,xn,yc,yn,zc,zn,cell_thickness,zcell_c,
+      subroutine planxy(dx,dy,xc,xn,yc,yn,zc,zn,
      +r1x,r1y,r1z,r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z)
       real*8 r1x,r1y,r1z,r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z              ! Composantes des vecteurs utilises dans la routine angle solide.     
       real*8 xc,yc,zc,xn,yn,zn                                            ! Position (metre) des elements (arrivee, depart) pour le calcul       
-      real cell_thickness(50)         
       real dx,dy
-      integer zcell_c  
+        
                         r1x=xc-dble(dx)/2.-xn                             ! Calcul de la composante en x du premier vecteur.
                         r1y=yc+dble(dy)/2.-yn                             ! Calcul de la composante en y du premier vecteur.
                         r1z=zc-zn                                         ! Calcul de la composante en z du premier vecteur.

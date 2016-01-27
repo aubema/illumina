@@ -102,13 +102,9 @@ c on pose la luminosite a 0
 c       reflex_file=basename(1:lenbase)//'_reflect.pgm'
 
 c       zonfile=basename(1:lenbase)//'.zon'
-       nom='reflexion '
-       call intrants2d(reflex_file,refl,nom,xcell0,ycell0,pixsiz,
-     + nbx,nby)
-       nom='DMSP-OLS  '
-       call intrants2d(ols_file,lup,nom,xcell0,ycell0,pixsiz,nbx,nby)
-       nom='WaterMask  '
-       call intrants2d(eau_file,water,nom,xcell0,ycell0,pixsiz,nbx,nby)
+       call intrants2d(reflex_file,refl,xcell0,ycell0,pixsiz,nbx,nby)
+       call intrants2d(ols_file,lup,xcell0,ycell0,pixsiz,nbx,nby)
+       call intrants2d(eau_file,water,xcell0,ycell0,pixsiz,nbx,nby)
 
        open(unit=1,file=zonfile,status='old')
          read(1,*) nzon,citypercent,city_lop

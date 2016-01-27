@@ -30,17 +30,18 @@ c
          character*72 outfile
          print*,'Ecriture du fichier de ',nom,': ',outfile
          open(unit=1,file=outfile,status='unknown')
-         write(1,1000)                                                       ! Tag P2).
+         write(1,1000)                                                    ! Tag P2).
          write(1,1001) xcell0
          write(1,1002) ycell0
          write(1,1003) pixsiz
          write(1,1004) gain
          write(1,1005) offset
          write(1,*) nbx,nby,valmax
-         do i=1,nbx                                                          ! Debut de la boucle sur toutes les cases en x.
-           do j=1,nby                                                        ! Debut de la boucle sur toutes les cases en y.
-              valeur(i,j)=(valeur(i,j)-offset)/gain                          ! Transformation des donnees avec le gain et l'offset et recherche 
-           enddo                                                             ! Fin de la boucle sur toutes les cases en y.
+         if (gain.eq.0.) gain=1.                                          ! case when all the image is 0 (eg. empty zone)
+         do i=1,nbx                                                       ! Debut de la boucle sur toutes les cases en x.
+           do j=1,nby                                                     ! Debut de la boucle sur toutes les cases en y.
+              valeur(i,j)=(valeur(i,j)-offset)/gain                       ! Transformation des donnees avec le gain et l'offset et recherche 
+           enddo                                                          ! Fin de la boucle sur toutes les cases en y.
          enddo          
          write(1,*) ((nint(valeur(i,j)),i=1,nbx),j=nby,1,-1)              ! Ecriture de toutes les donnees qui sont ensuite inscrites
 c                                                                         ! dans la matricel. Ce sont des boucles imbriquees dans la

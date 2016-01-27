@@ -29,7 +29,7 @@ c
      +       ,pressi,taua,zcup,zcdown,secdif,fdifan,
      +       x_obs,y_obs,z_obs,epsilx,epsily,
      +       irefdi,drefl,hobst,
-     +       alt_sol,latitu,cloudt,cloudh,icloud)
+     +       alt_sol,latitu,cloudt,cloudh,icloud,stype)
 c
 c   declarations de variables
 c  
@@ -55,7 +55,7 @@ c
       real*8 xc,yc,zc,xn,yn,zn
       real*8 r1x,r1y,r1z,r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z              ! Composantes des vecteurs utilises dans la routine angle solide
       real irefdi
-      real omega,omega1,omega2                                            ! Angle solide couvert par une cellule vue d'une autre, angle de comparaison
+      real omega,omega1                                                   ! Angle solide couvert par une cellule vue d'une autre, angle de comparaison
       real zidif,zfdif                                                    ! Limites initiale et finale du parcours de diffusion dans une cellule
       real tran1a,tran1m                                                  ! Transmittance a l'interieur d'une cellule (aerosols,molecules)
       real angdif, secdif
@@ -69,7 +69,7 @@ c
       integer x_obs,y_obs                                                 ! Position de l'observateur (cellule)
       real z_obs
       real epsilx,epsily                                                  ! inclinaison de la surface reflechissante
-      real angmin,hobst(width,width,120),drefl(width,width,120)
+      real angmin,hobst(width,width),drefl(width,width)
       parameter (pi=3.1415926)
       real zenhor(360),d2,angazi                                          ! angle zenithal de l'horizon,distance horizon, angle azimut
       integer az
@@ -134,8 +134,8 @@ c ombrage s_reflechissante-diffusante
 c MA j'ai verifie que angzen ne depasse  jamais pi ou jamais moins que 0
                                                                           ! Fin du cas "observateur a la meme latitu/longitude que la source"
 c obstacle sous maille
-           angmin=pi/2.-atan(hobst(x_sr,y_sr,stype)/
-     +     drefl(x_sr,y_sr,stype))
+           angmin=pi/2.-atan(hobst(x_sr,y_sr)/
+     +     drefl(x_sr,y_sr))
            if (angzen.lt.angmin) then                                     ! debut condition obstacle reflechi->diffuse               
 c=======================================================================
 c        Calcul de la transmittance entre la surface reflechissane et la cellule diffusante
@@ -149,11 +149,6 @@ c MA j'ai verifie que transa est > 0 et <=1
 c=======================================================================
 c     Calcul de l'angle solide couvert par la cellule diffusante vue de la surface reflechissante
 c=======================================================================
-
-
-c       omega2=0.
-
-
             xc=dble(x_dif)*dble(dx)                                       ! Position en metres de la cellule diffusante (longitude)
             yc=dble(y_dif)*dble(dy)                                       ! Position en metres de la cellule diffusante (latitu)
             zc=dble(z_dif)                                                ! Position en metres de la cellule diffusante (altitude)
@@ -164,7 +159,7 @@ c    ------------------------------------
 c    Angle solide pour le plan central xy
 c    ------------------------------------
             if (z_dif .ne. z_sr) then
-             call planxy(dx,dy,xc,xn,yc,yn,zc,zn,cell_t,zcell_c,
+             call planxy(dx,dy,xc,xn,yc,yn,zc,zn,
      +       r1x,r1y,r1z,r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z)                  
              call anglesolide(omega,r1x,r1y,r1z,                          ! Appel de la rout. anglesolide qui calcule l'ang. solide selon le plan xy
      +       r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z)
@@ -172,12 +167,6 @@ c    ------------------------------------
             else
              omega1=0.
             endif
-
-
-c           omega2=omega2+omega1
-
-
-
 c     ------------------------------------
 c     Angle solide pour le plan central zx
 c     ------------------------------------
@@ -193,12 +182,6 @@ c     ------------------------------------
             if (omega.gt.0.) then
              if (omega .gt. omega1) omega1 = omega                        ! On garde l'angle solide le plus grand jusqu'a present
             endif
-
-
-c          omega2=omega2+omega1
-
-
-
 c     ------------------------------------
 c     Angle solide pour le plan central yz
 c     ------------------------------------
@@ -216,12 +199,6 @@ c     ------------------------------------
              if (omega .gt. omega1) omega1 = omega                        ! On garde l'angle solide le plus grand
             endif
             omega=omega1
-
-
-c           omega2=omega2+omega1
-c           omega=omega2
-
-
 c oups omega depasse pi et va meme jusqu a 6.26 ->ok c'est normal puisque on observe a peu pres la demi sphere
             if (omega.gt.2.*pi) then
              print*,'omega=',omega
@@ -281,8 +258,8 @@ c ombrage s_reflechissante-diffusante
      
      
 c obstacle sous maille
-            angmin=pi/2.-atan((hobst(x_dif,y_dif,stype)+
-     +      alt_sol(x_dif,y_dif)-z_dif)/drefl(x_dif,y_dif,stype))
+            angmin=pi/2.-atan((hobst(x_dif,y_dif)+
+     +      alt_sol(x_dif,y_dif)-z_dif)/drefl(x_dif,y_dif))
             if (angzen.lt.angmin) then                                    ! debut condition obstacle sous maille diffuse->cible                                                                                    
                                                                           ! Fin du cas "observateur a la meme latitu/longitude que la source"
 c=======================================================================
@@ -295,11 +272,6 @@ c=======================================================================
 c=======================================================================
 c     Calcul de l'angle solide couvert par la cellule cible vue de la cellule diffusante
 c=======================================================================
-
-
-c          omega2=0.
-
-
             xc=dble(x_c)*dble(dx)                                         ! Position en metres de la cellule cible (longitude)
             yc=dble(y_c)*dble(dy)                                         ! Position en metres de la cellule cible (latitu)
             zc=dble(z_c)                                                  ! Position en metres de la cellule cible (altitude)
@@ -310,7 +282,7 @@ c    ------------------------------------
 c    Angle solide pour le plan central xy
 c    ------------------------------------
             if (z_c .ne. z_dif) then
-             call planxy(dx,dy,xc,xn,yc,yn,zc,zn,cell_t,zcell_c,
+             call planxy(dx,dy,xc,xn,yc,yn,zc,zn,
      +       r1x,r1y,r1z,r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z) 
              call anglesolide(omega,r1x,r1y,r1z,                          ! Appel de la rout anglesolide qui calcule l'angle solide selon le plan xy
      +       r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z)
@@ -318,12 +290,6 @@ c    ------------------------------------
             else
              omega1=0.
             endif
-
-
-c           omega2=omega2+omega1
-
-
-
 c     ------------------------------------
 c     Angle solide pour le plan central zx
 c     ------------------------------------
@@ -340,12 +306,6 @@ c     ------------------------------------
             if (omega.gt.0.) then
              if (omega .gt. omega1) omega1 = omega                        ! On garde l'angle solide le plus grand jusqu'a present
             endif
-
-
-c           omega2=omega2+omega1
-
-
-
 c     ------------------------------------
 c     Angle solide pour le plan central yz
 c     ------------------------------------
@@ -363,24 +323,20 @@ c     ------------------------------------
              if (omega .gt. omega1) omega1 = omega                        ! On garde l'angle solide le plus grand
             endif
             omega=omega1
-
-
-c           omega2=omega2+omega1
-c           omega=omega2
-
-
 c=======================================================================
 c        Calcul du flux diffuse atteignant la cellule cible
 c=======================================================================
             fdiff=idiff1*omega*transm*transa
 
 c verifie mais je crosi que le calcul de azencl est facultatif ici
-                if ((cloudt.ne.0).and.(cloudh(cloudt).eq.zcellc)) then          ! target cell = cloud
+                if (cloudt.ne.0) then                                     ! target cell = cloud
+                  if (cloudh(cloudt).eq.zcellc) then
                      call anglezenithal(x_c,y_c,z_c,x_obs,y_obs,z_obs,
      +               dx,dy,azencl)                                        ! zenith angle from cloud to observer                     
-                     call cloudreflectance(angzen,cloudt,rcloud)                 ! cloud intensity from direct illum
+                     call cloudreflectance(angzen,cloudt,rcloud)          ! cloud intensity from direct illum
                      icloud=icloud+
      +               fdiff*rcloud*abs(cos(azencl))/pi
+                  endif
                 endif
 
 

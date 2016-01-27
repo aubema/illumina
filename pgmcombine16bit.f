@@ -41,9 +41,7 @@ c
        do n=1,nimg
           print*,'pgm file name ',n
           read*,name1
-          nom='data1 '
-          call intrants2d(name1,dat1,nom,xcell0,ycell0,pixsiz,
-     +    nbx,nby)
+          call intrants2d(name1,dat1,xcell0,ycell0,pixsiz,nbx,nby)
           do i=1,nbx
              do j=1,nby
                 dat3(i,j)=dat3(i,j)+dat1(i,j)

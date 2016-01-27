@@ -34,12 +34,9 @@ c
        read*,name2 
        print*,'Output pgm file name?'
        read*,name3
-     
-       nom='data1 '
-       call intrants2d(name1,dat1,nom,xcell0,ycell0,pixsiz,
+       call intrants2d(name1,dat1,xcell0,ycell0,pixsiz,
      + nbx,nby)
-       nom='data2 '
-        call intrants2d(name2,dat2,nom,xcell0,ycell0,pixsiz,
+       call intrants2d(name2,dat2,xcell0,ycell0,pixsiz,
      + nbx,nby)
 
            max=0.

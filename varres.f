@@ -70,7 +70,7 @@ c observer x position
 c observer y position
        close(unit=11)
 c load lumlp file
-          call intrants2d(lin,lumlp,nom,xcell0,ycell0,pixsiz,
+          call intrants2d(lin,lumlp,xcell0,ycell0,pixsiz,
      +    nx,ny)
           maxi=0.
           n=0
@@ -135,7 +135,7 @@ c create new lumlp file using a variable mesh grid
           enddo
           print*,'Maximum acceleration factor: ',nx*ny/n,'X'
 c load reflectance
-          call intrants2d(rin,refle,nom,xcell0,ycell0,pixsiz,
+          call intrants2d(rin,refle,xcell0,ycell0,pixsiz,
      +    nx,ny) 
 c creating the reflectance file weighted by the lumlp
           rhomax=0.

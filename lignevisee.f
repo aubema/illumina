@@ -30,7 +30,7 @@ c
       subroutine lignevisee (x1,y1,z1,dx,dy,angvis,angazi,
      + nbx,nby,vistep,cloudz,visfin,ncfin)
 
-      integer x1,y1,cx,cy,visee(1024,3),alim,vistep,pos,visfin(1024,3)
+      integer x1,y1,cx,cy,visee(1024,3),alim,vistep,visfin(1024,3)
       integer viseef(1024,3),ncellf,cxm,cym,czm,elimf,cloudz
       integer ncell,nbx,nby,a,cxp,cyp,czp,cz,ncfin
       real z1,xn,yn,zn,dx,dy,distance
@@ -60,7 +60,7 @@ c
          print*,'Cloud base height (m):',cell_height(cloudz)
       endif
       ncell=0
-      xn=nint((real(x1-1)*dx)) 						  ! Transfert des coordonnees des cellules en mtre
+      xn=nint((real(x1-1)*dx))                                            ! Transfert des coordonnees des cellules en mtre
       yn=nint((real(y1-1)*dy))                                            ! Le zero du systeme de reference est au coin superieur gauche du pixel observateur
       zn=z1                                                               !
       angvi1 = (pi*angvis)/180.
@@ -184,23 +184,6 @@ c    un cas a eliminer
       viseef(ncellf,1)=visee(ncell,1)
       viseef(ncellf,2)=visee(ncell,2)
       viseef(ncellf,3)=visee(ncell,3)
-
-
-
-
-
-
-c introduce a skipping factor along the line of sight for low elevation angles
-c
-c cela introduit des erreurs de l'ordre de 10%!!!!!!!!!!
-c      vistep=ncellf/75+1
-c      ncfin=ncellf/vistep
-c      do i=1,ncfin
-c         pos=(i-1)*vistep+1
-c         visfin(i,1)=viseef(pos,1)
-c         visfin(i,2)=viseef(pos,2)
-c         visfin(i,3)=viseef(pos,3)
-c      enddo
 
           ncfin=0
           do ii=1,ncellf

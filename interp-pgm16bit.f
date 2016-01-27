@@ -44,10 +44,7 @@ c
       print*,'Name of the output pgm file ?'  
       read*,nomo     
 c
- 
-       nom='input data '
-       call intrants2d(nomi,tau,nom,xcell0,ycell0,pixsiz,
-     + nbx,nby)      
+       call intrants2d(nomi,tau,xcell0,ycell0,pixsiz,nbx,nby)      
        side=factor/2
        print*,'Averaging radius=',side
 c    

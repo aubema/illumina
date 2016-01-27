@@ -30,20 +30,23 @@ c
       integer x1,y1,x2,y2
       real dx,dy,pi,angazi                                                   
       parameter (pi=3.1415926)   
-      angazi=abs(atan(real(y2-y1)*dy/(real(x2-x1)*dx)))
+      if (x2-x1.ne.0.) angazi=abs(atan(real(y2-y1)*dy/(real(x2-x1)*dx)))
       if (((x2-x1).eq.0).and.((y2-y1).eq.0)) then
          angazi=0.
       else
-        if (x2-x1.ge.0.) then
+        if (x2-x1.gt.0.) then
          if (y2-y1.lt.0.) then
            angazi=2.*pi-angazi 
          endif 
-        else
+        elseif (x2-x1.lt.0.) then
          if (y2-y1.lt.0.) then
            angazi=angazi+pi 
          else
            angazi=pi-angazi
-         endif       
+         endif
+        else                                                              ! i.e. x2-x1=0.
+         if (y2.gt.y1) angazi=pi/2.
+         if (y2.lt.y1) angazi=3.*pi/2.
         endif
         if ((angazi.lt.0.).or.(angazi.gt.2.*pi)) then
           print*,'ERREUR angazi=',angazi,x1,y2,x2,y2

@@ -20,14 +20,13 @@ c
 c    Contact: martin.aube@cegepsherbrooke.qc.ca
 c
 c
-         subroutine intrants2d (infile,valeur,nom,xcell0,ycell0,
+         subroutine intrants2d (infile,valeur,xcell0,ycell0,
      +   pixsiz,nbx,nby)
          integer width
          parameter (width=1024)
          real valeur(width,width),val,xcell0,ycell0,gain,offset
          real pixsiz
          integer hcnt,i,j,nbx,nby,valmax
-         character*12 nom
          character*72 infile,tag,bidon
          xcell0=0.
          ycell0=0.
@@ -50,8 +49,11 @@ c                                                                         ! debu
                if (tag(1:4).eq.'lon0') xcell0=val                         ! Lecture de la longitude inferieure du domaine.
                if (tag(1:4).eq.'gain') gain=val                           ! Lecture du gain, qui permet de multiplier les donnees par une 
 c                                                                         ! constante.
-               if (tag(1:6).eq.'offset') offset=val                       ! Lecture de l'offset, qui permet d'additionner une constante aux
-c                                                                         ! donnees.
+               if (tag(1:6).eq.'offset') then                             ! Lecture de l'offset, qui permet d'additionner une constante aux donnees.
+                 offset=val
+               else
+                 offset=0.
+               endif
                if (tag(1:6).eq.'pixsiz') pixsiz=val
             else
                goto 3

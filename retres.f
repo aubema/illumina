@@ -52,12 +52,12 @@ c variable resolution file to convert to full resolution
 c full resolution file
        close(unit=1)
 c load lumlp file
-          call intrants2d(lin,lumlp,nom,xcell0,ycell0,pixsiz,
+          call intrants2d(lin,lumlp,xcell0,ycell0,pixsiz,
      +    nx,ny)
           maxi=0.
           n=0
 c load variable resolution file
-          call intrants2d(fin,donnee,nom,xcell0,ycell0,pixsiz,
+          call intrants2d(fin,donnee,xcell0,ycell0,pixsiz,
      +    nx,ny) 
 c loading grid points informations
        open(unit=1,file='grid.txt',status='unknown')

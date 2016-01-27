@@ -170,8 +170,7 @@ c
         ALLOCATE(refl(width,width,n_modis))
         DO i=1,n_modis
           READ(42,*) modis_lambdas(i),lop_file
-          nom='reflexion '
-          CALL intrants2d(lop_file,refl(:,:,i),nom,xcell0,ycell0,
+          CALL intrants2d(lop_file,refl(:,:,i),xcell0,ycell0,
      +    pixsiz,nbx,nby)
         ENDDO
       CLOSE(42)
@@ -195,8 +194,7 @@ c Seul le spectre pour l'angle actuel est conservé en mémoire, donc 1D suffit.
 c Retour code Martin
       lum = 0.
       lenbase=index(basename,' ')-1  
-      nom='VIIRS-DNB '
-      call intrants2d(viirs_file,viirs,nom,xcell0,ycell0,pixsiz,nbx,nby)
+      call intrants2d(viirs_file,viirs,xcell0,ycell0,pixsiz,nbx,nby)
         open(unit=1,file=zonfile,status='old')
           read(1,*) nzon,city_lop
           read(1,*) cityt,coun_lop              

@@ -111,8 +111,7 @@ c Normalizing VIIRS-dnb spectral response
       CLOSE(unit=1)
 c lecture de l'image viirs dnb
         print*,'Reading VIIRS-dnb image...'
-        nom='VIIRS-DNB '
-        call intrants2d(viirs_file,dnb,nom,xcell0,ycell0,pixsiz,nbx,nby)
+        call intrants2d(viirs_file,dnb,xcell0,ycell0,pixsiz,nbx,nby)
 c interpolate modis images to modelling bands wavelength
 c defined in file integration_limits.dat
         print*,'Interpolation MODIS images...'
@@ -131,8 +130,7 @@ c correction for the estimated scattered light. It is not done yet.
 c reading the right modis file
              write(lambda, '(I3.3)' ) int(avgwav(nb))
              rfile='modis_'//lambda//'.pgm'
-             nom='MODIS ref.'
-             call intrants2d(rfile,rho,nom,xcell0,ycell0,pixsiz,nbx,nby)
+             call intrants2d(rfile,rho,xcell0,ycell0,pixsiz,nbx,nby)
              exit
           endif
         enddo
@@ -172,8 +170,6 @@ c initialisation
           do i=1,nbx
             do j=1,nby
               Phi_c(i,j)=0.
-              obsth(i,j)=0.
-              obstd(i,j)=0.
               lamph(i,j)=0.
               do nb=1,n_bands
                 lum(i,j,nb)=0.
@@ -205,39 +201,6 @@ c       defining the lamp height for each pixel
                 endif
               enddo
             enddo
-c     writing obtacle height pgm files
-            print*,'Writing obtacle height pgm files...'
-            outfile=basename(1:lenbase)//'_obsth_'//zonenu//'.pgm'
-            nom='obstacle h'
-            maxim=0.
-            do i=1,nbx
-              do j=1,nby
-                if (maxim.lt.obsth(i,j)) then
-                  maxim = obsth(i,j)
-                endif
-              enddo
-            enddo
-            nom='ObstacleH'
-            gain = maxim/real(valmax)
-            call extrants2d (outfile,obsth,nom,xcell0,ycell0,pixsiz,
-     +      gain,offset,nbx,nby,valmax)
-c     writing obtacle mean free path pgm files
-            print*,'Writing obtacle mean free path pgm files...'
-            outfile=basename(1:lenbase)//'_obstd_'//
-     +                zonenu//'.pgm'
-            nom='obstacle d'
-            maxim=0.
-            do i=1,nbx
-              do j=1,nby
-                if (maxim.lt.obstd(i,j)) then
-                  maxim = obstd(i,j)
-                endif
-              enddo
-            enddo
-            nom='MeanFreePath'
-            gain = maxim/real(valmax)
-            call extrants2d (outfile,obstd,nom,xcell0,ycell0,pixsiz,
-     +      gain,offset,nbx,nby,valmax)
 c     writing light fixture height relative to the ground pgm files
             print*,'Writing light fixture height file...'
             outfile=basename(1:lenbase)//'_altlp_'//
@@ -279,8 +242,7 @@ c determination de la reflectance la plus proche en lambda
 c reading the right modis file
              write(lambda, '(I3.3)' ) int(avgwav(nb))
              rfile='modis_'//lambda//'.pgm'
-             nom='MODIS ref.'
-             call intrants2d(rfile,rho,nom,xcell0,ycell0,pixsiz,nbx,nby)
+             call intrants2d(rfile,rho,xcell0,ycell0,pixsiz,nbx,nby)
             cycle
           endif
         enddo
@@ -328,23 +290,6 @@ c et faire le ratio de chaque bande sur le total
               endif
             enddo
           enddo
-
-c debug pour valider le spectre
-c          if (n.eq.11) then
-c             na=181
-c             do i=1,nwa
-c               print*,wavel(i),spct(i,na)
-c             enddo
-c             print*,'==========='
-c             do i=1,n_bands
-c               print*,avgwav(i),sp(i,na)
-c             enddo
-c           stop
-c           endif
-
-
-
-
 c extraire le fctem pour chaque zone et chaque bande
         print*,'Extracting LOP...'
         do nb=1,n_bands
@@ -393,6 +338,37 @@ c
 c
 c fin bouche zones
           enddo
+c     writing obtacle height pgm files
+            print*,'Writing obtacle height pgm files...'
+            outfile=basename(1:lenbase)//'_obsth.pgm'
+            maxim=0.
+            do i=1,nbx
+              do j=1,nby
+                if (maxim.lt.obsth(i,j)) then
+                  maxim = obsth(i,j)
+                endif
+              enddo
+            enddo
+            nom='ObstacleH'
+            gain = maxim/real(valmax)
+            call extrants2d (outfile,obsth,nom,xcell0,ycell0,pixsiz,
+     +      gain,offset,nbx,nby,valmax)
+c     writing obtacle mean free path pgm files
+            print*,'Writing obtacle mean free path pgm files...'
+            outfile=basename(1:lenbase)//'_obstd.pgm'
+            nom='obstacleD'
+            maxim=0.
+            do i=1,nbx
+              do j=1,nby
+                if (maxim.lt.obstd(i,j)) then
+                  maxim = obstd(i,j)
+                endif
+              enddo
+            enddo
+            nom='MeanFreePath'
+            gain = maxim/real(valmax)
+            call extrants2d (outfile,obstd,nom,xcell0,ycell0,pixsiz,
+     +      gain,offset,nbx,nby,valmax)
 c
 c ===================
 c 
@@ -404,8 +380,7 @@ c creating combined lumlp for each band
             write(zonenu, '(I3.3)' ) n
             lumfile=basename(1:lenbase)//'_'//waven//'_lumlp_'//
      +                zonenu//'.pgm'
-            nom='Luminosity'
-       call intrants2d(lumfile,dat,nom,xcell0,ycell0,pixsiz,nbx,nby)
+       call intrants2d(lumfile,dat,xcell0,ycell0,pixsiz,nbx,nby)
             
             do i=1,nbx
               do j=1,nby

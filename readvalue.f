@@ -39,10 +39,7 @@ c
         read(1,*) ny
       close(unit=1)
 c
- 
-       nom='input data '
-       call intrants2d(nomi,dat,nom,xcell0,ycell0,pixsiz,
-     + nbx,nby)      
+       call intrants2d(nomi,dat,xcell0,ycell0,pixsiz,nbx,nby)      
        print*,'Value at x=',nx,' and y=',ny,' : ',dat(nx,ny)
 
        open(unit=2,file='readvalue.out',status='unknown')
