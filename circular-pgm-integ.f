@@ -37,8 +37,7 @@ c
        read*,x,y
      
        nom='data '
-       call intrants2d(basename,data,nom,xcell0,ycell0,pixsiz,
-     + nbx,nby)
+       call intrants2d(basename,data,xcell0,ycell0,pixsiz,nbx,nby)
             total=0.
             do i=1,nbx
              do j=1,nby
