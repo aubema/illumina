@@ -38,11 +38,12 @@ c ndb is the number of spectral bands
       real thetas(nag),obsth(wid,wid),obstd(wid,wid),lamph(wid,wid)
 c     obsth=obstacle height, obstd=mean free path to the ground, 
 c     lamph=lamp height above the ground
-      character*72 Gn,zonfile,viirs_resp,bands_file,fctfile
+      character*72 Gn(nzo),zonfile,viirs_resp,bands_file,fctfile
       character*72 lumfile,outfile,viirs_file,rfile
 c     Gn=barG file name
       character*12 nom,basename,junk
-      real x,y,r,hobst,dobst,hlamp,dat(wid,wid),datf(wid,wid)
+      real x(nzo),y(nzo),r(nzo),hobst(nzo),dobst(nzo),hlamp(nzo)
+      real dat(wid,wid),datf(wid,wid)
       real pi,maxim,gain,offset,xcell0,ycell0,pixsiz,rho(wid,wid),dwav
       real sp(nbd,nag),lum(wid,wid,nbd),rad,bands(nbd,2)
       real G_moy(nwa,nzo),Fdown(nwa,nzo),fctem(nzo,nbd),avgwav(nbd)
@@ -163,44 +164,46 @@ c ==============
 c debut boucle sur les zones
 c
         do n=1,nzon
-c
+          read(11,*) x(n),y(n),r(n),Gn(n),hobst(n),dobst(n),hlamp(n)
+c       loop over the modelling domain
+            do i=1,nbx
+              do j=1,nby
+                dist=sqrt((real(i)-x(n))**2.+(real(j)-y(n))**2.)
+                if (dist.le.r(n)) then
+c       determining the zone for each pixel
+                   zone(i,j)=n
+c       defining the mean obstacle height for each pixel
+                   obsth(i,j)=hobst(n)
+c       defining the mean free path to the ground for each pixel
+                   obstd(i,j)=dobst(n)
+c       defining the lamp height for each pixel
+                   lamph(i,j)=hlamp(n)
+                endif
+              enddo
+            enddo          
+        enddo
+        do n=1,nzon
 c
 c initialisation
           print*,'Initializing arrays...'
           do i=1,nbx
             do j=1,nby
               Phi_c(i,j)=0.
-              lamph(i,j)=0.
               do nb=1,n_bands
                 lum(i,j,nb)=0.
               enddo
             enddo
           enddo
           write(zonenu, '(I3.3)' ) n
-          read(11,*) x,y,r,Gn,hobst,dobst,hlamp
+
 c   reading the barG
-          print*,'Reading the barG...',Gn
-          open(unit=2,file=Gn,status='old')
+          print*,'Reading the barG...',Gn(n)
+          open(unit=2,file=Gn(n),status='old')
             do na=1,nag
               read(2,*) thetas(na), spct(:,na)
             enddo
           close(unit=2)
-c     loop over the modelling domain
-            do i=1,nbx
-              do j=1,nby
-                dist=sqrt((real(i)-x)**2.+(real(j)-y)**2.)
-                if (dist.le.r) then
-c       determining the zone for each pixel
-                   zone(i,j)=n
-c       defining the mean obstacle height for each pixel
-                   obsth(i,j)=hobst
-c       defining the mean free path to the ground for each pixel
-                   obstd(i,j)=dobst
-c       defining the lamp height for each pixel
-                   lamph(i,j)=hlamp
-                endif
-              enddo
-            enddo
+
 c     writing light fixture height relative to the ground pgm files
             print*,'Writing light fixture height file...'
             outfile=basename(1:lenbase)//'_altlp_'//
@@ -214,6 +217,8 @@ c     writing light fixture height relative to the ground pgm files
                 endif
               enddo
             enddo
+            print*, maxim
+            stop
             gain = maxim/real(valmax)
             call extrants2d (outfile,lamph,nom,xcell0,ycell0,pixsiz,
      +      gain,offset,nbx,nby,valmax)
