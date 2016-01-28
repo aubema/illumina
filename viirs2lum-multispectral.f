@@ -217,8 +217,6 @@ c     writing light fixture height relative to the ground pgm files
                 endif
               enddo
             enddo
-            print*, maxim
-            stop
             gain = maxim/real(valmax)
             call extrants2d (outfile,lamph,nom,xcell0,ycell0,pixsiz,
      +      gain,offset,nbx,nby,valmax)
