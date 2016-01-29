@@ -428,7 +428,7 @@ c                                                                         ! sear
         enddo                                                             ! end of the loop over all cells along y.
        enddo
 c=======================================================================
-c reading du fichier of reflexion
+c reading reflectance file
 c=======================================================================
        call intrants2d(reflf,srefl,xcell0,ycell0,
      + pixsiz,nbx,nby)
@@ -441,8 +441,8 @@ c=======================================================================
         enddo                                                             ! end of the loop over all cells along y.
        enddo
 c=======================================================================
-c  reading of the values of P(theta), luminosities and positions of the 
-c  sources, obstacle height and distance
+c  reading of the values of P(theta), height, luminosities and positions 
+c   of the sources, obstacle height and distance
 c=======================================================================
 c
        ohfile=basenm(1:lenbase)//'_obsth.pgm'
