@@ -204,22 +204,7 @@ c   reading the barG
             enddo
           close(unit=2)
 
-c     writing light fixture height relative to the ground pgm files
-            print*,'Writing light fixture height file...'
-            outfile=basename(1:lenbase)//'_altlp_'//
-     +                zonenu//'.pgm'
-            nom='LampHeight'
-            maxim=0.
-            do i=1,nbx
-              do j=1,nby
-                if (maxim.lt.lamph(i,j)) then
-                  maxim = lamph(i,j)
-                endif
-              enddo
-            enddo
-            gain = maxim/real(valmax)
-            call extrants2d (outfile,lamph,nom,xcell0,ycell0,pixsiz,
-     +      gain,offset,nbx,nby,valmax)
+
 c calcul du G_moy pour chaque zone et chaque lambda
             print*,'Computing G_moy...'
             do nw=1,nwa 
@@ -341,6 +326,23 @@ c
 c
 c fin bouche zones
           enddo
+c     writing light fixture height relative to the ground pgm files
+            print*,'Writing light fixture height file...'
+            outfile=basename(1:lenbase)//'_altlp.pgm'
+            nom='LampHeight'
+            maxim=0.
+            do i=1,nbx
+              do j=1,nby
+                if (maxim.lt.lamph(i,j)) then
+                  maxim = lamph(i,j)
+                endif
+              enddo
+            enddo
+            gain = maxim/real(valmax)
+            call extrants2d (outfile,lamph,nom,xcell0,ycell0,pixsiz,
+     +      gain,offset,nbx,nby,valmax)
+c
+c
 c     writing obtacle height pgm files
             print*,'Writing obtacle height pgm files...'
             outfile=basename(1:lenbase)//'_obsth.pgm'

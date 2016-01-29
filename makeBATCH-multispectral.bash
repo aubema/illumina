@@ -318,10 +318,10 @@ echo "Starting from "$folder
 #                                         then numlp="00"$nolp
 #                                         fi                    
 #                                         ln -s $folder"/"${lamp_h[$nl]} "./"$exp_name"_altlp_"${lamp_l[$nl]}".pgm"
-                                         ln -s $folder"/"$exp_name"_altlp_"${lamp_l[$nl]}".pgm" "./"$exp_name"_altlp_"${lamp_l[$nl]}".pgm"
                                          ln -s $folder"/fctem_wl_"${wav[$wl]}"_zon_"${lamp_l[$nl]}".dat" "./"$exp_name"_fctem_"${lamp_l[$nl]}".dat"
                                          let nl=nl+1
                                       done
+                                      ln -s $folder"/"$exp_name"_altlp.pgm" "./"$exp_name"_altlp.pgm"
                                       ln -s $folder"/"$exp_name"_obsth.pgm" "./"$exp_name"_obsth.pgm"
                                       ln -s $folder"/"$exp_name"_obstd.pgm" "./"$exp_name"_obstd.pgm"
                                       ln -s $griddir/"x"${x_sites[$ns]}"y"${y_sites[$ns]}/"wl"${wav[$wl]}/* .

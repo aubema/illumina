@@ -447,6 +447,7 @@ c=======================================================================
 c
        ohfile=basenm(1:lenbase)//'_obsth.pgm'
        odfile=basenm(1:lenbase)//'_obstd.pgm'
+       alfile=basenm(1:lenbase)//'_altlp.pgm'                             ! setting the file name of height of the sources lumineuse.
        dtheta=.017453293                                                  ! one degree
        do stype=1,ntype                                                   ! beginning of the loop for the 120 types of sources.
         imin(stype)=nbx
@@ -457,7 +458,8 @@ c
         write(lampno, '(I3.3)' ) stype                                    ! support of 120 different sources (3 digits)
         pafile=basenm(1:lenbase)//'_fctem_'//lampno//'.dat'               ! setting the file name of angular photometry.
         lufile=basenm(1:lenbase)//'_lumlp_'//lampno//'.pgm'               ! setting the file name of the luminosite of the cases.
-        alfile=basenm(1:lenbase)//'_altlp_'//lampno//'.pgm'               ! setting the file name of height of the sources lumineuse.
+c    ===================================================================
+c    reading photometry files
         open(UNIT=1, FILE=pafile,status='OLD')                            ! opening file pa#.dat, angular photometry.
         do i=1,181                                                        ! beginning of the loop for the 181 data points
          read(1,*) pval(i,stype)                                          ! reading of the donnees qui sont inscrites dans the array pval.
@@ -528,16 +530,17 @@ c    reading luminosity files
          enddo                                                            ! end of the loop over all cells along y.
         enddo                                                             ! end of the loop over all cells along x.
         step(stype)=1
+       enddo                                                              ! end of the loop over the 120 types of sources. 
 c    ==================================================================
 c    reading lamp heights
         call intrants2d(alfile,val2d,xcell0,ycell0,pixsiz,nbx,nby)
-        do i=1,nbx                                                        ! beginning of the loop over all cells along x.
-         do j=1,nby                                                       ! beginning of the loop over all cells along y.
-          lampal(i,j,stype)=val2d(i,j)                                    ! Remplissage of the array for the lamp stype
-         enddo                                                            ! end of the loop over all cells along y.
-        enddo                                                             ! end of the loop over all cells along x.
-       enddo                                                              ! end of the loop over the 120 types of sources. 
+         do i=1,nbx                                                       ! beginning of the loop over all cells along x.
+           do j=1,nby                                                     ! beginning of the loop over all cells along y.
+             lampal(i,j,stype)=val2d(i,j)                                 ! Remplissage of the array for the lamp stype
+           enddo                                                          ! end of the loop over all cells along y.
+         enddo                                                            ! end of the loop over all cells along x.
 c    ==================================================================
+c    reading subgrid obstacles average height
         call intrants2d(ohfile,val2d,xcell0,ycell0,pixsiz,nbx,nby)
         do i=1,nbx                                                        ! beginning of the loop over all cells along x.
          do j=1,nby                                                       ! beginning of the loop over all cells along y.
@@ -545,6 +548,7 @@ c    ==================================================================
          enddo                                                            ! end of the loop over all cells along y.
         enddo 
 c    ==================================================================
+c    reading subgrid obstacles average distance
         call intrants2d(odfile,val2d,xcell0,ycell0,pixsiz,nbx,nby)
         do i=1,nbx                                                        ! beginning of the loop over all cells along x.
          do j=1,nby                                                       ! beginning of the loop over all cells along y.
