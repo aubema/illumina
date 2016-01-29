@@ -549,6 +549,7 @@ c    ==================================================================
         do i=1,nbx                                                        ! beginning of the loop over all cells along x.
          do j=1,nby                                                       ! beginning of the loop over all cells along y.
           drefle(i,j)=val2d(i,j)                                          ! Filling of the array
+          if (drefle(i,j).eq.0.) drefle(i,j)=10000000.                    ! when outside a zone, block to the theoritical horizon
          enddo                                                            ! end of the loop over all cells along y.
         enddo    
 c=======================================================================

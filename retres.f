@@ -82,9 +82,13 @@ c creating the output file weighted by the lumlp
             enddo
             do k=xi,xf
               do l=yi,yf
-                output(k,l)=lumlp(k,l)/lum*donnee(point(i,1),
-     +          point(i,2))
-                if (output(k,l).gt.maxi) maxi=output(k,l)
+                if (lum.gt.0.) then
+                  output(k,l)=lumlp(k,l)/lum*donnee(point(i,1),
+     +            point(i,2))
+                  if (output(k,l).gt.maxi) maxi=output(k,l)
+                else
+                  output(k,l)=0.
+                endif
               enddo
             enddo
           enddo
