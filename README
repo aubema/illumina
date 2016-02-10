@@ -7,7 +7,7 @@ Cite: Martin Aubé martin.aube@cegepsherbrooke.qc.ca
 You need a fortran compiler installed in your system
 Please dont forget to set the F77 variable in the makeILLUMINA script according to that compiler
 
-utils scripts need the following python libraries:
+utils scripts need the following python 2.7 libraries:
 pyproj, matplotlib, numpy, gdal
 
 Under ubuntu installation command is:
@@ -19,7 +19,7 @@ PATH=$PATH:$HOME/hg/illumina/bin:$HOME/hg/illumina:$HOME/hg/illumina/utils/datap
 3) Download the code:
 mkdir hg
 cd hg
-hg clone  https://aubema@bitbucket.org/aubema/illumina
+hg clone  https://bitbucket.org/aubema/illumina
 
 4) Compile the code:
 cd illumina
@@ -27,3 +27,6 @@ bash makeILLUMINA
 
 5) Read the Users manual
 http://cegepsherbrooke.qc.ca/~aubema/index.php/Prof/IlluminaGuide2014
+
+6) Browse the project page
+http://cegepsherbrooke.qc.ca/~aubema/index.php/Prof/IllumEn
