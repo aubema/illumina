@@ -1,1 +1,0 @@
-/home/graphycs1/hg/illumina/Test/gridmap/x161y151/wl498/grid.txt

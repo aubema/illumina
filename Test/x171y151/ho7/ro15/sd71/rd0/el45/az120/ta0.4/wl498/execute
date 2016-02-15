@@ -1,6 +1,0 @@
-#!/bin/csh
-#PBS -l cput=110:00:00
-#PBS -l walltime=110:00:00
-#PBS -m bea
-cd  /home/graphycs1/hg/illumina/Test/x171y151/ho7/ro15/sd71/rd0/el45/az120/ta0.4/wl498
-./illumina
