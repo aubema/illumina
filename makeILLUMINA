@@ -20,6 +20,9 @@
 #
 #    Contact: martin.aube@cegepsherbrooke.qc.ca
 #
+if [ ! -d bin ] 
+then mkdir bin
+fi
 F77="gfortran"
 folder=`pwd`
 chmod a+x make*
