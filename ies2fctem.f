@@ -28,19 +28,19 @@ c    along with this program; if not, write to the Free Software
 c    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 c
 c----------------------------------------------------------------------
-      integer i,headend,nligne,ncol,nlin
+      integer i,headend,nligne,ncol,ntheta,nphi
       integer ii,iip,jj,jjp,flag,ilimi,ilims,jlimi,jlims
-      real tilt,fct(90,90),dtheta,theta0,ies(150,150),phy(150)
-      real the(150),moye(150),moyo(150),fctp(90,90),fctem(180)
-      real uplight,downlight,pi,totlight,gap,theta,azim,azim0
-      real thetap,azimp,fctpp(90,90),angle(90),iesmax
+      real tilt,fct(90,90),dthetas,thetas0,ies(150,150),phi(150)
+      real theta(150),moye(150),moyo(150),fctp(90,90),fctem(180)
+      real uplight,downlight,pi,totlight,gap,thetas,azim,azim0
+      real thetasp,azimp,fctpp(90,90),angle(90),iesmax
       real epsi,epsilon,m,b
       character bidon,bidon1
-      character*36 nom,outfile
-      theta0=1.
+      character*64 nom,outfile
+      thetas0=1.
       azim0=1.
-      dtheta=2.
-      theta=0.
+      dthetas=2.
+      thetas=0.
       pi=3.14159265359
       do i=1,90
       do j=1,90
@@ -50,8 +50,8 @@ c----------------------------------------------------------------------
       enddo
       enddo
       do i=1,150 
-         phy(i)=0.
-         the(i)=0.
+         phi(i)=0.
+         theta(i)=0.
          moyo(i)=0.
          moye(i)=0.
          do j=1,150
@@ -67,53 +67,44 @@ c----------------------------------------------------------------------
           read(1,*) nom
           read(1,*) tilt
           read(1,*) outfile
-          read(1,*) nligne
-          read(1,*) headend
-          read(1,*) ncol
        close (unit=1)
        tilt=-tilt*pi/180.
        open (unit=2,file=nom,status='old')
-       print*,'Reading ies file...'
-          do i=1,headend-2
-             read(2,*) 
-          enddo
-          read(2,*) bidon,bidon1,(phy(j),j=1,ncol)
-
-       nlin=nligne-headend
-       read(2,*)
-       do i=1,nlin
-          read(2,*) the(i),(ies(i,j),j=1,ncol)
-       enddo
-       close (unit=2)
+         print*,'Reading ies tab file...'
+         read(2,*) ntheta, nphi
+         read(2,*) (theta(i),i=1,ntheta)
+         read(2,*) (phi(j),j=1,nphi)
+         read(2,*) ((ies(i,j),i=1,ntheta),j=1,nphi)
+       close (unit=2)   
 c
 c  determining the maximum value
 c 
        print*,'Searching the maximum...'    
        iesmax=0.
-       do i=1,nlin
-         do j=1,ncol
+       do i=1,ntheta
+         do j=1,nphi
             if (ies(i,j).gt.iesmax) iesmax=ies(i,j)
          enddo
        enddo
        print*,'Maximum value=',iesmax
-       print*,'Angle vertical maximal du fichier ies=',the(nlin)
+       print*,'Angle vertical maximal du fichier ies=',theta(ntheta)
 c
-       gap=(the(nlin)-the(1))/real(nlin)
+       gap=(theta(ntheta)-theta(1))/real(ntheta)
        print*,'Resampling function to 2 deg resolution...'
        do jj=1,90
-        azim=real(jj)*dtheta-azim0
+        azim=real(jj)*dthetas-azim0
         do ii=1,90
-         theta=real(ii)*dtheta-theta0
-        if (theta.le.the(nlin)) then
+         thetas=real(ii)*dthetas-thetas0
+        if (thetas.le.theta(ntheta)) then
          dmin=100000.         
-         do j=1,ncol
-          do i=1,nlin
-             dist=sqrt((the(i)-theta)**2.+(phy(j)-azim)**2.)
+         do j=1,nphi
+          do i=1,ntheta
+             dist=sqrt((theta(i)-thetas)**2.+(phi(j)-azim)**2.)
              if (dist.lt.2.4*gap) then
                if (dist.lt.dmin) then
                   dmin=dist
                   fct(ii,jj)=ies(i,j)
-                  if (dist.lt.dtheta) goto 400
+                  if (dist.lt.dthetas) goto 400
                endif
              endif
           enddo
@@ -127,26 +118,26 @@ c
       if (tilt.ne.0.) then
         print*,'Tilting function by ',-tilt,' rad...'
         do jj=1,90
-          azim=real(jj)*dtheta-azim0
+          azim=real(jj)*dthetas-azim0
           azim=azim*pi/180.
           do ii=1,90
-            theta=-91.+real(ii)*dtheta+theta0
-            theta=theta*pi/180.
+            thetas=-91.+real(ii)*dthetas+thetas0
+            thetas=thetas*pi/180.
             azimp=atan(-1.*sin(-azim)/(sin(tilt+pi/2.)*cos(azim)-
-     +      cos(tilt+pi/2.)*tan(theta)))
+     +      cos(tilt+pi/2.)*tan(thetas)))
             azimp=azimp*180./pi
                  
             if (azimp.lt.0.) azimp=azimp+180.
             
 
-            thetap=asin(cos(tilt+pi/2.)*cos(azim)*cos(theta)+
-     +      sin(tilt+pi/2.)*sin(theta))
-            thetap=thetap*180./pi
-            if (thetap.gt.90.) print*,'thetap gt 90',thetap
-             if (thetap.lt.-90.) print*,'thetap lt 90',thetap
+            thetasp=asin(cos(tilt+pi/2.)*cos(azim)*cos(thetas)+
+     +      sin(tilt+pi/2.)*sin(thetas))
+            thetasp=thetasp*180./pi
+            if (thetasp.gt.90.) print*,'thetasp gt 90',thetasp
+            if (thetasp.lt.-90.) print*,'thetap lt 90',thetasp
            
-            jjp=nint((azimp+azim0)/dtheta)
-            iip=nint((thetap+91.-theta0)/dtheta) 
+            jjp=nint((azimp+azim0)/dthetas)
+            iip=nint((thetasp+91.-thetas0)/dthetas) 
             if ((iip.le.90).and.(iip.ge.1).and.(jjp.le.90).and.
      +      (jjp.ge.1)) then
                fctp(iip,jjp)=fct(ii,jj)
@@ -156,10 +147,10 @@ c
 
        print*,'Resampling the tilted function...'
         do jj=1,90
-        azim=real(jj)*dtheta-azim0
+        azim=real(jj)*dthetas-azim0
         do ii=1,90
             flag=0       
-         theta=real(ii)*dtheta-theta0
+         thetas=real(ii)*dthetas-thetas0
          if (fctp(ii,jj).eq.-1.) fctp(ii,jj)=0.
          if (fctp(ii,jj).lt.-1.) then  
  
@@ -175,7 +166,7 @@ c
            do j=jlimi,jlims
              do i=ilimi,ilims
 
-               dist=sqrt((the(i)-theta)**2.+(phy(j)-azim)**2.)
+               dist=sqrt((theta(i)-thetas)**2.+(phi(j)-azim)**2.)
                if (fctp(i,j).gt.0.) then
                    if (dist.lt.dmin) then
                      flag=1
@@ -199,7 +190,7 @@ c
                if (fctpp(i,j).lt.0.) fctpp(i,j)=0.
             enddo
          enddo          
-      endif                  ! fin condition angle pas egal a 0          
+      endif                                                              ! fin condition angle pas egal a 0          
 c
 c  moyenner horizontalement
 c
@@ -216,14 +207,14 @@ c
        uplight=0.
        downlight=0.
        do i=1,90
-          theta=180.-real(i)*dtheta+theta0
-          angle(i)=theta
+          thetas=180.-real(i)*dthetas+thetas0
+          angle(i)=thetas
           if (i.le.45) then
-            downlight=downlight+fctem(i)*2.*pi*sin(theta*pi/180.)
-     +      *dtheta
+            downlight=downlight+fctem(i)*2.*pi*sin(thetas*pi/180.)
+     +      *dthetas
           else
-            uplight=uplight+fctem(i)*2.*pi*sin(theta*pi/180.)
-     +      *dtheta
+            uplight=uplight+fctem(i)*2.*pi*sin(thetas*pi/180.)
+     +      *dthetas
           endif
        enddo
        totlight=uplight+downlight
