@@ -794,7 +794,7 @@ proc vTclWindow.top66 {base} {
 #  label copyright
 #    
     label $top.labcopy \
-        -disabledforeground #a1a4a1 -relief sunken -text {GNU Public License, CopyRight Martin Aubé, MEMO Environnement 2005}
+        -disabledforeground #a1a4a1 -relief sunken -text {GNU Public License, CopyRight Martin Aub\E9, MEMO Environnement 2005}
     place $top.labcopy \
         -in $top -x 17 -y 583 -anchor nw -bordermode ignore         
         

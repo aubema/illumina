@@ -29,24 +29,16 @@ if test $# = 0; then
   exit 1
 fi
 echo $1
-ies2tab $1 | sed 's/-/ /g' > ies2tab.tmp
-echo "ies2tab.tmp" > ies2fctem.in
+echo $1 > ies2tab.in
+echo $1"_tab" >> ies2tab.in
+ies2tab.py < ies2tab.in
+rm -f ies2tab.in
+mv $1"_tab" ./ies2fctem_tab
+echo "ies2fctem_tab" > ies2fctem.in
 echo $2 >> ies2fctem.in 
 echo $3 >> ies2fctem.in
-# nombre de lignes du fichier
-ntot=`grep -c "" ies2tab.tmp` 
-# nombre de lignes avant les data
-nnodat=`grep -n "V:" ies2tab.tmp | sed -e 's/:#V:/ /'`
-# nombre d'angles horizontaux
-phi=`grep "#  H:" ies2tab.tmp`
-ncol=-2
-for i in $phi
-   do let 'ncol=ncol+1'
-   done
-echo $ntot >> ies2fctem.in
-echo $nnodat >> ies2fctem.in
-echo $ncol >> ies2fctem.in
-
+head -1 ies2fctem_tab > tab.tmp
+read ntheta nphi <  tab.tmp
 ies2fctem.exe
 
 #rm -f ies2fctem.in

@@ -49,8 +49,6 @@ x_sites=( 269 )                                                # list of x obser
 y_sites=( 245 )                                                # list of y observer positions (with respect to x_sites)
 z_sites=(  38  )                                                # list of z observer positions (with respect to x_sites)
                                                                # 0   0   0   0 0.04 .68 5.9  37 164 1141 2000   94  0   equivalent elevations (m)
-d_reflect=( 25 )                                               # list of Mean light free path toward ground 
-h_obstacle=( 7 )                                               # list of subgrid obstacle height
 saut_dif=( 71 )                                                # list of 2nd scattering computing acceleration factor (ideally a prime number
 r_dif=( 4000 )                                                 # list of 2nd scattering radius
 elevation=( 90 )                              # list of elevation viewing angles  
@@ -63,11 +61,8 @@ alpha=( 0.7 )                                       # list of angstrom exponents
 #
 i=0; for line in $(<wav.lst); do wav[i]="$line";let i=i+1;done
 i=0; for line in $(<zon.lst); do lamp_l[i]="$line";let i=i+1;done
-# i=0; for line in $(<altlp.lst); do lamp_h[i]="$line";let i=i+1;done
-# removing unwanted white spaces in arrays
 n=0; while [ $n -lt ${#wav[*]} ] ; do wav[$n]="$(echo -e "${wav[$n]}" | tr -d ' ')" ; let n=n+1; done
 n=0; while [ $n -lt ${#lamp_l[*]} ] ; do lamp_l[$n]="$(echo -e "${lamp_l[$n]}" | tr -d ' ')" ; let n=n+1; done
-# n=0; while [ $n -lt ${#lamp_h[*]} ] ; do lamp_h[$n]="$(echo -e "${lamp_h[$n]}" | tr -d ' ')" ; let n=n+1; done
 #
 # ===================================
 # begin of script
@@ -188,20 +183,6 @@ echo "Starting from "$folder
          cd "x"${x_sites[$ns]}"y"${y_sites[$ns]}
          here=`pwd`
          echo "Entering "$here
-         nh=0
-         while [ $nh -lt ${#h_obstacle[*]} ]
-         do mkdir "ho"${h_obstacle[$nh]}  
-# Obstacle height
-            cd  "ho"${h_obstacle[$nh]} 
-            here=`pwd`
-            echo "Entering "$here
-            ndr=0
-            while [ $ndr -lt ${#d_reflect[*]} ]
-            do mkdir "ro"${d_reflect[$ndr]}
-# Mean free path
-               cd "ro"${d_reflect[$ndr]}
-               here=`pwd`
-               echo "Entering "$here
                nsd=0
                while [ $nsd -lt ${#saut_dif[*]} ]
                do mkdir "sd"${saut_dif[$nsd]}
@@ -308,16 +289,6 @@ echo "Starting from "$folder
                                       nl=0        
                                       while [ $nl -lt ${#lamp_l[*]} ]
                                       do let nolp=nl+1
-#                                         if [ $nolp -lt 1000 ]
-#                                         then numlp=$nolp
-#                                         fi
-#                                         if [ $nolp -lt 100 ]
-#                                         then numlp="0"$nolp
-#                                         fi
-#                                         if [ $nolp -lt 10 ]
-#                                         then numlp="00"$nolp
-#                                         fi                    
-#                                         ln -s $folder"/"${lamp_h[$nl]} "./"$exp_name"_altlp_"${lamp_l[$nl]}".pgm"
                                          ln -s $folder"/fctem_wl_"${wav[$wl]}"_zon_"${lamp_l[$nl]}".dat" "./"$exp_name"_fctem_"${lamp_l[$nl]}".dat"
                                          let nl=nl+1
                                       done
@@ -351,13 +322,7 @@ echo "Starting from "$folder
                   let nsd=nsd+1
                done
                cd ..
-               let ndr=ndr+1
-            done
-            cd ..
-            let nh=nh+1
-         done
-         cd ..
-         let ns=ns+1
+               let ns=ns+1
       done 
 
 echo "Total number of runs:" $ncas
