@@ -61,7 +61,7 @@ for i in xrange(len(zones)):
 
 print "Plotting..."
 
-sub.call(["./zones_plot.sh","%d"%len(zones)])
+sub.call(["zones_plot.sh","%d"%len(zones)])
 
 print "Splitting in a few wavelenghts..."
 n = int(raw_input("    Number of wavelenghts to use : "))
@@ -101,7 +101,7 @@ except IndexError:
 	pass
 
 if not stop:
-	out_name = raw_input("Output root name of the experiment [this name will be use d for all the subsequent files]?\n    ")
+	out_name = raw_input("Output root name of the experiment [this name will be used for all the subsequent files]?\n    ")
 	pgm_name = raw_input("viirs-dnb file name? [e.g. stable-lights.pgm]\n    ")
 	modis_name = raw_input("modis reflectance file list file name? [e.g. modis.dat]\n    ")
 	modis_dir = raw_input("modis directory? [e.g. pgms]\n    ")
