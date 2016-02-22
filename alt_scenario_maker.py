@@ -6,6 +6,7 @@ from glob import glob
 import os
 
 new_name = raw_input("New name : ")
+old_invp = raw_input("Old inventory path : ")
 inv_path = raw_input("New inventory path : ")
 
 print "\nLoading data..."
@@ -28,7 +29,7 @@ spct_files = glob("Lights/*.spct")
 spct = { os.path.basename(s).split('_',1)[0]:SPD_norm(wavelenght,norm_spectrum,np.loadtxt(s,skiprows=1)[:,1]) for s in spct_files }
 
 zonData = parse_inventory(inv_path)
-oldZonData = parse_inventory("inventaire.txt")
+oldZonData = parse_inventory(old_invp,6)
 
 print "\nCalculating the generalized lamps..."
 

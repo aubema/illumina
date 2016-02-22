@@ -25,7 +25,7 @@ def zon_norm(angles, wavelenght, zone):
 	dtheta = angles[1]-angles[0]
 	return safe_divide( zone, _np.sum(zone.T*sinx)*dtheta*dlambda )
 
-def parse_inventory(filename,n):
+def parse_inventory(filename,n=0):
 	"""Parse an inventory type file."""
 	def lamp_norm(lampsData):
 		trans = map(list, zip(*lampsData))
