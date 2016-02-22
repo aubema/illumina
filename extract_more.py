@@ -21,7 +21,7 @@ def parse_data(s):
     return '-'.join(sp),[wl,float(val),s]
 
 dir = raw_input("Result folder path : ")
-integ = raw_input("Integration_limits file path : ")
+integ = raw_input("Integration_limits file path : ")+"/integration_limits.dat"
 lims = np.genfromtxt(integ,skiprows=1)
 bw =  lims[1:]-lims[:-1]
 wl = (lims[1:]+lims[:-1])/2
