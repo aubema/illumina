@@ -2,6 +2,7 @@
 
 import numpy as _np
 import pyfits as _fits
+from scipy.interpolate import interp1d as _I
 
 def safe_divide(a,b):
 	with _np.errstate(divide='ignore', invalid='ignore'):
@@ -15,9 +16,13 @@ def LOP_norm(angles,x):
 	dtheta = angles[1]-angles[0]
 	return safe_divide( x, _np.sum(x*sinx)*dtheta )
 
-def SPD_norm(wavelenght, norm_spct, x):
-	dlambda = wavelenght[1]-wavelenght[0]
-	return safe_divide( x, 683.002*_np.sum(norm_spct*x)*dlambda )
+def SPD_norm(wav, norm_spct, x, factor=683.002):
+	dlambda = wav[1]-wav[0]
+	return safe_divide( x, factor*_np.sum(norm_spct*x)*dlambda )
+
+def spct_norm(wav, x):
+	dlambda = wav[1]-wav[0]
+	return safe_divide( x, _np.sum(x)*dlambda )
 
 def zon_norm(angles, wavelenght, zone):
 	sinx = 2*_np.pi*_np.sin(_np.deg2rad(angles))
@@ -113,4 +118,16 @@ def strip_comments(item, token='#'):
         s = line.split(token, 1)[0].strip()
         if s != '':
             yield s
+
+def load_lop(angles,filename):
+	data = _np.loadtxt(filename).T
+	y = data[0] if _np.all(data[1] == angles) else \
+	    _I(data[1], data[0], kind='cubic', bounds_error=False, fill_value=0.)
+	return LOP_norm(angles,y)
+
+def load_spct(wav, norm_spct, filename, factor=683.002):
+	data = _np.loadtxt(filename,skiprows=1).T
+	y = data[1] if _np.all(data[0] == wav) else \
+	    _I(data[0], data[1], kind='cubic', bounds_error=False, fill_value=0.)(wav)
+	return SPD_norm(wav, norm_spct, y, factor)
 

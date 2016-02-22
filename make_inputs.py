@@ -15,19 +15,20 @@ print "Loading data..."
 
 # Angular distribution (normalised to 1)
 lop_files = glob("Lights/*.lop")
-angles = np.loadtxt(lop_files[0])[:,1]
-lop = { os.path.basename(s).split('_',1)[0]:LOP_norm(angles,np.loadtxt(s)[:,0]) for s in lop_files }
+angles = np.arange(181,dtype=float)
+lop = { os.path.basename(s).split('_',1)[0]:load_lop(angles,s) for s in lop_files }
 
 # Spectral distribution (normalised with scotopric vision to 1)
-wavelenght, viirs = np.loadtxt("Lights/viirs.dat", skiprows=1).T
-scotopic = np.loadtxt("Lights/scotopic.dat", skiprows=1)[:,1]
-photopic = np.loadtxt("Lights/photopic.dat", skiprows=1)[:,1]
+wav, viirs = np.loadtxt("Lights/viirs.dat", skiprows=1).T
+viirs = spct_norm(wav,viirs)
+scotopic = load_spct(wav, np.ones(wav.shape), "Lights/scotopic.dat", 1)
+photopic = load_spct(wav, np.ones(wav.shape), "Lights/photopic.dat", 1)
 
 ratio_ps = float(raw_input("    photopic/scotopic ratio ? (0 <= p/(s+p) <= 1) : "))
 norm_spectrum = ratio_ps*photopic + (1-ratio_ps)*scotopic
 
 spct_files = glob("Lights/*.spct")
-spct = { os.path.basename(s).split('_',1)[0]:SPD_norm(wavelenght,norm_spectrum,np.loadtxt(s,skiprows=1)[:,1]) for s in spct_files }
+spct = { os.path.basename(s).split('_',1)[0]:load_spct(wav,norm_spectrum,s) for s in spct_files }
 
 # lamps distribution
 inv_name = raw_input("    LOP inventory filename : ")
@@ -41,7 +42,7 @@ zonfile = map(lambda s: s.split()[:6], zonfile)
 print "Calculating the generalized lamps..."
 
 # Calculate zones lamps
-zones = make_zones(angles, lop, wavelenght, spct, zonData )
+zones = make_zones(angles, lop, wav, spct, zonData )
 
 print "Saving data..."
 
@@ -50,10 +51,10 @@ if not os.path.exists(dirname):
 	os.makedirs(dirname)
 
 for i in xrange(len(zones)):
-	bin_zon = np.zeros((len(angles)+1,len(wavelenght)+1))
-	bin_zon[0,0] = len(wavelenght+1)
+	bin_zon = np.zeros((len(angles)+1,len(wav)+1))
+	bin_zon[0,0] = len(wav+1)
 	bin_zon[1:,0] = angles
-	bin_zon[0,1:] = wavelenght
+	bin_zon[0,1:] = wav
 	bin_zon[1:,1:] = zones[i]
 
 	np.savetxt("Lamps/zone%i_lamp.dat"%(i+1), bin_zon[1:])
@@ -63,14 +64,14 @@ print "Plotting..."
 
 sub.call(["zones_plot.sh","%d"%len(zones)])
 
-print "Splitting in a few wavelenghts..."
-n = int(raw_input("    Number of wavelenghts to use : "))
+print "Splitting in a few wavelengths..."
+n = int(raw_input("    Number of wavelengths to use : "))
 lmin = float(raw_input("    lambda min : "))
 lmax = float(raw_input("    lambda max : "))
 
-bool_array = (lmin<=wavelenght)*(wavelenght<lmax)
+bool_array = (lmin<=wav)*(wav<lmax)
 
-limits = np.array(map(np.min,np.array_split(wavelenght[bool_array],n,-1))+[lmax])
+limits = np.array(map(np.min,np.array_split(wav[bool_array],n,-1))+[lmax])
 
 filename = "integration_limits.dat"
 with open(filename,'w') as f:

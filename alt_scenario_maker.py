@@ -13,20 +13,20 @@ print "\nLoading data..."
 
 # Angular distribution (normalised to 1)
 lop_files = glob("Lights/*.lop")
-angles = np.loadtxt(lop_files[0])[:,1]
-lop = { os.path.basename(s).split('_',1)[0]:LOP_norm(angles,np.loadtxt(s)[:,0]) for s in lop_files }
+angles = np.arange(181,dtype=float)
+lop = { os.path.basename(s).split('_',1)[0]:load_lop(angles,s) for s in lop_files }
 
 # Spectral distribution (normalised with scotopric vision to 1)
-wavelenght, viirs = np.loadtxt("Lights/viirs.dat", skiprows=1).T
-scotopic = np.loadtxt("Lights/scotopic.dat", skiprows=1)[:,1]
-photopic = np.loadtxt("Lights/photopic.dat", skiprows=1)[:,1]
+wav, viirs = np.loadtxt("Lights/viirs.dat", skiprows=1).T
+viirs = spct_norm(wav,viirs)
+scotopic = load_spct(wav, np.ones(wav.shape), "Lights/scotopic.dat", 1)
+photopic = load_spct(wav, np.ones(wav.shape), "Lights/photopic.dat", 1)
 
-ratio_ps = float(raw_input("    photopic/scotopic ratio for inventory ? (0 <= p/(s+p) <= 1) : "))
+ratio_ps = float(raw_input("    photopic/scotopic ratio ? (0 <= p/(s+p) <= 1) : "))
 norm_spectrum = ratio_ps*photopic + (1-ratio_ps)*scotopic
-norm_spectrum = norm_spectrum/np.sum(norm_spectrum)
 
 spct_files = glob("Lights/*.spct")
-spct = { os.path.basename(s).split('_',1)[0]:SPD_norm(wavelenght,norm_spectrum,np.loadtxt(s,skiprows=1)[:,1]) for s in spct_files }
+spct = { os.path.basename(s).split('_',1)[0]:load_spct(wav,norm_spectrum,s) for s in spct_files }
 
 zonData = parse_inventory(inv_path)
 oldZonData = parse_inventory(old_invp,6)
@@ -34,13 +34,13 @@ oldZonData = parse_inventory(old_invp,6)
 print "\nCalculating the generalized lamps..."
 
 # Calculate zones lamps
-zones = np.asarray([ zon_norm(angles, wavelenght, sum(l[0]*spct[l[1]]*lop[l[2]][:,np.newaxis] for l in lampData)) for lampData in zonData ])
+zones = make_zones(angles, lop, wav, spct, zonData )
 
 x = np.loadtxt("Intrants/wav.lst")
 n = x.size
 ilims = np.genfromtxt("Intrants/integration_limits.dat",skiprows=1)
 dl = ilims[1:]-ilims[:-1]
-bool_array = (ilims[0]<=wavelenght)*(wavelenght<ilims[-1])
+bool_array = (ilims[0]<=wav)*(wav<ilims[-1])
 y = np.array(map(np.mean,np.array_split(zones[:,:,bool_array],n,-1),[-1]*n)).transpose(1,2,0)
 
 ratio_ps = float(raw_input("    photopic/scotopic ratio for lamp power ? (0 <= p/(s+p) <= 1) : "))
