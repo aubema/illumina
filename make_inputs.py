@@ -145,7 +145,7 @@ if not stop:
 	mie_pre = raw_input("    Mie file prefix : ")
 	illum_dir = sorted([s for s in os.environ['PATH'].split(':') if 'illumina' in s ], key=lambda s:len(s))[0]
 	mie_path = illum_dir + "/Aerosol_optical_prop/"
-	mie_files = glob(mie_path+"*.mie.out")
+	mie_files = glob(mie_path+mie_pre+"*.mie.out")
 	mie_files = { int(s.split('.')[-3][:3]):s for s in mie_files }
 	mie_wl = np.asarray(sorted(mie_files.keys()))
 	wl2mie = np.asarray([min(mie_wl, key=lambda i: abs(i-j)) for j in x])
