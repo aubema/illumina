@@ -40,6 +40,8 @@ cloud=0                                                        # Cloud model sel
                                                                # 2=Thick Cirrus/Cirrostratus, 3=Altostratus/Altocumulus, 
                                                                # 4=Cumulus/Cumulonimbus, 5=Stratocumulus
 dmin="150"                                                     # Minimal distance to the nearest light source (m)
+l1=27                                                          # l1 must be an odd multiple of 9 (e.g. 9, 27, 45, 63, 81, ...)
+l3=81                                                          # l3 must be an odd multiple of 9 and l3>l1
 #
 # ===================================
 #  Vectors
@@ -144,6 +146,7 @@ echo "Making variable resolution grid lumlp files..."
                 echo $exp_name"_reflect_new.pgm"  >> varres.in
                 echo ${x_sites[$ns]} >> varres.in
                 echo ${y_sites[$ns]} >> varres.in 
+                echo $l1 $l3 >> varres.in 
                 cp -f $HOME/hg/illumina/bin/varres .
                 ./varres 
                 let nl=nl+1
@@ -157,6 +160,7 @@ echo "Making variable resolution grid lumlp files..."
                 echo $exp_name"_reflect_new.pgm"  >> varres.in
                 echo ${x_sites[$ns]} >> varres.in
                 echo ${y_sites[$ns]} >> varres.in 
+                echo $l1 $l3 >> varres.in
                 cp -f $HOME/hg/illumina/bin/varres .
                 ./varres 
              

@@ -41,6 +41,22 @@ c l1 must be an odd multiple of 9 (e.g. 9, 27, 45, 63, 81, ...)
        l3=81     
 c width of the  3x3 resolution window
 c l3 must be an odd multiple of 9 and l3>l1
+       open(unit=11,file='varres.in',status='unknown')
+          read(11,*) lin
+c initial lumlp file
+          read(11,*) rin
+c initial reflectance file
+          read(11,*) lout
+c final lumlp file
+          read(11,*) rout
+c final reflectance file
+          read(11,*) px
+c observer x position
+          read(11,*) py
+c observer y position
+          read(11,*) l1, l3
+c limit distance of full resolution and 3x3 resolution
+       close(unit=11)
        l1=nint(real(l1)/2.-1.)
        l3=nint(real(l3)/2.-1.)
        lx=0
@@ -55,20 +71,7 @@ c l3 must be an odd multiple of 9 and l3>l1
        point(i,3)=0
        enddo
        max=0.
-       open(unit=11,file='varres.in',status='unknown')
-          read(11,*) lin
-c initial lumlp file
-          read(11,*) rin
-c initial reflectance file
-          read(11,*) lout
-c final lumlp file
-          read(11,*) rout
-c final reflectance file
-          read(11,*) px
-c observer x position
-          read(11,*) py
-c observer y position
-       close(unit=11)
+
 c load lumlp file
           call intrants2d(lin,lumlp,xcell0,ycell0,pixsiz,
      +    nx,ny)
