@@ -40,6 +40,8 @@ cloud=0                                                        # Cloud model sel
                                                                # 2=Thick Cirrus/Cirrostratus, 3=Altostratus/Altocumulus, 
                                                                # 4=Cumulus/Cumulonimbus, 5=Stratocumulus
 dmin="150"                                                     # Minimal distance to the nearest light source (m)
+# l1 and 13 define radius in wish the simulation resolution will be of 1 and 3 pixels respectively.
+# Everything outside as a resoution of 9 pixels
 l1=27                                                          # l1 must be an odd multiple of 9 (e.g. 9, 27, 45, 63, 81, ...)
 l3=81                                                          # l3 must be an odd multiple of 9 and l3>l1
 #
