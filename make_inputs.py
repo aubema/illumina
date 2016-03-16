@@ -115,7 +115,7 @@ if not stop:
 	tmp_names['integ'] = "integration_limits.dat"
 	tmp_names['srtm'] = "srtm.pgm"
 
-	modis_files = np.genfromtxt(modis_name,skiprows=1,usecols=1,dtype=str)
+	modis_files = np.genfromtxt(modis_name,skip_header=1,usecols=1,dtype=str)
 	modis_files = map(lambda s: modis_dir+"/"+s,modis_files)
 	zon_files = [ "Lamps/zone%d_lamp.dat" % (i+1) for i in xrange(len(zones)) ]
 	for filename in np.concatenate([modis_files,zon_files]):

@@ -38,7 +38,7 @@ zones = make_zones(angles, lop, wav, spct, zonData )
 
 x = np.loadtxt("Intrants/wav.lst")
 n = x.size
-ilims = np.genfromtxt("Intrants/integration_limits.dat",skiprows=1)
+ilims = np.genfromtxt("Intrants/integration_limits.dat",skip_header=1)
 dl = ilims[1:]-ilims[:-1]
 bool_array = (ilims[0]<=wav)*(wav<ilims[-1])
 y = np.array(map(np.mean,np.array_split(zones[:,:,bool_array],n,-1),[-1]*n)).transpose(1,2,0)
