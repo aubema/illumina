@@ -251,6 +251,7 @@ c                                                                         ! a li
       real dsco                                                           ! distancesource-target-observer
       real dminlp                                                         ! minimum distance between the observer and a lamp (m)
       real totlu(120)                                                     ! total flux of a source type
+      real stoplim                                                        ! Stop computation when the new voxel contribution is less than 1/stoplim of the cumulated flux
       data cthick /0.5,0.6,0.72,0.86,1.04,1.26,1.52,1.84,2.22,            ! thickness of the levels.
      a 2.68,3.24,3.92,4.74,5.72,6.9,8.34,10.08,12.18,14.72,17.78,21.48,
      b 25.94,31.34,37.86,45.74,55.26,66.76,80.64,97.42,117.68,142.16,
@@ -287,7 +288,7 @@ c=======================================================================
        read(1,*) pressi
        read(1,*) taua,alpha
        read(1,*) ntype
-       read(1,*) 
+       read(1,*) stoplim
        read(1,*)
        read(1,*) x_obs,y_obs,zcello,nvis0
        read(1,*)
@@ -625,7 +626,7 @@ c=======================================================================
        ftocap=0.                                                          ! Initialisation of the value of flux received by the sensor
        fcapt=1.
        do icible=1,ncible                                                 ! beginning of the loop over the target cells
-      if ((fcapt.ge.ftocap/5000.).or.(cloudt.ne.0)) then                  ! stop the calculation of the viewing line when the increment is lower than 1/5000
+      if ((fcapt.ge.ftocap/stoplim).or.(cloudt.ne.0)) then                  ! stop the calculation of the viewing line when the increment is lower than 1/stoplim
         if (fcapt.eq.1.) fcapt=0.
         if (icible.ge.nvis0) then                                         ! beginning condition for continuing of a computation stopped
          itotci=0.                                                        ! Initialisation of the contribution of the cible at the sensor level
@@ -1813,7 +1814,7 @@ c computation of the flux reaching the intrument from the cloud cell
      +  ,fccld
         write(2,*) ' Flux sensor accumulated (clear & cloudy) =',ftocap
      +  ,fctcld   
-      endif                                                               ! end condition cell target 1/5000
+      endif                                                               ! end condition cell target 1/stoplim
        enddo                                                              ! end of the loop over the target cells.
        if (prmaps.eq.1) then
           open(unit=9,file=pclf,status='unknown')

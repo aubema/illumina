@@ -11,7 +11,7 @@ urban_RH70_0.5500um.mie.out     ! AEROSOL OPTICAL CROSS SECTIONS AND PHASE FUNCT
 101.3                           ! GROUND LEVEL PRESSURE @ model bottom [kPa]
 0.07                            ! AEROSOL OPTICAL DEPTH [-]
 1                               ! NUMBER OF SOURCE TYPES [-]
-                                ! 
+100.                            ! Contribution threshold : Stop computation when the new voxel contribution is less than 1/threshold of the cumulated flux (suggested value = 5000.)
 49  7                           ! MEAN FREE PATH TOWARD GROUND [m] ; MEAN OBSTACLE HEIGHT [m]
                                 !
 101 101 1 1                     ! OBSERVER X POSITION [cell unit,cu] ; OBS Y POS [cu] ; OBS Z POS [cu] ; FIRST CELL ALONG LINE OF SIGHT (1=complete)
@@ -20,7 +20,7 @@ urban_RH70_0.5500um.mie.out     ! AEROSOL OPTICAL CROSS SECTIONS AND PHASE FUNCT
                                 ! (0=north, 90=east, 180=south, 270=west)
 1. 1. 1. 1.1283791671           ! SLIT WIDTH [m] ; SLIT LENGHT [m] ; OBJECTIVE FOCAL LENGTH [m] ; EFFECTIVE OBJECTIVE DIAMETER [m]
                                 ! to get the radiance in W/str/m**2, SW*PS*pi*AD**2/4/FL**2 should equal 1                               
-                                ! 1. 1. 1. 1.1283791671 is doing exactly that
+ ! 1. 1. 1. 1.1283791671 is doing exactly that
 0                               ! Cloud model selection 0=clear, 1=Thin Cirrus/Cirrostratus, 2=Thick Cirrus/Cirrostratus, 3=Altostratus/Altocumulus, 4=Cumulus/Cumulonimbus, 5=Stratocumulus
 150                             ! Minimal distance to the nearest light source (m)
 

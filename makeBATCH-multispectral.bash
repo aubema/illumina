@@ -44,6 +44,7 @@ dmin="150"                                                     # Minimal distanc
 # Everything outside as a resoution of 9 pixels
 l1=27                                                          # l1 must be an odd multiple of 9 (e.g. 9, 27, 45, 63, 81, ...)
 l3=81                                                          # l3 must be an odd multiple of 9 and l3>l1
+stoplim=100.                                                   # Stop computation when the new voxel contribution is less than 1/stoplim of the cumulated flux (suggested value = 5000.)
 #
 # ===================================
 #  Vectors
@@ -259,7 +260,7 @@ echo "Starting from "$folder
                                       echo $pressure "   ! GROUND LEVEL PRESSURE [kPa]"  >> illumina.in
                                       echo ${tau[$nt]} ${alpha[$nt]} "   ! 500nm AEROSOL OPTICAL DEPTH ; angstrom exponent [-]"  >> illumina.in
                                       echo ${#lamp_l[*]} "    ! NUMBER OF SOURCE TYPES [-]"  >> illumina.in
-                                      echo "                !" >> illumina.in
+                                      echo $stoplim "                ! Contribution threshold : Stop computation when the new voxel contribution is less than 1/threshold of the cumulated flux (suggested value = 5000.)" >> illumina.in
                                       echo "                !" >> illumina.in
                                       echo ${x_sites[$ns]} ${y_sites[$ns]} ${z_sites[$ns]}  " 1   ! OBSERVER X POSITION [cell unit] ; OBS Y POS [-] ; OBS Z POS [-] ; BEGINNING CELL ALONG THE LINE OF SIGHT (1=complete)" >> illumina.in
                                       echo "    ! (usefull in case of computer crash) (x=1 et y=1 is the south-west cell)" >> illumina.in
