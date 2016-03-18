@@ -1,20 +1,18 @@
+#!/bin/sh
+
 batchlist=`ls -1 $1*`
 echo $batchlist
 for i in $batchlist
 do  bash $i
-    echo $i
+    echo $ii
     echo "===="
-    bqmon -u | grep maube > currentjobs.tmp
-    read toto que req run toto < currentjobs.tmp
-    let njob=que+run
+    user=`whoami`
+    njob=`bqstat 2>/dev/null | grep -c $user`
     echo $njob "initial"
-    while  [ $njob -gt 750 ]
-    do bqmon -u | grep maube > currentjobs.tmp
-       read toto que req run toto < currentjobs.tmp
-       let njob=que+run
+    while  [ $njob -gt 1000 ]
+    do njob=`bqstat 2>/dev/null | grep -c $user`
        echo $njob
-       sleep 30
+       sleep 30 
     done
 done
 echo "End of multiple experiments"
-
