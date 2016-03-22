@@ -31,9 +31,8 @@ c nang is the number of zenith angles in the lop
 c nzo is the number of zones
 c ndb is the number of spectral bands
       integer na,i,j,n
-      integer zone(wid,wid)
       integer valmax,nbx,nby,nw,nb,n_bands,lenbase
-      real dist,spct(nwa,nag)
+      real dist,spct(nwa,nag),zone(wid,wid)
       real dnb(wid,wid),sumwav,Phi_c(wid,wid),wavel(nwa),viirs_sens(nwa)
       real thetas(nag),obsth(wid,wid),obstd(wid,wid),lamph(wid,wid)
 c     obsth=obstacle height, obstd=mean free path to the ground, 
@@ -171,7 +170,7 @@ c       loop over the modelling domain
                 dist=sqrt((real(i)-x(n))**2.+(real(j)-y(n))**2.)
                 if (dist.le.r(n)) then
 c       determining the zone for each pixel
-                   zone(i,j)=n
+                   zone(i,j)=real(n)
 c       defining the mean obstacle height for each pixel
                    obsth(i,j)=hobst(n)
 c       defining the mean free path to the ground for each pixel
@@ -246,7 +245,7 @@ c *dlambda
      +          n)+G_moy(nw,n))*dwav
             enddo
 c Phi_c=dnb/sum_lambda
-            if (zone(i,j).eq.n) then
+            if (zone(i,j).eq.real(n)) then
               if (sumwav.ne.0.) then
                 Phi_c(i,j)=dnb(i,j)/sumwav
               else
@@ -343,8 +342,8 @@ c     writing light fixture height relative to the ground pgm files
      +      gain,offset,nbx,nby,valmax)
 c
 c
-c     writing obtacle height pgm files
-            print*,'Writing obtacle height pgm files...'
+c     writing obtacle height pgm file
+            print*,'Writing obtacle height pgm file...'
             outfile=basename(1:lenbase)//'_obsth.pgm'
             maxim=0.
             do i=1,nbx
@@ -358,8 +357,8 @@ c     writing obtacle height pgm files
             gain = maxim/real(valmax)
             call extrants2d (outfile,obsth,nom,xcell0,ycell0,pixsiz,
      +      gain,offset,nbx,nby,valmax)
-c     writing obtacle mean free path pgm files
-            print*,'Writing obtacle mean free path pgm files...'
+c     writing obtacle mean free path pgm file
+            print*,'Writing obtacle mean free path pgm file...'
             outfile=basename(1:lenbase)//'_obstd.pgm'
             nom='obstacleD'
             maxim=0.
@@ -374,6 +373,16 @@ c     writing obtacle mean free path pgm files
             gain = maxim/real(valmax)
             call extrants2d (outfile,obstd,nom,xcell0,ycell0,pixsiz,
      +      gain,offset,nbx,nby,valmax)
+c     writing zone definition pgm file
+            print*,'Writing zone definition pgm file...'
+            outfile=basename(1:lenbase)//'_zone.pgm'
+            nom='Zonedef'
+            valmax=nzon
+            offset=0.
+            gain=1.
+            call extrants2d (outfile,zone,nom,xcell0,ycell0,pixsiz,
+     +      gain,offset,nbx,nby,valmax)
+            valmax=65535
 c
 c ===================
 c 

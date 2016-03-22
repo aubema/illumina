@@ -45,6 +45,7 @@ dmin="150"                                                     # Minimal distanc
 l1=27                                                          # l1 must be an odd multiple of 9 (e.g. 9, 27, 45, 63, 81, ...)
 l3=81                                                          # l3 must be an odd multiple of 9 and l3>l1
 stoplim=100.                                                   # Stop computation when the new voxel contribution is less than 1/stoplim of the cumulated flux (suggested value = 5000.)
+hwindow=3.                                                     # height of the center of the window relative to the ground in meter
 #
 # ===================================
 #  Vectors
@@ -264,8 +265,8 @@ echo "Starting from "$folder
                                       echo "                !" >> illumina.in
                                       echo ${x_sites[$ns]} ${y_sites[$ns]} ${z_sites[$ns]}  " 1   ! OBSERVER X POSITION [cell unit] ; OBS Y POS [-] ; OBS Z POS [-] ; BEGINNING CELL ALONG THE LINE OF SIGHT (1=complete)" >> illumina.in
                                       echo "    ! (usefull in case of computer crash) (x=1 et y=1 is the south-west cell)" >> illumina.in
-                                      echo ${elevation[$ne]} ${azimut[$na]} "   ! ELEVATION VIEWING ANGLE [deg] ; AZIMUTAL VIEWING ANGLE [deg]" >> illumina.in
-                                      echo "   ! (0=east, 90=north, 180=west, 270=south)" >> illumina.in
+                                      echo ${elevation[$ne]} ${azimut[$na]} "   ! ELEVATION VIEWING ANGLE [deg] ; AZIMUTAL VIEWING ANGLE [deg] (0=east, 90=north, 180=west, 270=south)" >> illumina.in
+                                      echo $hwindow "   ! typical window height " >> illumina.in
                                       echo ".0001 .00001 .35 .07    ! SLIT WIDTH [m] ; PIXEL SIZE [m] ; FOCAL LENGTH [m] ; APPERTURE DIAMETER [m]" >> illumina.in
                                       echo "                        ! to get the radiance in W/str/m**2, SW*PS*pi*AD**2/4/FL**2 should equal 1" >> illumina.in
                                       echo "                        ! 1. 1. 1. 1.1283791671 is doing exactly that">> illumina.in

@@ -252,6 +252,13 @@ c                                                                         ! a li
       real dminlp                                                         ! minimum distance between the observer and a lamp (m)
       real totlu(120)                                                     ! total flux of a source type
       real stoplim                                                        ! Stop computation when the new voxel contribution is less than 1/stoplim of the cumulated flux
+      real d_o                                                            ! distance between a lamp and an obstacle
+      real h_o                                                            ! temporary obstacle height relative to the ground
+      real srei                                                           ! temporary surface reflectance
+      real h_l                                                            ! temporary lamp height relative to the ground
+      real intlu                                                          ! temporary lamp spectral flux
+      real Irad,Inrad                                                     ! intrusive radiance for a lamp type and cumulated intrusive radiance
+      real hwindow                                                        ! height of the center of a window relative to the ground
       data cthick /0.5,0.6,0.72,0.86,1.04,1.26,1.52,1.84,2.22,            ! thickness of the levels.
      a 2.68,3.24,3.92,4.74,5.72,6.9,8.34,10.08,12.18,14.72,17.78,21.48,
      b 25.94,31.34,37.86,45.74,55.26,66.76,80.64,97.42,117.68,142.16,
@@ -293,7 +300,7 @@ c=======================================================================
        read(1,*) x_obs,y_obs,zcello,nvis0
        read(1,*)
        read(1,*) angvis,azim
-       read(1,*)  
+       read(1,*) hwindow
        read(1,*) lfente,longfe,focal,diamobj 
        read(1,*)
        read(1,*)
@@ -450,7 +457,7 @@ c
        odfile=basenm(1:lenbase)//'_obstd.pgm'
        alfile=basenm(1:lenbase)//'_altlp.pgm'                             ! setting the file name of height of the sources lumineuse.
        dtheta=.017453293                                                  ! one degree
-       do stype=1,ntype                                                   ! beginning of the loop for the 120 types of sources.
+       do stype=1,ntype                                                   ! beginning of the loop 1 for the 120 types of sources.
         imin(stype)=nbx
         jmin(stype)=nby
         imax(stype)=1
@@ -463,8 +470,8 @@ c    ===================================================================
 c    reading photometry files
         open(UNIT=1, FILE=pafile,status='OLD')                            ! opening file pa#.dat, angular photometry.
         do i=1,181                                                        ! beginning of the loop for the 181 data points
-         read(1,*) pval(i,stype)                                          ! reading of the donnees qui sont inscrites dans the array pval.
-         pvalto=pvalto+pval(i,stype)*2.*pi*                               ! Sommation of the valeur tot  photometric function prenormalisee 
+         read(1,*) pval(i,stype)                                          ! reading of the data in the array pval.
+         pvalto=pvalto+pval(i,stype)*2.*pi*                               ! Sum of the values of the  photometric function 
      a   sin(real(i-1)*dtheta)*dtheta                                     ! (pvaleur x 2pi x sin theta x dtheta) (ou theta egale 
 c                                                                         ! (i-1) x 1 degrees).
         enddo                                                             ! end of the loop over the 181 donnees du fichier pa#.dat.
@@ -478,7 +485,7 @@ c    reading luminosity files
      +  nbx,nby)
        do i=1,nbx                                                         ! beginning of the loop over all cells along x.
         do j=1,nby                                                        ! beginning of the loop over all cells along y.
-         if (val2d(i,j).lt.0.) then                                       ! searching of luminosites negatives
+         if (val2d(i,j).lt.0.) then                                       ! searching of negative fluxes
            print*,'***Negative lamp flux!, stopping execution'
            stop
          endif
@@ -531,7 +538,7 @@ c    reading luminosity files
          enddo                                                            ! end of the loop over all cells along y.
         enddo                                                             ! end of the loop over all cells along x.
         step(stype)=1
-       enddo                                                              ! end of the loop over the 120 types of sources. 
+       enddo                                                              ! end of the loop 1 over the 120 types of sources. 
 c    ==================================================================
 c    reading lamp heights
         call intrants2d(alfile,val2d,xcell0,ycell0,pixsiz,nbx,nby)
@@ -558,7 +565,39 @@ c    reading subgrid obstacles average distance
          enddo                                                            ! end of the loop over all cells along y.
         enddo    
 c=======================================================================
-c        reading of the parametres of scattering
+c Calculation of the intrusive light
+c=======================================================================
+       open(unit=15,file='intrusive.out',status='unknown')
+       write(15,*) 'Lamp_number Lamp_intrusive_radiance Cumulated_intrus
+     +ive_radiance'
+       d_o=drefle(x_obs,y_obs)/2.
+       h_o=obsH(x_obs,y_obs)
+       srei=srefl(x_obs,y_obs)
+       do stype=1,ntype                                                   ! beginning of the loop 2 for the 120 types of sources.
+          h_l=lampal(x_obs,y_obs,stype)
+          intlu=lamplu(x_obs,y_obs,stype)
+          call intrusive(intlu,d_o,h_o,hwindow,h_l,pvalno,srei,stype,
+     +Irad)
+          Inrad=Inrad+Irad
+          write(15,*) stype,Irad,Inrad
+       enddo                                                              ! end of the loop 2 over the 120 types of sources.
+       close(unit=15)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+c=======================================================================
+c        reading of the scattering parameters 
 c=======================================================================
        open(unit = 1, file = diffil,status= 'old')                        ! opening file containing the parameters of scattering.
 c                                                                         ! the scattering file is generated by the program imies 
