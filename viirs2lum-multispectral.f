@@ -116,7 +116,7 @@ c interpolate modis images to modelling bands wavelength
 c defined in file integration_limits.dat
         print*,'Interpolation MODIS images...'
         call interp_modis()
-c reading modis reflectance at ~700nm to filter out the water pixels 
+c reading modis reflectance at 700nm to filter out the water pixels 
 c rho<0.05 . Water show a very low reflectance in that part of the 
 c spectrum compared to soil and vegetation
 c the problem with low reflectance of water is that in many cases we 
@@ -124,16 +124,8 @@ c enconter large cities next to water and then the scattered light
 c over the water surface behave like an important direct source over a
 c very dark surface. To overcome cleanly this problem we should make a
 c correction for the estimated scattered light. It is not done yet.
-        tlamb=700.
-        do nb=1,n_bands
-          if (avgwav(nb).ge.tlamb) then
-c reading the right modis file
-             write(lambda, '(I3.3)' ) int(avgwav(nb))
-             rfile='modis_'//lambda//'.pgm'
-             call intrants2d(rfile,rho,xcell0,ycell0,pixsiz,nbx,nby)
-             exit
-          endif
-        enddo
+        rfile='modis_700.pgm'
+        call intrants2d(rfile,rho,xcell0,ycell0,pixsiz,nbx,nby)
         do i=1,nbx
           do j=1,nbx
               dnb(i,j)=dnb(i,j)*dnbunits

@@ -116,37 +116,39 @@ c reading du fluxes
           call intrants2d(lfile,val2d,xcell0,ycell0,pixsiz,nbx,nby)
           do i=1,nbx                                                      ! beginning of the loop over all cells along x.
             do j=1,nby                                                    ! beginning of the loop over all cells along y.
-              intlu(i,j)=val2d(i,j)   
-              if (intlu(i,j).ne.0.) print*,intlu(i,j)                                    ! Filling of the array 
+              intlu(i,j)=val2d(i,j)                                       ! Filling of the array 
             enddo                                                         ! end of the loop over all cells along y.
           enddo      
 
           do i=1,nbx
             do j=1,nby
+              if (d_o(i,j).gt.0.) then
 c calculate the basic angles of the geometry
-              z_o=pi/2.-atan((h_o(i,j)-h_l(i,j))/d_o(i,j)/2.)
-              z_g=atan(d_o(i,j)/2./h_l(i,j))
-              z_w=pi/2.+atan((h_l(i,j)-h_w)/d_o(i,j)/2.)
+                z_o=pi/2.-atan((h_o(i,j)-h_l(i,j))/d_o(i,j)/2.)
+                z_g=atan(d_o(i,j)/2./h_l(i,j))
+                z_w=pi/2.+atan((h_l(i,j)-h_w)/d_o(i,j)/2.)
 
 c integrate the LOP from obstacle base to obstacle top (inteo)
 c and LOP from nadir to obstacle base (integ)
-              inteo=0.
-              integ=0.
-              do k=1,181
-                z=real(k-1)*pi/180.
-                if ((z.ge.z_o).and.(z.lt.z_g)) then
+                inteo=0.
+                integ=0.
+                do k=1,181
+                  z=real(k-1)*pi/180.
+                  if ((z.ge.z_o).and.(z.lt.z_g)) then
                    inteo=inteo+pvalno(k)*sin(z)*dz
-                endif
-                if ((z.ge.z_g).and.(z.lt.pi)) then
+                  endif
+                  if ((z.ge.z_g).and.(z.lt.pi)) then
                    integ=integ+pvalno(k)*sin(z)*dz
-                endif
-                if (z.eq.z_w) iw=k
-              enddo
-              Irad(i,j)=Irad(i,j)+intlu(i,j)*(pvalno(iw)+2.*srei(i,j)*
-     +        integ+srei(i,j)/4.*inteo)
-              if (Irad(i,j).gt.Iradmax) then
-                print*,'entre',Iradmax,Irad(i,j),i,j
+                  endif
+                  if (z.eq.z_w) iw=k
+                enddo
+                Irad(i,j)=Irad(i,j)+intlu(i,j)*(pvalno(iw)+2.*srei(i,j)*
+     +          integ+0.25*srei(i,j)*inteo)
+                if (Irad(i,j).gt.Iradmax) then
                  Iradmax=Irad(i,j)
+                endif
+              else
+                Irad(i,j)=0.
               endif
             enddo
           enddo

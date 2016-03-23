@@ -67,9 +67,13 @@ c
         DO nb=1,n_bands+1
           READ(42,*) bands(nb,1)
         enddo
-        do nb=1,n_bands
-          bands(nb,2)=bands(nb+1,1)
-          avgwav=(bands(nb,1)+bands(nb,2))/2.
+        do nb=1,n_bands+1
+          if (nb.le.n_bands) then
+            bands(nb,2)=bands(nb+1,1)          
+            avgwav=(bands(nb,1)+bands(nb,2))/2.
+          else
+            avgwav=700.
+          endif
           write(lambda, '(I3.3)' ) int(avgwav)
           outfile='modis_'//lambda//'.pgm'
 c interpolate 
@@ -108,5 +112,9 @@ c find 2 nearest modis wavelengths
       CLOSE(42)
       DEALLOCATE(modis_wav)
       DEALLOCATE(bands)
+c ajouter une bande fixe a 700nm to filter water surface
+
+
+
       return
       end
