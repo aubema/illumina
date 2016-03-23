@@ -252,13 +252,6 @@ c                                                                         ! a li
       real dminlp                                                         ! minimum distance between the observer and a lamp (m)
       real totlu(120)                                                     ! total flux of a source type
       real stoplim                                                        ! Stop computation when the new voxel contribution is less than 1/stoplim of the cumulated flux
-      real d_o                                                            ! distance between a lamp and an obstacle
-      real h_o                                                            ! temporary obstacle height relative to the ground
-      real srei                                                           ! temporary surface reflectance
-      real h_l                                                            ! temporary lamp height relative to the ground
-      real intlu                                                          ! temporary lamp spectral flux
-      real Irad,Inrad                                                     ! intrusive radiance for a lamp type and cumulated intrusive radiance
-      real hwindow                                                        ! height of the center of a window relative to the ground
       data cthick /0.5,0.6,0.72,0.86,1.04,1.26,1.52,1.84,2.22,            ! thickness of the levels.
      a 2.68,3.24,3.92,4.74,5.72,6.9,8.34,10.08,12.18,14.72,17.78,21.48,
      b 25.94,31.34,37.86,45.74,55.26,66.76,80.64,97.42,117.68,142.16,
@@ -300,7 +293,7 @@ c=======================================================================
        read(1,*) x_obs,y_obs,zcello,nvis0
        read(1,*)
        read(1,*) angvis,azim
-       read(1,*) hwindow
+       read(1,*) 
        read(1,*) lfente,longfe,focal,diamobj 
        read(1,*)
        read(1,*)
@@ -315,7 +308,7 @@ c computing the actual AOD at the wavelength lambda
 c      
        taua=taua*(lambda/500.)**(-1.*alpha)
 c
-c  determine the Length of nom
+c  determine the Length of basenm
 c 
       lenbase=index(basenm,' ')-1  
       mnaf=basenm(1:lenbase)//'_topogra.pgm'                              ! determine the names of input and output files
@@ -544,7 +537,7 @@ c    reading lamp heights
         call intrants2d(alfile,val2d,xcell0,ycell0,pixsiz,nbx,nby)
          do i=1,nbx                                                       ! beginning of the loop over all cells along x.
            do j=1,nby                                                     ! beginning of the loop over all cells along y.
-             lampal(i,j,stype)=val2d(i,j)                                 ! Remplissage of the array for the lamp stype
+             lampal(i,j,stype)=val2d(i,j)                                 ! filling of the array for the lamp stype
            enddo                                                          ! end of the loop over all cells along y.
          enddo                                                            ! end of the loop over all cells along x.
 c    ==================================================================
@@ -564,38 +557,6 @@ c    reading subgrid obstacles average distance
           if (drefle(i,j).eq.0.) drefle(i,j)=10000000.                    ! when outside a zone, block to the theoritical horizon
          enddo                                                            ! end of the loop over all cells along y.
         enddo    
-c=======================================================================
-c Calculation of the intrusive light
-c=======================================================================
-       open(unit=15,file='intrusive.out',status='unknown')
-       write(15,*) 'Lamp_number Lamp_intrusive_radiance Cumulated_intrus
-     +ive_radiance'
-       d_o=drefle(x_obs,y_obs)/2.
-       h_o=obsH(x_obs,y_obs)
-       srei=srefl(x_obs,y_obs)
-       do stype=1,ntype                                                   ! beginning of the loop 2 for the 120 types of sources.
-          h_l=lampal(x_obs,y_obs,stype)
-          intlu=lamplu(x_obs,y_obs,stype)
-          call intrusive(intlu,d_o,h_o,hwindow,h_l,pvalno,srei,stype,
-     +Irad)
-          Inrad=Inrad+Irad
-          write(15,*) stype,Irad,Inrad
-       enddo                                                              ! end of the loop 2 over the 120 types of sources.
-       close(unit=15)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 c=======================================================================
 c        reading of the scattering parameters 
 c=======================================================================
