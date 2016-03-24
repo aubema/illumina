@@ -14,6 +14,7 @@ c
       real h_o(width,width)                                               ! avg height of obstacles relative to the ground
       real h_l(width,width)                                               ! avg lamp height relative to the ground
       real intlu(width,width)                                             ! lamp flux
+      real filfac                                                         ! filling factor of the facades in front of the window e.g. if the distance between the house is twice the width of the house the filling factor will be 0.33
       real val2d(width,width)
       real z,pi,dz
       real inteo,integ,pvalto
@@ -30,6 +31,8 @@ c
       read*,basenm
       print*,'Height to the center of a window from the ground (m)?'
       read*,h_w
+      print*,'Surface filling factor of the facades (0-1)?'
+      read*,filfac
 c
 c  determine the Length of basenm
 c 
@@ -122,11 +125,12 @@ c reading du fluxes
 
           do i=1,nbx
             do j=1,nby
-              if (d_o(i,j).gt.0.) then
+              if ((d_o(i,j).gt.0.).and.(intlu(i,j).gt.0.)) then
 c calculate the basic angles of the geometry
-                z_o=pi/2.-atan((h_o(i,j)-h_l(i,j))/d_o(i,j)/2.)
-                z_g=atan(d_o(i,j)/2./h_l(i,j))
-                z_w=pi/2.+atan((h_l(i,j)-h_w)/d_o(i,j)/2.)
+                z_o=pi/2.-atan((h_o(i,j)-h_l(i,j))/(d_o(i,j)/2.))
+                z_g=pi-atan((d_o(i,j)/2.)/h_l(i,j))
+                z_w=pi/2.-atan((h_w-h_l(i,j))/(d_o(i,j)/2.))
+c           print*,z_g,z_o,z_w
 
 c integrate the LOP from obstacle base to obstacle top (inteo)
 c and LOP from nadir to obstacle base (integ)
@@ -140,15 +144,21 @@ c and LOP from nadir to obstacle base (integ)
                   if ((z.ge.z_g).and.(z.lt.pi)) then
                    integ=integ+pvalno(k)*sin(z)*dz
                   endif
-                  if (z.eq.z_w) iw=k
+                  if (abs(z-z_w).lt.dz/2.) then 
+                     iw=k
+                  endif
+ 
                 enddo
+
                 Irad(i,j)=Irad(i,j)+intlu(i,j)*(pvalno(iw)+2.*srei(i,j)*
-     +          integ+0.25*srei(i,j)*inteo)
+     +          integ+0.25*srei(i,j)*inteo*filfac)
+       if (pvalno(iw).ne.0.) then
+       print*,pvalno(iw),2.*srei(i,j)*integ,0.25*srei(i,j)*inteo*filfac,
+     +srei(i,j),Irad(i,j)
+       endif
                 if (Irad(i,j).gt.Iradmax) then
                  Iradmax=Irad(i,j)
                 endif
-              else
-                Irad(i,j)=0.
               endif
             enddo
           enddo
