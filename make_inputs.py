@@ -102,6 +102,7 @@ except IndexError:
 	pass
 
 if not stop:
+	# Questions for viirs2lum
 	out_name = raw_input("Output root name of the experiment [this name will be used for all the subsequent files]?\n    ")
 	pgm_name = raw_input("viirs-dnb file name? [e.g. stable-lights.pgm]\n    ")
 	modis_name = raw_input("modis reflectance file list file name? [e.g. modis.dat]\n    ")
@@ -111,10 +112,11 @@ if not stop:
 	
 	dir_name = "./Intrants/"
 	tmp_names = {'sat':"stable_lights.pgm", 'modis':"modis.dat", 'viirs':"viirs.dat", 'zon':"zone.zon"}
-	tmp_list = set(tmp_names.values())
+	tmp_list = set(tmp_names.values()) # List of files to be removed after execution
 	tmp_names['integ'] = "integration_limits.dat"
 	tmp_names['srtm'] = "srtm.pgm"
 
+    	# Creating symbolic links to necessary reflectance and photometry files
 	modis_files = np.genfromtxt(modis_name,skip_header=1,usecols=1,dtype=str)
 	modis_files = map(lambda s: modis_dir+"/"+s,modis_files)
 	zon_files = [ "Lamps/zone%d_lamp.dat" % (i+1) for i in xrange(len(zones)) ]
@@ -127,12 +129,14 @@ if not stop:
 				raise
 		tmp_list.add(name)
 
+    	# Creating the zon file based on the inventory
 	with open(zon_name,'w') as f:
 		f.write("%d\n" % len(zonfile))
 		for i in xrange(len(zonfile)):
 			zonfile[i].insert(3,os.path.basename(zon_files[i]))
 			f.write((("%s\t"*len(zonfile[i]))[:-1]+"\n") % tuple(zonfile[i]))
 
+    	# Linking useful files
 	os.symlink(os.path.abspath(pgm_name),dir_name+tmp_names['sat'])
 	os.symlink(os.path.abspath(modis_name),dir_name+tmp_names['modis'])
 	os.symlink(os.path.abspath("Lights/viirs.dat"),dir_name+tmp_names['viirs'])
@@ -173,7 +177,7 @@ if not stop:
 
 	os.chdir(dir_name)
 	p = sub.Popen("viirs2lum", stdin=sub.PIPE)
-        param = out_name+"\n"+os.path.basename(tmp_names['sat'])+"\n"+os.path.basename(tmp_names['zon'])+"\n"
+		param = out_name+"\n"+os.path.basename(tmp_names['sat'])+"\n"+os.path.basename(tmp_names['zon'])+"\n"
 	p.communicate(param)
 	
 	print "Fortran done."
@@ -182,7 +186,7 @@ if not stop:
 		os.remove(os.path.basename(filename))
 
 	#mie_files = sorted(glob("*.mie.out"))
-	
+	# Writing both .lst files
 	with open("zon.lst",'w') as zfile:
 		zfile.write('\n'.join( map(lambda n:"%03d"%n, xrange(1,len(zones)+1) ))+'\n')
 	with open("wav.lst",'w') as zfile:
