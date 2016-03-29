@@ -4,7 +4,7 @@ batchlist=`ls -1 $1*`
 echo $batchlist
 for i in $batchlist
 do  bash $i
-    echo $ii
+    echo $i
     echo "===="
     user=`whoami`
     njob=`bqstat 2>/dev/null | grep -c $user`
