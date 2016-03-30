@@ -116,13 +116,24 @@ def save_pgm(filename,head,p,data):
 			'\n' + ' '.join(map(str,p))
 	_np.savetxt(filename,data,fmt="%d",header=headstring,comments='')
 
+def load_fits(filename):
+	"""Loads a FITS file."""
+	hdu = _fits.open(filename)[0]
+	
+	ax = [ _np.linspace( hdu.header['CRVAL%d'%(i+1)],
+		hdu.header['CRVAL%d'%(i+1)]+hdu.header['CDELT%d'%(i+1)]*(hdu.header['NAXIS%d'%(i+1)]-1),
+		hdu.header['NAXIS%d'%(i+1)] ) for i in xrange(hdu.header['NAXIS']) ]
+
+	return ax,hdu.data.T[:,::-1].T
+	
+
 def save_fits(axis,data,filename):
-	"""Save a data cube to a fits file.
+	"""Save an array to a fits file. Must be at least 2D.
 	
 	  axis : a list of 2-tuple containing the base value and the increment for each axis
 	"""
 	hdu = _fits.PrimaryHDU()
-	hdu.data = data
+	hdu.data = data.T[:,::-1].T
 	for i in xrange(len(axis)):
 		hdu.header['CRPIX%d'%(i+1)] = 1
 		hdu.header['CRVAL%d'%(i+1)] = axis[i][0]

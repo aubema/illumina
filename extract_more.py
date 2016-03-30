@@ -97,7 +97,7 @@ if mk_cube:
         for cat in ftree[sc]:
             name = cat+'-'+sc.split('-',1)[1]+".fits"
             print "Generating '%s'" % name
-            cube = np.asarray(map(lambda s: load_pgm(files[cat]+"/PCL-%s.pgm"%s)[2], ftree[sc][cat]))[:,::-1,:]
+            cube = np.asarray(map(lambda s: load_pgm(files[cat]+"/PCL-%s.pgm"%s)[2], ftree[sc][cat]))
             save_fits([(1,1),(1,1),(wl[0],bw[0])],cube,name)
 
 print "\nDone."
