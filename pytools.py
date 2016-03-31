@@ -117,7 +117,12 @@ def save_pgm(filename,head,p,data):
 	_np.savetxt(filename,data,fmt="%d",header=headstring,comments='')
 
 def load_fits(filename):
-	"""Loads a FITS file."""
+	"""Loads a FITS file.
+
+	Returns a 2-ple containing
+	  - A list of arrays defining each axis in order (x,y,z,...)
+	  - The caintained data in transposed order (...,z,y,x)
+	"""
 	hdu = _fits.open(filename)[0]
 	
 	ax = [ _np.linspace( hdu.header['CRVAL%d'%(i+1)],
@@ -130,7 +135,9 @@ def load_fits(filename):
 def save_fits(axis,data,filename):
 	"""Save an array to a fits file. Must be at least 2D.
 	
-	  axis : a list of 2-tuple containing the base value and the increment for each axis
+	  axis : a list of 2-tuple containing the base value and the increment for each axis.
+	  data : data array. The dimensions must be ordered (...,z,y,x)
+	  filename : name of the file to create
 	"""
 	hdu = _fits.PrimaryHDU()
 	hdu.data = data.T[:,::-1].T
