@@ -121,7 +121,7 @@ def load_fits(filename):
 
 	Returns a 2-ple containing
 	  - A list of arrays defining each axis in order (x,y,z,...)
-	  - The caintained data in transposed order (...,z,y,x)
+	  - The contained data in transposed order (...,z,y,x)
 	"""
 	hdu = _fits.open(filename)[0]
 	
