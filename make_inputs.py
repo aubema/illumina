@@ -177,7 +177,7 @@ if not stop:
 
 	os.chdir(dir_name)
 	p = sub.Popen("viirs2lum", stdin=sub.PIPE)
-		param = out_name+"\n"+os.path.basename(tmp_names['sat'])+"\n"+os.path.basename(tmp_names['zon'])+"\n"
+	param = out_name+"\n"+os.path.basename(tmp_names['sat'])+"\n"+os.path.basename(tmp_names['zon'])+"\n"
 	p.communicate(param)
 	
 	print "Fortran done."
