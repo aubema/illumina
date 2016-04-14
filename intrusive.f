@@ -19,14 +19,20 @@ c
       real z,pi,dz
       real inteo,integ,pvalto
       real Iradmax,gain,offset,xcell0,ycell0,pixsiz
+      real ratmoy,rat1
       integer stype,i,j,k,iw,nwav,nw,nzon,nz,lenbase,valmax
       integer nbx,nby
+      integer nmoy,n1
       character*3 zon(120),wav(400)
       character*72 basenm,ohfile,odfile,lhfile,rfile,lfile,lopf,intrufi
       character*72 pafile
       character*12 nom
       pi=3.14159
       dz=pi/180.
+      ratmoy=0.
+      rat1=0.
+      nmoy=0
+      n1=0
       print*,'Name of the experiment?'
       read*,basenm
       print*,'Height to the center of a window from the ground (m)?'
@@ -152,9 +158,14 @@ c and LOP from nadir to obstacle base (integ)
 
                 Irad(i,j)=Irad(i,j)+intlu(i,j)*(pvalno(iw)+2.*srei(i,j)*
      +          integ+0.25*srei(i,j)*inteo*filfac)
-       if (pvalno(iw).ne.0.) then
-       print*,pvalno(iw),2.*srei(i,j)*integ,0.25*srei(i,j)*inteo*filfac,
-     +srei(i,j),Irad(i,j)
+       if (((0.25*srei(i,j)*inteo*filfac).ne.0.).and.
+     + ((2.*srei(i,j)*integ).ne.0.)) then
+c       print*,pvalno(iw),2.*srei(i,j)*integ,0.25*srei(i,j)*inteo*filfac,
+c     +srei(i,j),Irad(i,j)
+        rat1=rat1+pvalno(iw)/(2.*srei(i,j)*integ)
+        ratmoy=ratmoy+(2.*srei(i,j)*integ)/(0.25*srei(i,j)*inteo*filfac)
+        nmoy=nmoy+1
+        n1=n1+1
        endif
                 if (Irad(i,j).gt.Iradmax) then
                  Iradmax=Irad(i,j)
@@ -172,7 +183,9 @@ c
         offset=0.
         call extrants2d (intrufi,Irad,nom,xcell0,ycell0,pixsiz,
      +  gain,offset,nbx,nby,valmax)
+        print*,rat1/real(n1),ratmoy/real(nmoy)
       enddo                                                               ! end of loop over wavelength
+        print*,'final',rat1/real(n1),ratmoy/real(nmoy)
       stop
       end
 

@@ -13,7 +13,7 @@ c ** Illumina en Fortran 77                                                     
 c ** Programmers in decreasing order of contribution  :                                                               **
 c **                            Martin Aube, Loic Franchomme-Fosse,  Mathieu Provencher, Andre Morin                  **
 c **                            Alex Neron, Etienne Rousseau                                                          ** 
-c **                            William of theroches, Maxime Girardin, Tom Neron                                         **
+c **                            William Desroches, Maxime Girardin, Tom Neron                                         **
 c **                                                                                                                  **
 c ** Illumina can be downloaded via:   hg clone  https://aubema@bitbucket.org/aubema/illumina                         **
 c ** To compile:                                                                                                      **
@@ -21,21 +21,22 @@ c **    cd hg/illumina                                                          
 c **    mkdir bin                                                                                                     **
 c **    bash makeILLUMINA                                                                                             **
 c **                                                                                                                  **
-c **  Current towardion features/limitations :                                                                          **
+c **  Current version features/limitations :                                                                          **
 c **                                                                                                                  **
 c **    - Calculation of flux entering a spectrometer in a given line of sight                                        **
 c **    - Calculation of the sky spectral luminance in a given line of sight                                          **
-c **    - Calculation of the atmospheric transmittance and 1st and 2nd order of scatte                            **
+c **    - Calculation of the atmospheric transmittance and 1st and 2nd order of scattering                            **
 c **    - Lambertian reflexion on the ground                                                                          **
 c **    - Terrain slope considered (apparent surface and shadows)                                                     **
 c **    - Angular photometry of a lamp is considered uniform along the azimuth                                        **
 c **    - Sub-grid obstacles considered (with the mean free path of light toward ground and mean obstacle height      **
-c **      but these parameters are fixed on the modelling domain                                                      **
-c **    - Molecules and aerosol optics (phase function, scatte probability, aerosol absorption)                   **  
-c **    - Exponential concentrations vertical profile (H aerosol= 2km, H molecules= 8km                               **
+c **    - Molecules and aerosol optics (phase function, scattering probability, aerosol absorption)                   **  
+c **    - Exponential concentrations vertical profile (H aerosol= 2km, H molecules= 8km  )                            **
 c **    - Exponential vertical resolution (max height= 30 km)                                                         **
-c **    - Accounting for heterogeneity of ground reflectance, luminaires number, luminaire height, angular photometry **
+c **    - Accounting for heterogeneity of ground reflectance, luminaires number, luminaires heights,                  **
+c **      angular photometry                                                                                          **
 c **    - Wavelength dependant                                                                                        **
+c **    - Clouds models                                                                                               **
 c **    - Ignore the flux scattered by the voxel occupied by the observer (cellobs=cellcible)                         **
 c **    - Do not support direct observation of a source                                                               ** 
 c **    - Direct observation of the ground not implemented                                                            **
@@ -43,7 +44,7 @@ c **    - Not accounting for molecular absorption                               
 c **    - Do not consider earth curvature (i.e. local/regional model)                                                 **
 c **    - No clouds                                                                                                   **
 c **                                                                                                                  **
-c ** Theoritical equations by Martin Aube, CEGEP of Sherbrooke (in french)                                            **
+c ** Theoretical equations by Martin Aube, CEGEP of Sherbrooke (in french)                                            **
 c **      http://cegepsherbrooke.qc.ca/~aubema/index.php/Prof/IllumEn?action=download&upname=intensity_lumineuse.pdf  **
 c **                                                                                                                  **
 c **********************************************************************************************************************
@@ -52,8 +53,8 @@ c    Copyright (C) 2012 Martin Aube
 c
 c    This program is free software: you can redistribute it and/or modify
 c    it under the terms of the GNU General Public License as published by
-c    the Free Software Foundation, either towardion 3 of the License, or
-c    (at your option) any later towardion.
+c    the Free Software Foundation, either version 3 of the License, or
+c    (at your option) any later version.
 c
 c    This program is distributed in the hope that it will be useful,
 c    but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -82,162 +83,128 @@ c
       parameter (pi=3.1415926)
       parameter (pix4=4.*pi)
       real cthick(50)                                                     ! Cell thickness array (meter)
-
       real cellh(50)                                                      ! Cell height array (meter)
-
-      real flcumu                                                         ! Accrued flux en fonction du deplacement le long of the ligne of vise
+      real flcumu                                                         ! Accrued flux along the line of sight
       character*72 mnaf                                                   ! Terrain elevation file.
       character*72 reflf                                                  ! Reflectance file.
       character*72 diffil                                                 ! Aerosol file.
       character*72 outfile                                                ! Results file
-      character*72 pclf,pcwf,pclgp,pcwgp                                  ! fichiers of array of % du flux total normalise par unite of flux 
-      character*72 pclimg,pcwimg
-                                                                          ! and par flux and wattage
+      character*72 pclf,pcwf,pclgp,pcwgp                                  ! File containing contribution and sensitivity maps
+      character*72 pclimg,pcwimg                                                                         
       character*72 basenm                                                 ! Base name of files.
-      character*12 nom                                                    ! Variable name 2d read or written
+      character*12 nom                                                    
       integer lenbase                                                     ! Length du Base name of the experiment.
-      real lambda,pressi,drefle(width,width)                              ! Wavelength (nanometre), atmospheric pressure (kPa), zone 
-c                                                                         ! of mean free path to the ground (metre).
-      integer ntype                                                       ! Number of light source types considered.
-      real largx                                                          ! Width (valeur x) of the modelling domain (metre).
-      real largy                                                          ! Length (valeur y) of the modelling domain (metre).
-      integer nbx,nby                                                     ! Number of pixels in the modelling domain.  
+      real lambda,pressi,drefle(width,width)                              ! Wavelength (nanometer), atmospheric pressure (kPa), mean free path to the ground (meter).
+      integer ntype                                                       ! Number of light source types or zones considered.
+      real largx                                                          ! Width (x axis) of the modeling domain (meter).
+      real largy                                                          ! Length (y axis) of the modeling domain (meter).
+      integer nbx,nby                                                     ! Number of pixels in the modeling domain.  
       real val2d(width,width)                                             ! Temporary input array 2d
-      real altsol(width,width)                                            ! Ground elevation (metre).
+      real altsol(width,width)                                            ! Ground elevation (meter).
       real srefl(width,width)                                             ! Ground reflectance.
-      real Hmin                                                           ! Minimum ground elevation
-      real xcell0                                                         ! Longituof south-west of the domain.
-      real ycell0                                                         ! latitu south-west of the domain.
-      real gain                                                           ! Coefficient multiplicatif of the valeurs of files source.
-      real offset                                                         ! Constante d'addition of the valeurs of files source.
-      integer valmax                                                      ! Maximum value of the output pgms
-      integer stype                                                       ! Identification du source types.
-      character*72 pafile,lufile,alfile,ohfile,odfile                     ! Files related to light sources and obstacles (photometric function 
-c                                                                         ! of the sources (sr-1), luminosity (W), height (m), obstacle height (m), 
-c                                                                         ! obstacle distance (m).    
-      real lamplu(width,width,120)                                        ! Source luminositys dans chaque case (DIMENSION???).
-      real lampal(width,width,120)                                        ! Height of the light sources relative to the ground (metre).
-      real pval(181,120),pvalto,pvalno(181,120)                           ! Values of the angular photometry functions (arbitraires, 
-c                                                                         ! totale non-array, normalisees).
-      real dtheta                                                         ! Increment d'angle the photometric function of the sources 
-      real dx,dy,dxp,dyp,pixsiz                                           ! Width of the cell (metre), Number of cell dans the portee 
-c                                                                         ! of reflexion (cell), Width of the cell.
-c                                                                         ! for verif compatible files, taille of the below cells for 
-c                                                                         ! the solid angle of the ratio of surface qui reflechit.
-      integer boxx,boxy                                                   ! Portee of reflexion (cell).
-      real fdifa(181),fdifan(181)                                         ! Scattering functions (arbitraire and normalisee) of the aerosols.
-      real extinc,scatte,anglea(181)                                      ! Cross sections extinction and scattering, scattering angle (degree).
+      real Hmin                                                           ! Minimum ground elevation of the modeling domain
+      real xcell0                                                         ! Longitude of the south-west pixel of the domain.
+      real ycell0                                                         ! latitude of the south-west pixel of the domain.
+      real gain                                                           ! Gain to retreive the physical value from an ADU in pgm file.
+      real offset                                                         ! Offset to retreive the physical value from an ADU in pgm file.
+      integer valmax                                                      ! Maximum value of the output pgm (usually 65535, i.e. 16 bit)
+      integer stype                                                       ! Source type or zone index
+      character*72 pafile,lufile,alfile,ohfile,odfile                     ! Files related to light sources and obstacles (photometric function of the sources (sr-1), flux (W), height (m), obstacle height (m), obstacle distance (m).    
+      real lamplu(width,width,120)                                        ! Source fluxes
+      real lampal(width,width,120)                                        ! Height of the light sources relative to the ground (meter).
+      real pval(181,120),pvalto,pvalno(181,120)                           ! Values of the angular photometry functions (unnormalized, integral, normalized).
+      real dtheta                                                         ! Angle increment of the photometric function of the sources 
+      real dx,dy,dxp,dyp,pixsiz                                           ! Width of the cell (meter)
+      integer boxx,boxy                                                   ! reflection window size (pixels).
+      real fdifa(181),fdifan(181)                                         ! Aerosol scattering functions (unnormalized and normalized).
+      real extinc,scatte,anglea(181)                                      ! Aerosol cross sections (extinction and scattering), scattering angle (degree).
       real secdif                                                         ! Contribution of the scattering to the extinction
-      real inclix(width,width)                                            ! tilt of the ground pixel along x (DIMENSIONS).
-      real incliy(width,width)                                            ! tilt of the ground pixel along y (DIMENSIONS).   
-      integer x_obs,y_obs,zcello                                          ! Position of the observateur (cell).
-      real z_obs                                                          ! Height of the observateur (metre).
-      integer lcible(width,3)                                             ! Array for the target cells.
-      integer ncible,icible                                               ! Number of target cells, counter of the loop over the cells 
-c                                                                         ! target.     
-      integer x_c,y_c,zcellc                                              ! Position of the target cell (cell).
+      real inclix(width,width)                                            ! tilt of the ground pixel along x (radian).
+      real incliy(width,width)                                            ! tilt of the ground pixel along y (radian).   
+      integer x_obs,y_obs,zcello                                          ! Position of the observer (INTEGER).
+      real z_obs                                                          ! Height of the observer (meter).
+      integer lcible(width,3)                                             ! Array for the target voxels along the line of sight.
+      integer ncible,icible                                               ! Number of target voxels, number loops over the voxels 
+      integer x_c,y_c,zcellc                                              ! Position of the target voxel (INTEGER).
       real z_c                                                            ! Height of the target cell (metre).
-      real zcup,zcdown                                                    ! Lower and upper limits of the target cell.    
-      integer dirck                                                       ! Test of position of the source (cas source=target cell).     
-      integer x_s,y_s,x_sr,y_sr,x_dif,y_dif,zceldi                        ! Positions of the source, reflecting surface, scattering cells 
-c                                                                         ! (cell).
-      real z_s,z_sr,z_dif                                                 ! Height of the source, reflecting surface, scattering cell (metre).
-      real angzen,ouvang                                                  ! Angle zenithal between two cells (radians) and angle 
-c                                                                         ! of the cone solid angle in degrees.
-      integer anglez                                                        
-c                                                                         ! d'emission of the lampadaires.      
-      real P_dir,P_indir,P_dif1                                           ! photometric function (direct,indirect,diffusee) of the sources 
-c                                                                         ! lumineuses.
+      real zcup,zcdown                                                    ! Lower and upper limits of the target voxel.    
+      integer dirck                                                       ! Test for the position of the source (case source=target voxel).     
+      integer x_s,y_s,x_sr,y_sr,x_dif,y_dif,zceldi                        ! Positions of the source, the reflecting surface, and the scattering voxels 
+      real z_s,z_sr,z_dif                                                 ! Heights of the source, the reflecting surface, and the scattering cell (metre).
+      real angzen,ouvang                                                  ! Zenithal angle between two cells (radians) and opening angle of the solid angle in degrees.
+      integer anglez                                                      ! Emitting zenithal angle from the luminaire.      
+      real P_dir,P_indir,P_dif1                                           ! photometric function of the light sources (direct,indirect,scattered) 
       real transa,transm                                                  ! Transmittance between two cells (aerosols,molecules).
       real tran1a,tran1m                                                  ! Transmittance of the cell (aerosols,molecules).
-      real taua                                                           ! thickness optique of the aerosols @ 500nm.
+      real taua                                                           ! Aerosol optical depth @ 500nm.
       real alpha                                                          ! Angstrom coefficient of aerosol AOD
-      real*8 xc,yc,zc,xn,yn,zn                                            ! Position (metre) of the elements (arrivee, depart) for the calculation 
-c                                                                         ! of the angle solide.  
-      real*8 r1x,r1y,r1z,r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z              ! Composantes of the vecteurs utilises dans the routine angle solide.
-      real omega,omega1                                                   ! Solid angle of the by a cell vue of the autre, angle 
-c                                                                         ! comparaison.
-      real fldir                                                          ! Flux coming from a source cell dans a target cell (watt).
-      real flindi                                                         ! Flux coming from a reflecting cell dans a target cell (watt).
-      real fldiff                                                         ! Flux coming from a scattering cell dans a target cell (watt).
-      real zidif,zfdif                                                    ! initial limit and finale du parcours of scattering dans a cell.
+      real*8 xc,yc,zc,xn,yn,zn                                            ! Position (meter) of the elements (starting point, final point) for the calculation of the solid angle.  
+      real*8 r1x,r1y,r1z,r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z              ! Components of the vectors used in the solid angle calculation routine.
+      real omega,omega1                                                   ! Solid angles
+      real fldir                                                          ! Flux coming from a source (watt).
+      real flindi                                                         ! Flux coming from a reflecting ground element (watt).
+      real fldiff                                                         ! Flux coming from a scattering voxel (watt).
+      real zidif,zfdif                                                    ! initial and final limits of a scattering path.
       real angdif                                                         ! scattering angle.
-      real pdifdi,pdifin,pdifd1,pdifd2                                    ! scattering probability (direct,indirect,1st and 2nd order of 
-c                                                                         ! scattering 
-      real intdir                                                         ! source contribution a the direct intensity toward 
-c                                                                         ! the sensor by a target cell.
-      real intind                                                         ! Contribution of the reflecting cell a the indirect intensity 
-c                                                                         ! toward the sensor.
-      real itotind                                                        ! Contribution totale of the source a the indirect intensity dirigee 
-c                                                                         ! toward the sensor.
-      real idiff2                                                         ! Contribution of the scattering cell a the intensity diffusee 
-c                                                                         ! toward the sensor.
-      real itodif                                                         ! Contribution totale of the source a the intensity diffusee dirigee 
-c                                                                         ! toward the sensor.
-      real isourc                                                         ! Contribution totale of the source a the intensity dirigee by a 
-c                                                                         ! target cell toward the sensor.
-      real itotty                                                         ! Contribution totale of a source types a the intensity dirigee par 
-c                                                                         ! a target cell toward the sensor.
-      real itotci                                                         ! total intensity dirigee by a target cell toward the sensor.
-      real itotrd                                                         ! total intensity dirigee by a cell toward the sensor apres 
-c                                                                         ! reflexion and double scattering.
-      real irefdi                                                         ! intensity dirigee by a cell toward the sensor apres reflexion 
-c                                                                         ! and double scattering. 
-      real flcib                                                          ! Flux parvenant dans the observer cell by a target cell.
-      real fcapt                                                          ! Flux parvenant dans the observer cell par toutes les cells 
-c                                                                         ! target of a niveau contenues in the field of view of the sensor.
-      real ftocap                                                         ! Flux total parvenant dans the cell receptrice.
-      real haut                                                           ! Haut negatif indique que the surface is eclairee par under wich
-c                                                                         ! (on ne calcule alors pas).
-      real epsilx,epsily                                                  ! tilt of the  ground reflectance
+      real pdifdi,pdifin,pdifd1,pdifd2                                    ! scattering probability (direct,indirect,1st and 2nd order of scattering 
+      real intdir                                                         ! Direct intensity toward the sensor from a scattering voxel.
+      real intind                                                         ! Contribution of the reflecting cell to the indirect intensity toward the sensor.
+      real itotind                                                        ! Total contribution of the source to the indirect intensity toward the sensor.
+      real idiff2                                                         ! Contribution of the scattering cell to the scattered intensity toward the sensor.
+      real itodif                                                         ! Total contribution of the source to the scattered intensity toward the sensor.
+      real isourc                                                         ! Total contribution of the source to the intensity from a target voxel toward the sensor.
+      real itotty                                                         ! Total contribution of a source type to the intensity coming from a target voxel toward the sensor.
+      real itotci                                                         ! total intensity from a target voxel toward the sensor.
+      real itotrd                                                         ! total intensity a voxel toward the sensor after reflexion and double scattering.
+      real irefdi                                                         ! intensity from a voxel toward the sensor after reflexion and double scattering. 
+      real flcib                                                          ! Flux reaching the observer voxel from a target cell.
+      real fcapt                                                          ! Flux reaching the observer voxel from all FOV voxels in a given model level
+      real ftocap                                                         ! Total flux reaching the observer voxel
+      real haut                                                           ! Haut (negative indicate that the surface is lighted from inside the ground. I.e. not considered in the calculation
+      real epsilx,epsily                                                  ! tilt of the ground pixel
       real flrefl                                                         ! flux reaching a reflecting surface (watts).
-      real irefl,irefl1                                                   ! intensity leaving a reflecting surface en direction of the 
-c                                                                         ! target cell.  
-      real effdif                                                         ! Distance around the source cell and target considered  
-c                                                                         ! to compute the 2nd order of scattering.
-      integer zondif(3000000,4)                                           ! Array for the scattering cells , the 4th column represents the value 
-c                                                                         ! entiere the plus proche of the distance (en metre) a the ligne of 
-c                                                                         ! scattering simple.
-      integer ndiff,idi                                                   ! Number of scattering cells, counter of the loop over the scattering cells
-      integer stepdi                                                      ! scattering step to speedup the calculation e.g. if =2 il fera un  
-      integer redudi                                                      ! computation sur two flag showing if the radius of scattering a ete reduit
-      integer nvis0                                                       ! starting value for the calculation le long of the viewing line. 
-c                                                                         ! by default the value is 1 mais elle peut etre plus granof  
-c                                                                         ! when we redo a previous calculation qui a ete stopped anormalement.
-      real fldif1                                                         ! flux reaching a scattering cell.
-      real idif1                                                          ! intensity toward a target cell by a scattering cell.
-      real portio                                                         ! ratio of cell observee in the field of view of the sensor.
-      real dis_obs                                                        ! Distance d'observation between the target and the observer.
-      real ometif                                                         ! Solid angle of the by the telescope objective as seen from the target cell
-      real omefov                                                         ! Solid angle of the sur le ciel vu par the fente.
-      real lfente                                                         ! Width of the fente (ou of the sensor area)
-      real longfe                                                         ! Length of the fente (ou of the sensor area)
-      real focal                                                          ! Distance focale effective objectif (selon le Throughput of the sensor)  
+      real irefl,irefl1                                                   ! intensity leaving a reflecting surface toward the target voxel.  
+      real effdif                                                         ! Distance around the source voxel and target voxel considered to compute the 2nd order of scattering.
+      integer zondif(3000000,4)                                           ! Array for the scattering voxels, the 4th column represents the nearest integer value of the distance (en metre) to the line of single scattering.
+      integer ndiff,idi                                                   ! Number of scattering voxels, counter of the loop over the scattering voxels
+      integer stepdi                                                      ! scattering step to speedup the calculation e.g. if =2 one computation over two will be done
+      integer nvis0                                                       ! starting value for the calculation along of the viewing line. 
+c                                                                         ! by default the value is 1 but it can be larger  
+c                                                                         ! when we resume a previous interrupted calculation.
+      real fldif1                                                         ! flux reaching a scattering voxel.
+      real idif1                                                          ! intensity toward a target voxel from a scattering cell.
+      real portio                                                         ! ratio of voxel surface to the solid angle of the sensor field of view.
+      real dis_obs                                                        ! Distance between the target and the observer.
+      real ometif                                                         ! Solid angle of the telescope objective as seen from the target voxel
+      real omefov                                                         ! Solid angle of the spectrometer slit.
+      real lfente                                                         ! Width of the slit (or of the sensor area)
+      real longfe                                                         ! Length of the slit (or of the sensor area)
+      real focal                                                          ! Focal distance of the spectrometer objective  
       real angvis,azim                                                    ! viewing angles of the sensor.
-      real projap                                                         ! Fraction of the  surface reflectance vue par rapport a the direction 
-c                                                                         ! normale. useful for the calculation of the lambertian reflectance.
+      real projap                                                         ! Fraction of the reflecting surface relatively to the normal. 
+c                                                                         ! Useful for the calculation of the lambertian reflectance.
       real nbang                                                          ! for the averaging of the photometric function
       real obsH(width,width),angmin                                       ! averaged height of the sub-grid obstacles, minimum angle under wich 
 c                                                                         ! a light ray cannot propagate because it is blocked by a sub-grid obstable
       integer naz,na 
       real ITT(width,width,120)                                           ! total intensity per type of lamp
-      real ITC(width,width)                                               ! total intensity per target cell
+      real ITC(width,width)                                               ! total intensity per target voxel
       real FC(width,width)                                                ! target flux
       real FTC(width,width)                                               ! fraction of the total flux at the sensor level 
-      real FTCN(width,width)                                              ! fraction of the total flux at the sensor level normalise par unite of wattage au sol
-      real FCA(width,width)                                               ! sensor flux below forme matricielle
+      real FTCN(width,width)                                              ! fraction of the total flux at the sensor level normalized per unit of watt
+      real FCA(width,width)                                               ! sensor flux array
       real lpluto(width,width)                                            ! total luminosity of the ground cell for all lamps
-      real fctnto,ftcmax                                                  ! FTCN total for tout le domaine for all lamps
+      real fctnto,ftcmax                                                  ! FTCN total for all the domain for all lamps
       character*3 lampno                                                  ! lamp number string
-      integer imin(120),imax(120),jmin(120),jmax(120),step(120)           ! x and y limits of the zone containing a type of thempe
-      real defval                                                         ! value ignored during interpolation
+      integer imin(120),imax(120),jmin(120),jmax(120),step(120)           ! x and y limits of the zone containing a type of lamp
+      real defval                                                         ! ignored value during interpolation
       real dat(1024,1024)                                                 ! array to be interpolated
-      integer autom,intype,ii,jj                                          ! switch manuel automatique for the interpolation; interpolation type
+      integer autom,intype,ii,jj                                          ! switch manual/automatic for the interpolation; interpolation type
       real window                                                         ! interpolation diameter
-      real zhoriz(360)                                                    ! horizon in rad sur 360 deg, the posi 1 = 0 deg and 360 = 359deg
-      real angazi,d2                                                      ! angle azimutal between two points in rad, max dist for the horizon determination
+      real zhoriz(360)                                                    ! horizon in rad over 360 deg, the first index of the array is for 0 deg while index 360 = 359 deg
+      real angazi,d2                                                      ! azimuth angle between two points in rad, max dist for the horizon determination
       integer az                                                          ! azimut of the horizon
-      real latitu                                                         ! approximate latituof of the center of the domain
+      real latitu                                                         ! approximate latitude of the domain center
       integer vistep                                                      ! line of sight step for low elevation angles vistep=ncells_along_sight/50
       integer prmaps                                                      ! flag to enable the tracking of contribution and sensitivity maps
       integer cloudt                                                      ! cloud type 0=clear, 1=Thin Cirrus/Cirrostratus, 2=Thick Cirrus/Cirrostratus, 3=Altostratus/Altocumulus, 4=Cumulus/Cumulonimbus, 5=Stratocumulus
@@ -401,7 +368,6 @@ c=======================================================================
          zondif(i,j)=1
         enddo
        enddo     
-       redudi=1
        irefdi=0.
        angmin=0.
        vistep=1
@@ -932,7 +898,7 @@ c=======================================================================
      +                dy,angzen)                                          ! end of the case "observateur a the meme latitu/longituof que the source".
 
 c=======================================================================
-c        computation of the transmittance between the source and the  surface reflectance
+c        computation of the transmittance between the source and the ground surface
 c=======================================================================
                       call transmitm (angzen,x_s,y_s,z_s,x_sr,y_sr,
      +                z_sr,lambda,dx,dy,pressi,transm)          
