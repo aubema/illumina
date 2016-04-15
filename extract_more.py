@@ -79,7 +79,7 @@ for d in tree:
         plt.legend(loc=0)
         plt.xlabel("Wavelenght (nm)")
         plt.ylabel("LP ratio after/before")
-        plt.title("LP ratio to "+s+" scenario\n"+d.replace('-',' '))
+        plt.title("LP ratio to "+basename+" scenario\n"+d.replace('-',' '))
         plt.xlim((np.min(wl),np.max(wl)))
         plt.savefig(d+".png")
         plt.close()
