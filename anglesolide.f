@@ -33,7 +33,7 @@ c
      +             r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z)
       real*8 r1x,r1y,                                                     ! Variables utilisees pour le calcul d'omega.
      +   r1z,r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z,r1,r2,r3,r4,tet12,
-     +   tet23,tet13,tet34,tet24,a,b,c,s,a123,a234
+     +   tet23,tet13,tet34,tet24,a,b,c,s,a123,a234,arg
        real omega
       r1=dsqrt(r1x**2.+r1y**2.+r1z**2.)                                   ! Calcul de la norme du vecteur #1.
       r2=dsqrt(r2x**2.+r2y**2.+r2z**2.)                                   ! Calcul de la norme du vecteur #2.
@@ -55,11 +55,32 @@ c
          print*,'ERREUR r1=0'
          stop
       endif
-      tet12=dacos((r1x*r2x+r1y*r2y+r1z*r2z)/(r1*r2))                      ! Calcul de l'angle entre le vecteur #1 et le vecteur #2.
-      tet23=dacos((r2x*r3x+r2y*r3y+r2z*r3z)/(r2*r3))                      ! Calcul de l'angle entre le vecteur #2 et le vecteur #3.
-      tet13=dacos((r3x*r1x+r3y*r1y+r3z*r1z)/(r3*r1))                      ! Calcul de l'angle entre le vecteur #1 et le vecteur #3.
-      tet34=dacos((r3x*r4x+r3y*r4y+r3z*r4z)/(r3*r4))                      ! Calcul de l'angle entre le vecteur #3 et le vecteur #4.
-      tet24=dacos((r2x*r4x+r2y*r4y+r2z*r4z)/(r2*r4))                      ! Calcul de l'angle entre le vecteur #2 et le vecteur #4.
+
+      arg=(r1x*r2x+r1y*r2y+r1z*r2z)/(r1*r2)
+      if (arg.gt.1.0) arg=1.0
+      if (arg.lt.-1.0) arg=-1.0
+      tet12=dacos(arg)                      ! Calcul de l'angle entre le vecteur #1 et le vecteur #2.
+
+      arg=(r2x*r3x+r2y*r3y+r2z*r3z)/(r2*r3)
+      if (arg.gt.1.0) arg=1.0
+      if (arg.lt.-1.0) arg=-1.0
+      tet23=dacos(arg)                      ! Calcul de l'angle entre le vecteur #2 et le vecteur #3.
+
+      arg=(r3x*r1x+r3y*r1y+r3z*r1z)/(r3*r1)
+      if (arg.gt.1.0) arg=1.0
+      if (arg.lt.-1.0) arg=-1.0
+      tet13=dacos(arg)                      ! Calcul de l'angle entre le vecteur #1 et le vecteur #3.
+
+      arg=(r3x*r4x+r3y*r4y+r3z*r4z)/(r3*r4)
+      if (arg.gt.1.0) arg=1.0
+      if (arg.lt.-1.0) arg=-1.0
+      tet34=dacos(arg)                      ! Calcul de l'angle entre le vecteur #3 et le vecteur #4.
+
+      arg=(r2x*r4x+r2y*r4y+r2z*r4z)/(r2*r4)
+      if (arg.gt.1.0) arg=1.0
+      if (arg.lt.-1.0) arg=-1.0
+      tet24=dacos(arg)                      ! Calcul de l'angle entre le vecteur #2 et le vecteur #4.
+
       a=tet23
       b=tet13
       c=tet12
