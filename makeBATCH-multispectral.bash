@@ -276,9 +276,9 @@ echo "Starting from "$folder
 #
 # creation du script pour qsub dans $folder
                                       ici=`pwd`
-# create batch run files for 500 jobs blocks
+# create batch run files for 300 jobs blocks
                                       let nmam=nmam+1
-                                      let jobno=nmam/500+1
+                                      let jobno=nmam/300+1
                                       outscript=$outscpt"_"$jobno
                                       echo "cd " $ici >> $HOME/$outscript
                                       echo "qsub  -q qwork@ms  ./execute" >> $HOME/$outscript

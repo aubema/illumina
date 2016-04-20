@@ -8,10 +8,13 @@ do  bash $i
     echo "===="
     user=`whoami`
     njob=`bqstat 2>/dev/null | grep -c $user`
+    nwait=`bqstat 2>/dev/null | grep $user | grep -c " Q "`
     echo $njob "initial"
-    while  [ $njob -gt 1000 ]
-    do njob=`bqstat 2>/dev/null | grep -c $user`
-       echo $njob
+    while  [ $njob -gt 1000 ] && [ $nwait -gt 100 ]
+    do 
+       njob=`bqstat 2>/dev/null | grep -c $user`
+       nwait=`bqstat 2>/dev/null | grep $user | grep -c " Q "`
+       echo $njob $nwait
        sleep 30 
     done
 done

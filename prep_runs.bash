@@ -29,7 +29,7 @@ then
 	chmod u+x $1_sd/*
 fi
 
-maxl=1500
+maxl=900
 if [ `grep rd[^0] -c EX_$1` -gt 0 ]
 then
 	echo "Treating double diffusion cases..."
