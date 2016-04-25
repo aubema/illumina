@@ -281,7 +281,7 @@ echo "Starting from "$folder
                                       let jobno=nmam/300+1
                                       outscript=$outscpt"_"$jobno
                                       echo "cd " $ici >> $HOME/$outscript
-                                      echo "qsub  -q qwork@ms  ./execute" >> $HOME/$outscript
+                                      echo "qsub -W umask=0011 -q qwork@ms  ./execute" >> $HOME/$outscript
                                       echo "sleep 0.05"  >> $HOME/$outscript
                                       echo "#!/bin/csh" > $ici/execute
                                       echo "#PBS -l cput="$est_time":00:00" >> $ici/execute
