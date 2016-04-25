@@ -94,7 +94,7 @@ do
    echo "expname=" $expname   
    ./retres
    o=$site"-"$expname"-"$ta"-"$wl"-"$el"-"$az-"-"$ho"-"$ro"-"$rd"-"$sd
-   data=`tail -4 $expname".out" | head -1 | grep "E-"`
+   data=`tail -4 $expname".out" | head -1 | grep -E "E(-|+)"`
    echo $o $data >> "Results/"$expname"/data.txt"
    ls
    pwd
