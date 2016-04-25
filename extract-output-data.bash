@@ -23,22 +23,49 @@
 #  usage: 
 #  bash extract-output-data.bash experiment_name File_containing_all_batch_run_scripts 
 #
-ls
-# Experiment name as indicated while running makeBATCH 
-expname=$1
-list=`grep cd $2 | sed 's/cd //g'`
+
+while [[ $# > 0 ]]
+do
+key="$1"
+case $key in
+    -h|--help)
+    echo "Usage: extract-output-data.bash experiment_name File_containing_all_batch_run_scripts"
+    exit 1
+    ;;
+    -s|--summary)
+    summary="do it"
+    echo "Producing simplified output"
+    ;;
+    *)
+    [ -z "$expname" ] && expname=$1 || list=`grep cd $1 | sed 's/cd //g'`
+    ;;
+esac
+shift
+done
+
 folder=`pwd`
+
+echo $expname
+
 #
 #  copying retres   
 #
-cp -f $HOME/hg/illumina/bin/retres .
+if [ -z "$summary" ]
+then
+    cp -f $HOME/hg/illumina/bin/retres .
+fi
 #
 #  creating result directory
 #    
 mkdir Results
 cd Results
-mkdir $expname
-echo "" > "Results/"$expname"/data.txt"
+if [ -z "$summary" ]
+then
+    mkdir $expname
+    echo "" > $expname"/data.txt"
+else
+    echo "" > $expname".txt"
+fi
 cd ..
 for i in $list
 do 
@@ -50,23 +77,27 @@ do
 #    cp -f *reflect* new_files
    echo $i | sed 's/\//\n/g' > bidon.tmp
    site=`grep x bidon.tmp | grep y`
-   ho=`grep ho bidon.tmp| tail -1`
-   ro=`grep ro bidon.tmp| tail -1`
    wl=`grep wl bidon.tmp| tail -1`
    az=`grep az bidon.tmp| tail -1`
    el=`grep el bidon.tmp| tail -1`
    ta=`grep ta bidon.tmp| tail -1`
    sd=`grep sd bidon.tmp| tail -1`
    rd=`grep rd bidon.tmp| tail -1` 
-   echo "site="$site " ho="$ho "ro="$ro " wl="$wl " az="$az " el="$el " ta="$ta " sd="$sd " rd="$rd
+   echo $i
+   echo "site="$site " wl="$wl " az="$az " el="$el " ta="$ta " sd="$sd " rd="$rd
 #
 #  bring back here original lumlp files and grid.txt 
 #
+if [ -z "$summary" ]
+then
    cp -f $i/original_files/* .
    cp -f $i/grid.txt .
+fi
 #
 #  copy output files hereDenver-summer.list
 #
+if [ -z "$summary" ]
+then
    cp -f $i/$expname".out" .
    cp -f $i/*recombined.pgm .
    cp -f $i/*pcw.pgm .
@@ -87,19 +118,30 @@ do
    echo $expname"_lumlp_recombined.pgm" > retres.in
    echo $expname"_pcw.pgm" >> retres.in
    echo $expname"_pcw_new.pgm" >> retres.in
+fi
 
 #
 #  executing retres   
 #
-   echo "expname=" $expname   
+if [ -z "$summary" ]
+then
    ./retres
-   o=$site"-"$expname"-"$ta"-"$wl"-"$el"-"$az-"-"$ho"-"$ro"-"$rd"-"$sd
-   data=`tail -4 $expname".out" | head -1 | grep -E "E(-|+)"`
+fi
+   o=$site"-"$expname"-"$ta"-"$wl"-"$el"-"$az"-"$rd"-"$sd
+   data=`tail -4 $i"/"$expname".out" | head -1 | grep -E "E+|E-"`
+if [ -z "$summary" ]
+then
    echo $o $data >> "Results/"$expname"/data.txt"
-   ls
-   pwd
+else
+   echo $o $data >> "Results/"$expname".txt"
+fi
+
 echo $o
+
+if [ -z "$summary" ]
+then
    mv ./$expname"_pcl_new.pgm" "./Results/"$expname"/PCL-"$o".pgm"
    mv ./$expname"_pcw_new.pgm" "./Results/"$expname"/PCW-"$o".pgm"
    mv ./$expname".out" "./Results/"$expname"/"$o".out"
+fi
 done
