@@ -1,5 +1,10 @@
 #!/bin/sh
 
+if [[ $# -ne 1 ]]; then
+    >&2 echo "The command expect a prefix. Don't put a wildcard in there ! (*)"
+    exit 1
+fi
+
 batchlist=`ls -1 $1*`
 echo $batchlist
 for i in $batchlist
