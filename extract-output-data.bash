@@ -62,9 +62,9 @@ cd Results
 if [ -z "$summary" ]
 then
     mkdir $expname
-    echo "" > $expname"/data.txt"
+    > $expname"/data.txt"
 else
-    echo "" > $expname".txt"
+    > $expname".txt"
 fi
 cd ..
 for i in $list
