@@ -27,7 +27,7 @@ c
       character*72 basenm,ohfile,odfile,lhfile,rfile,lfile,lopf,intrufi
       character*72 pafile
       character*12 nom
-      character*5 suffix
+      character*4 suffix
       pi=3.14159
       dz=pi/180.
       ratmoy=0.
@@ -40,7 +40,13 @@ c
       read*,h_w
       print*,'Surface filling factor of the facades (0-1)?'
       read*,filfac
-      write(suffix, '(F5.2)' ) h_w
+      if (h_w.ge.100.) then
+        write(suffix, '(F4.0)' ) h_w
+      elseif (h_w.ge.10.) then
+        write(suffix, '(F4.1)' ) h_w
+      else
+        write(suffix, '(F4.2)' ) h_w
+      endif
 c
 c  determine the Length of basenm
 c 
