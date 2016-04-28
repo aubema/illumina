@@ -27,6 +27,7 @@ c
       character*72 basenm,ohfile,odfile,lhfile,rfile,lfile,lopf,intrufi
       character*72 pafile
       character*12 nom
+      character*5 suffix
       pi=3.14159
       dz=pi/180.
       ratmoy=0.
