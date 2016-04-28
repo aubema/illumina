@@ -39,6 +39,7 @@ c
       read*,h_w
       print*,'Surface filling factor of the facades (0-1)?'
       read*,filfac
+      write(suffix, '(F5.2)' ) h_w
 c
 c  determine the Length of basenm
 c 
@@ -176,7 +177,8 @@ c     +srei(i,j),Irad(i,j)
         enddo                                                             ! end of loop over zones
 c writing the instrusive light map for each wavelength
 c
-        intrufi=basenm(1:lenbase)//'_'//wav(nw)//'_intrus.pgm'
+        intrufi=basenm(1:lenbase)//'_'//suffix//'_'//wav(nw)//
+     +  '_intrus.pgm'
         nom='Intrusive '
         valmax=65535       
         gain=Iradmax/real(valmax)
