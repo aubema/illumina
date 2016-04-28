@@ -192,9 +192,7 @@ c
         offset=0.
         call extrants2d (intrufi,Irad,nom,xcell0,ycell0,pixsiz,
      +  gain,offset,nbx,nby,valmax)
-        print*,rat1/real(n1),ratmoy/real(nmoy)
       enddo                                                               ! end of loop over wavelength
-        print*,'final',rat1/real(n1),ratmoy/real(nmoy)
       stop
       end
 
