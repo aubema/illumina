@@ -29,7 +29,7 @@ c
       character*72 pafile
       character*12 nom
       character*4 suffix
-      pi=3.14159
+      pi=3.141592654
       dz=pi/180.
       ratmoy=0.
       rat1=0.
@@ -146,11 +146,13 @@ c calculate the basic angles of the geometry
                 z_g=pi-atan((d_o(i,j)/2.)/h_l(i,j))
                 z_w=pi/2.-atan((h_w-h_l(i,j))/(d_o(i,j)/2.))
 c cos1=cos to nearest half street to the window
-                cos1=1.
+                cos1=(d_o(i,j)/2.*0.5)/sqrt(d_o(i,j)/2.*0.5)
+     +          **2.+h_w**2.)
 c cos2=cos to fartest half street to the window
-                cos2=1.
+                cos2=(d_o(i,j)/2.*1.5)/sqrt(d_o(i,j)/2.*1.5)
+     +          **2.+h_w**2.)
 c cos3=cos to opposite facades to the window
-                cos3=1.
+                cos3=cos(abs((z_g+z_o)/2.-pi/2.))
 c           print*,z_g,z_o,z_w
 
 c integrate the LOP from obstacle base to obstacle top (inteo)
