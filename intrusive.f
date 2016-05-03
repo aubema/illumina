@@ -146,10 +146,10 @@ c calculate the basic angles of the geometry
                 z_g=pi-atan((d_o(i,j)/2.)/h_l(i,j))
                 z_w=pi/2.-atan((h_w-h_l(i,j))/(d_o(i,j)/2.))
 c cos1=cos to nearest half street to the window
-                cos1=(d_o(i,j)/2.*0.5)/sqrt(d_o(i,j)/2.*0.5)
+                cos1=((d_o(i,j)/2.)*0.5)/sqrt(((d_o(i,j)/2.)*0.5)
      +          **2.+h_w**2.)
 c cos2=cos to fartest half street to the window
-                cos2=(d_o(i,j)/2.*1.5)/sqrt(d_o(i,j)/2.*1.5)
+                cos2=((d_o(i,j)/2.)*1.5)/sqrt(((d_o(i,j)/2.)*1.5)
      +          **2.+h_w**2.)
 c cos3=cos to opposite facades to the window
                 cos3=cos(abs((z_g+z_o)/2.-pi/2.))
@@ -174,7 +174,7 @@ c and LOP from nadir to obstacle base (integ)
                 enddo
 
                 Irad(i,j)=Irad(i,j)+intlu(i,j)*(pvalno(iw)/
-     +          ((d_o(i,j)/2.)**2.))*cos(abs(z_w-pi/2.))+srei(i,j)*
+     +          ((d_o(i,j)/2.)**2.)*cos(abs(z_w-pi/2.))+srei(i,j)*
      +          integ/((d_o(i,j)/2.*1.5)**2.)*cos2+srei(i,j)*
      +          integ/((d_o(i,j)/2.*0.5)**2.)*cos1+srei(i,j)*
      +          inteo/(d_o(i,j)**2.)*cos3*filfac)
@@ -182,7 +182,7 @@ c and LOP from nadir to obstacle base (integ)
      + ((srei(i,j)*integ).ne.0.)) then
 c       print*,pvalno(iw),srei(i,j)
         rat1=rat1+(pvalno(iw)/
-     +          ((d_o(i,j)/2.)**2.))*cos(abs(z_w-pi/2.)))/(srei(i,j)*
+     +          ((d_o(i,j)/2.)**2.)*cos(abs(z_w-pi/2.)))/(srei(i,j)*
      +          integ/((d_o(i,j)/2.*1.5)**2.)*cos2+srei(i,j)*
      +          integ/((d_o(i,j)/2.*0.5)**2.)*cos1)
         ratmoy=ratmoy+(srei(i,j)*
