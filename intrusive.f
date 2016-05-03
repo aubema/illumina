@@ -20,6 +20,7 @@ c
       real inteo,integ,pvalto
       real Iradmax,gain,offset,xcell0,ycell0,pixsiz
       real ratmoy,rat1
+      real cos1,cos2,cos3
       integer stype,i,j,k,iw,nwav,nw,nzon,nz,lenbase,valmax
       integer nbx,nby
       integer nmoy,n1
@@ -144,6 +145,12 @@ c calculate the basic angles of the geometry
                 z_o=pi/2.-atan((h_o(i,j)-h_l(i,j))/(d_o(i,j)/2.))
                 z_g=pi-atan((d_o(i,j)/2.)/h_l(i,j))
                 z_w=pi/2.-atan((h_w-h_l(i,j))/(d_o(i,j)/2.))
+c cos1=cos to nearest half street to the window
+                cos1=1.
+c cos2=cos to fartest half street to the window
+                cos2=1.
+c cos3=cos to opposite facades to the window
+                cos3=1.
 c           print*,z_g,z_o,z_w
 
 c integrate the LOP from obstacle base to obstacle top (inteo)
@@ -164,14 +171,22 @@ c and LOP from nadir to obstacle base (integ)
  
                 enddo
 
-                Irad(i,j)=Irad(i,j)+intlu(i,j)*(pvalno(iw)+2.*srei(i,j)*
-     +          integ+0.25*srei(i,j)*inteo*filfac)
-       if (((0.25*srei(i,j)*inteo*filfac).ne.0.).and.
-     + ((2.*srei(i,j)*integ).ne.0.)) then
-c       print*,pvalno(iw),2.*srei(i,j)*integ,0.25*srei(i,j)*inteo*filfac,
-c     +srei(i,j),Irad(i,j)
-        rat1=rat1+pvalno(iw)/(2.*srei(i,j)*integ)
-        ratmoy=ratmoy+(2.*srei(i,j)*integ)/(0.25*srei(i,j)*inteo*filfac)
+                Irad(i,j)=Irad(i,j)+intlu(i,j)*(pvalno(iw)/
+     +          ((d_o(i,j)/2.)**2.))*cos(abs(z_w-pi/2.))+srei(i,j)*
+     +          integ/((d_o(i,j)/2.*1.5)**2.)*cos2+srei(i,j)*
+     +          integ/((d_o(i,j)/2.*0.5)**2.)*cos1+srei(i,j)*
+     +          inteo/(d_o(i,j)**2.)*cos3*filfac)
+       if (((srei(i,j)*inteo*filfac).ne.0.).and.
+     + ((srei(i,j)*integ).ne.0.)) then
+c       print*,pvalno(iw),srei(i,j)
+        rat1=rat1+(pvalno(iw)/
+     +          ((d_o(i,j)/2.)**2.))*cos(abs(z_w-pi/2.)))/(srei(i,j)*
+     +          integ/((d_o(i,j)/2.*1.5)**2.)*cos2+srei(i,j)*
+     +          integ/((d_o(i,j)/2.*0.5)**2.)*cos1)
+        ratmoy=ratmoy+(srei(i,j)*
+     +          integ/((d_o(i,j)/2.*1.5)**2.)*cos2+srei(i,j)*
+     +          integ/((d_o(i,j)/2.*0.5)**2.)*cos1)/(srei(i,j)*
+     +          inteo/(d_o(i,j)**2.)*cos3*filfac)
         nmoy=nmoy+1
         n1=n1+1
        endif
