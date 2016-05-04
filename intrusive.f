@@ -20,7 +20,7 @@ c
       real inteo,integ,pvalto
       real Iradmax,gain,offset,xcell0,ycell0,pixsiz
       real ratmoy,rat1
-      real cos1,cos2,cos3
+      real the1,the2,the3,the4
       integer stype,i,j,k,iw,nwav,nw,nzon,nz,lenbase,valmax
       integer nbx,nby
       integer nmoy,n1
@@ -145,14 +145,17 @@ c calculate the basic angles of the geometry
                 z_o=pi/2.-atan((h_o(i,j)-h_l(i,j))/(d_o(i,j)/2.))
                 z_g=pi-atan((d_o(i,j)/2.)/h_l(i,j))
                 z_w=pi/2.-atan((h_w-h_l(i,j))/(d_o(i,j)/2.))
-c cos1=cos to nearest half street to the window
-                cos1=((d_o(i,j)/2.)*0.5)/sqrt(((d_o(i,j)/2.)*0.5)
+c cos1= projection angle of the window as seen from the center of the nearest half street
+                the1=asin((d_o(i,j)/2.)*0.5)/sqrt(((d_o(i,j)/2.)*0.5)
      +          **2.+h_w**2.)
-c cos2=cos to fartest half street to the window
-                cos2=((d_o(i,j)/2.)*1.5)/sqrt(((d_o(i,j)/2.)*1.5)
+c the2= projection angle of the window as seen from the center of the half street
+                the2=asin((d_o(i,j)/2.)*1.5)/sqrt(((d_o(i,j)/2.)*1.5)
      +          **2.+h_w**2.)
-c cos3=cos to opposite facades to the window
-                cos3=cos(abs((z_g+z_o)/2.-pi/2.))
+c the3= projection angle of the window as seen from the center of the opposite facades
+                the3=asin(abs(h_o-h_w)/sqrt(d_o(i,j)
+     +          **2.+(h_o-h_w)**2.)
+c the4= projection angle of the facade as seen from the lamp
+                the4=abs((z_o+z_g)/2.-pi/2.)
 c           print*,z_g,z_o,z_w
 
 c integrate the LOP from obstacle base to obstacle top (inteo)
@@ -173,11 +176,11 @@ c and LOP from nadir to obstacle base (integ)
  
                 enddo
 
-                Irad(i,j)=Irad(i,j)+intlu(i,j)*(pvalno(iw)/
-     +          ((d_o(i,j)/2.)**2.)*cos(abs(z_w-pi/2.))+srei(i,j)*
-     +          integ/((d_o(i,j)/2.*1.5)**2.)*cos2+srei(i,j)*
-     +          integ/((d_o(i,j)/2.*0.5)**2.)*cos1+srei(i,j)*
-     +          inteo/(d_o(i,j)**2.)*cos3*filfac)
+                Irad(i,j)=Irad(i,j)+intlu(i,j)*(pvalno(iw)*4./
+     +          d_o(i,j)**2.*sin(abs(z_w-pi/2.))
+     +          +srei(i,j)*integ*8.*sin(2.*the1)/(d_o(i,j)**2.)
+     +          +srei(i,j)*integ*8./9.*sin(2.*the2)/(d_o(i,j)**2.)
+     +          +srei(i,j)*inteo*filfac*cos(the3)*cos(the4)/(d_o(i,j)**2.)
        if (((srei(i,j)*inteo*filfac).ne.0.).and.
      + ((srei(i,j)*integ).ne.0.)) then
 c       print*,pvalno(iw),srei(i,j)
