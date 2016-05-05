@@ -211,9 +211,7 @@ c
             enddo
           enddo
         enddo                                                             ! end of loop over zones
-        print*,'ratio direct to left side of street=',rat1/nmoy
-        print*,'ratio direct to right side of street=',rat2/nmoy
-        print*,'ratio direct to opposite facade=',rat3/nmoy
+
 c writing the instrusive light map for each wavelength
 c
         intrufi=basenm(1:lenbase)//'_'//suffix//'_'//wav(nw)//
@@ -225,6 +223,9 @@ c
         call extrants2d (intrufi,Irad,nom,xcell0,ycell0,pixsiz,
      +  gain,offset,nbx,nby,valmax)
       enddo                                                               ! end of loop over wavelength
+        print*,'ratio direct to left side of street=',rat1/nmoy
+        print*,'ratio direct to right side of street=',rat2/nmoy
+        print*,'ratio direct to opposite facade=',rat3/nmoy
       stop
       end
 
