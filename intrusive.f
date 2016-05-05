@@ -33,6 +33,8 @@ c
       dz=pi/180.
       ratmoy=0.
       rat1=0.
+      rat2=0.
+      rat3=0.
       nmoy=0.
       n1=0
       print*,'Name of the experiment?'
@@ -111,7 +113,7 @@ c reading modis reflectances
             srei(i,j)=val2d(i,j)                                          ! Filling of the array 
           enddo                                                           ! end of the loop over all cells along y.
         enddo      
-
+c
         do nz=1,nzon
 c reading LOPs
           lopf='fctem_wl_'//wav(nw)//'_zon_'//zon(nz)//'.dat'
@@ -127,7 +129,7 @@ c                                                                         ! (i-1
           do k=1,181
             if (pvalto.ne.0.) pvalno(k)=pval(k)/pvalto                    ! Normalisation of the photometric function.
           enddo   
-
+c
 c reading du fluxes
           lfile=basenm(1:lenbase)//'_'//wav(nw)//'_lumlp_'//zon(nz)//
      +'.pgm'
@@ -137,7 +139,7 @@ c reading du fluxes
               intlu(i,j)=val2d(i,j)                                       ! Filling of the array 
             enddo                                                         ! end of the loop over all cells along y.
           enddo      
-
+c
           do i=1,nbx
             do j=1,nby
               if ((d_o(i,j).gt.0.).and.(intlu(i,j).gt.0.)) then
@@ -159,15 +161,14 @@ c thef= projection angle of the window as seen from the center of the opposite f
 c xif= projection angle of the facade as seen from the lamp
                 xif=abs((z_o+z_g)/2.-pi/2.)
 c dw= distance between the window and the lamp
-                dw=
+                dw=sqrt((h_l(i,j)-h_w)**2.+(d_o(i,j)/2.)**2.)
 c dlw= distance between the left side of the street surface and the window
-                dlw=
+                dlw=sqrt(h_w**2.+(d_o(i,j)/4.)**2.)
 c drw= distance between the right side of the street surface and the window
-                drw=
+                drw=sqrt(h_w**2.+(3.*d_o(i,j)/4.)**2.)
 c dfw= distance between the opposite facade and the window
-                dfw=
-c           print*,z_g,z_o,z_w
-
+                dfw=sqrt((h_o(i,j)/2.-h_w)**2.+(d_o(i,j))**2.)
+c
 c integrate the LOP from obstacle base to obstacle top (inteo)
 c and LOP from nadir to obstacle base (integ)
                 inteo=0.
@@ -183,20 +184,23 @@ c and LOP from nadir to obstacle base (integ)
                   if (abs(z-z_w).lt.dz/2.) then 
                      iw=k
                   endif
- 
                 enddo
-
+c
                 Irad(i,j)=Irad(i,j)+intlu(i,j)*(
      +          pvalno(iw)*cos(xiw)/(dw**2.)
      +          +srei(i,j)/(2.*pi)*sin(2.*thel)*integ/(dlw**2.)/2.
      +          +srei(i,j)/(2.*pi)*sin(2.*ther)*integ/(drw**2.)/2.
-     +          +srei(i,j)/(2.*pi)*filfac*(cos(thef)*cos(xif))*inteo/(dfw**2.)/2.
+     +          +srei(i,j)/(2.*pi)*filfac*(cos(thef)*cos(xif))*
+     +          inteo/(dfw**2.)/2.
      +          )
        if (((srei(i,j)*inteo*filfac).ne.0.).and.
      + ((srei(i,j)*integ).ne.0.)) then
-        rat1=rat1+(pvalno(iw)*cos(xiw)/(dw**2.))/(srei(i,j)/(2.*pi)*sin(2.*thel)*integ/(dlw**2.)/2.)
-        rat2=rat2+(pvalno(iw)*cos(xiw)/(dw**2.))/(srei(i,j)/(2.*pi)*sin(2.*ther)*integ/(drw**2.)/2.)
-        rat3=rat3+(pvalno(iw)*cos(xiw)/(dw**2.))/(srei(i,j)/(2.*pi)*filfac*(cos(thef)*cos(xif))*inteo/(dfw**2.)/2.)
+        rat1=rat1+(pvalno(iw)*cos(xiw)/(dw**2.))/(srei(i,j)/(2.*pi)*
+     +  sin(2.*thel)*integ/(dlw**2.)/2.)
+        rat2=rat2+(pvalno(iw)*cos(xiw)/(dw**2.))/(srei(i,j)/(2.*pi)*
+     +  sin(2.*ther)*integ/(drw**2.)/2.)
+        rat3=rat3+(pvalno(iw)*cos(xiw)/(dw**2.))/(srei(i,j)/(2.*pi)*
+     +  filfac*(cos(thef)*cos(xif))*inteo/(dfw**2.)/2.)
         nmoy=nmoy+1.
         n1=n1+1
        endif
