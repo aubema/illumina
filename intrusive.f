@@ -19,11 +19,11 @@ c
       real z,pi,dz
       real inteo,integ,pvalto
       real Iradmax,gain,offset,xcell0,ycell0,pixsiz
-      real ratmoy,rat1
-      real the1,the2,the3,the4
+      real ratmoy,rat1,rat2,rat3,nmoy
+      real xiw,xif,thel,ther,thef,dw,dlw,drw,dfw
       integer stype,i,j,k,iw,nwav,nw,nzon,nz,lenbase,valmax
       integer nbx,nby
-      integer nmoy,n1
+      integer n1
       character*3 zon(120),wav(400)
       character*72 basenm,ohfile,odfile,lhfile,rfile,lfile,lopf,intrufi
       character*72 pafile
@@ -33,7 +33,7 @@ c
       dz=pi/180.
       ratmoy=0.
       rat1=0.
-      nmoy=0
+      nmoy=0.
       n1=0
       print*,'Name of the experiment?'
       read*,basenm
@@ -145,17 +145,27 @@ c calculate the basic angles of the geometry
                 z_o=pi/2.-atan((h_o(i,j)-h_l(i,j))/(d_o(i,j)/2.))
                 z_g=pi-atan((d_o(i,j)/2.)/h_l(i,j))
                 z_w=pi/2.-atan((h_w-h_l(i,j))/(d_o(i,j)/2.))
-c cos1= projection angle of the window as seen from the center of the nearest half street
-                the1=asin((d_o(i,j)/2.)*0.5)/sqrt(((d_o(i,j)/2.)*0.5)
+c xiw= projection angle of the window as seen from the source
+                xiw=abs(z_w-pi/2.)
+c thel= projection angle of the window as seen from the center of the left half street
+                thel=asin((d_o(i,j)/2.)*0.5)/sqrt(((d_o(i,j)/2.)*0.5)
      +          **2.+h_w**2.)
-c the2= projection angle of the window as seen from the center of the half street
-                the2=asin((d_o(i,j)/2.)*1.5)/sqrt(((d_o(i,j)/2.)*1.5)
+c ther= projection angle of the window as seen from the center of the right half street
+                ther=asin((d_o(i,j)/2.)*1.5)/sqrt(((d_o(i,j)/2.)*1.5)
      +          **2.+h_w**2.)
-c the3= projection angle of the window as seen from the center of the opposite facades
-                the3=asin(abs(h_o-h_w)/sqrt(d_o(i,j)
+c thef= projection angle of the window as seen from the center of the opposite facades
+                thef=asin(abs(h_o-h_w)/sqrt(d_o(i,j)
      +          **2.+(h_o-h_w)**2.)
-c the4= projection angle of the facade as seen from the lamp
-                the4=abs((z_o+z_g)/2.-pi/2.)
+c xif= projection angle of the facade as seen from the lamp
+                xif=abs((z_o+z_g)/2.-pi/2.)
+c dw= distance between the window and the lamp
+                dw=
+c dlw= distance between the left side of the street surface and the window
+                dlw=
+c drw= distance between the right side of the street surface and the window
+                drw=
+c dfw= distance between the opposite facade and the window
+                dfw=
 c           print*,z_g,z_o,z_w
 
 c integrate the LOP from obstacle base to obstacle top (inteo)
@@ -176,23 +186,18 @@ c and LOP from nadir to obstacle base (integ)
  
                 enddo
 
-                Irad(i,j)=Irad(i,j)+intlu(i,j)*(pvalno(iw)*4./
-     +          d_o(i,j)**2.*sin(abs(z_w-pi/2.))
-     +          +srei(i,j)*integ*8.*sin(2.*the1)/(d_o(i,j)**2.)
-     +          +srei(i,j)*integ*8./9.*sin(2.*the2)/(d_o(i,j)**2.)
-     +          +srei(i,j)*inteo*filfac*cos(the3)*cos(the4)/(d_o(i,j)**2.)
+                Irad(i,j)=Irad(i,j)+intlu(i,j)*(
+     +          pvalno(iw)*cos(xiw)/(dw**2.)
+     +          +srei(i,j)/(2.*pi)*sin(2.*thel)*integ/(dlw**2.)/2.
+     +          +srei(i,j)/(2.*pi)*sin(2.*ther)*integ/(drw**2.)/2.
+     +          +srei(i,j)/(2.*pi)*filfac*(cos(thef)*cos(xif))*inteo/(dfw**2.)/2.
+     +          )
        if (((srei(i,j)*inteo*filfac).ne.0.).and.
      + ((srei(i,j)*integ).ne.0.)) then
-c       print*,pvalno(iw),srei(i,j)
-        rat1=rat1+(pvalno(iw)/
-     +          ((d_o(i,j)/2.)**2.)*cos(abs(z_w-pi/2.)))/(srei(i,j)*
-     +          integ/((d_o(i,j)/2.*1.5)**2.)*cos2+srei(i,j)*
-     +          integ/((d_o(i,j)/2.*0.5)**2.)*cos1)
-        ratmoy=ratmoy+(srei(i,j)*
-     +          integ/((d_o(i,j)/2.*1.5)**2.)*cos2+srei(i,j)*
-     +          integ/((d_o(i,j)/2.*0.5)**2.)*cos1)/(srei(i,j)*
-     +          inteo/(d_o(i,j)**2.)*cos3*filfac)
-        nmoy=nmoy+1
+        rat1=rat1+(pvalno(iw)*cos(xiw)/(dw**2.))/(srei(i,j)/(2.*pi)*sin(2.*thel)*integ/(dlw**2.)/2.)
+        rat2=rat2+(pvalno(iw)*cos(xiw)/(dw**2.))/(srei(i,j)/(2.*pi)*sin(2.*ther)*integ/(drw**2.)/2.)
+        rat3=rat3+(pvalno(iw)*cos(xiw)/(dw**2.))/(srei(i,j)/(2.*pi)*filfac*(cos(thef)*cos(xif))*inteo/(dfw**2.)/2.)
+        nmoy=nmoy+1.
         n1=n1+1
        endif
                 if (Irad(i,j).gt.Iradmax) then
@@ -202,6 +207,9 @@ c       print*,pvalno(iw),srei(i,j)
             enddo
           enddo
         enddo                                                             ! end of loop over zones
+        print*,'ratio direct to left side of street=',rat1/nmoy
+        print*,'ratio direct to right side of street=',rat2/nmoy
+        print*,'ratio direct to opposite facade=',rat3/nmoy
 c writing the instrusive light map for each wavelength
 c
         intrufi=basenm(1:lenbase)//'_'//suffix//'_'//wav(nw)//
