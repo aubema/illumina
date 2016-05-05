@@ -151,13 +151,13 @@ c xiw= projection angle of the window as seen from the source
                 xiw=abs(z_w-pi/2.)
 c thel= projection angle of the window as seen from the center of the left half street
                 thel=asin((d_o(i,j)/2.)*0.5)/sqrt(((d_o(i,j)/2.)*0.5)
-     +          **2.+h_w**2.)
+     +          **2.+h_w**2.))
 c ther= projection angle of the window as seen from the center of the right half street
                 ther=asin((d_o(i,j)/2.)*1.5)/sqrt(((d_o(i,j)/2.)*1.5)
-     +          **2.+h_w**2.)
+     +          **2.+h_w**2.))
 c thef= projection angle of the window as seen from the center of the opposite facades
                 thef=asin(abs(h_o-h_w)/sqrt(d_o(i,j)
-     +          **2.+(h_o-h_w)**2.)
+     +          **2.+(h_o-h_w)**2.))
 c xif= projection angle of the facade as seen from the lamp
                 xif=abs((z_o+z_g)/2.-pi/2.)
 c dw= distance between the window and the lamp
