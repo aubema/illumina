@@ -20,7 +20,7 @@ c
       real inteo,integ,pvalto
       real Iradmax,gain,offset,xcell0,ycell0,pixsiz
       real ratmoy,rat1,rat2,rat3,nmoy
-      real xiw,xif,thel,ther,thef,dw,dlw,drw,dfw
+      real xiw,thel,ther,thef,dw,dlw,drw,dfw
       integer stype,i,j,k,iw,nwav,nw,nzon,nz,lenbase,valmax
       integer nbx,nby
       integer n1
@@ -149,17 +149,15 @@ c calculate the basic angles of the geometry
                 z_w=pi/2.-atan((h_w-h_l(i,j))/(d_o(i,j)/2.))
 c xiw= projection angle of the window as seen from the source
                 xiw=abs(z_w-pi/2.)
-c thel= projection angle of the window as seen from the center of the left half street
+c thel= projection angle of the left half street as seen from the window 
                 thel=asin((d_o(i,j)/2.*0.5)/
      +          sqrt((d_o(i,j)/2.*0.5)**2.+h_w**2.))
-c ther= projection angle of the window as seen from the center of the right half street
+c ther= projection angle of the right half street as seen from the window 
                 ther=asin((d_o(i,j)/2.*1.5)/
      +          sqrt((d_o(i,j)/2.*1.5)**2.+h_w**2.))
-c thef= projection angle of the window as seen from the center of the opposite facades
+c thef= projection angle of the opposite facades as seen from the window
                 thef=asin(abs(h_o(i,j)-h_w)/
      +          sqrt(d_o(i,j)**2.+(h_o(i,j)-h_w)**2.))
-c xif= projection angle of the facade as seen from the lamp
-                xif=abs((z_o+z_g)/2.-pi/2.)
 c dw= distance between the window and the lamp
                 dw=sqrt((h_l(i,j)-h_w)**2.+(d_o(i,j)/2.)**2.)
 c dlw= distance between the left side of the street surface and the window
@@ -190,8 +188,8 @@ c
      +          pvalno(iw)*cos(xiw)/(dw**2.)
      +          +srei(i,j)/(2.*pi)*sin(2.*thel)*integ/(dlw**2.)/2.
      +          +srei(i,j)/(2.*pi)*sin(2.*ther)*integ/(drw**2.)/2.
-     +          +srei(i,j)/(2.*pi)*filfac*(cos(thef)*cos(xif))*
-     +          inteo/(dfw**2.)/2.
+     +          +srei(i,j)/(2.*pi)*filfac*(cos(thef)*cos(thef))*
+     +          inteo/(dfw**2.)
      +          )
        if (((srei(i,j)*inteo*filfac).ne.0.).and.
      + ((srei(i,j)*integ).ne.0.)) then
@@ -200,7 +198,7 @@ c
         rat2=rat2+(pvalno(iw)*cos(xiw)/(dw**2.))/(srei(i,j)/(2.*pi)*
      +  sin(2.*ther)*integ/(drw**2.)/2.)
         rat3=rat3+(pvalno(iw)*cos(xiw)/(dw**2.))/(srei(i,j)/(2.*pi)*
-     +  filfac*(cos(thef)*cos(xif))*inteo/(dfw**2.)/2.)
+     +  filfac*(cos(thef)*cos(thef))*inteo/(dfw**2.))
         nmoy=nmoy+1.
         n1=n1+1
        endif
