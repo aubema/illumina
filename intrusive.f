@@ -186,9 +186,9 @@ c and LOP from nadir to obstacle base (integ)
 c
                 Irad(i,j)=Irad(i,j)+intlu(i,j)*(
      +          pvalno(iw)*cos(xiw)/(dw**2.)
-     +          +srei(i,j)/(2.*pi)*sin(2.*thel)*integ/(dlw**2.)/2.
-     +          +srei(i,j)/(2.*pi)*sin(2.*ther)*integ/(drw**2.)/2.
-     +          +srei(i,j)/(2.*pi)*filfac*(cos(thef)*cos(thef))*
+     +          +srei(i,j)*sin(2.*thel)*integ/(dlw**2.)/2.
+     +          +srei(i,j)*sin(2.*ther)*integ/(drw**2.)/2.
+     +          +srei(i,j)*filfac*(cos(thef)*cos(thef))*
      +          inteo/(dfw**2.)
      +          )
        if (((srei(i,j)*inteo*filfac).ne.0.).and.
