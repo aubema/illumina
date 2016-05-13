@@ -193,11 +193,11 @@ c
      +          )
        if (((srei(i,j)*inteo*filfac).ne.0.).and.
      + ((srei(i,j)*integ).ne.0.)) then
-        rat1=rat1+(pvalno(iw)*cos(xiw)/(dw**2.))/(srei(i,j)/(2.*pi)*
+        rat1=rat1+(pvalno(iw)*cos(xiw)/(dw**2.))/(srei(i,j)*
      +  sin(2.*thel)*integ/(dlw**2.)/2.)
-        rat2=rat2+(pvalno(iw)*cos(xiw)/(dw**2.))/(srei(i,j)/(2.*pi)*
+        rat2=rat2+(pvalno(iw)*cos(xiw)/(dw**2.))/(srei(i,j)*
      +  sin(2.*ther)*integ/(drw**2.)/2.)
-        rat3=rat3+(pvalno(iw)*cos(xiw)/(dw**2.))/(srei(i,j)/(2.*pi)*
+        rat3=rat3+(pvalno(iw)*cos(xiw)/(dw**2.))/(srei(i,j)*
      +  filfac*(cos(thef)*cos(thef))*inteo/(dfw**2.))
         nmoy=nmoy+1.
         n1=n1+1
