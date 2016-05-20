@@ -128,7 +128,7 @@ then
    ./retres
 fi
    o=$site"-"$expname"-"$ta"-"$wl"-"$el"-"$az"-"$rd"-"$sd
-   data=`tail -4 $i"/"$expname".out" | head -1 | grep -E "E+|E-"`
+   data=`tail -4 $i"/"$expname".out" | head -1 | grep -E "E(\+|\-)"`
 if [ -z "$summary" ]
 then
    echo $o $data >> "Results/"$expname"/data.txt"
