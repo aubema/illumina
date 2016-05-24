@@ -44,7 +44,7 @@ dmin="150"                                                     # Minimal distanc
 # Everything outside as a resoution of 9 pixels
 l1=27                                                          # l1 must be an odd multiple of 9 (e.g. 9, 27, 45, 63, 81, ...)
 l3=81                                                          # l3 must be an odd multiple of 9 and l3>l1
-stoplim=100.                                                   # Stop computation when the new voxel contribution is less than 1/stoplim of the cumulated flux (suggested value = 5000.)
+stoplim=5000.                                                   # Stop computation when the new voxel contribution is less than 1/stoplim of the cumulated flux (suggested value = 5000.)
 #
 # ===================================
 #  Vectors
