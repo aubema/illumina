@@ -27,7 +27,7 @@ done
 
 find $dir -name wl* | grep -v gridmap | while read dirname
 do
-    n=`tail -n 4 $dirname/Hawaii.out 2>/dev/null | head -n 1 | grep -E 'E(\+|\-)' | wc -l`
+    n=`tail -n 4 $dirname/*.out 2>/dev/null | head -n 1 | grep -E 'E(\+|\-)' | wc -l`
     if [ $n -eq 0 ]
     then
         if [ -z $full_out ]
