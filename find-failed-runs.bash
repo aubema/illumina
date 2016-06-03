@@ -7,7 +7,7 @@ do
 key="$1"
 case $key in
     -h|--help)
-    echo "Usage: find-failed-runs.bash [OPTIONS]"
+    echo "Usage: find-failed-runs.bash [OPTIONS] expname"
     echo "Used to find runs that haven't completed properly"
     echo "Call this from a directory containing the runs to test"
     echo "OPTIONS"
@@ -20,6 +20,7 @@ case $key in
     full_out="True"
     ;;
     *)
+    expname=$1
     ;;
 esac
 shift
@@ -27,7 +28,7 @@ done
 
 find $dir -name wl* | grep -v gridmap | while read dirname
 do
-    n=`tail -n 4 $dirname/*.out 2>/dev/null | head -n 1 | grep -E 'E(\+|\-)' | wc -l`
+    n=`tail -n 4 $dirname/$expname.out 2>/dev/null | head -n 1 | grep -E 'E(\+|\-)' | wc -l`
     if [ $n -eq 0 ]
     then
         if [ -z $full_out ]
