@@ -674,13 +674,14 @@ c=======================================================================
 c
 c computation of the horizon for the resolved shadows direct              ! Il y a horizon par target cell resolution of 1 deg
          
-                d2=sqrt((real(x_s-x_c)*dx)**2.+(real(y_s-y_c)*dy)**2.)    ! max dist for the horizon (i.e. l horizon passe the source ne compte pas
-                call horizon(x_s,y_s,z_s,d2,altsol,nbx,nby,dx,dy,
-     +          zhoriz,latitu)
+
                 call anglezenithal
      +          (x_s,y_s,z_s,x_c,y_c,z_c,dx,dy,angzen)                    ! computation of the angle zenithal between the source and the target cell.
                 call angleazimutal(x_s,y_s,x_c,y_c,dx,dy,angazi)          ! computation of the angle azimutal direct target-source
                 az=nint(angazi*180./pi)+1
+                d2=sqrt((real(x_s-x_c)*dx)**2.+(real(y_s-y_c)*dy)**2.)    ! max dist for the horizon (i.e. l horizon passe the source ne compte pas
+                call horizon(x_s,y_s,z_s,d2,altsol,nbx,nby,dx,dy,
+     +          zhoriz,latitu)
                 if ((angzen).lt.zhoriz(az)) then                          ! the ligne target-source n'est pas below the horizon => on calcule
 c                                                                         ! beginning condition below the horizon direct
 c sub-grid obstacles             
@@ -1009,14 +1010,15 @@ c
 c                                                                         ! no matter the direction we are taking the absolute value of cos theta 
 c                                                                          
 c verify if there is shadow between sr and target 
-                 d2=sqrt((real(x_sr-x_c)*dx)**2.+(real(y_sr-y_c)*         ! max dist for the horizon between the source and the target
-     +           dy)**2.)                 
-                 call horizon(x_sr,y_sr,z_sr,d2,altsol,nbx,nby,dx,dy,
-     +           zhoriz,latitu) 
+
                  call anglezenithal(x_sr,y_sr,z_sr,x_c,y_c,z_c,dx,        ! zenithal angle between the reflecting surface and the target cell.
      +           dy,angzen)     
                  call angleazimutal(x_sr,y_sr,x_c,y_c,dx,dy,angazi)       ! computation of the azimutal angle reflect-cible
-                 az=nint(angazi*180./pi)+1          
+                 az=nint(angazi*180./pi)+1  
+                 d2=sqrt((real(x_sr-x_c)*dx)**2.+(real(y_sr-y_c)*         ! max dist for the horizon between the source and the target
+     +           dy)**2.)                 
+                 call horizon(x_sr,y_sr,z_sr,d2,altsol,nbx,nby,dx,dy,
+     +           zhoriz,latitu)         
                  if ((angzen).lt.zhoriz(az)) then                         ! the path target-reflec is not below the horizon => we compute
                  
                  
@@ -1213,15 +1215,16 @@ c=======================================================================
 
 
 c ombrage source-scattering cell
-                   d2=sqrt((real(x_dif-x_s)*dx)**2.+(real(y_dif-y_s)      ! max dist for the horizon (i.e. l horiz passe the cell-diff ne compte pas)
-     +             *dy)**2.)
-                   call horizon(x_s,y_s,z_s,d2,altsol,nbx,nby,
-     +             dx,dy,zhoriz,latitu)
+
                    call anglezenithal(x_s,y_s,z_s,x_dif,y_dif,z_dif,dx,
      +             dy,angzen)                                             ! computation of the angle zenithal source-scattering cell. 
                    call angleazimutal(x_s,y_s,x_dif,y_dif,dx,dy,          ! computation of the angle azimutal cible-scattering cell
      +             angazi)
                    az=nint(angazi*180./pi)+1
+                   d2=sqrt((real(x_dif-x_s)*dx)**2.+(real(y_dif-y_s)      ! max dist for the horizon (i.e. l horiz passe the cell-diff ne compte pas)
+     +             *dy)**2.)
+                   call horizon(x_s,y_s,z_s,d2,altsol,nbx,nby,
+     +             dx,dy,zhoriz,latitu)
                    if ((angzen).lt.zhoriz(az)) then                       ! beginning condition ombrage source-diffusante
 c                                                                   
 c sub-grid obstacles               
@@ -1379,14 +1382,15 @@ c=======================================================================
 c=======================================================================
 c Computing zenith angle between the scattering cell and the line of sight cell
 c=======================================================================
-        d2=sqrt((real(x_dif-x_c)*dx)**2.+(real(y_dif-y_c)*dy)**2.)        ! max dist for the horiz (i.e. l horizon passe the cell-diff ne compte pas)
-        call horizon(x_dif,y_dif,z_dif,d2,altsol,nbx,nby,dx,dy,
-     +  zhoriz,latitu)
+
                      call anglezenithal(x_dif,y_dif,z_dif,x_c,y_c,z_c,
      +               dx,dy,angzen)                                        ! computation of the angle zenithal between the scattering cell and the 
 c                                                                         ! target cell.
         call angleazimutal(x_dif,y_dif,x_c,y_c,dx,dy,angazi)              ! computation of the angle azimutal surf refl-scattering cell
         az=nint(angazi*180./pi)+1
+        d2=sqrt((real(x_dif-x_c)*dx)**2.+(real(y_dif-y_c)*dy)**2.)        ! max dist for the horiz (i.e. l horizon passe the cell-diff ne compte pas)
+        call horizon(x_dif,y_dif,z_dif,d2,altsol,nbx,nby,dx,dy,
+     +  zhoriz,latitu)
         if ((angzen).lt.zhoriz(az)) then                                  ! beginning condition ombrage diffuse-cible  
 c                                                                 
 c subgrid obstacles                
