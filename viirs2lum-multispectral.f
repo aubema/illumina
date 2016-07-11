@@ -128,7 +128,7 @@ c correction for the estimated scattered light. It is not done yet.
         call intrants2d(rfile,rho,xcell0,ycell0,pixsiz,nbx,nby)
         do i=1,nbx
           do j=1,nbx
-              dnb(i,j)=dnb(i,j)*dnbunits
+              dnb(i,j)=dnb(i,j)*dnbunits*pixsiz*pixsiz
               if (rho(i,j).lt.0.05) then
                  dnb(i,j)=0.
               endif

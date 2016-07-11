@@ -1006,26 +1006,26 @@ c
      +                zcellc)-z_sr))/(sqrt(tan(epsilx)**2.+tan(epsily)
      +                **2.+1.)*sqrt((real(x_c-x_sr)*dx)**2.+(real(y_c-
      +                y_sr)*dy)**2.+(cellh(zcellc)-z_sr)**2.))
-c                                                                         ! Peu importe the direction c'est the value absolue du cos theta 
-c                                                                         ! qui compte.   
-c verifier s'il y a ombrage between sr and target ici 
-                 d2=sqrt((real(x_sr-x_c)*dx)**2.+(real(y_sr-y_c)*         ! max dist for the horizon (i.e. l horizon passe the source ne compte pas
+c                                                                         ! no matter the direction we are taking the absolute value of cos theta 
+c                                                                          
+c verify if there is shadow between sr and target 
+                 d2=sqrt((real(x_sr-x_c)*dx)**2.+(real(y_sr-y_c)*         ! max dist for the horizon between the source and the target
      +           dy)**2.)                 
                  call horizon(x_sr,y_sr,z_sr,d2,altsol,nbx,nby,dx,dy,
      +           zhoriz,latitu) 
-                 call anglezenithal(x_sr,y_sr,z_sr,x_c,y_c,z_c,dx,        ! Angle zenithal between the surface reflechissante and the target cell.
+                 call anglezenithal(x_sr,y_sr,z_sr,x_c,y_c,z_c,dx,        ! zenithal angle between the reflecting surface and the target cell.
      +           dy,angzen)     
-                 call angleazimutal(x_sr,y_sr,x_c,y_c,dx,dy,angazi)       ! computation of the angle azimutal reflect-cible
+                 call angleazimutal(x_sr,y_sr,x_c,y_c,dx,dy,angazi)       ! computation of the azimutal angle reflect-cible
                  az=nint(angazi*180./pi)+1          
-                 if ((angzen).lt.zhoriz(az)) then                         ! the ligne cible-reflec n'est pas below the horizon => on calcule
+                 if ((angzen).lt.zhoriz(az)) then                         ! the path target-reflec is not below the horizon => we compute
                  
                  
                       if (projap.lt.0.) projap=0.
                       irefl=irefl1*
      +                projap
-                 endif                                                    ! end condition surf. reflectrice au-of thesus horizon
+                 endif                                                    ! end condition reflecting surf. above horizon
 c=======================================================================
-c        Cas Position Cible = Position reflecting cell
+c        Case: target position = Position of reflecting cell
 c=======================================================================
                       if((x_c.eq.x_sr).and.(y_c.eq.y_sr).and.
      +                (z_c.eq.z_sr)) then
@@ -1039,7 +1039,7 @@ c obstacle
                        if (angzen.lt.angmin) then                         ! beginning condition obstacle indirect.
 c
 c=======================================================================
-c        computation of the transmittance between the  surface reflectance and the target cell
+c        computation of the transmittance between the  ground surface and the target cell
 c=======================================================================
                         call transmitm (angzen,x_sr,y_sr,z_sr,x_c,
      +                  y_c,z_c,lambda,dx,dy,pressi,transm)        

@@ -43,8 +43,10 @@ c      print*,'===',x_c,y_c,z_c,d2,'==='
       do jj=1,360
        zen_horiz(jj)=5.
       enddo 
-      do ii=1,nbx
-       do jj=1,nby
+c      do ii=1,nbx
+c       do jj=1,nby
+      do ii=x_c-nint(d2/dy),x_c+nint(d2/dy)
+       do jj=y_c-nint(d2/dy),y_c+nint(d2/dy)
         d2p=sqrt((real(ii-x_c)*dx)**2.+(real(jj-y_c)*dy)**2.)
 
 c this is a firts attempt to make a simplistic correction for the local 
