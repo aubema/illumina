@@ -679,7 +679,7 @@ c computation of the horizon for the resolved shadows direct              ! Il y
      +          (x_s,y_s,z_s,x_c,y_c,z_c,dx,dy,angzen)                    ! computation of the angle zenithal between the source and the target cell.
                 call angleazimutal(x_s,y_s,x_c,y_c,dx,dy,angazi)          ! computation of the angle azimutal direct target-source
                 az=nint(angazi*180./pi)+1
-                d2=sqrt((real(x_s-x_c)*dx)**2.+(real(y_s-y_c)*dy)**2.)    ! max dist for the horizon (i.e. l horizon passe the source ne compte pas
+                d2=sqrt((real(x_s-x_c)*dx)**2.+(real(y_s-y_c)*dy)**2.)    ! max dist for the horizon (i.e. horizon limitations farter than cell-dif is not considered)
                 call horizon(x_s,y_s,z_s,d2,altsol,nbx,nby,dx,dy,
      +          zhoriz,latitu)
                 if ((angzen).lt.zhoriz(az)) then                          ! the ligne target-source n'est pas below the horizon => on calcule
@@ -1221,7 +1221,7 @@ c ombrage source-scattering cell
                    call angleazimutal(x_s,y_s,x_dif,y_dif,dx,dy,          ! computation of the angle azimutal cible-scattering cell
      +             angazi)
                    az=nint(angazi*180./pi)+1
-                   d2=sqrt((real(x_dif-x_s)*dx)**2.+(real(y_dif-y_s)      ! max dist for the horizon (i.e. l horiz passe the cell-diff ne compte pas)
+                   d2=sqrt((real(x_dif-x_s)*dx)**2.+(real(y_dif-y_s)      ! max dist for the horizon (i.e. horizon limitations farter than cell-dif is not considered)
      +             *dy)**2.)
                    call horizon(x_s,y_s,z_s,d2,altsol,nbx,nby,
      +             dx,dy,zhoriz,latitu)
@@ -1260,8 +1260,8 @@ c    ------------------------------------
                       call planxy(dx,dy,xc,xn,yc,yn,zc,zn,
      +                r1x,r1y,r1z,r2x,r2y,r2z,
      +                r3x,r3y,r3z,r4x,r4y,r4z)
-                      call anglesolide(omega,r1x,r1y,r1z,                 ! Appel of the routine anglesoliof qui calcule the solid angle 
-     +                r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z)                ! selon le plan xy.
+                      call anglesolide(omega,r1x,r1y,r1z,                 ! Calling the routine anglesolide for the computation of the solid angle 
+     +                r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z)                ! in the xy plane.
                       omega1 = omega
                      else
                       omega1=0.
@@ -1275,19 +1275,19 @@ c           omega2=omega2+omega1
 c     ------------------------------------
 c     solid angle for the central plane zx
 c     ------------------------------------
-                     if (y_dif .ne. y_s) then                             ! if the latitu of the observer cell is the meme que celle
-c                                                                         ! of the source cell, on ne calcule pas the angle solide
-c                                                                         ! for le plan zx car il is egal a 0.
+                     if (y_dif .ne. y_s) then                             ! if the latitude of the observer cell is the same as the one
+c                                                                         ! of the source cell, we do not compute the solid angle
+c                                                                         ! for le zx plane because is is null.
                       call planzx(dx,xc,xn,yc,yn,zc,zn,cthick,
      +                zcellc,r1x,r1y,r1z,r2x,r2y,r2z,r3x,r3y,r3z,r4x
      +                ,r4y,r4z)
-                      call anglesolide(omega,r1x,r1y,r1z,                 ! Appel of the routine anglesoliof qui calcule the solid angle 
-     +                r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z)                ! selon le plan zx.
+                      call anglesolide(omega,r1x,r1y,r1z,                 ! Calling of the routine anglesoliof for the computation of the solid angle 
+     +                r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z)                ! in the zx plane.
                      else
                       omega=0.
                      endif
                      if (omega.gt.0.) then
-                      if (omega .gt. omega1) omega1 = omega               ! On garof the solid angle le plus grand jusqu'a present.
+                      if (omega .gt. omega1) omega1 = omega               ! We keep the largest solid angle
                      endif
 
 
@@ -1298,19 +1298,19 @@ c           omega2=omega2+omega1
 c     ------------------------------------
 c     solid angle for the central plane yz
 c     ------------------------------------
-                     if (x_dif .ne. x_s) then                             ! if the longituof of the observer cell is the meme que celle
-c                                                                         ! of the source cell, on ne calcule pas the angle solide
-c                                                                         ! for le plan yz car il is egal a 0.
+                     if (x_dif .ne. x_s) then                             ! if the longitude of the observer cell is the same as the 
+c                                                                         ! source cell, we do not compute the solid angle
+c                                                                         ! for the yz plane because it is null.
                       call planyz(dy,xc,xn,yc,yn,zc,zn,cthick,
      +                zcellc,r1x,r1y,r1z,r2x,r2y,r2z,r3x,r3y,r3z,r4x,
      +                r4y,r4z)
-                      call anglesolide(omega,r1x,r1y,r1z,                 ! Appel of the routine anglesoliof qui calcule the solid angle 
-     +                r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z)                ! selon le plan yz.       
+                      call anglesolide(omega,r1x,r1y,r1z,                 ! Calling of the routine anglesoliof for the computation of the solid angle 
+     +                r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z)                ! in the yz plane.       
                      else 
                       omega=0.
                      endif
                      if (omega.gt.0.) then
-                      if (omega .gt. omega1) omega1 = omega               ! On garof the solid angle le plus grand.
+                      if (omega .gt. omega1) omega1 = omega               ! We keep the largest solid angle.
                      endif
                      omega=omega1
 
@@ -1320,9 +1320,9 @@ c           omega=omega2
 
 
 c=======================================================================
-c isimation of the subtended angle of the solid angle                    ! this angle servira a obtenir un meilleur isime (moyenne) of 
-c                                                                         ! P_dir for le cas of grands angles soliof the ou pvalno
-c=======================================================================  ! varie significativement sur +- ouvang.
+c estimation of the subtended angle of the solid angle                    ! this angle will allow a better estimate (average) of 
+c                                                                         ! P_dir for the case of large solid angles when pvalno
+c=======================================================================  ! vary significatively in +- ouvang.
                      ouvang=sqrt(omega/pi)                                ! Angle in radian.
                      ouvang=ouvang*180./pi                                ! Angle in degrees.
 c 
@@ -1333,7 +1333,7 @@ c
                      anglez=nint(angzen/pi*180.)
                      if (anglez.lt.0) anglez=-anglez
                      if (anglez.gt.180) anglez=360-anglez
-                     anglez=anglez+1                                      ! Transformer the angle in degree entier en position dans the array.
+                     anglez=anglez+1                                      ! Transform the angle in degree integer into position inside the array.
 c		
 c  moyenner sur +- ouvang	
 c
@@ -1359,17 +1359,17 @@ c=======================================================================
 c=======================================================================
 c Computing the scattering probability toward the line of sight cell
 c=======================================================================
-                     if (angzen.lt.(pi/2.)) then                          ! Attribution of the initial limit and finale du parcours of 
-c                                                                         ! scattering dans the cell.
+                     if (angzen.lt.(pi/2.)) then                          ! Attribution of the initial and final limits of the 
+c                                                                         ! scattering path.
                       zidif=z_c-0.5*cthick(zceldi)
                       zfdif=z_c+0.5*cthick(zceldi)
                      else
                       zidif=z_c+0.5*cthick(zceldi)
                       zfdif=z_c-0.5*cthick(zceldi)
                      endif       
-                     call transmitm (angzen,iun,iun,zidif,ideux,          ! Transmittance moleculaire of the scattering cell.
+                     call transmitm (angzen,iun,iun,zidif,ideux,          ! Molecular transmittance of the scattering cell.
      +               ideux,zfdif,lambda,dx,dy,pressi,tran1m)
-                     call transmita (angzen,iun,iun,zidif,ideux,          ! Transmittance aerosols of the scattering cell.
+                     call transmita (angzen,iun,iun,zidif,ideux,          ! Aerosol transmittance of the scattering cell.
      +               ideux,zfdif, dx,dy,taua,tran1a)
                      call angle3points (x_s,y_s,z_s,x_dif,y_dif,z_dif,    ! scattering angle.
      +               x_c,y_c,z_c,dx,dy,angdif)
@@ -1384,19 +1384,19 @@ c Computing zenith angle between the scattering cell and the line of sight cell
 c=======================================================================
 
                      call anglezenithal(x_dif,y_dif,z_dif,x_c,y_c,z_c,
-     +               dx,dy,angzen)                                        ! computation of the angle zenithal between the scattering cell and the 
+     +               dx,dy,angzen)                                        ! computation of the zenithal angle between the scattering cell and the 
 c                                                                         ! target cell.
-        call angleazimutal(x_dif,y_dif,x_c,y_c,dx,dy,angazi)              ! computation of the angle azimutal surf refl-scattering cell
+        call angleazimutal(x_dif,y_dif,x_c,y_c,dx,dy,angazi)              ! computation of the azimutal angle surf refl-scattering cell
         az=nint(angazi*180./pi)+1
-        d2=sqrt((real(x_dif-x_c)*dx)**2.+(real(y_dif-y_c)*dy)**2.)        ! max dist for the horiz (i.e. l horizon passe the cell-diff ne compte pas)
+        d2=sqrt((real(x_dif-x_c)*dx)**2.+(real(y_dif-y_c)*dy)**2.)        ! max dist for the horiz (i.e. horizon limitations farter than cell-dif is not considered)
         call horizon(x_dif,y_dif,z_dif,d2,altsol,nbx,nby,dx,dy,
      +  zhoriz,latitu)
-        if ((angzen).lt.zhoriz(az)) then                                  ! beginning condition ombrage diffuse-cible  
+        if ((angzen).lt.zhoriz(az)) then                                  ! beginning shadow condition diffuse-cible  
 c                                                                 
 c subgrid obstacles                
                      angmin=pi/2.-atan((obsH(x_dif,y_dif)+
      +               altsol(x_dif,y_dif)-z_dif)/drefle(x_dif,y_dif))
-                     if (angzen.lt.angmin) then                           ! beginning condition sub-grid obstacles diffuse->target
+                     if (angzen.lt.angmin) then                           ! beginning shadow condition sub-grid obstacles diffuse->target
 c                                                                   
 c=======================================================================
 c Computing transmittance between the scattering cell and the line of sight cell
@@ -1411,9 +1411,9 @@ c=======================================================================
                       xc=dble(x_c)*dble(dx)                               ! Position in meters of the target cell (longitude).
                       yc=dble(y_c)*dble(dy)                               ! Position in meters of the target cell (latitu).
                       zc=dble(z_c)                                        ! Position in meters of the target cell (altitude).
-                      xn=dble(x_dif)*dble(dx)                             ! Position in meters of the diffusante (longitude).
-                      yn=dble(y_dif)*dble(dy)                             ! Position in meters of the diffusante (latitu).
-                      zn=dble(z_dif)                                      ! Position in meters of the diffusante (altitude).
+                      xn=dble(x_dif)*dble(dx)                             ! Position in meters of the scattering cell (longitude).
+                      yn=dble(y_dif)*dble(dy)                             ! Position in meters of the scattering cell (latitu).
+                      zn=dble(z_dif)                                      ! Position in meters of the scattering cell (altitude).
 c    ------------------------------------
 c    solid angle for the central plane xy
 c    ------------------------------------
@@ -1421,8 +1421,8 @@ c    ------------------------------------
                        call planxy(dx,dy,xc,xn,yc,yn,zc,zn,
      +                 r1x,r1y,r1z,r2x,r2y,r2z
      +                 ,r3x,r3y,r3z,r4x,r4y,r4z)
-                       call anglesolide(omega,r1x,r1y,r1z,                ! Appel of the routine anglesoliof qui calcule the solid angle 
-     +                 r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z)               ! selon le plan xy.   
+                       call anglesolide(omega,r1x,r1y,r1z,                ! Calling the routine anglesolide for the calculation of the solid angle 
+     +                 r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z)               ! in the xy plane.   
                        omega1 = omega
                       else
                        omega1=0.
@@ -1430,67 +1430,66 @@ c    ------------------------------------
 c     ------------------------------------
 c     solid angle for the central plane zx
 c     ------------------------------------
-                      if (y_c .ne. y_dif) then                            ! if the latitu of the observer cell is the meme que celle
-c                                                                         ! of the source cell, on ne calcule pas the angle solide
-c                                                                         ! for le plan zx car il is egal a 0.
+                      if (y_c .ne. y_dif) then                            ! if the latitude of the observer cell is the same as the
+c                                                                         ! source cell, we do not calculate the solid angle
+c                                                                         ! for the zx plane because it is null.
                        call planzx(dx,xc,xn,yc,yn,zc,zn,
      +                 cthick,zcellc,r1x,r1y,r1z,r2x,r2y,r2z,
      +                 r3x,r3y,r3z,r4x,r4y,r4z)
-                       call anglesolide(omega,r1x,r1y,r1z,                ! Appel of the routine anglesoliof qui calcule the solid angle 
-     +                 r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z)               ! selon le plan zx.
+                       call anglesolide(omega,r1x,r1y,r1z,                ! Calling of the routine anglesolide for the calculation of the solid angle 
+     +                 r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z)               ! in the zx plane.
                       else
                        omega=0.
                       endif
                       if (omega.gt.0.) then
-                       if (omega .gt. omega1) omega1 = omega              ! On garof the solid angle le plus grand jusqu'a present.
+                       if (omega .gt. omega1) omega1 = omega              ! We keep the largest solid angle.
                       endif
 c     ------------------------------------
 c     solid angle for the central plane yz
 c     ------------------------------------
-                      if (x_c .ne. x_dif) then                            ! if the longituof of the observer cell is the meme que celle
-c                                                                         ! of the source cell, on ne calcule pas the angle solide
-c                                                                         ! for le plan yz car il is egal a 0.
+                      if (x_c .ne. x_dif) then                            ! if the longitude of the observer cell is the same as the
+c                                                                         ! source cell, we do not calculate the solid angle
+c                                                                         ! for the yz plane because it is null.
                        call planyz(dy,xc,xn,yc,yn,zc,zn,
      +                 cthick,zcellc,r1x,r1y,r1z,r2x,r2y,r2z,
      +                 r3x,r3y,r3z,r4x,r4y,r4z)
-                       call anglesolide(omega,r1x,r1y,r1z,                ! Appel of the routine anglesoliof qui calcule the solid angle 
-     +                 r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z)               ! selon le plan yz.
+                       call anglesolide(omega,r1x,r1y,r1z,                ! Calling the routine anglesolide for the calculation of the solid angle 
+     +                 r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z)               ! in the yz plane.
                       else 
                        omega=0.
                       endif
                       if (omega.gt.0.) then
-                       if (omega .gt. omega1) omega1 = omega              ! On garof the solid angle le plus grand.
+                       if (omega .gt. omega1) omega1 = omega              ! We keep the largest solid angle.
                       endif
                       omega=omega1
 c=======================================================================
-c        computation du flux diffuse atteignant the target cell
+c        computation of the scattered flux reaching the target cell
 c=======================================================================
                       fldiff=idif1*omega*transm*
      +                transa
-c verifie mais je crosi que the calculation of azencl is facultatif ici
                 if (cloudt.ne.0) then                                     ! target cell = cloud
                   if (cloudh(cloudt).eq.zcellc) then
                      call anglezenithal(x_c,y_c,z_c,x_obs,y_obs,z_obs,
      +               dx,dy,azencl)                                        ! zenith angle from cloud to observer                     
-                     call cloudreflectance(angzen,cloudt,rcloud)                 ! cloud intensity from direct illum
+                     call cloudreflectance(angzen,cloudt,rcloud)          ! cloud intensity from direct illum
                      icloud=icloud+
      +               fldiff*rcloud*abs(cos(azencl))/pi
                   endif
                 endif
 c=======================================================================
-c   computation of the scattering probability of the lumiere diffuse toward the observer cell(SORTANT of cell_c)
+c   computation of the scattering probability of the scattered light toward the observer cell (exiting cell_c)
 c=======================================================================
-                      if (angzen.lt.(pi/2.)) then                         ! Attribution of the initial limit and finale du parcours of 
-c                                                                         ! scattering dans the cell.
+                      if (angzen.lt.(pi/2.)) then                         ! Attribution of the initial and final limits of the path to the
+c                                                                         ! scattering cell.
                        zidif=zcdown
                        zfdif=zcup
                       else
                        zidif=zcup
                        zfdif=zcdown
                       endif
-                      call transmitm (angzen,iun,iun,zidif,ideux,         ! Transmittance moleculaire of the scattering cell.
+                      call transmitm (angzen,iun,iun,zidif,ideux,         ! Molecular transmittance of the scattering cell.
      +                ideux,zfdif,lambda,dx,dy,pressi,tran1m)
-                      call transmita (angzen,iun,iun,zidif,ideux,         ! Transmittance aerosols of the scattering cell.
+                      call transmita (angzen,iun,iun,zidif,ideux,         ! Aerosol transmittance of the scattering cell.
      +                ideux,zfdif,dx,dy,taua,tran1a)    
                       call angle3points (x_dif,y_dif,z_dif,x_c,y_c,       ! scattering angle.
      +                z_c,x_obs,y_obs,z_obs,dx,dy,angdif)
@@ -1501,26 +1500,26 @@ c Computing scattered intensity toward the observer from the line of sight cell
 c=======================================================================
                       idiff2=fldiff*pdifd2
                       idiff2=
-     +                idiff2*real(stepdi)                                 ! Corriger le resultat for le fait d'avoir passe of the cells
-                      itodif=                                             ! aend d'accelerer the calculation.
+     +                idiff2*real(stepdi)                                 ! Correct the result for the skipping of 2nd scattering cells to accelerate the calculation
+                      itodif=                        
      +                itodif+idiff2
-                     endif                                                ! end condition obstacle diffuse->target
+                     endif                                                ! end condition obstacle scattering->target
        else
-        endif                                                             ! end condition ombrage diffuse-cible                     
-                    endif                                                 ! end condition obstacle source->diffuse.
+        endif                                                             ! end condition ombrage scattering-target                     
+                    endif                                                 ! end condition obstacle source->scattering.
                    else
-                   endif                                                  ! end condition ombrage source-diffusante
-                  endif                                                   ! end of the case Diffusante = Source ou target
+                   endif                                                  ! end condition shadow source-scattering
+                  endif                                                   ! end of the case scattering = Source or target
                  endif                                                    ! end of the condition "cell of the domain".      
-                enddo                                                     ! end of the loop over the cells diffusante.
+                enddo                                                     ! end of the loop over the scattering cells.
                endif                                                      ! end of the condition ou effdif > dx.
 c End of 2nd scattered intensity calculations    
 c**********************************************************************
-c        computation of the intensity coming from a source dans the target toward the sensor
+c        computation of the intensity coming from a source to the target toward the sensor
 c**********************************************************************
-               isourc=intdir+itotind+itodif+itotrd                        ! Somme of the intensitys of chaque type propre source  
-c                                                                         ! atteignant a target cell.
-c                                                                         ! ds l ordre 1st scat; refl->1st scat; 1st scat->2nd scat, refl->1st scat->2nd scat
+               isourc=intdir+itotind+itodif+itotrd                        ! Sum of the intensities of each type of source  
+c                                                                         ! reaching the target cell.
+c                                                                         ! in the order 1st scat; refl->1st scat; 1st scat->2nd scat, refl->1st scat->2nd scat
                if (verbose.eq.1) then
                 print*,' Total intensity components:'
                 print*,' source->scattering=',intdir
@@ -1533,12 +1532,12 @@ c                                                                         ! ds l
                endif
 c                   
 c**********************************************************************
-c        computation of the total intensity provenant of toutes les sources of a type dans the target toward the sensor 
+c        computation of the total intensity coming from all the sources of a given type
 c**********************************************************************
                itotty=itotty
-     +         +isourc*real(step(stype)*step(stype))                      ! Somme of the intensitys of chaque source target cell.
-                                                                          ! toward the calculation du poids of chaque source cell i.e. ITT (equivaut 
-               ITT(x_s,y_s,stype)=ITT(x_s,y_s,stype)+isourc               ! a itotty mais below forme matricielle 
+     +         +isourc*real(step(stype)*step(stype))                      ! Sum of the intensities of each source.
+                                                                          ! ITT stores itotty in a matrix
+               ITT(x_s,y_s,stype)=ITT(x_s,y_s,stype)+isourc
 
 
 
@@ -1554,14 +1553,14 @@ c**********************************************************************
 
 
 
-              endif                                                       ! end of the condition "the luminosite of the ground pixel x_s,y_s n'est pas nulle".
-             enddo                                                        ! end the loop over the rangees (latitus) of the domain (y_s).
-            enddo                                                         ! end the loop over the column (longituof the) of the domain (x_s).
+              endif                                                       ! end of the condition "the luminosity of the ground pixel x_s,y_s in not null".
+             enddo                                                        ! end the loop over the lines (latitude) of the domain (y_s).
+            enddo                                                         ! end the loop over the column (longitude) of the domain (x_s).
 c
-c   end du computation of the intensity par un source types
+c   end du computation of the intensity of one source type
             itotci=itotci
-     1      + itotty                                                      ! Somme of the intensitys of chaque type target cell.
-c interpoler ITT for combler le step(stype)
+     1      + itotty                                                      ! Sum of the intensities of each type to the target cell.
+c interpolate ITT for fill the step(stype)
             if (step(stype).gt.1) then
              defval=0.
              autom=0
@@ -1592,7 +1591,7 @@ c interpoler ITT for combler le step(stype)
               ITC(x_s,y_s)=ITC(x_s,y_s)+ITT(x_s,y_s,stype)
              enddo   
             enddo  
-c calculer lpluto 
+c calculate lpluto 
             do x_s=1,nbx
              do y_s=1,nby
                lpluto(x_s,y_s)=lpluto(x_s,y_s)+   
