@@ -26,6 +26,12 @@ esac
 shift
 done
 
+if [ -z $expname ]
+then
+    echo "Usage: find-failed-runs.bash [OPTIONS] expname"
+    exit 1
+fi
+
 find $dir -name wl* | grep -v gridmap | while read dirname
 do
     n=`tail -n 4 $dirname/$expname.out 2>/dev/null | head -n 1 | grep -E 'E(\+|\-)' | wc -l`
