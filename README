@@ -1,7 +1,7 @@
 README
 
 GNU General Public License as published by the Free Software Foundation, version 3
-Cite: Martin AubÃ© martin.aube@cegepsherbrooke.qc.ca
+Cite: Martin Aubé martin.aube@cegepsherbrooke.qc.ca
 
 1) Prerequisites
 You need a fortran compiler installed in your system
@@ -26,7 +26,7 @@ cd illumina
 bash makeILLUMINA
 
 5) Read the Users manual
-http://cegepsherbrooke.qc.ca/~aubema/index.php/Prof/IlluminaGuide2014
+http://cegepsherbrooke.qc.ca/~aubema/index.php/Prof/IlluminaGuide2016
 
 6) Browse the project page
 http://cegepsherbrooke.qc.ca/~aubema/index.php/Prof/IllumEn
