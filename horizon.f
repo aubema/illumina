@@ -27,11 +27,12 @@ c    Contact: martin.aube@cegepsherbrooke.qc.ca
 c
 c
       subroutine horizon(x_c,y_c,z_c,d2,alt_sol,nbx,nby,dx,
-     +dy,zen_horiz,latitu) 
+     +dy,zen_horiz,latitu,angazi) 
       integer nbx,nby,ii,jj,x_c,y_c,az,daz,azin,n,nn
+      integer bx1,bx2,by1,by2
       real dx,dy,pi,angazi,angzen,alt_sol(1024,1024)
       real zen_horiz(360),z_c,d2,d2p,altitu
-      real latitu,corcur,a,b,rterre
+      real latitu,corcur,a,b,rterre,angazi
       parameter (pi=3.1415926)   
       latitu=latitu*pi/180.
       corcur=0.
@@ -45,8 +46,30 @@ c      print*,'===',x_c,y_c,z_c,d2,'==='
       enddo 
 c      do ii=1,nbx
 c       do jj=1,nby
-      do ii=x_c-nint(d2/dy),x_c+nint(d2/dy)
-       do jj=y_c-nint(d2/dy),y_c+nint(d2/dy)
+        if ((angazi.ge.0.).and.(angazi.lt.pi/2.)) then
+           bx1=x_c
+           bx2=x_c+nint(d2/dy)
+           by1=y_c
+           by2=y_c+nint(d2/dy)
+        elseif ((angazi.ge.pi/2.).and.(angazi.lt.pi)) then
+           bx1=x_c-nint(d2/dy)
+           bx2=x_c
+           by1=y_c
+           by2=y_c+nint(d2/dy)
+        elseif ((angazi.ge.pi).and.(angazi.lt.3.*pi/2.)) then
+           bx1=x_c-nint(d2/dy)
+           bx2=x_c
+           by1=y_c-nint(d2/dy)
+           by2=y_c
+        else
+           bx1=x_c
+           bx2=x_c+nint(d2/dy)
+           by1=y_c-nint(d2/dy)
+           by2=y_c
+        endif
+
+      do ii=bx1,bx2
+       do jj=by1,by2
         d2p=sqrt((real(ii-x_c)*dx)**2.+(real(jj-y_c)*dy)**2.)
 
 c this is a firts attempt to make a simplistic correction for the local 

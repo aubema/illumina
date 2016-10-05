@@ -681,7 +681,7 @@ c computation of the horizon for the resolved shadows direct              ! Il y
                 az=nint(angazi*180./pi)+1
                 d2=sqrt((real(x_s-x_c)*dx)**2.+(real(y_s-y_c)*dy)**2.)    ! max dist for the horizon (i.e. horizon limitations farter than cell-dif is not considered)
                 call horizon(x_s,y_s,z_s,d2,altsol,nbx,nby,dx,dy,
-     +          zhoriz,latitu)
+     +          zhoriz,latitu,angazi)
                 if ((angzen).lt.zhoriz(az)) then                          ! the ligne target-source n'est pas below the horizon => on calcule
 c                                                                         ! beginning condition below the horizon direct
 c sub-grid obstacles             
@@ -1018,7 +1018,7 @@ c verify if there is shadow between sr and target
                  d2=sqrt((real(x_sr-x_c)*dx)**2.+(real(y_sr-y_c)*         ! max dist for the horizon between the source and the target
      +           dy)**2.)                 
                  call horizon(x_sr,y_sr,z_sr,d2,altsol,nbx,nby,dx,dy,
-     +           zhoriz,latitu)         
+     +           zhoriz,latitu,angazi)         
                  if ((angzen).lt.zhoriz(az)) then                         ! the path target-reflec is not below the horizon => we compute
                  
                  
@@ -1224,7 +1224,7 @@ c ombrage source-scattering cell
                    d2=sqrt((real(x_dif-x_s)*dx)**2.+(real(y_dif-y_s)      ! max dist for the horizon (i.e. horizon limitations farter than cell-dif is not considered)
      +             *dy)**2.)
                    call horizon(x_s,y_s,z_s,d2,altsol,nbx,nby,
-     +             dx,dy,zhoriz,latitu)
+     +             dx,dy,zhoriz,latitu,angazi)
                    if ((angzen).lt.zhoriz(az)) then                       ! beginning condition ombrage source-diffusante
 c                                                                   
 c sub-grid obstacles               
@@ -1390,7 +1390,7 @@ c                                                                         ! targ
         az=nint(angazi*180./pi)+1
         d2=sqrt((real(x_dif-x_c)*dx)**2.+(real(y_dif-y_c)*dy)**2.)        ! max dist for the horiz (i.e. horizon limitations farter than cell-dif is not considered)
         call horizon(x_dif,y_dif,z_dif,d2,altsol,nbx,nby,dx,dy,
-     +  zhoriz,latitu)
+     +  zhoriz,latitu,angazi)
         if ((angzen).lt.zhoriz(az)) then                                  ! beginning shadow condition diffuse-cible  
 c                                                                 
 c subgrid obstacles                
