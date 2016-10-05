@@ -90,7 +90,7 @@ c find 2 nearest modis wavelengths
           enddo
           do n=1,n_modis
             dist=abs(modis_wav(n)-avgwav)
-            if ((dist.lt.dist2).and.(n.ne.n1) then
+            if ((dist.lt.dist2).and.(n.ne.n1)) then
                dist2=dist
                wav2=modis_wav(n)
                n2=n
