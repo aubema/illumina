@@ -27,12 +27,12 @@ c    Contact: martin.aube@cegepsherbrooke.qc.ca
 c
 c
       subroutine horizon(x_c,y_c,z_c,d2,alt_sol,nbx,nby,dx,
-     +dy,zen_horiz,latitu,angazi) 
+     +dy,zen_horiz,latitu,angaz) 
       integer nbx,nby,ii,jj,x_c,y_c,az,daz,azin,n,nn
       integer bx1,bx2,by1,by2
       real dx,dy,pi,angazi,angzen,alt_sol(1024,1024)
       real zen_horiz(360),z_c,d2,d2p,altitu
-      real latitu,corcur,a,b,rterre,angazi
+      real latitu,corcur,a,b,rterre,angaz
       parameter (pi=3.1415926)   
       latitu=latitu*pi/180.
       corcur=0.
