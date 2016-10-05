@@ -129,7 +129,7 @@ c ombrage s_reflechissante-diffusante
           az=nint(angazi*180./pi)+1
           d2=sqrt((real(x_dif-x_sr)*dx)**2.+(real(y_dif-y_sr)*dy)**2.)    ! dist max pour l'horiz (i.e. l horizon passe la cell-diff ne compte pas)
           call horizon(x_sr,y_sr,z_sr,d2,alt_sol,nbx,nby,dx,dy,
-     +    zenhor,latitu) 
+     +    zenhor,latitu,angazi) 
           if ((angzen).lt.zenhor(az)) then                                ! debut condition ombrage surface refl - diffuse        
 c MA j'ai verifie que angzen ne depasse  jamais pi ou jamais moins que 0
                                                                           ! Fin du cas "observateur a la meme latitu/longitude que la source"
@@ -254,7 +254,7 @@ c ombrage s_reflechissante-diffusante
         az=nint(angazi*180./pi)+1
         d2=sqrt((real(x_dif-x_c)*dx)**2.+(real(y_dif-y_c)*dy)**2.)        ! dist max pour l'horiz (i.e. l horizon passe la cell-diff ne compte pas)
         call horizon(x_dif,y_dif,z_dif,d2,alt_sol,nbx,nby,dx,dy,
-     +  zenhor,latitu)  
+     +  zenhor,latitu,angazi)  
 
         if ((angzen).lt.zenhor(az)) then                                  ! debut condition ombrage diffuse-cible           
      
