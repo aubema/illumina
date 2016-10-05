@@ -27,12 +27,12 @@ c    Contact: martin.aube@cegepsherbrooke.qc.ca
 c
 c
       subroutine horizon(x_c,y_c,z_c,d2,alt_sol,nbx,nby,dx,
-     +dy,zen_horiz,latitu,angaz) 
+     +dy,zen_horiz,latitu,anga) 
       integer nbx,nby,ii,jj,x_c,y_c,az,daz,azin,n,nn
       integer bx1,bx2,by1,by2
       real dx,dy,pi,angazi,angzen,alt_sol(1024,1024)
       real zen_horiz(360),z_c,d2,d2p,altitu
-      real latitu,corcur,a,b,rterre,angaz
+      real latitu,corcur,a,b,rterre,anga
       parameter (pi=3.1415926)   
       latitu=latitu*pi/180.
       corcur=0.
@@ -46,17 +46,17 @@ c      print*,'===',x_c,y_c,z_c,d2,'==='
       enddo 
 c      do ii=1,nbx
 c       do jj=1,nby
-        if ((angazi.ge.0.).and.(angazi.lt.pi/2.)) then
+        if ((anga.ge.0.).and.(anga.lt.pi/2.)) then
            bx1=x_c
            bx2=x_c+nint(d2/dy)
            by1=y_c
            by2=y_c+nint(d2/dy)
-        elseif ((angazi.ge.pi/2.).and.(angazi.lt.pi)) then
+        elseif ((anga.ge.pi/2.).and.(anga.lt.pi)) then
            bx1=x_c-nint(d2/dy)
            bx2=x_c
            by1=y_c
            by2=y_c+nint(d2/dy)
-        elseif ((angazi.ge.pi).and.(angazi.lt.3.*pi/2.)) then
+        elseif ((anga.ge.pi).and.(anga.lt.3.*pi/2.)) then
            bx1=x_c-nint(d2/dy)
            bx2=x_c
            by1=y_c-nint(d2/dy)
