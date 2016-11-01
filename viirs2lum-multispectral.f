@@ -124,6 +124,7 @@ c enconter large cities next to water and then the scattered light
 c over the water surface behave like an important direct source over a
 c very dark surface. To overcome cleanly this problem we should make a
 c correction for the estimated scattered light. It is not done yet.
+c the 0.01 threshold is not really validated
         rfile='modis_700.pgm'
         call intrants2d(rfile,rho,xcell0,ycell0,pixsiz,nbx,nby)
         do i=1,nbx
