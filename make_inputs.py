@@ -116,6 +116,30 @@ if not stop:
 	tmp_names['integ'] = "integration_limits.dat"
 	tmp_names['srtm'] = "srtm.pgm"
 
+        ans = raw_input("Cutoff low values in the viirs-dnb data? ([y]/n) ")
+        viirs_lowcut = True
+        try:
+            if ans[0] in ['N','n']:
+                viirs_lowcut = False
+        except IndexError:
+            pass
+
+        viirs_head,viirs_p,viirs_dat = load_pgm(pgm_name)
+
+        if viirs_lowcut:
+            try:
+                val = float(raw_input("    Cutoff value [default peak value/4] : "))
+            except ValueError:
+                v,c = np.unique(viirs_dat,return_counts=True)
+                val = v[c>=c.max()/4][-1]
+
+            viirs_reject = viirs_dat.copy()
+            viirs_reject[viirs_reject >= val] = 0
+            viirs_dat[viirs_dat < val] = 0
+
+        save_pgm(dir_name+tmp_names['sat'], viirs_head, viirs_p, viirs_dat)
+        save_pgm(dir_name+"NaturalAndScatteredLight.pgm", viirs_head, viirs_p, viirs_reject)
+
     	# Creating symbolic links to necessary reflectance and photometry files
 	modis_files = np.genfromtxt(modis_name,skip_header=1,usecols=1,dtype=str)
 	modis_files = map(lambda s: modis_dir+"/"+s,modis_files)
@@ -137,7 +161,7 @@ if not stop:
 			f.write((("%s\t"*len(zonfile[i]))[:-1]+"\n") % tuple(zonfile[i]))
 
     	# Linking useful files
-	os.symlink(os.path.abspath(pgm_name),dir_name+tmp_names['sat'])
+#	os.symlink(os.path.abspath(pgm_name),dir_name+tmp_names['sat'])
 	os.symlink(os.path.abspath(modis_name),dir_name+tmp_names['modis'])
 	os.symlink(os.path.abspath("Lights/viirs.dat"),dir_name+tmp_names['viirs'])
 	os.symlink(os.path.abspath(zon_name),dir_name+tmp_names['zon'])
