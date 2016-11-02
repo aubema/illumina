@@ -101,6 +101,12 @@ c find 2 nearest modis wavelengths
               m=(refl(ii,jj,n1)-refl(ii,jj,n2))/(wav1-wav2)
               b=refl(ii,jj,n1)-m*wav1
               dat(ii,jj)=m*avgwav+b
+              if ((dat(ii,jj).gt.1.).or.(dat(ii,jj).le.0.)) then
+                 dat(ii,jj)=refl(ii,jj,n1) 
+              endif
+              if ((dat(ii,jj).gt.1.).or.(dat(ii,jj).le.0.)) then
+                 dat(ii,jj)=refl(ii,jj,n2) 
+              endif 
               if (dat(ii,jj).gt.1.) dat(ii,jj)=1.
               if (dat(ii,jj).lt.0.) dat(ii,jj)=0.
             enddo
