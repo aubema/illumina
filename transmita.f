@@ -34,13 +34,13 @@ c
 c    Contact: martin.aube@cegepsherbrooke.qc.ca
 c
 c
-      subroutine transmita(angle,x_i,y_i,z_i,x_f,y_f,z_f,
+      subroutine transmita(angle,azim,x_i,y_i,z_i,x_f,y_f,z_f,
      + dx,dy,taua,transa)
       real angle,deltam,e,transa,pi                                       ! Declaration des variables.
       real dist1,dist2,dist1m,dist2m                                      ! angle is the zenith angle
       real z_i,z_f,dx,dy,dist,taua
       integer x_i,y_i,x_f,y_f,k
-      real cell_h(50),cell_th(50)    
+      real cell_h(50),cell_th(50),azim    
       integer zinf,zsup
       data cell_th /0.5,0.6,0.72,0.86,1.04,1.26,1.52,1.84,2.22,           ! Epaisseur des niveaux.
      a 2.68,3.24,3.92,4.74,5.72,6.9,8.34,10.08,12.18,14.72,17.78,21.48,
@@ -81,16 +81,22 @@ c
          endif    
          dist=sqrt((real(x_f-x_i)*dx)**2.+(real(y_f-y_i)*dy)**2.)  
          if (dist.lt.dx) dist=dx       
-         if (abs(angle-pi/2.).lt.abs(atan(cell_th(zsup)/dist)))
+         if (abs(angle-pi/2.).lt.abs(atan(cell_th(zsup)/dist)))           ! angle under which the cell is crossed horizontally
      +   then 
+
+
+
+            azim=abs(azim-real(nint(azim/pi/2.))*pi/2.)                   ! angle equivalent de projection sur l'axe x premier quadrant, nécessaire car on calcule toujours la transmittance avec deux cellules voisines sur l'axe des x
+
+
             deltam=(exp(-1.*cell_h(zsup)/2000.)*dist)/2000./
-     +      sin(angle)
+     +      sin(angle)/abs(cos(azim))
              if (sin(angle).eq.0.) then
                print*,'ERREUR sin(angle)=0 (1b), angle=',angle
                print*,x_i,y_i,z_i,zinf,x_f,y_f,z_f,zsup
                stop
              endif   
-          else
+          else                                                            ! usual case where the cell is crossed vertically
             if (angle.ge.pi)  angle=pi               
             deltam=abs((((exp(-1.*z_i/2000.))-(exp(-1.*z_f/2000.))))/
      +      cos(angle))
