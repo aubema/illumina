@@ -645,7 +645,7 @@ c                                                                         ! the 
               ITT(x_s,y_s,stype)=0.
              enddo
             enddo     
-            do x_s=imin(stype),imax(stype),step(stype)                    ! beginning of the loop over the column (longituof the) of the domain.
+            do x_s=imin(stype),imax(stype),step(stype)                    ! beginning of the loop over the column (longitude the) of the domain.
              do y_s=jmin(stype),jmax(stype),step(stype)                   ! beginning of the loop over the rangees (latitud) of the domain.
               if (lamplu(x_s,y_s,stype) .ne. 0.) then                     ! if the luminosite of the case is nulle, le programme ignore this case.
                z_s=(altsol(x_s,y_s)+lampal(x_s,y_s,stype))                ! Definition of the position (metre) vertical of the source.

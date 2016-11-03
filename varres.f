@@ -159,6 +159,11 @@ c creating the reflectance file weighted by the lumlp
                rho=rho/lum
             else
                rho=0.
+
+
+
+
+
             endif
                  if (rho.gt.rhomax) rhomax=rho
             do k=xi,xf
