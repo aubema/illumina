@@ -36,7 +36,7 @@ c
       real z1,xn,yn,zn,dx,dy,distance
       real celthi(50),cell_height(50),pi
       real angvis,angazi,ix,iy,iz,amax,da,angaz1,angvi1
-      real dminx,dminy,dminz,r,dr
+      real dminx,dminy,dminz,r,dr,rmax
 
       parameter (pi=3.1415926)
 
@@ -59,6 +59,7 @@ c
          print*,'Cloud base vertical level:',cloudz,'/50'
          print*,'Cloud base height (m):',cell_height(cloudz)
       endif
+      rmax=sqrt((real(nbx)*dx)**2.+(real(nby)*dy)**2.+30000.**2.)
       ncell=0
       xn=nint((real(x1-1)*dx))                                            ! Transfert des coordonnees des cellules en mtre
       yn=nint((real(y1-1)*dy))                                            ! Le zero du systeme de reference est au coin superieur gauche du pixel observateur
@@ -105,21 +106,15 @@ c           print*,'horizontal'
       endif
 
 
-      r=0
+      r=0.
       dr=da
       do a = 0,100000000
-c                            			                          ! scanner la ligne de vise a intervalle de da en posant que la cellule est largement plus grande que da
+       if (r.lt.rmax) then
          r=r+dr
-
          dr=dr*1.0001
-
-
-
-c            print*,'R=',r
          cx = x1 + nint(ix*r/dx)
          cy = y1 + nint(iy*r/dy)
          z = z1 + iz*r
-
          do k = 1,50
             if ((z .lt.cell_height(k)+celthi(k)/2.).and. 
      +      (z .ge. cell_height(k)-celthi(k)/2.)) then
@@ -128,12 +123,15 @@ c            print*,'R=',r
          enddo
          if ((cx.le.nbx).and.(cx.ge.1).and.(cy.le.nby).and.(cy.ge.1)       ! verifier si nous sommes dans le domaine
      +   .and.(cz.le.50).and.(cz.ge.1)) then
+           if (z.lt.28000.) then
             dminx=abs((ix*real(a)*da/dx-real(nint(ix*real(a)*              ! calcul de la distance entre le centre de la cellule et la position du vecteur en unite de largeur de cellule
      +      da/dx))))
             dminy=abs((iy*real(a)*da/dy-real(nint(iy*real(a)*
      +      da/dy))))
             dminz=abs((z-cell_height(cz))/celthi(cz))
+c          print*,dminx,dminy,dminz,cz
             distance=sqrt(dminx**2.+dminy**2.+dminz**2.)
+c          print*,distance
             if (distance.lt.0.5) then                                      ! ne retenir que les positions s'approchant a moins de la demi d'une cellule
                if ((cx.eq.cxp).and.(cy.eq.cyp).and.(cz.eq.czp)) then       ! s'assurer de ne pas compter plus d'une fois la meme cellule
                else   
@@ -146,7 +144,9 @@ c            print*,'R=',r
                      czp=cz 
                endif
             endif
+           endif
          endif
+       endif
       enddo
 c
 c  eviter les angles droits successifs

@@ -220,7 +220,7 @@ c                                                                         ! a li
       real totlu(120)                                                     ! total flux of a source type
       real stoplim                                                        ! Stop computation when the new voxel contribution is less than 1/stoplim of the cumulated flux
       real zero
-      real angaz
+      real anaz
       data cthick /0.5,0.6,0.72,0.86,1.04,1.26,1.52,1.84,2.22,            ! thickness of the levels.
      a 2.68,3.24,3.92,4.74,5.72,6.9,8.34,10.08,12.18,14.72,17.78,21.48,
      b 25.94,31.34,37.86,45.74,55.26,66.76,80.64,97.42,117.68,142.16,
@@ -695,10 +695,10 @@ c
 c=======================================================================
 c computation of the transmittance between the source and the target
 c=======================================================================
-                  angaz=zero
-                  call transmitm(angzen,angaz,x_s,y_s,z_s,x_c,y_c,z_c,
+                  anaz=zero
+                  call transmitm(angzen,anaz,x_s,y_s,z_s,x_c,y_c,z_c,
      +            lambda,dx,dy,pressi,transm)     
-                  call transmita(angzen,angaz,x_s,y_s,z_s,x_c,y_c,z_c,
+                  call transmita(angzen,anaz,x_s,y_s,z_s,x_c,y_c,z_c,
      +            dx,dy,taua,transa)
 c=======================================================================
 c computation of the Solid angle of the par the target vue of the source
@@ -822,10 +822,10 @@ c                                                                         ! scat
                    zidif=zcup
                    zfdif=zcdown
                   endif
-                  angaz=angazi
-                  call transmitm (angzen,angaz,iun,iun,zidif,ideux,iun,         ! Transmittance moleculaire of the scattering cell.
+                  anaz=angazi
+                  call transmitm (angzen,anaz,iun,iun,zidif,ideux,iun,         ! Transmittance moleculaire of the scattering cell.
      +            zfdif,lambda,dx,dy,pressi,tran1m)
-                  call transmita (angzen,angaz,iun,iun,zidif,ideux,iun,         ! Transmittance aerosols of the scattering cell.
+                  call transmita (angzen,anaz,iun,iun,zidif,ideux,iun,         ! Transmittance aerosols of the scattering cell.
      +            zfdif,dx,dy,taua,tran1a)
                   call angle3points (x_s,y_s,z_s,x_c,y_c,z_c,x_obs,       ! scattering angle.
      +            y_obs,z_obs,dx,dy,angdif)
@@ -906,10 +906,10 @@ c=======================================================================
 c=======================================================================
 c        computation of the transmittance between the source and the ground surface
 c=======================================================================
-                      angaz=zero      
-                      call transmitm(angzen,angaz,x_s,y_s,z_s,x_sr,y_sr,
+                      anaz=zero      
+                      call transmitm(angzen,anaz,x_s,y_s,z_s,x_sr,y_sr,
      +                z_sr,lambda,dx,dy,pressi,transm)          
-                      call transmita(angzen,angaz,x_s,y_s,z_s,x_sr,y_sr,
+                      call transmita(angzen,anaz,x_s,y_s,z_s,x_sr,y_sr,
      +                z_sr,dx,dy,taua,transa)
 c=======================================================================
 c     computation of the Solid angle of the reflecting cell seen from the source
@@ -1049,10 +1049,10 @@ c
 c=======================================================================
 c        computation of the transmittance between the  ground surface and the target cell
 c=======================================================================
-                        angaz=zero
-                        call transmitm(angzen,angaz,x_sr,y_sr,z_sr,x_c,
+                        anaz=zero
+                        call transmitm(angzen,anaz,x_sr,y_sr,z_sr,x_c,
      +                  y_c,z_c,lambda,dx,dy,pressi,transm)        
-                        call transmita(angzen,angaz,x_sr,y_sr,z_sr,x_c,
+                        call transmita(angzen,anaz,x_sr,y_sr,z_sr,x_c,
      +                  y_c,z_c,dx,dy,taua,transa)
 c=======================================================================
 c     computation of the Solid angle of the par the target vue of the reflecting cell
@@ -1158,10 +1158,10 @@ c                                                                         ! scat
                          zidif=zcup
                          zfdif=zcdown
                         endif 
-                        angaz=angazi       
-                        call transmitm(angzen,angaz,iun,iun,zidif,        ! Transmittance moleculaire of the scattering cell.
+                        anaz=angazi       
+                        call transmitm(angzen,anaz,iun,iun,zidif,        ! Transmittance moleculaire of the scattering cell.
      +                  ideux,iun,zfdif,lambda,dx,dy,pressi,tran1m)
-                        call transmita(angzen,angaz,iun,iun,zidif,        ! Transmittance aerosols of the scattering cell.
+                        call transmita(angzen,anaz,iun,iun,zidif,        ! Transmittance aerosols of the scattering cell.
      +                  ideux,iun,zfdif,dx,dy,taua,tran1a)
                         call angle3points (x_sr,y_sr,z_sr,x_c,y_c,z_c,    ! scattering angle.
      +                  x_obs,y_obs,z_obs,dx,dy,angdif)
@@ -1243,10 +1243,10 @@ c
 c=======================================================================
 c        computation of the transmittance between the source and the scattering cell
 c=======================================================================
-                     angaz=zero
-                     call transmitm(angzen,angaz,x_s,y_s,z_s,x_dif,
+                     anaz=zero
+                     call transmitm(angzen,anaz,x_s,y_s,z_s,x_dif,
      +               y_dif,z_dif,lambda,dx,dy,pressi,transm)
-                     call transmita(angzen,angaz,x_s,y_s,z_s,x_dif,
+                     call transmita(angzen,anaz,x_s,y_s,z_s,x_dif,
      +               y_dif,z_dif,dx,dy,taua,transa) 
 c=======================================================================
 c     computation of the Solid angle of the par the scattering cell vue of the source
@@ -1376,11 +1376,11 @@ c                                                                         ! scat
                       zidif=z_c+0.5*cthick(zceldi)
                       zfdif=z_c-0.5*cthick(zceldi)
                      endif
-                     angaz=angazi       
-                     call transmitm (angzen,angaz,iun,iun,zidif,ideux,          ! Molecular transmittance of the scattering cell.
+                     anaz=angazi       
+                     call transmitm(angzen,anaz,iun,iun,zidif,ideux,          ! Molecular transmittance of the scattering cell.
      +               iun,zfdif,lambda,dx,dy,pressi,tran1m)
-                     call transmita (angzen,angaz,iun,iun,zidif,ideux,          ! Aerosol transmittance of the scattering cell.
-     +               iun,zfdif, dx,dy,taua,tran1a)
+                     call transmita(angzen,anaz,iun,iun,zidif,ideux,          ! Aerosol transmittance of the scattering cell.
+     +               iun,zfdif,dx,dy,taua,tran1a)
                      call angle3points (x_s,y_s,z_s,x_dif,y_dif,z_dif,    ! scattering angle.
      +               x_c,y_c,z_c,dx,dy,angdif)
                      call diffusion(omega,angdif,tran1a,tran1m,           ! scattering probability of the direct light.
@@ -1411,10 +1411,10 @@ c
 c=======================================================================
 c Computing transmittance between the scattering cell and the line of sight cell
 c=======================================================================
-                      angaz=zero
-                      call transmitm(angzen,angaz,x_dif,y_dif,z_dif,x_c
+                      anaz=zero
+                      call transmitm(angzen,anaz,x_dif,y_dif,z_dif,x_c
      +                ,y_c,z_c,lambda,dx,dy,pressi,transm)
-                      call transmita(angzen,angaz,x_dif,y_dif,z_dif,x_c
+                      call transmita(angzen,anaz,x_dif,y_dif,z_dif,x_c
      +                ,y_c,z_c,dx,dy,taua,transa) 
 c=======================================================================
 c Computing the solid angle of the line of sight cell as seen from the scattering cell
@@ -1498,10 +1498,10 @@ c                                                                         ! scat
                        zidif=zcup
                        zfdif=zcdown
                       endif
-                      angaz=angazi
-                      call transmitm(angzen,angaz,iun,iun,zidif,ideux,         ! Molecular transmittance of the scattering cell.
+                      anaz=angazi
+                      call transmitm(angzen,anaz,iun,iun,zidif,ideux,         ! Molecular transmittance of the scattering cell.
      +                iun,zfdif,lambda,dx,dy,pressi,tran1m)
-                      call transmita(angzen,angaz,iun,iun,zidif,ideux,         ! Aerosol transmittance of the scattering cell.
+                      call transmita(angzen,anaz,iun,iun,zidif,ideux,         ! Aerosol transmittance of the scattering cell.
      +                iun,zfdif,dx,dy,taua,tran1a)    
                       call angle3points (x_dif,y_dif,z_dif,x_c,y_c,       ! scattering angle.
      +                z_c,x_obs,y_obs,z_obs,dx,dy,angdif)
@@ -1628,10 +1628,10 @@ c                                                                         ! end 
 c=======================================================================
 c        computation of the transmittance between the target and the observer
 c=======================================================================
-           angaz=zero
-           call transmitm(angzen,angaz,x_c,y_c,z_c,x_obs,y_obs,z_obs,
+           anaz=zero
+           call transmitm(angzen,anaz,x_c,y_c,z_c,x_obs,y_obs,z_obs,
      +     lambda,dx,dy,pressi,transm)
-           call transmita(angzen,angaz,x_c,y_c,z_c,x_obs,y_obs,z_obs,
+           call transmita(angzen,anaz,x_c,y_c,z_c,x_obs,y_obs,z_obs,
      +     dx,dy,taua,transa)
 c=======================================================================
 c     computation of the Solid angle of the par the target vu par the observateur

@@ -79,7 +79,7 @@ c
       real rcloud                                                         ! cloud relfecicloudtance 
       real azencl                                                         ! zenith angle from cloud to observer
       real icloud                                                         ! cloud reflected intensity
-      real zero,angaz
+      real zero,anaz
 
 
       data cell_t /0.5,0.6,0.72,0.86,1.04,1.26,1.52,1.84,2.22,            ! Epaisseur des niveaux
@@ -141,11 +141,11 @@ c obstacle sous maille
 c=======================================================================
 c        Calcul de la transmittance entre la surface reflechissane et la cellule diffusante
 c=======================================================================
-            angaz=zero
-            call transmitm(angzen,angaz,x_sr,y_sr,z_sr,x_dif,y_dif,
+            anaz=zero
+            call transmitm(angzen,anaz,x_sr,y_sr,z_sr,x_dif,y_dif,
      +      z_dif,lambda,dx,dy,pressi,transm)
 c MA j'ai verifie que transm est > 0 et <=1
-            call transmita(angzen,angaz,x_sr,y_sr,z_sr,x_dif,y_dif,
+            call transmita(angzen,anaz,x_sr,y_sr,z_sr,x_dif,y_dif,
      +      z_dif,dx,dy,taua,transa) 
 c MA j'ai verifie que transa est > 0 et <=1
 c=======================================================================
@@ -224,10 +224,10 @@ c=======================================================================
              zidif=z_c+0.5*cell_t(zcell_dif)
              zfdif=z_c-0.5*cell_t(zcell_dif)
             endif 
-            angaz=angazi
-            call transmitm(angzen,angaz,iun,iun,zidif,ideux,iun,zfdif,         ! Transmittance moleculaire a l'interieur de la cellule diffusante
+            anaz=angazi
+            call transmitm(angzen,anaz,iun,iun,zidif,ideux,iun,zfdif,         ! Transmittance moleculaire a l'interieur de la cellule diffusante
      +      lambda,dx,dy,pressi,tran1m)
-            call transmita(angzen,angaz,iun,iun,zidif,ideux,iun,zfdif,         ! Transmittance aerosols a l'interieur de la cellule diffusante
+            call transmita(angzen,anaz,iun,iun,zidif,ideux,iun,zfdif,         ! Transmittance aerosols a l'interieur de la cellule diffusante
      +      dx,dy,taua,tran1a)
             call angle3points(x_sr,y_sr,z_sr,x_dif,y_dif,z_dif,x_c,       ! Angle de diffusion
      +      y_c,z_c,dx,dy,angdif)
@@ -270,10 +270,10 @@ c obstacle sous maille
 c=======================================================================
 c        Calcul de la transmittance entre la cellule diffusante et la cellule cible
 c=======================================================================
-            angaz=zero
-            call transmitm(angzen,angaz,x_dif,y_dif,z_dif,x_c,y_c,z_c,
+            anaz=zero
+            call transmitm(angzen,anaz,x_dif,y_dif,z_dif,x_c,y_c,z_c,
      +      lambda,dx,dy,pressi,transm)
-            call transmita(angzen,angaz,x_dif,y_dif,z_dif,x_c,y_c,z_c,
+            call transmita(angzen,anaz,x_dif,y_dif,z_dif,x_c,y_c,z_c,
      +      dx,dy,taua,transa) 
 c=======================================================================
 c     Calcul de l'angle solide couvert par la cellule cible vue de la cellule diffusante
@@ -357,10 +357,10 @@ c=======================================================================
              zidif=zcup
              zfdif=zcdown
             endif 
-            angaz=angazi
-            call transmitm(angzen,angaz,iun,iun,zidif,ideux,iun,zfdif,         ! Transmittance moleculaire a l'interieur de la cellule diffusante
+            anaz=angazi
+            call transmitm(angzen,anaz,iun,iun,zidif,ideux,iun,zfdif,         ! Transmittance moleculaire a l'interieur de la cellule diffusante
      +      lambda,dx,dy,pressi,tran1m)
-            call transmita(angzen,angaz,iun,iun,zidif,ideux,iun,zfdif,         ! Transmittance aerosols a l'interieur de la cellule diffusante
+            call transmita(angzen,anaz,iun,iun,zidif,ideux,iun,zfdif,         ! Transmittance aerosols a l'interieur de la cellule diffusante
      +      dx,dy,taua,tran1a)    
             call angle3points (x_dif,y_dif,z_dif,x_c,y_c,z_c,x_obs,       ! Angle de diffusion
      +      y_obs,z_obs,dx,dy,angdif)

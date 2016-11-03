@@ -33,13 +33,13 @@ c
 c    Contact: martin.aube@cegepsherbrooke.qc.ca
 c
 c
-      subroutine transmitm(angle,azim,x_i,y_i,z_i,x_f,y_f,z_f,
+      subroutine transmitm(angle,anaz,x_i,y_i,z_i,x_f,y_f,z_f,
      + lambda,dx,dy,pressi,transm)
       real angle,deltam,e,pressi,transm,lambda                            ! Declaration des variables.
       real lamdm,dist1,dist2,dist1m,dist2m
       real mprime,z_i,z_f,dx,dy,dist,pi
       integer x_i,y_i,x_f,y_f,k
-      real cell_h(50),cell_t(50),azim    
+      real cell_h(50),cell_t(50),anaz    
       integer zinf,zsup
       data cell_t /0.5,0.6,0.72,0.86,1.04,1.26,1.52,1.84,2.22,            ! Epaisseur des niveaux.
      a 2.68,3.24,3.92,4.74,5.72,6.9,8.34,10.08,12.18,14.72,17.78,21.48,
@@ -83,18 +83,22 @@ c
          if (dist.lt.dx) dist=dx       
          if (abs(angle-pi/2.).lt.abs(atan(cell_t(zsup)/dist)))            ! angle under which the cell is crossed horizontally
      +   then 
-            azim=abs(azim-real(nint(azim/pi/2.))*pi/2.)                   ! angle equivalent de projection sur l'axe x premier quadrant, nécessaire car on calcule toujours la transmittance avec deux cellules voisines sur l'axe des x
-
-
-
-
+            anaz=abs(anaz-real(nint(anaz/(pi/2.)))*(pi/2.))                   ! angle equivalent de projection sur l'axe x premier quadrant, nécessaire car on calcule toujours la transmittance avec deux cellules voisines sur l'axe des x
             deltam=(exp(-1.*cell_h(zsup)/8000.)*dist)/8000./
-     +      sin(angle)/abs(cos(azim))
+     +      sin(angle)/abs(cos(anaz))
+            deltam=(((exp(-1.*cell_h(zsup)/8000.)*dist)/8000.)/
+     +      sin(angle))/abs(cos(anaz))
              if (sin(angle).eq.0.) then
                print*,'ERREUR sin(angle)=0 (1a), angle=',angle
                print*,x_i,y_i,z_i,zinf,x_f,y_f,z_f,zsup
                stop
-             endif   
+             endif 
+             if (cos(anaz).eq.0.) then
+               print*,'ERREUR cos(anaz)=0 (1a), anaz=',anaz
+               print*,x_i,y_i,z_i,zinf,x_f,y_f,z_f,zsup
+               stop
+             endif 
+  
           else                                                            ! usual case where the cell is crossed vertically 
             if (angle.ge.pi)  angle=pi               
             deltam=abs((((exp(-1.*z_i/8000.))-(exp(-1.*z_f/8000.))))/
@@ -105,7 +109,7 @@ c
               endif
          endif
       mprime=deltam*(pressi/101.3)
-c  transmittance tiree de Kneizys et al. (1980)       
+c  transmittance tiree de Kneizys et al. (1980)   
       transm=exp(-1.*mprime/((lamdm**4.)*
      a (115.6406-(1.335/(lamdm**2.)))))
       if ((transm.lt.0.).or.(transm.gt.1.)) then

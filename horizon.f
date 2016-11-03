@@ -32,13 +32,13 @@ c
       integer bx1,bx2,by1,by2
       real dx,dy,pi,angazi,angzen,alt_sol(1024,1024)
       real zen_horiz(360),z_c,d2,d2p,altitu
-      real latitu,corcur,a,b,rterre,anga
-      parameter (pi=3.1415926)   
-      latitu=latitu*pi/180.
+      real latitu,corcur,a,b,rterre,anga,lat
+      pi=3.1415926   
+      lat=latitu*pi/180.
       corcur=0.
       a=6378137.0                                                       ! earth equatorial radius
       b=6356752.3                                                       ! earth polar radius
-      rterre=a**2.*b**2./((a*cos(latitu))**2.+(b*sin(latitu))**2.)
+      rterre=a**2.*b**2./((a*cos(lat))**2.+(b*sin(lat))**2.)
      + **(1.5)
 c      print*,'===',x_c,y_c,z_c,d2,'==='
       do jj=1,360
