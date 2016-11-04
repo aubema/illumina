@@ -636,8 +636,8 @@ c=======================================================================
            do stype=1,ntype                                               ! beginning of the loop over the source types.
             if (totlu(stype).ne.0.) then                                  ! check if there are any flux in that source type
                                                                           ! otherwise skip this lamp
-            print*,' Turning on lamp',stype
-            write(2,*) ' Turning on lamp',stype
+            print*,' Turning on zone',stype
+            write(2,*) ' Turning on zone',stype
             itotty=0.                                                     ! Initialisation of the contribution of a source types to 
 c                                                                         ! the intensity toward the sensor by a target cell.
             do x_s=1,nbx
