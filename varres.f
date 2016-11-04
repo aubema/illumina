@@ -158,18 +158,12 @@ c creating the reflectance file weighted by the lumlp
             if (lum.ne.0.) then
                rho=rho/lum
             else
-               rho=0.
-
-
-
-
-
+               rho=refle(k,l)
             endif
-                 if (rho.gt.rhomax) rhomax=rho
+            if (rho.gt.rhomax) rhomax=rho
             do k=xi,xf
               do l=yi,yf
                  reflo(k,l)=rho
-
               enddo
             enddo
           enddo
