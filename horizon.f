@@ -36,8 +36,8 @@ c
       pi=3.1415926   
       lat=latitu*pi/180.
       corcur=0.
-      a=6378137.0                                                       ! earth equatorial radius
-      b=6356752.3                                                       ! earth polar radius
+      a=6378137.0                                                         ! earth equatorial radius
+      b=6356752.3                                                         ! earth polar radius
       rterre=a**2.*b**2./((a*cos(lat))**2.+(b*sin(lat))**2.)
      + **(1.5)
 c      print*,'===',x_c,y_c,z_c,d2,'==='
@@ -105,7 +105,7 @@ c            if (angzen.lt.zen_horiz(az)) then
           n=azin
           do nn=1,2*daz+1
            if (angzen.lt.zen_horiz(n)) then              
-            zen_horiz(n)=angzen                                          ! horizon est l'angle azmutal maximal en rad
+            zen_horiz(n)=angzen                                           ! horizon est l'angle azmutal maximal en rad
            endif
            n=n+1
            if (n.gt.360) n=1

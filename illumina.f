@@ -236,10 +236,12 @@ c                                                                         ! a li
       data cloudh /44,44,40,33,33/                                        ! 9300.,9300.,4000.,1200.,1100.
       verbose=0
       zero=0.
+      print*,'Starting ILLUMINA computations...'
 c  
 c=======================================================================
 c        reading of the fichier d'entree (illumina.in)
 c=======================================================================
+      print*,'Reading illumina.in input file'
       open(unit=1,file='illumina.in',status='old')
        read(1,*)
        read(1,*) basenm
@@ -269,13 +271,11 @@ c=======================================================================
        read(1,*)
        read(1,*) cloudt  
        read(1,*) dminlp 
-
-         print*,'Minimum distance to the source=',dminlp
-
       close(1)
 c
 c computing the actual AOD at the wavelength lambda
 c      
+       print*,'500nm AOD=',taua,'500nm angstrom coeff.=',alpha
        taua=taua*(lambda/500.)**(-1.*alpha)
 c
 c  determine the Length of basenm
@@ -315,9 +315,9 @@ c  opening output file
        write(2,*) 'Observer position (x,y,z)',x_obs,y_obs,zcello
        print*,'Observer position (x,y,z)',x_obs,y_obs,zcello
        write(2,*) 'Elevation angle:',angvis,' azim angle (clockwise fro
-     + m north)',azim     
+     +m north)',azim     
        print*,'Elevation angle:',angvis,' azim angle (counterclockwise f
-     + rom east)',azim 
+     +rom east)',azim 
 c=======================================================================
 c        Initialisation of the arrays and variables
 c=======================================================================
@@ -823,9 +823,9 @@ c                                                                         ! scat
                    zfdif=zcdown
                   endif
                   anaz=angazi
-                  call transmitm (angzen,anaz,iun,iun,zidif,ideux,iun,         ! Transmittance moleculaire of the scattering cell.
+                  call transmitm (angzen,anaz,iun,iun,zidif,ideux,iun,    ! Transmittance moleculaire of the scattering cell.
      +            zfdif,lambda,dx,dy,pressi,tran1m)
-                  call transmita (angzen,anaz,iun,iun,zidif,ideux,iun,         ! Transmittance aerosols of the scattering cell.
+                  call transmita (angzen,anaz,iun,iun,zidif,ideux,iun,    ! Transmittance aerosols of the scattering cell.
      +            zfdif,dx,dy,taua,tran1a)
                   call angle3points (x_s,y_s,z_s,x_c,y_c,z_c,x_obs,       ! scattering angle.
      +            y_obs,z_obs,dx,dy,angdif)
@@ -1159,9 +1159,9 @@ c                                                                         ! scat
                          zfdif=zcdown
                         endif 
                         anaz=angazi       
-                        call transmitm(angzen,anaz,iun,iun,zidif,        ! Transmittance moleculaire of the scattering cell.
+                        call transmitm(angzen,anaz,iun,iun,zidif,         ! Transmittance moleculaire of the scattering cell.
      +                  ideux,iun,zfdif,lambda,dx,dy,pressi,tran1m)
-                        call transmita(angzen,anaz,iun,iun,zidif,        ! Transmittance aerosols of the scattering cell.
+                        call transmita(angzen,anaz,iun,iun,zidif,         ! Transmittance aerosols of the scattering cell.
      +                  ideux,iun,zfdif,dx,dy,taua,tran1a)
                         call angle3points (x_sr,y_sr,z_sr,x_c,y_c,z_c,    ! scattering angle.
      +                  x_obs,y_obs,z_obs,dx,dy,angdif)
@@ -1377,9 +1377,9 @@ c                                                                         ! scat
                       zfdif=z_c-0.5*cthick(zceldi)
                      endif
                      anaz=angazi       
-                     call transmitm(angzen,anaz,iun,iun,zidif,ideux,          ! Molecular transmittance of the scattering cell.
+                     call transmitm(angzen,anaz,iun,iun,zidif,ideux,      ! Molecular transmittance of the scattering cell.
      +               iun,zfdif,lambda,dx,dy,pressi,tran1m)
-                     call transmita(angzen,anaz,iun,iun,zidif,ideux,          ! Aerosol transmittance of the scattering cell.
+                     call transmita(angzen,anaz,iun,iun,zidif,ideux,      ! Aerosol transmittance of the scattering cell.
      +               iun,zfdif,dx,dy,taua,tran1a)
                      call angle3points (x_s,y_s,z_s,x_dif,y_dif,z_dif,    ! scattering angle.
      +               x_c,y_c,z_c,dx,dy,angdif)

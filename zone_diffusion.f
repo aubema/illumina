@@ -34,7 +34,7 @@ c
        integer zondif(3000000,4)
        real x1,y1,z1,x2,y2,z2,x0,y0,z0,alt_sol(1024,1024)
        real dx,dy,effet,dmin,aire,a,b,c,s,delta,d,deltmx
-       real cell_h(50) 
+       real cell_h(50),d2 
       data cell_h /0.25,0.8,1.46,2.25,3.2,4.35,5.74,7.42,9.45,            ! Hauteur du centre de chaque niveau
      a 11.9,14.86,18.44,22.77,28.,34.31,41.93,51.14,62.27,75.72,91.97,
      b 111.6,135.31,163.95,198.55,240.35,290.85,351.86,425.56,514.59,
@@ -85,33 +85,35 @@ c
           y0=real(j)*dy
           z0=cell_h(k)
           if (z0.gt.alt_sol(i,j)) then
-           a=sqrt((x1-x0)**2.+(y1-y0)**2.+(z1-z0)**2.)                     ! voir http://mathworld.wolfram.com/Point-LineDistance3-Dimensional.html
-           b=sqrt((x1-x2)**2.+(y1-y2)**2.+(z1-z2)**2.)                     ! et http://mathworld.wolfram.com/TriangleArea.html
+           a=sqrt((x1-x0)**2.+(y1-y0)**2.+(z1-z0)**2.)                    ! voir http://mathworld.wolfram.com/Point-LineDistance3-Dimensional.html
+           b=sqrt((x1-x2)**2.+(y1-y2)**2.+(z1-z2)**2.)                    ! et http://mathworld.wolfram.com/TriangleArea.html
            c=sqrt((x2-x0)**2.+(y2-y0)**2.+(z2-z0)**2.)
            delta=abs(a-c)
            s=(a+b+c)/2.
-           aire=sqrt(s*(s-a)*(s-b)*(s-c))
-           dmin=2.*aire/b                                                  ! dmin entre la droite definie par les points 1 et 2 et le point 0
-           if ((a.gt.c)) then                                              ! Cas ou le dmin pointe hors du segment 1-2 
-            d=sqrt(b**2.+a**2.)                                           ! alors l'un des angles touchant b est superieur a 90deg dans ce cas
-            deltmx=abs(a-d)
-            if (delta.gt.deltmx) dmin=c                                 ! on prendra le plus petit cote entre c et a
-           else 
-            d=sqrt(b**2.+c**2.)
-            deltmx=abs(c-d)
-            if (delta.gt.deltmx) dmin=a                                           
-           endif                                                             
-           if (dmin.le.effet) then      
-            ncell=ncell+1
-            if (ncell.gt.3000000) then
-             effet=effet*0.9
-             print*,'Reducing 2nd order scat radius:',effet
-             goto 10
-            endif
-            zondif(ncell,1)=i                                   
-            zondif(ncell,2)=j 
-            zondif(ncell,3)=k
-c           print*,i,j,k
+           d2=s*(s-a)*(s-b)*(s-c)
+           if (d2.ge.0.) then
+             aire=sqrt(d2)
+             dmin=2.*aire/b                                               ! dmin entre la droite definie par les points 1 et 2 et le point 0
+             if ((a.gt.c)) then                                           ! Cas ou le dmin pointe hors du segment 1-2 
+               d=sqrt(b**2.+a**2.)                                        ! alors l'un des angles touchant b est superieur a 90deg dans ce cas
+               deltmx=abs(a-d)
+               if (delta.gt.deltmx) dmin=c                                ! on prendra le plus petit cote entre c et a
+             else 
+               d=sqrt(b**2.+c**2.)
+               deltmx=abs(c-d)
+               if (delta.gt.deltmx) dmin=a                                           
+             endif                                                             
+             if (dmin.le.effet) then      
+               ncell=ncell+1
+               if (ncell.gt.3000000) then
+                 effet=effet*0.9
+                 print*,'Reducing 2nd order scat radius:',effet
+                 goto 10
+               endif
+               zondif(ncell,1)=i                                   
+               zondif(ncell,2)=j 
+               zondif(ncell,3)=k
+             endif
            endif
           endif                                                           ! fin condition au-dessus du sol
          enddo
