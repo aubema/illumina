@@ -302,6 +302,7 @@ echo "Starting from "$folder
                                       ln -s $folder"/"$exp_name"_altlp.pgm" "./"$exp_name"_altlp.pgm"
                                       ln -s $folder"/"$exp_name"_obsth.pgm" "./"$exp_name"_obsth.pgm"
                                       ln -s $folder"/"$exp_name"_obstd.pgm" "./"$exp_name"_obstd.pgm"
+                                      ln -s $folder"/"$exp_name"_obstf.pgm" "./"$exp_name"_obstf.pgm"
                                       ln -s $griddir/"x"${x_sites[$ns]}"y"${y_sites[$ns]}/"wl"${wav[$wl]}/* .
 # copie des autres fichiers d intrants
                                       ln -s $folder/$mna_file "./"$exp_name"_topogra.pgm"
