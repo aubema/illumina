@@ -35,6 +35,7 @@ c ndb is the number of spectral bands
       real dist,spct(nwa,nag),zone(wid,wid)
       real dnb(wid,wid),sumwav,Phi_c(wid,wid),wavel(nwa),viirs_sens(nwa)
       real thetas(nag),obsth(wid,wid),obstd(wid,wid),lamph(wid,wid)
+      real obstf(wid,wid),fobst(nzo)
 c     obsth=obstacle height, obstd=mean free path to the ground, 
 c     lamph=lamp height above the ground
       character*72 Gn(nzo),zonfile,viirs_resp,bands_file,fctfile
@@ -156,7 +157,8 @@ c ==============
 c debut boucle sur les zones
 c
         do n=1,nzon
-          read(11,*) x(n),y(n),r(n),Gn(n),hobst(n),dobst(n),hlamp(n)
+          read(11,*) x(n),y(n),r(n),Gn(n),hobst(n),dobst(n),fobst(n),
+     +    hlamp(n)
 c       loop over the modelling domain
             do i=1,nbx
               do j=1,nby
@@ -168,6 +170,8 @@ c       defining the mean obstacle height for each pixel
                    obsth(i,j)=hobst(n)
 c       defining the mean free path to the ground for each pixel
                    obstd(i,j)=dobst(n)
+c       defining obstacle filling factor for each pixel
+                   obstf(i,j)=fobst(n)
 c       defining the lamp height for each pixel
                    lamph(i,j)=hlamp(n)
                 endif
@@ -362,9 +366,23 @@ c     writing obtacle mean free path pgm file
                 endif
               enddo
             enddo
-            nom='MeanFreePath'
             gain = maxim/real(valmax)
             call extrants2d (outfile,obstd,nom,xcell0,ycell0,pixsiz,
+     +      gain,offset,nbx,nby,valmax)
+c     writing obtacle filling factor pgm file
+            print*,'Writing obtacle filling factor pgm file...'
+            outfile=basename(1:lenbase)//'_obstf.pgm'
+            nom='obstacleF'
+            maxim=0.
+            do i=1,nbx
+              do j=1,nby
+                if (maxim.lt.obstf(i,j)) then
+                  maxim = obstf(i,j)
+                endif
+              enddo
+            enddo
+            gain = maxim/real(valmax)
+            call extrants2d (outfile,obstf,nom,xcell0,ycell0,pixsiz,
      +      gain,offset,nbx,nby,valmax)
 c     writing zone definition pgm file
             print*,'Writing zone definition pgm file...'
