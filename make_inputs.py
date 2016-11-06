@@ -32,12 +32,12 @@ spct = { os.path.basename(s).split('_',1)[0]:load_spct(wav,norm_spectrum,s) for 
 
 # lamps distribution
 inv_name = raw_input("    LOP inventory filename : ")
-zonData = parse_inventory(inv_name,6)
+zonData = parse_inventory(inv_name,7)
 
 # make zon file
 with open(inv_name) as f:
 	zonfile = strip_comments(f.readlines())
-zonfile = map(lambda s: s.split()[:6], zonfile)
+zonfile = map(lambda s: s.split()[:7], zonfile)
 
 print "Calculating the generalized lamps..."
 
