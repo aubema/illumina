@@ -29,7 +29,7 @@ spct_files = glob("Lights/*.spct")
 spct = { os.path.basename(s).split('_',1)[0]:load_spct(wav,norm_spectrum,s) for s in spct_files }
 
 zonData = parse_inventory(inv_path)
-oldZonData = parse_inventory(old_invp,6)
+oldZonData = parse_inventory(old_invp,7)
 
 print "\nCalculating the generalized lamps..."
 
