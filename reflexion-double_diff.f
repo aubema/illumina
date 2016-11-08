@@ -236,8 +236,6 @@ c=======================================================================
      +      y_c,z_c,dx,dy,angdif)
             call diffusion(omega,angdif,tran1a,tran1m,secdif,             ! Probabilite de diffusion de la lumiere directe      
      +      fdifan,pdif_dif1)
-            if ((pdif_dif1.lt.0.).or.(pdif_dif1.gt.1.)) 
-     +      print*,'pdif_DIF1=',pdif_dif1
             if (flux_dif1.lt.0.) print*,'FLUX_DIF1=',flux_dif1,
      +      irefl,projap,omega,transm,transa
 c=======================================================================
