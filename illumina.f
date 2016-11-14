@@ -525,7 +525,7 @@ c    reading subgrid obstacles average distance
         call intrants2d(odfile,val2d,xcell0,ycell0,pixsiz,nbx,nby)
         do i=1,nbx                                                        ! beginning of the loop over all cells along x.
          do j=1,nby                                                       ! beginning of the loop over all cells along y.
-          drefle(i,j)=val2d(i,j)                                          ! Filling of the array
+          drefle(i,j)=val2d(i,j)/2.                                       ! Filling of the array
           if (drefle(i,j).eq.0.) drefle(i,j)=10000000.                    ! when outside a zone, block to the theoritical horizon
          enddo                                                            ! end of the loop over all cells along y.
         enddo 
