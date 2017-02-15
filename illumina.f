@@ -186,7 +186,7 @@ c                                                                         ! Usef
       real nbang                                                          ! for the averaging of the photometric function
       real obsH(width,width),angmin                                       ! averaged height of the sub-grid obstacles, minimum angle under wich 
 c                                                                         ! a light ray cannot propagate because it is blocked by a sub-grid obstable
-      real ofill(width,width)                                             ! fill factor giving the probability to hit an obstacle when pointing in its direction
+      integer ofill(width,width)                                          ! fill factor giving the probability to hit an obstacle when pointing in its direction integer 0-100
       integer naz,na 
       real ITT(width,width,120)                                           ! total intensity per type of lamp
       real ITC(width,width)                                               ! total intensity per target voxel
@@ -222,7 +222,7 @@ c                                                                         ! a li
       real stoplim                                                        ! Stop computation when the new voxel contribution is less than 1/stoplim of the cumulated flux
       real zero
       real anaz
-      real monte                                                          ! random number between 0 and 1
+      real monte                                                          ! pseudo random number between 0 and 100
       data cthick /0.5,0.6,0.72,0.86,1.04,1.26,1.52,1.84,2.22,            ! thickness of the levels.
      a 2.68,3.24,3.92,4.74,5.72,6.9,8.34,10.08,12.18,14.72,17.78,21.48,
      b 25.94,31.34,37.86,45.74,55.26,66.76,80.64,97.42,117.68,142.16,
@@ -534,7 +534,7 @@ c    reading subgrid obstacles filling factor
         call intrants2d(offile,val2d,xcell0,ycell0,pixsiz,nbx,nby)
         do i=1,nbx                                                        ! beginning of the loop over all cells along x.
          do j=1,nby                                                       ! beginning of the loop over all cells along y.
-          ofill(i,j)=val2d(i,j)                                           ! Filling of the array
+          ofill(i,j)=nint(100.*val2d(i,j))                                ! Filling of the array 0-100
          enddo                                                            ! end of the loop over all cells along y.
         enddo 
    
@@ -699,8 +699,8 @@ c                                                                         ! begi
 c sub-grid obstacles             
                  angmin=pi/2.-atan((altsol(x_s,y_s)+obsH(x_s,y_s)
      +           -z_s)/drefle(x_s,y_s))
-                 monte=rand()
-
+                 monte=monte+1
+                 if (monte.gt.100) monte=0
                  if ((monte.gt.ofill(x_s,y_s)).or.(angzen.lt.angmin))     ! beginning condition sub-grid obstacles direct.
      +           then
 c
@@ -985,8 +985,8 @@ c=======================================================================
      +                 zcellc,dx,dy,effdif,nbx,nby,stepdi,
      +                 irefl1,lambda,pressi,taua,zcup,
      +                 zcdown,secdif,fdifan,x_obs,y_obs,z_obs,
-     +                 epsilx,epsily,irefdi,drefle,obsH,ofill,altsol,
-     +                 latitu,cloudt,cloudh,icloud,stype)
+     +                 epsilx,epsily,irefdi,drefle,obsH,ofill,monte,
+     +                 altsol,latitu,cloudt,cloudh,icloud,stype)
                       endif
                       itotrd=itotrd+irefdi      
 c
@@ -1029,7 +1029,8 @@ c
 c obstacle                 
                        angmin=pi/2.-atan(obsH(x_sr,y_sr)/
      +                 drefle(x_sr,y_sr))
-                       monte=rand()
+                       monte=monte+1
+                       if (monte.gt.100) monte=0
                        if ((monte.gt.ofill(x_sr,y_sr)).or.
      +                 (angzen.lt.angmin)) then                           ! beginning condition obstacle reflected.
 c
@@ -1224,8 +1225,8 @@ c
 c sub-grid obstacles               
                     angmin=pi/2.-atan((obsH(x_s,y_s)+
      +              altsol(x_s,y_s)-z_s)/drefle(x_s,y_s))
-                    monte=rand()
-
+                    monte=monte+1
+                    if (monte.gt.100) monte=0
                     if ((monte.gt.ofill(x_s,y_s)).or.
      +              (angzen.lt.angmin))then                               ! beginning condition obstacle source->diffuse.
 c                                                                    
@@ -1396,7 +1397,8 @@ c
 c subgrid obstacles                
                      angmin=pi/2.-atan((obsH(x_dif,y_dif)+
      +               altsol(x_dif,y_dif)-z_dif)/drefle(x_dif,y_dif))
-                     monte=rand()
+                     monte=monte+1
+                     if (monte.gt.100) monte=0
                      if ((monte.gt.ofill(x_dif,y_dif)).or.
      +               (angzen.lt.angmin)) then                             ! beginning shadow condition sub-grid obstacles diffuse->target
 c                                                                   

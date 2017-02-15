@@ -28,7 +28,7 @@ c
      +       dx,dy,effdif,nbx,nby,stpdif,irefl,lambda
      +       ,pressi,taua,zcup,zcdown,secdif,fdifan,
      +       x_obs,y_obs,z_obs,epsilx,epsily,
-     +       irefdi,drefl,hobst,ofill,
+     +       irefdi,drefl,hobst,ofill,monte,
      +       alt_sol,latitu,cloudt,cloudh,icloud,stype)
 c
 c   declarations de variables
@@ -70,7 +70,7 @@ c
       real z_obs
       real epsilx,epsily                                                  ! inclinaison de la surface reflechissante
       real angmin,hobst(width,width),drefl(width,width)
-      real ofill(width,width)
+      integer ofill(width,width)
       parameter (pi=3.1415926)
       real zenhor(360),d2,angazi                                          ! angle zenithal de l'horizon,distance horizon, angle azimut
       integer az
@@ -81,7 +81,7 @@ c
       real azencl                                                         ! zenith angle from cloud to observer
       real icloud                                                         ! cloud reflected intensity
       real zero,anaz
-      real monte                                                          ! random number between 0 and 1
+      integer monte                                                       ! pseudo random number between 0 and 100
 
       data cell_t /0.5,0.6,0.72,0.86,1.04,1.26,1.52,1.84,2.22,            ! Epaisseur des niveaux
      a 2.68,3.24,3.92,4.74,5.72,6.9,8.34,10.08,12.18,14.72,17.78,21.48,
@@ -138,7 +138,8 @@ c MA j'ai verifie que angzen ne depasse  jamais pi ou jamais moins que 0
 c obstacle sous maille
            angmin=pi/2.-atan(hobst(x_sr,y_sr)/
      +     drefl(x_sr,y_sr))
-           monte=rand()
+           monte=monte+1
+           if (monte.gt.100) monte=0
            if ((monte.gt.ofill(x_sr,y_sr)).or.
      +     (angzen.lt.angmin)) then                                       ! debut condition obstacle reflechi->diffuse               
 c=======================================================================
@@ -266,7 +267,8 @@ c ombrage s_reflechissante-diffusante
 c obstacle sous maille
             angmin=pi/2.-atan((hobst(x_dif,y_dif)+
      +      alt_sol(x_dif,y_dif)-z_dif)/drefl(x_dif,y_dif))
-            monte=rand()
+            monte=monte+1
+            if (monte.gt.100) monte=0
             if ((monte.gt.ofill(x_dif,y_dif)).or.
      +      (angzen.lt.angmin)) then                                      ! debut condition obstacle sous maille diffuse->cible
                                                                           ! Fin du cas "observateur a la meme latitu/longitude que la source"
