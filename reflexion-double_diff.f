@@ -140,7 +140,7 @@ c obstacle sous maille
      +     drefl(x_sr,y_sr))
            monte=monte+1
            if (monte.gt.100) monte=0
-           if ((monte.gt.ofill(x_sr,y_sr)).or.
+           if (((monte.gt.ofill(x_sr,y_sr)).and.(angzen.ge.angmin)).or.
      +     (angzen.lt.angmin)) then                                       ! debut condition obstacle reflechi->diffuse               
 c=======================================================================
 c        Calcul de la transmittance entre la surface reflechissane et la cellule diffusante
@@ -269,8 +269,8 @@ c obstacle sous maille
      +      alt_sol(x_dif,y_dif)-z_dif)/drefl(x_dif,y_dif))
             monte=monte+1
             if (monte.gt.100) monte=0
-            if ((monte.gt.ofill(x_dif,y_dif)).or.
-     +      (angzen.lt.angmin)) then                                      ! debut condition obstacle sous maille diffuse->cible
+            if (((monte.gt.ofill(x_dif,y_dif)).and.(angzen.ge.angmin))
+     +      .or.(angzen.lt.angmin)) then                                  ! debut condition obstacle sous maille diffuse->cible
                                                                           ! Fin du cas "observateur a la meme latitu/longitude que la source"
 c=======================================================================
 c        Calcul de la transmittance entre la cellule diffusante et la cellule cible

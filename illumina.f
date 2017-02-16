@@ -701,8 +701,8 @@ c sub-grid obstacles
      +           -z_s)/drefle(x_s,y_s))
                  monte=monte+1
                  if (monte.gt.100) monte=0
-                 if ((monte.gt.ofill(x_s,y_s)).or.(angzen.lt.angmin))     ! beginning condition sub-grid obstacles direct.
-     +           then
+                 if (((monte.gt.ofill(x_s,y_s)).and.(angzen.ge.angmin))     ! beginning condition sub-grid obstacles direct.
+     +           .or.(angzen.lt.angmin)) then
 c
 c=======================================================================
 c computation of the transmittance between the source and the target
@@ -1031,8 +1031,8 @@ c obstacle
      +                 drefle(x_sr,y_sr))
                        monte=monte+1
                        if (monte.gt.100) monte=0
-                       if ((monte.gt.ofill(x_sr,y_sr)).or.
-     +                 (angzen.lt.angmin)) then                           ! beginning condition obstacle reflected.
+                       if (((monte.gt.ofill(x_sr,y_sr)).and.(angzen.ge.
+     +                 angmin)).or.(angzen.lt.angmin)) then               ! beginning condition obstacle reflected.
 c
 c=======================================================================
 c        computation of the transmittance between the  ground surface and the target cell
@@ -1227,8 +1227,8 @@ c sub-grid obstacles
      +              altsol(x_s,y_s)-z_s)/drefle(x_s,y_s))
                     monte=monte+1
                     if (monte.gt.100) monte=0
-                    if ((monte.gt.ofill(x_s,y_s)).or.
-     +              (angzen.lt.angmin))then                               ! beginning condition obstacle source->diffuse.
+                    if (((monte.gt.ofill(x_s,y_s)).and.(angzen.ge.  
+     +              angmin)).or.(angzen.lt.angmin)) then                  ! beginning condition obstacle source->diffuse.
 c                                                                    
 c=======================================================================
 c        computation of the transmittance between the source and the scattering cell
@@ -1399,8 +1399,8 @@ c subgrid obstacles
      +               altsol(x_dif,y_dif)-z_dif)/drefle(x_dif,y_dif))
                      monte=monte+1
                      if (monte.gt.100) monte=0
-                     if ((monte.gt.ofill(x_dif,y_dif)).or.
-     +               (angzen.lt.angmin)) then                             ! beginning shadow condition sub-grid obstacles diffuse->target
+                     if (((monte.gt.ofill(x_dif,y_dif)).and.(angzen
+     +               .ge.angmin)).or.(angzen.lt.angmin)) then             ! beginning shadow condition sub-grid obstacles diffuse->target
 c                                                                   
 c=======================================================================
 c Computing transmittance between the scattering cell and the line of sight cell
