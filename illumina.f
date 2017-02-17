@@ -700,9 +700,9 @@ c                                                                         ! begi
 c sub-grid obstacles             
                  angmin=pi/2.-atan((altsol(x_s,y_s)+obsH(x_s,y_s)
      +           -z_s)/drefle(x_s,y_s))
-                 monte=monte+1
+                 monte=monte+19
 c                 monte=nint(rand()*100.
-                 if (monte.gt.100) monte=0
+                 if (monte.gt.100) monte=monte-100
                  if (((monte.gt.ofill(x_s,y_s)).and.(angzen.ge.angmin))     ! beginning condition sub-grid obstacles direct.
      +           .or.(angzen.lt.angmin)) then
 c
@@ -1031,9 +1031,9 @@ c
 c obstacle                 
                        angmin=pi/2.-atan(obsH(x_sr,y_sr)/
      +                 drefle(x_sr,y_sr))
-                       monte=monte+1
+                       monte=monte+19
 c                 monte=nint(rand()*100.)
-                       if (monte.gt.100) monte=0
+                       if (monte.gt.100) monte=monte-100
                        if (((monte.gt.ofill(x_sr,y_sr)).and.(angzen.ge.
      +                 angmin)).or.(angzen.lt.angmin)) then               ! beginning condition obstacle reflected.
 c
@@ -1228,9 +1228,9 @@ c
 c sub-grid obstacles               
                     angmin=pi/2.-atan((obsH(x_s,y_s)+
      +              altsol(x_s,y_s)-z_s)/drefle(x_s,y_s))
-                    monte=monte+1
+                    monte=monte+19
 c                 monte=nint(rand()*100.)
-                    if (monte.gt.100) monte=0
+                    if (monte.gt.100) monte=monte-100
                     if (((monte.gt.ofill(x_s,y_s)).and.(angzen.ge.  
      +              angmin)).or.(angzen.lt.angmin)) then                  ! beginning condition obstacle source->diffuse.
 c                                                                    
@@ -1401,9 +1401,9 @@ c
 c subgrid obstacles                
                      angmin=pi/2.-atan((obsH(x_dif,y_dif)+
      +               altsol(x_dif,y_dif)-z_dif)/drefle(x_dif,y_dif))
-                     monte=monte+1
+                     monte=monte+19
 c                 monte=nint(rand()*100.)
-                     if (monte.gt.100) monte=0
+                     if (monte.gt.100) monte=monte-100
                      if (((monte.gt.ofill(x_dif,y_dif)).and.(angzen
      +               .ge.angmin)).or.(angzen.lt.angmin)) then             ! beginning shadow condition sub-grid obstacles diffuse->target
 c                                                                   
