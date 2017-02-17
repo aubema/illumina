@@ -222,7 +222,7 @@ c                                                                         ! a li
       real stoplim                                                        ! Stop computation when the new voxel contribution is less than 1/stoplim of the cumulated flux
       real zero
       real anaz
-      real monte                                                          ! pseudo random number between 0 and 100
+      integer monte                                                       ! pseudo random number between 0 and 100
       data cthick /0.5,0.6,0.72,0.86,1.04,1.26,1.52,1.84,2.22,            ! thickness of the levels.
      a 2.68,3.24,3.92,4.74,5.72,6.9,8.34,10.08,12.18,14.72,17.78,21.48,
      b 25.94,31.34,37.86,45.74,55.26,66.76,80.64,97.42,117.68,142.16,
@@ -238,6 +238,7 @@ c                                                                         ! a li
       data cloudh /44,44,40,33,33/                                        ! 9300.,9300.,4000.,1200.,1100.
       verbose=0
       zero=0.
+      monte=0
       print*,'Starting ILLUMINA computations...'
 c  
 c=======================================================================
@@ -700,6 +701,7 @@ c sub-grid obstacles
                  angmin=pi/2.-atan((altsol(x_s,y_s)+obsH(x_s,y_s)
      +           -z_s)/drefle(x_s,y_s))
                  monte=monte+1
+c                 monte=nint(rand()*100.
                  if (monte.gt.100) monte=0
                  if (((monte.gt.ofill(x_s,y_s)).and.(angzen.ge.angmin))     ! beginning condition sub-grid obstacles direct.
      +           .or.(angzen.lt.angmin)) then
@@ -1030,6 +1032,7 @@ c obstacle
                        angmin=pi/2.-atan(obsH(x_sr,y_sr)/
      +                 drefle(x_sr,y_sr))
                        monte=monte+1
+c                 monte=nint(rand()*100.)
                        if (monte.gt.100) monte=0
                        if (((monte.gt.ofill(x_sr,y_sr)).and.(angzen.ge.
      +                 angmin)).or.(angzen.lt.angmin)) then               ! beginning condition obstacle reflected.
@@ -1226,6 +1229,7 @@ c sub-grid obstacles
                     angmin=pi/2.-atan((obsH(x_s,y_s)+
      +              altsol(x_s,y_s)-z_s)/drefle(x_s,y_s))
                     monte=monte+1
+c                 monte=nint(rand()*100.)
                     if (monte.gt.100) monte=0
                     if (((monte.gt.ofill(x_s,y_s)).and.(angzen.ge.  
      +              angmin)).or.(angzen.lt.angmin)) then                  ! beginning condition obstacle source->diffuse.
@@ -1398,6 +1402,7 @@ c subgrid obstacles
                      angmin=pi/2.-atan((obsH(x_dif,y_dif)+
      +               altsol(x_dif,y_dif)-z_dif)/drefle(x_dif,y_dif))
                      monte=monte+1
+c                 monte=nint(rand()*100.)
                      if (monte.gt.100) monte=0
                      if (((monte.gt.ofill(x_dif,y_dif)).and.(angzen
      +               .ge.angmin)).or.(angzen.lt.angmin)) then             ! beginning shadow condition sub-grid obstacles diffuse->target
