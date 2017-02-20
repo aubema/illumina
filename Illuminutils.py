@@ -136,6 +136,6 @@ if __name__ == "__main__":
     I.srtm("SRTM")
     I.viirs("VIIRS-DNB")
     for i in [1,2,3,4]:
-        I.modis("MYD09A1",i)
+        I.modis("MODIS",i)
 
 
