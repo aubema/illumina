@@ -37,7 +37,7 @@ c **    - Accounting for heterogeneity of ground reflectance, luminaires number,
 c **      angular photometry                                                                                          **
 c **    - Wavelength dependant                                                                                        **
 c **    - Clouds models                                                                                               **
-c **    - Ignore the flux scattered by the voxel occupied by the observer (cellobs=cellcible)                         **
+c **    - Ignore the flux scattered by the voxel occupied by the observer (voxelobs=voxelcible)                         **
 c **    - Do not support direct observation of a source                                                               ** 
 c **    - Direct observation of the ground not implemented                                                            **
 c **    - Not accounting for molecular absorption                                                                     **
@@ -82,8 +82,8 @@ c
       integer verbose                                                     ! verbose = 1 to have more print out, 0 for silent
       parameter (pi=3.1415926)
       parameter (pix4=4.*pi)
-      real cthick(50)                                                     ! Cell thickness array (meter)
-      real cellh(50)                                                      ! Cell height array (meter)
+      real cthick(50)                                                     ! voxel thickness array (meter)
+      real cellh(50)                                                      ! voxel height array (meter)
       real flcumu                                                         ! Accrued flux along the line of sight
       character*72 mnaf                                                   ! Terrain elevation file.
       character*72 reflf                                                  ! Reflectance file.
@@ -114,7 +114,7 @@ c
       real lampal(width,width)                                            ! Height of the light sources relative to the ground (meter).
       real pval(181,120),pvalto,pvalno(181,120)                           ! Values of the angular photometry functions (unnormalized, integral, normalized).
       real dtheta                                                         ! Angle increment of the photometric function of the sources 
-      real dx,dy,dxp,dyp,pixsiz                                           ! Width of the cell (meter)
+      real dx,dy,dxp,dyp,pixsiz                                           ! Width of the voxel (meter)
       integer boxx,boxy                                                   ! reflection window size (pixels).
       real fdifa(181),fdifan(181)                                         ! Aerosol scattering functions (unnormalized and normalized).
       real extinc,scatte,anglea(181)                                      ! Aerosol cross sections (extinction and scattering), scattering angle (degree).
@@ -123,19 +123,19 @@ c
       real incliy(width,width)                                            ! tilt of the ground pixel along y (radian).   
       integer x_obs,y_obs,zcello                                          ! Position of the observer (INTEGER).
       real z_obs                                                          ! Height of the observer (meter).
-      integer lcible(width,3)                                             ! Array for the target voxels along the line of sight.
-      integer ncible,icible                                               ! Number of target voxels, number loops over the voxels 
-      integer x_c,y_c,zcellc                                              ! Position of the target voxel (INTEGER).
-      real z_c                                                            ! Height of the target cell (metre).
-      real zcup,zcdown                                                    ! Lower and upper limits of the target voxel.    
-      integer dirck                                                       ! Test for the position of the source (case source=target voxel).     
+      integer lcible(width,3)                                             ! Array for the line of sight voxels along the line of sight.
+      integer ncible,icible                                               ! Number of line of sight voxels, number loops over the voxels 
+      integer x_c,y_c,zcellc                                              ! Position of the line of sight voxel (INTEGER).
+      real z_c                                                            ! Height of the line of sight voxel (metre).
+      real zcup,zcdown                                                    ! Lower and upper limits of the line of sight voxel.    
+      integer dirck                                                       ! Test for the position of the source (case source=line of sight voxel).     
       integer x_s,y_s,x_sr,y_sr,x_dif,y_dif,zceldi                        ! Positions of the source, the reflecting surface, and the scattering voxels 
-      real z_s,z_sr,z_dif                                                 ! Heights of the source, the reflecting surface, and the scattering cell (metre).
-      real angzen,ouvang                                                  ! Zenithal angle between two cells (radians) and opening angle of the solid angle in degrees.
+      real z_s,z_sr,z_dif                                                 ! Heights of the source, the reflecting surface, and the scattering voxel (metre).
+      real angzen,ouvang                                                  ! Zenithal angle between two voxels (radians) and opening angle of the solid angle in degrees.
       integer anglez                                                      ! Emitting zenithal angle from the luminaire.      
       real P_dir,P_indir,P_dif1                                           ! photometric function of the light sources (direct,indirect,scattered) 
-      real transa,transm                                                  ! Transmittance between two cells (aerosols,molecules).
-      real tran1a,tran1m                                                  ! Transmittance of the cell (aerosols,molecules).
+      real transa,transm                                                  ! Transmittance between two voxels (aerosols,molecules).
+      real tran1a,tran1m                                                  ! Transmittance of the voxel (aerosols,molecules).
       real taua                                                           ! Aerosol optical depth @ 500nm.
       real alpha                                                          ! Angstrom coefficient of aerosol AOD
       real*8 xc,yc,zc,xn,yn,zn                                            ! Position (meter) of the elements (starting point, final point) for the calculation of the solid angle.  
@@ -150,21 +150,21 @@ c
       real intdir                                                         ! Direct intensity toward the sensor from a scattering voxel.
       real intind                                                         ! Contribution of the reflecting cell to the reflected intensity toward the sensor.
       real itotind                                                        ! Total contribution of the source to the reflected intensity toward the sensor.
-      real idiff2                                                         ! Contribution of the scattering cell to the scattered intensity toward the sensor.
+      real idiff2                                                         ! Contribution of the scattering voxel to the scattered intensity toward the sensor.
       real itodif                                                         ! Total contribution of the source to the scattered intensity toward the sensor.
-      real isourc                                                         ! Total contribution of the source to the intensity from a target voxel toward the sensor.
-      real itotty                                                         ! Total contribution of a source type to the intensity coming from a target voxel toward the sensor.
-      real itotci                                                         ! total intensity from a target voxel toward the sensor.
+      real isourc                                                         ! Total contribution of the source to the intensity from a line of sight voxel toward the sensor.
+      real itotty                                                         ! Total contribution of a source type to the intensity coming from a line of sight voxel toward the sensor.
+      real itotci                                                         ! total intensity from a line of sight voxel toward the sensor.
       real itotrd                                                         ! total intensity a voxel toward the sensor after reflexion and double scattering.
       real irefdi                                                         ! intensity from a voxel toward the sensor after reflexion and double scattering. 
-      real flcib                                                          ! Flux reaching the observer voxel from a target cell.
+      real flcib                                                          ! Flux reaching the observer voxel from a line of sight voxel.
       real fcapt                                                          ! Flux reaching the observer voxel from all FOV voxels in a given model level
       real ftocap                                                         ! Total flux reaching the observer voxel
       real haut                                                           ! Haut (negative indicate that the surface is lighted from inside the ground. I.e. not considered in the calculation
       real epsilx,epsily                                                  ! tilt of the ground pixel
       real flrefl                                                         ! flux reaching a reflecting surface (watts).
-      real irefl,irefl1                                                   ! intensity leaving a reflecting surface toward the target voxel.  
-      real effdif                                                         ! Distance around the source voxel and target voxel considered to compute the 2nd order of scattering.
+      real irefl,irefl1                                                   ! intensity leaving a reflecting surface toward the line of sight voxel.  
+      real effdif                                                         ! Distance around the source voxel and line of sight voxel considered to compute the 2nd order of scattering.
       integer zondif(3000000,4)                                           ! Array for the scattering voxels, the 4th column represents the nearest integer value of the distance (en metre) to the line of single scattering.
       integer ndiff,idi                                                   ! Number of scattering voxels, counter of the loop over the scattering voxels
       integer stepdi                                                      ! scattering step to speedup the calculation e.g. if =2 one computation over two will be done
@@ -172,10 +172,10 @@ c
 c                                                                         ! by default the value is 1 but it can be larger  
 c                                                                         ! when we resume a previous interrupted calculation.
       real fldif1                                                         ! flux reaching a scattering voxel.
-      real idif1                                                          ! intensity toward a target voxel from a scattering cell.
+      real idif1                                                          ! intensity toward a line of sight voxel from a scattering voxel.
       real portio                                                         ! ratio of voxel surface to the solid angle of the sensor field of view.
-      real dis_obs                                                        ! Distance between the target and the observer.
-      real ometif                                                         ! Solid angle of the telescope objective as seen from the target voxel
+      real dis_obs                                                        ! Distance between the line of sight and the observer.
+      real ometif                                                         ! Solid angle of the telescope objective as seen from the line of sight voxel
       real omefov                                                         ! Solid angle of the spectrometer slit.
       real lfente                                                         ! Width of the slit (or of the sensor area)
       real longfe                                                         ! Length of the slit (or of the sensor area)
@@ -186,11 +186,12 @@ c                                                                         ! Usef
       real nbang                                                          ! for the averaging of the photometric function
       real obsH(width,width),angmin                                       ! averaged height of the sub-grid obstacles, minimum angle under wich 
 c                                                                         ! a light ray cannot propagate because it is blocked by a sub-grid obstable
-      integer ofill(width,width)                                          ! fill factor giving the probability to hit an obstacle when pointing in its direction integer 0-100
+      real ofill(width,width)                                             ! fill factor giving the probability to hit an obstacle when pointing in its direction integer 0-100
+
       integer naz,na 
       real ITT(width,width,120)                                           ! total intensity per type of lamp
-      real ITC(width,width)                                               ! total intensity per target voxel
-      real FC(width,width)                                                ! target flux
+      real ITC(width,width)                                               ! total intensity per line of sight voxel
+      real FC(width,width)                                                ! line of sight flux
       real FTC(width,width)                                               ! fraction of the total flux at the sensor level 
       real FTCN(width,width)                                              ! fraction of the total flux at the sensor level normalized per unit of watt
       real FCA(width,width)                                               ! sensor flux array
@@ -202,9 +203,8 @@ c                                                                         ! a li
       real dat(1024,1024)                                                 ! array to be interpolated
       integer autom,intype,ii,jj                                          ! switch manual/automatic for the interpolation; interpolation type
       real window                                                         ! interpolation diameter
-      real zhoriz(360)                                                    ! horizon in rad over 360 deg, the first index of the array is for 0 deg while index 360 = 359 deg
-      real angazi,d2                                                      ! azimuth angle between two points in rad, max dist for the horizon determination
-      integer az                                                          ! azimut of the horizon
+      real zhoriz                                                         ! horizon in rad over 360 deg, the first index of the array is for 0 deg while index 360 = 359 deg
+      real angazi                                                         ! azimuth angle between two points in rad, max dist for the horizon determination
       real latitu                                                         ! approximate latitude of the domain center
       integer vistep                                                      ! line of sight step for low elevation angles vistep=ncells_along_sight/50
       integer prmaps                                                      ! flag to enable the tracking of contribution and sensitivity maps
@@ -213,16 +213,16 @@ c                                                                         ! a li
       real rcloud                                                         ! cloud relfectance 
       real azencl                                                         ! zenith angle from cloud to observer
       real icloud                                                         ! cloud reflected intensity
-      real fcloud                                                         ! flux reaching the intrument from the cloud cell
-      real fccld                                                          ! correction for the FOV to the flux reaching the intrument from the cloud cell
+      real fcloud                                                         ! flux reaching the intrument from the cloud voxel
+      real fccld                                                          ! correction for the FOV to the flux reaching the intrument from the cloud voxel
       real fctcld                                                         ! total flux from cloud at the sensor level
-      real dsco                                                           ! distancesource-target-observer
+      real dsco                                                           ! distancesource-line of sight-observer
       real dminlp                                                         ! minimum distance between the observer and a lamp (m)
       real totlu(120)                                                     ! total flux of a source type
       real stoplim                                                        ! Stop computation when the new voxel contribution is less than 1/stoplim of the cumulated flux
       real zero
       real anaz
-      integer monte                                                       ! pseudo random number between 0 and 100
+      real ff                                                             ! temporary obstacle filling factor
       data cthick /0.5,0.6,0.72,0.86,1.04,1.26,1.52,1.84,2.22,            ! thickness of the levels.
      a 2.68,3.24,3.92,4.74,5.72,6.9,8.34,10.08,12.18,14.72,17.78,21.48,
      b 25.94,31.34,37.86,45.74,55.26,66.76,80.64,97.42,117.68,142.16,
@@ -238,7 +238,7 @@ c                                                                         ! a li
       data cloudh /44,44,40,33,33/                                        ! 9300.,9300.,4000.,1200.,1100.
       verbose=0
       zero=0.
-      monte=0
+      ff=0.
       print*,'Starting ILLUMINA computations...'
 c  
 c=======================================================================
@@ -375,7 +375,34 @@ c=======================================================================
         enddo
        enddo     
        irefdi=0.
+       idif1=0.
+       fldir=0.
+       flindi=0.
+       fldiff=0.
+       pdifdi=0.
+       pdifin=0.
+       pdifd1=0.
+       pdifd2=0.
+       intdir=0.
+       intind=0.
+       idiff2=0.
        angmin=0.
+       isourc=0.
+       itotty=0.
+       itotci=0.
+       itotrd=0.
+       flcib=0.
+       flrefl=0.
+       irefl=0.
+       irefl1=0.
+       fldif1=0.
+       portio=0.
+       fctnto=0.
+       ftcmax=0.
+       fccld=0.
+       fctcld=0.
+       ometif=0.
+       omefov=0.
        vistep=1
 c***********************************************************************
 c        reading of the environment variables                          *
@@ -535,7 +562,7 @@ c    reading subgrid obstacles filling factor
         call intrants2d(offile,val2d,xcell0,ycell0,pixsiz,nbx,nby)
         do i=1,nbx                                                        ! beginning of the loop over all cells along x.
          do j=1,nby                                                       ! beginning of the loop over all cells along y.
-          ofill(i,j)=nint(100.*val2d(i,j))                                ! Filling of the array 0-100
+          ofill(i,j)=val2d(i,j)                                           ! Filling of the array 0-1
          enddo                                                            ! end of the loop over all cells along y.
         enddo 
    
@@ -600,27 +627,41 @@ c=======================================================================
         enddo                                                             ! end of the loop over the rows (latitu) of the domain
        enddo                                                              ! end of the loop over the column (longitude) of the domain
 c=======================================================================
-c        beginning of the loop over the target cells
+c        beginning of the loop over the line of sight voxels
 c=======================================================================
-       call lignevisee(x_obs,y_obs,z_obs,dx,dy,angvis,                    ! Determination of the viewing line (target cells).
+       print*,'Determining voxels crossed by the line of sight...'
+       call lignevisee(x_obs,y_obs,z_obs,dx,dy,angvis,                    ! Determination of the viewing line (line of sight voxels).
      + azim,nbx,nby,vistep,cloudz,lcible,ncible)
+       print*,'Total final cells: ',ncible
+       print*,'============'
+       print*,'x   y   z'
+       print*,'------------'
+       do i=1,ncible
+          write(*,1110) lcible(i,1),lcible(i,2),lcible(i,3)
+       enddo
+ 1110  format(I3,1x,I3,1x,I3)
        fctcld=0.
        ftocap=0.                                                          ! Initialisation of the value of flux received by the sensor
        fcapt=1.
-       do icible=1,ncible                                                 ! beginning of the loop over the target cells
-      if ((fcapt.ge.ftocap/stoplim).or.(cloudt.ne.0)) then                  ! stop the calculation of the viewing line when the increment is lower than 1/stoplim
+       do icible=1,ncible                                                 ! beginning of the loop over the line of sight voxels
+
+
+
+
+
+      if ((fcapt.ge.ftocap/stoplim).or.(cloudt.ne.0)) then                ! stop the calculation of the viewing line when the increment is lower than 1/stoplim
         if (fcapt.eq.1.) fcapt=0.
         if (icible.ge.nvis0) then                                         ! beginning condition for continuing of a computation stopped
-         itotci=0.                                                        ! Initialisation of the contribution of the target at the sensor level
+         itotci=0.                                                        ! Initialisation of the contribution of the line of sight at the sensor level
          do i=1,nbx
           do j=1,nby
             ITC(i,j)=0.
           enddo
          enddo
-         zcellc=lcible(icible,3)                                          ! Definition of the position (cell) vertical of the target
-         z_c=cellh(zcellc)                                                ! Definition of the position (metre) vertical of the target
-         y_c=lcible(icible,2)                                             ! Definition of the position (cell) of the target
-         x_c=lcible(icible,1)                                             ! Definition of the position (cell) of the target
+         zcellc=lcible(icible,3)                                          ! Definition of the vertical position (voxel) of the line of sight
+         z_c=cellh(zcellc)                                                ! Definition of the vertical position (meter) of the line of sight
+         y_c=lcible(icible,2)                                             ! Definition of the position (voxel) of the line of sight
+         x_c=lcible(icible,1)                                             ! Definition of the position (voxel) of the line of sight
          print*,'=================================================='
          print*,' Progression along the line of sight :',
      +   icible,'/',ncible,'(',x_c,',',y_c,')'
@@ -631,18 +672,28 @@ c=======================================================================
      +   icible,'/',ncible,'(',x_c,',',y_c,')'
          write(2,*) ' Voxel height =',z_c,' m'
       write(2,*) ' Voxel thickness =',cthick(zcellc),' m'
-         if( (x_c.gt.nbx).or.(x_c.lt.1).or.(y_c.gt.nby).or.(y_c.lt.1)     ! Condition target cell inside the modelling domain
+         if( (x_c.gt.nbx).or.(x_c.lt.1).or.(y_c.gt.nby).or.(y_c.lt.1)     ! Condition line of sight voxel inside the modelling domain
      +      .or.(zcellc.gt.50).or.(zcellc.lt.1) )then
          else
-          if((x_c.eq.x_obs).and.(y_c.eq.y_obs).and.                       ! for le moment, if the target cell is the observer cell, 
+          if((x_c.eq.x_obs).and.(y_c.eq.y_obs).and.                       ! for the moment, if the line of sight voxel is the observer voxel, 
 c                                                                         ! we do not compute the scattered flux
      +    (zcellc.eq.zcello))then
            if (verbose.eq.1) then
              print*,'Scat voxel = Observer voxel' 
            endif
           else
-           zcdown=z_c-0.5*cthick(zcellc)                                  ! lower limit of the target cell.
-           zcup=z_c+0.5*cthick(zcellc)                                    ! upper limit of the target cell.
+           dis_obs=sqrt((z_c-z_obs)**2.+((real(y_c-y_obs))*dy)**2.
+     a     +((real(x_c-x_obs))*dx)**2.)
+           if (dis_obs.eq.0.) then
+            print*,'ERROR problem with dis_obs',dis_obs
+            print*,x_c,x_obs,y_c,y_obs,z_c,z_obs
+            stop
+           endif
+           ometif=pi*(diamobj/2.)**2./dis_obs**2.
+           omefov=lfente*longfe/focal**2.                                 ! computation of the solid angle of the fente projete sur le ciel.
+
+           zcdown=z_c-0.5*cthick(zcellc)                                  ! lower limit of the line of sight voxel.
+           zcup=z_c+0.5*cthick(zcellc)                                    ! upper limit of the line of sight voxel.
 c=======================================================================
 c        beginning of the loop over the types of light sources
 c=======================================================================
@@ -652,7 +703,7 @@ c=======================================================================
             print*,' Turning on zone',stype
             write(2,*) ' Turning on zone',stype
             itotty=0.                                                     ! Initialisation of the contribution of a source types to 
-c                                                                         ! the intensity toward the sensor by a target cell.
+c                                                                         ! the intensity toward the sensor by a line of sight voxel.
             do x_s=1,nbx
              do y_s=1,nby
               ITT(x_s,y_s,stype)=0.
@@ -662,52 +713,52 @@ c                                                                         ! the 
              do y_s=jmin(stype),jmax(stype),step(stype)                   ! beginning of the loop over the rows (latitud) of the domain.
               if (lamplu(x_s,y_s,stype) .ne. 0.) then                     ! if the luminosite of the case is null, the program ignore this case.
                z_s=(altsol(x_s,y_s)+lampal(x_s,y_s))                      ! Definition of the position (metre) vertical of the source.
-c computation of the distance source-target-observer if this distance is lower than  dx/2, pas of computation effectue
-c the raison is que autrement on passe par of the cells tres proches of the source and on is jamais dans of telles
+c computation of the distance source-line of sight-observer if this distance is lower than  dx/2, pas of computation effectue
+c the raison is que autrement on passe par of the voxels tres proches of the source and on is jamais dans of telles
 c conditions lorsqu'on observe le ciel. C is un probleme cree par le fait than the sources and l observateur
-c sont toujours considered au centre of the cells.
+c sont toujours considered au centre of the voxels.
                dsco=sqrt((real(x_s-x_c)*dx)**2.+(real(y_s-y_c)*dx)**2.+
      +         (z_s-z_c)**2.)+sqrt((real(x_obs-x_c)*dx)**2.+(real(y_obs
      +         -y_c)*dx)**2.+(z_obs-z_c)**2.)
-          if (dsco.ge.dminlp) then                                        ! beginning condition distance source-target-observer >= dx/2
+          if (dsco.ge.dminlp) then                                        ! beginning condition distance source-line of sight-observer >= dx/2
 c **********************************************************************************************************************
-c *     computation of the direct intensity toward the sensor by a target cell en provenance of the source         *
+c *     computation of the direct intensity toward the sensor by a line of sight voxel en provenance of the source         *
 c **********************************************************************************************************************         
                dirck=0                                                    ! Initialisation of the verification of the position of the source.
-               if ( (x_s.eq.x_c).and.(y_s.eq.y_c).and.( abs(z_s-z_c)      ! if the positions x and y of the source and the target are the 
+               if ( (x_s.eq.x_c).and.(y_s.eq.y_c).and.( abs(z_s-z_c)      ! if the positions x and y of the source and the line of sight voxel are the 
 c                                                                         ! memes alors.
      +         .lt.(cthick(zcellc)/2.) ) )then
                 dirck=1
                 if (verbose.eq.1) then
                  print*,'Source insiof scat voxel' 
                 endif
-               endif                                                      ! end of the case positions x and y source and target identical.
-               if (dirck.ne.1) then                                       ! the source is not at the target cell position
+               endif                                                      ! end of the case positions x and y source and line of sight voxel identical.
+               if (dirck.ne.1) then                                       ! the source is not at the line of sight voxel position
 c=======================================================================
-c        computation of the zenithal angle between the source and the target
+c        computation of the zenithal angle between the source and the line of sight
 c=======================================================================
 c
 c computation of the horizon for the resolved shadows direct              ! horizon resolution is 1 degree
                 call anglezenithal
-     +          (x_s,y_s,z_s,x_c,y_c,z_c,dx,dy,angzen)                    ! computation of the zenithal angle between the source and the target cell.
-                call angleazimutal(x_s,y_s,x_c,y_c,dx,dy,angazi)          ! computation of the angle azimutal direct target-source
-                az=nint(angazi*180./pi)+1
-                d2=sqrt((real(x_s-x_c)*dx)**2.+(real(y_s-y_c)*dy)**2.)    ! max dist for the horizon (i.e. horizon limitations farter than cell-dif is not considered)
-                call horizon(x_s,y_s,z_s,d2,altsol,nbx,nby,dx,dy,
-     +          zhoriz,latitu,angazi)
-                if ((angzen).lt.zhoriz(az)) then                          ! the line target-source n'est pas below the horizon => on calcule
+     +          (x_s,y_s,z_s,x_c,y_c,z_c,dx,dy,angzen)                    ! computation of the zenithal angle between the source and the line of sight voxel.
+                call angleazimutal(x_s,y_s,x_c,y_c,dx,dy,angazi)          ! computation of the angle azimutal direct line of sight-source
+
+                call horizon(x_s,y_s,z_s,dx,dy,nbx,nby,altsol,
+     +          latitu,angzen,angazi,zhoriz) 
+                if (angzen.lt.zhoriz) then                                ! the path line of sight-source is not below the horizon => we compute
+
 c                                                                         ! beginning condition below the horizon direct
 c sub-grid obstacles             
                  angmin=pi/2.-atan((altsol(x_s,y_s)+obsH(x_s,y_s)
      +           -z_s)/drefle(x_s,y_s))
-                 monte=monte+19
-c                 monte=nint(rand()*100.
-                 if (monte.gt.100) monte=monte-100
-                 if (((monte.gt.ofill(x_s,y_s)).and.(angzen.ge.angmin))     ! beginning condition sub-grid obstacles direct.
-     +           .or.(angzen.lt.angmin)) then
+                 if (angzen.lt.angmin) then                               ! condition sub-grid obstacles direct.
+                    ff=0.
+                 else 
+                    ff=ofill(x_s,y_s)
+                 endif
 c
 c=======================================================================
-c computation of the transmittance between the source and the target
+c computation of the transmittance between the source and the line of sight
 c=======================================================================
                   anaz=zero
                   call transmitm(angzen,anaz,x_s,y_s,z_s,x_c,y_c,z_c,
@@ -715,11 +766,11 @@ c=======================================================================
                   call transmita(angzen,anaz,x_s,y_s,z_s,x_c,y_c,z_c,
      +            dx,dy,taua,transa)
 c=======================================================================
-c computation of the Solid angle of the par the target vue of the source
+c computation of the Solid angle of the line of sight voxel seen from the source
 c=======================================================================
-                  xc=dble(x_c)*dble(dx)                                   ! Position in meters of the observer cell (longitude).
-                  yc=dble(y_c)*dble(dy)                                   ! Position in meters of the observer cell (latitu).
-                  zc=dble(z_c)                                            ! Position in meters of the observer cell (altitude).
+                  xc=dble(x_c)*dble(dx)                                   ! Position in meters of the observer voxel (longitude).
+                  yc=dble(y_c)*dble(dy)                                   ! Position in meters of the observer voxel (latitu).
+                  zc=dble(z_c)                                            ! Position in meters of the observer voxel (altitude).
                   xn=dble(x_s)*dble(dx)                                   ! Position in meters of the source (longitude).
                   yn=dble(y_s)*dble(dy)                                   ! Position in meters of the source (latitu).
                   zn=dble(z_s)                                            ! Position in meters of the source (altitude).
@@ -739,8 +790,8 @@ c    ------------------------------------
 c     ------------------------------------
 c     solid angle for the central plane zx
 c     ------------------------------------
-                  if (y_c .ne. y_s) then                                  ! if the latitu of the observer cell is the same as
-c                                                                         ! of the source cell, we are not computing the angle solide
+                  if (y_c .ne. y_s) then                                  ! if the latitu of the observer voxel is the same as
+c                                                                         ! of the source voxel, we are not computing the angle solide
 c                                                                         ! for the surface zx car il is egal a 0
                    call planzx(dx,xc,xn,yc,yn,zc,zn,cthick,
      +             zcellc,r1x,r1y,r1z,r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y
@@ -760,8 +811,8 @@ c                  omega2=omega2+omega1
 c     ------------------------------------
 c     solid angle for the central plane yz
 c     ------------------------------------
-                  if (x_c .ne. x_s) then                                  ! if the longitude of the observer cell is the same as
-c                                                                         ! of the source cell, we are not computing the angle solide
+                  if (x_c .ne. x_s) then                                  ! if the longitude of the observer voxel is the same as
+c                                                                         ! of the source voxel, we are not computing the angle solide
 c                                                                         ! for the surface yz car il is egal a 0.
                    call planyz(dy,xc,xn,yc,yn,zc,zn,cthick,
      +             zcellc,r1x,r1y,r1z,r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,
@@ -783,7 +834,7 @@ c=======================================================================  ! vari
                   ouvang=ouvang*180./pi                                   ! Angle in degrees.
 c   
 c=======================================================================
-c computation of the photometric function of the source toward the target
+c computation of the photometric function of the source toward the line of sight voxel
 c=======================================================================
 c   
                   anglez=nint(180.*angzen/pi)
@@ -806,15 +857,15 @@ c
                   P_dir=P_dir/nbang
 c
 c=======================================================================
-c        computation of the flux direct reaching the target cell
+c        computation of the flux direct reaching the line of sight voxel
 c=======================================================================
                   fldir=lamplu(x_s,y_s,stype)*P_dir*omega*
-     1            transm*transa
+     1            transm*transa*(1.-ff)                                   ! correction for obstacle filling factor
 c=======================================================================
 c   computation of the scattering probability of the direct light
 c=======================================================================
                   if (angzen.lt.(pi/2.)) then                             ! Attribution of the initial and final limit of the path of 
-c                                                                         ! scattering dans the cell.
+c                                                                         ! scattering dans the voxel.
                    zidif=zcdown
                    zfdif=zcup
                   else
@@ -822,20 +873,20 @@ c                                                                         ! scat
                    zfdif=zcdown
                   endif
                   anaz=angazi
-                  call transmitm (angzen,anaz,iun,iun,zidif,ideux,iun,    ! Transmittance molecular of the scattering cell.
+                  call transmitm (angzen,anaz,iun,iun,zidif,ideux,iun,    ! Transmittance molecular of the scattering voxel.
      +            zfdif,lambda,dx,dy,pressi,tran1m)
-                  call transmita (angzen,anaz,iun,iun,zidif,ideux,iun,    ! Transmittance aerosols of the scattering cell.
+                  call transmita (angzen,anaz,iun,iun,zidif,ideux,iun,    ! Transmittance aerosols of the scattering voxel.
      +            zfdif,dx,dy,taua,tran1a)
                   call angle3points (x_s,y_s,z_s,x_c,y_c,z_c,x_obs,       ! scattering angle.
      +            y_obs,z_obs,dx,dy,angdif)
                   call diffusion(omega,angdif,tran1a,tran1m,              ! scattering probability of the direct light.     
      +            secdif,fdifan,pdifdi)
 c=======================================================================
-c   computation of the source contribution a the direct intensity toward the sensor by a target cell
+c   computation of the source contribution a the direct intensity toward the sensor by a line of sight voxel
 c=======================================================================
                   intdir=fldir*pdifdi
 
-                if (cloudt.ne.0) then                                     ! target cell = cloud
+                if (cloudt.ne.0) then                                     ! line of sight voxel = cloud
                   if (cloudh(cloudt).eq.zcellc) then
                      call anglezenithal(x_c,y_c,z_c,x_obs,y_obs,z_obs,
      +               dx,dy,azencl)                                        ! zenith angle from cloud to observer                     
@@ -844,20 +895,17 @@ c=======================================================================
      +               fldir*rcloud*abs(cos(azencl))/pi
                   endif
                 endif
-                 else 
-                  intdir=0.                                      
-                 endif                                                    ! end condition sub-grid obstacles direct.
                 else
                 endif                                                     ! end condition below the horizon direct? 
-               endif                                                      ! end of the case Position Source is not equal to the target position
+               endif                                                      ! end of the case Position Source is not equal to the line of sight voxel position
 c  end of the computation of the direct intensity
 c **********************************************************************************************************************
-c * computation of the reflected intensity toward the sensor by a target cell from the source           *
+c * computation of the reflected intensity toward the sensor by a line of sight voxel from the source           *
 c **********************************************************************************************************************
 c=======================================================================
 c        etablissement of the conditions ands boucles
 c=======================================================================
-               itotind=0.                                                 ! Initialisation of the reflected intensity of the source target    
+               itotind=0.                                                 ! Initialisation of the reflected intensity of the source
                itotrd=0.
        boxx=nint(drefle(x_s,y_s)/dx)                                      ! Number of column to consider left/right of the source 
 c                                                                         ! for the reflexion.
@@ -887,7 +935,7 @@ c                                                                         ! the 
 c=======================================================================
 c        computation of the zenithal angle between the source and the  surface reflectance
 c=======================================================================
-                      call anglezenithal(x_s,y_s,z_s,x_sr,y_sr,z_sr,dx,   ! computation of the zenithal angle between the source and the target cell.
+                      call anglezenithal(x_s,y_s,z_s,x_sr,y_sr,z_sr,dx,   ! computation of the zenithal angle between the source and the line of sight voxel.
      +                dy,angzen)                                          ! end of the case "observer at the same latitu/longitude than the source".
 
 c=======================================================================
@@ -901,9 +949,9 @@ c=======================================================================
 c=======================================================================
 c     computation of the Solid angle of the reflecting cell seen from the source
 c=======================================================================
-                      xc=dble(x_sr)*dble(dx)                              ! Position in meters of the observer cell (longitude).
-                      yc=dble(y_sr)*dble(dy)                              ! Position in meters of the observer cell (latitu).
-                      zc=dble(z_sr)                                       ! Position in meters of the observer cell (altitude).
+                      xc=dble(x_sr)*dble(dx)                              ! Position in meters of the observer voxel (longitude).
+                      yc=dble(y_sr)*dble(dy)                              ! Position in meters of the observer voxel (latitu).
+                      zc=dble(z_sr)                                       ! Position in meters of the observer voxel (altitude).
                       xn=dble(x_s)*dble(dx)                               ! Position in meters of the source (longitude).
                       yn=dble(y_s)*dble(dy)                               ! Position in meters of the source (latitu).
                       zn=dble(z_s)                                        ! Position in meters of the source (altitude).
@@ -912,6 +960,8 @@ c=======================================================================
                       if (dx.gt.drefle(x_s,y_s)*2.) then                  ! use a sub-grid surface when the mean free path to the ground is smaller than the cell size
                        if ((x_sr.eq.x_s).and.(y_sr.eq.y_s)) then
                         dxp=drefle(x_s,y_s)*2.
+                       else
+                        dxp=dx
                        endif
                       else
                        dxp=dx
@@ -919,6 +969,8 @@ c=======================================================================
                       if (dy.gt.drefle(x_s,y_s)*2.) then
                        if ((x_sr.eq.x_s).and.(y_sr.eq.y_s)) then         
                         dyp=drefle(x_s,y_s)*2.
+                       else
+                        dyp=dy
                        endif
                       else
                        dyp=dy
@@ -943,7 +995,7 @@ c=======================================================================
      +                r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z) 
 c
 c=======================================================================
-c    isimation of the half of the underlying angle of the solid angle    ! this angle servira a obtenir un meilleur isime (moyenne) of 
+c    isimation of the half of the underlying angle of the solid angle     ! this angle servira a obtenir un meilleur isime (moyenne) of 
 c                                                                         ! P_dir for le cas of grans solid angles the ou pvalno
 c=======================================================================  ! varie significativement sur +- ouvang.
                       ouvang=sqrt(omega/pi)                               ! Angle in radian.
@@ -987,13 +1039,13 @@ c=======================================================================
      +                 zcellc,dx,dy,effdif,nbx,nby,stepdi,
      +                 irefl1,lambda,pressi,taua,zcup,
      +                 zcdown,secdif,fdifan,x_obs,y_obs,z_obs,
-     +                 epsilx,epsily,irefdi,drefle,obsH,ofill,monte,
-     +                 altsol,latitu,cloudt,cloudh,icloud,stype)
+     +                 epsilx,epsily,irefdi,drefle,obsH,ofill,
+     +                 altsol,latitu,cloudt,cloudh,icloud)
                       endif
                       itotrd=itotrd+irefdi      
 c
 c  the projection apparente is calculee a partir of the produit scalaire of the vecteur normal a 
-c  the reflecting surface and the line reflecting surface toward scattering cell ou cible
+c  the reflecting surface and the line reflecting surface toward scattering voxel ou cible
 c  it is the cosine correction for the lambertian reflectance for finite elements
 c         
                       projap=(-tan(epsilx)*real(x_c-x_sr)*dx-
@@ -1003,24 +1055,19 @@ c
      +                y_sr)*dy)**2.+(cellh(zcellc)-z_sr)**2.))
 c                                                                         ! no matter the direction we are taking the absolute value of cos theta 
 c                                                                          
-c verify if there is shadow between sr and target 
+c verify if there is shadow between sr and line of sight voxel
 
-                 call anglezenithal(x_sr,y_sr,z_sr,x_c,y_c,z_c,dx,        ! zenithal angle between the reflecting surface and the target cell.
+                 call anglezenithal(x_sr,y_sr,z_sr,x_c,y_c,z_c,dx,        ! zenithal angle between the reflecting surface and the line of sight voxel.
      +           dy,angzen)     
-                 call angleazimutal(x_sr,y_sr,x_c,y_c,dx,dy,angazi)       ! computation of the azimutal angle reflect-target
-                 az=nint(angazi*180./pi)+1  
-                 d2=sqrt((real(x_sr-x_c)*dx)**2.+(real(y_sr-y_c)*         ! max dist for the horizon between the source and the target
-     +           dy)**2.)                 
-                 call horizon(x_sr,y_sr,z_sr,d2,altsol,nbx,nby,dx,dy,
-     +           zhoriz,latitu,angazi)         
-                 if ((angzen).lt.zhoriz(az)) then                         ! the path target-reflec is not below the horizon => we compute
-                 
-                 
-                      if (projap.lt.0.) projap=0.
+                 call angleazimutal(x_sr,y_sr,x_c,y_c,dx,dy,angazi)       ! computation of the azimutal angle reflect-line of sight
+                 call horizon(x_sr,y_sr,z_sr,dx,dy,nbx,nby,altsol,
+     +           latitu,angzen,angazi,zhoriz) 
+                 if (angzen.lt.zhoriz) then                               ! the path line of sight-reflec is not below the horizon => we compute
+                 if (projap.lt.0.) projap=0.
                       irefl=irefl1*projap
                  endif                                                    ! end condition reflecting surf. above horizon
 c=======================================================================
-c        Case: target position = Position of reflecting cell
+c        Case: line of sight position = Position of reflecting cell
 c=======================================================================
                       if((x_c.eq.x_sr).and.(y_c.eq.y_sr).and.
      +                (z_c.eq.z_sr)) then
@@ -1031,14 +1078,14 @@ c
 c obstacle                 
                        angmin=pi/2.-atan(obsH(x_sr,y_sr)/
      +                 drefle(x_sr,y_sr))
-                       monte=monte+19
-c                 monte=nint(rand()*100.)
-                       if (monte.gt.100) monte=monte-100
-                       if (((monte.gt.ofill(x_sr,y_sr)).and.(angzen.ge.
-     +                 angmin)).or.(angzen.lt.angmin)) then               ! beginning condition obstacle reflected.
+                       if (angzen.lt.angmin) then                         ! condition obstacle reflected.
+                          ff=0.
+                       else 
+                          ff=ofill(x_sr,y_sr)
+                       endif
 c
 c=======================================================================
-c        computation of the transmittance between the  ground surface and the target cell
+c        computation of the transmittance between the  ground surface and the line of sight voxel
 c=======================================================================
                         anaz=zero
                         call transmitm(angzen,anaz,x_sr,y_sr,z_sr,x_c,
@@ -1046,15 +1093,15 @@ c=======================================================================
                         call transmita(angzen,anaz,x_sr,y_sr,z_sr,x_c,
      +                  y_c,z_c,dx,dy,taua,transa)
 c=======================================================================
-c     computation of the Solid angle of the par the target vue of the reflecting cell
+c     computation of the Solid angle of the line of sight voxel seen from the reflecting cell
 c=======================================================================
 
 
 c                omega2=0.
 
-                        xc=dble(x_c)*dble(dx)                             ! Position in meters of the observer cell (longitude).
-                        yc=dble(y_c)*dble(dy)                             ! Position in meters of the observer cell (latitu).
-                        zc=dble(z_c)                                      ! Position in meters of the observer cell (altitude).
+                        xc=dble(x_c)*dble(dx)                             ! Position in meters of the observer voxel (longitude).
+                        yc=dble(y_c)*dble(dy)                             ! Position in meters of the observer voxel (latitu).
+                        zc=dble(z_c)                                      ! Position in meters of the observer voxel (altitude).
                         xn=dble(x_sr)*dble(dx)                            ! Position in meters of the source (longitude).
                         yn=dble(y_sr)*dble(dy)                            ! Position in meters of the source (latitu).
                         zn=dble(z_sr)                                     ! Position in meters of the source (altitude).
@@ -1080,8 +1127,8 @@ c           omega2=omega2+omega1
 c     ------------------------------------
 c     solid angle for the central plane zx
 c     ------------------------------------
-                        if (y_c .ne. y_sr) then                           ! if the latitu of the observer cell is the same as
-c                                                                         ! of the source cell, we are not computing the angle solide
+                        if (y_c .ne. y_sr) then                           ! if the latitu of the observer voxel is the same as
+c                                                                         ! of the source voxel, we are not computing the angle solide
 c                                                                         ! for the surface zx car il is egal a 0.
                          call planzx(dx,xc,xn,yc,yn,zc,zn,
      +                   cthick,zcellc,r1x,r1y,r1z,r2x,r2y,
@@ -1103,8 +1150,8 @@ c           omega2=omega2+omega1
 c     ------------------------------------
 c     solid angle for the central plane yz
 c     ------------------------------------
-                        if (x_c.ne.x_sr) then                             ! if the longitude of the observer cell is the same as
-c                                                                         ! of the source cell, we are not computing the angle solide
+                        if (x_c.ne.x_sr) then                             ! if the longitude of the observer voxel is the same as
+c                                                                         ! of the source voxel, we are not computing the angle solide
 c                                                                         ! for the surface yz car il is egal a 0.
                          call planyz(dy,xc,xn,yc,yn,zc,zn,
      +                   cthick,zcellc,r1x,r1y,r1z,r2x,r2y,
@@ -1125,11 +1172,11 @@ c           omega=omega2
 
     
 c=======================================================================
-c        computation of the flux reflected reaching the target cell
+c        computation of the flux reflected reaching the line of sight voxel
 c=======================================================================
                         flindi=irefl*omega*transm*
-     +                  transa     
-                if (cloudt.ne.0) then                                     ! target cell = cloud
+     +                  transa*(1.-ff)                                    ! obstacles correction
+                if (cloudt.ne.0) then                                     ! line of sight voxel = cloud
                   if (cloudh(cloudt).eq.zcellc) then
                      call anglezenithal(x_c,y_c,z_c,x_obs,y_obs,z_obs,
      +               dx,dy,azencl)                                        ! zenith angle from cloud to observer                     
@@ -1141,8 +1188,8 @@ c=======================================================================
 c=======================================================================
 c   computation of the scattering probability of the reflected light
 c=======================================================================
-                        if (angzen.lt.(pi/2.)) then                       ! Attribution of the initial limit and finale of the path of 
-c                                                                         ! scattering dans the cell.
+                        if (angzen.lt.(pi/2.)) then                       ! Attribution of the initial and final limits of the path of 
+c                                                                         ! scattering voxel.
                          zidif=zcdown
                          zfdif=zcup
                         else
@@ -1150,9 +1197,9 @@ c                                                                         ! scat
                          zfdif=zcdown
                         endif 
                         anaz=angazi       
-                        call transmitm(angzen,anaz,iun,iun,zidif,         ! Transmittance molecular of the scattering cell.
+                        call transmitm(angzen,anaz,iun,iun,zidif,         ! Transmittance molecular of the scattering voxel.
      +                  ideux,iun,zfdif,lambda,dx,dy,pressi,tran1m)
-                        call transmita(angzen,anaz,iun,iun,zidif,         ! Transmittance aerosols of the scattering cell.
+                        call transmita(angzen,anaz,iun,iun,zidif,         ! Transmittance aerosols of the scattering voxel.
      +                  ideux,iun,zfdif,dx,dy,taua,tran1a)
                         call angle3points (x_sr,y_sr,z_sr,x_c,y_c,z_c,    ! scattering angle.
      +                  x_obs,y_obs,z_obs,dx,dy,angdif)
@@ -1162,10 +1209,7 @@ c=======================================================================
 c   computation of the reflected intensity toward the sensor by a reflecting cell
 c=======================================================================
                         intind=flindi*pdifin 
-                       else
-                        intind=0.
-                       endif                                              ! end condition obstacle reflected.
-                      endif                                               ! end of the case Posi reflecting cell =  target position                                 
+                      endif                                               ! end of the case Posi reflecting cell =  line of sight voxel position                                 
                       itotind=itotind+intind                              ! Sum of the intensities of each reflecting cell.
                      endif                                                ! end of the condition surface not lighted from the top.
                     endif                                                 ! end of the condition non-zero reflectancee.
@@ -1175,24 +1219,24 @@ c=======================================================================
                enddo                                                      ! end of the loop over the column (longitude) reflecting.
 c   end of the computation of the reflected intensity        
 c **********************************************************************************************************************
-c * computation of the scattered intensity toward the sensor by a target cell coming from the source            *
+c * computation of the scattered intensity toward the sensor by a line of sight voxel coming from the source            *
 c **********************************************************************************************************************
 c
 c=======================================================================
-c    Determination of the scattering cells en fonction of the source cell and the target cell
+c    Determination of the scattering voxels en fonction of the source voxel and the line of sight voxel
 c=======================================================================
 
                itodif=0.                                                  ! Initialisation of the scattered intensity by a source dans 
-c                                                                         ! a target cell compute the double scattering only if 
-               if (effdif.gt.(dx+dy)/2.) then                             ! le rayon of scattering is larger to the size of the cells.
+c                                                                         ! a line of sight voxel compute the double scattering only if 
+               if (effdif.gt.(dx+dy)/2.) then                             ! radius of scattering is larger than the size of the voxels.
                 call zone_diffusion(x_s,y_s,z_s,x_c,y_c,zcellc,dx,dy,
      +          effdif,nbx,nby,altsol,zondif,ndiff)
-                do idi=1,ndiff,stepdi                                     ! beginning of the loop over the scattering cells.
+                do idi=1,ndiff,stepdi                                     ! beginning of the loop over the scattering voxels.
                  x_dif=zondif(idi,1)
                  y_dif=zondif(idi,2)
                  zceldi=zondif(idi,3)
                  z_dif=cellh(zceldi)             
-                 if((x_dif.gt.nbx).or.(x_dif.lt.1).or.(y_dif.gt.nby).     ! Condition scattering cell of the domain.
+                 if((x_dif.gt.nbx).or.(x_dif.lt.1).or.(y_dif.gt.nby).     ! Condition scattering voxel of the domain.
      +           or.(y_dif.lt.1)) then     
 c
 c !!!!!!!rien ici???????
@@ -1207,35 +1251,31 @@ c
      +                 (z_c.eq.z_dif)) then
                   else
 c=======================================================================
-c        computation of the zenithal angle between the source and the scattering cell
+c        computation of the zenithal angle between the source and the scattering voxel
 c=======================================================================
 
 
-c shadow source-scattering cell
+c shadow source-scattering voxel
 
                    call anglezenithal(x_s,y_s,z_s,x_dif,y_dif,z_dif,dx,
-     +             dy,angzen)                                             ! computation of the zenithal angle source-scattering cell. 
+     +             dy,angzen)                                             ! computation of the zenithal angle source-scattering voxel. 
 
-                   call angleazimutal(x_s,y_s,x_dif,y_dif,dx,dy,          ! computation of the angle azimutal cible-scattering cell
+                   call angleazimutal(x_s,y_s,x_dif,y_dif,dx,dy,          ! computation of the angle azimutal line of sight-scattering voxel
      +             angazi)
-                   az=nint(angazi*180./pi)+1
-                   d2=sqrt((real(x_dif-x_s)*dx)**2.+(real(y_dif-y_s)      ! max dist for the horizon (i.e. horizon limitations farter than cell-dif is not considered)
-     +             *dy)**2.)
-                   call horizon(x_s,y_s,z_s,d2,altsol,nbx,nby,
-     +             dx,dy,zhoriz,latitu,angazi)
-                   if ((angzen).lt.zhoriz(az)) then                       ! beginning condition shadow source-diffusante
-c                                                                   
+                   call horizon(x_s,y_s,z_s,dx,dy,nbx,nby,altsol,
+     +             latitu,angzen,angazi,zhoriz) 
+                   if (angzen.lt.zhoriz) then                           ! beginning condition shadow source-diffusante
 c sub-grid obstacles               
                     angmin=pi/2.-atan((obsH(x_s,y_s)+
      +              altsol(x_s,y_s)-z_s)/drefle(x_s,y_s))
-                    monte=monte+19
-c                 monte=nint(rand()*100.)
-                    if (monte.gt.100) monte=monte-100
-                    if (((monte.gt.ofill(x_s,y_s)).and.(angzen.ge.  
-     +              angmin)).or.(angzen.lt.angmin)) then                  ! beginning condition obstacle source->diffuse.
+                    if (angzen.lt.angmin) then                            ! condition obstacle source->scattering.
+                       ff=0.
+                    else 
+                       ff=ofill(x_s,y_s)
+                    endif
 c                                                                    
 c=======================================================================
-c        computation of the transmittance between the source and the scattering cell
+c        computation of the transmittance between the source and the scattering voxel
 c=======================================================================
                      anaz=zero
                      call transmitm(angzen,anaz,x_s,y_s,z_s,x_dif,
@@ -1243,16 +1283,16 @@ c=======================================================================
                      call transmita(angzen,anaz,x_s,y_s,z_s,x_dif,
      +               y_dif,z_dif,dx,dy,taua,transa) 
 c=======================================================================
-c     computation of the Solid angle of the par the scattering cell vue of the source
+c     computation of the Solid angle of the par the scattering voxel seen from the source
 c=======================================================================
 
 
 c                omega2=0.
 
 
-                     xc=dble(x_dif)*dble(dx)                              ! Position in meters of the scattering cell (longitude).
-                     yc=dble(y_dif)*dble(dy)                              ! Position in meters of the scattering cell (latitu).
-                     zc=dble(z_dif)                                       ! Position in meters of the scattering cell (altitude).
+                     xc=dble(x_dif)*dble(dx)                              ! Position in meters of the scattering voxel (longitude).
+                     yc=dble(y_dif)*dble(dy)                              ! Position in meters of the scattering voxel (latitu).
+                     zc=dble(z_dif)                                       ! Position in meters of the scattering voxel (altitude).
                      xn=dble(x_s)*dble(dx)                                ! Position in meters of the source (longitude).
                      yn=dble(y_s)*dble(dy)                                ! Position in meters of the source (latitu).
                      zn=dble(z_s)                                         ! Position in meters of the source (altitude).
@@ -1278,8 +1318,8 @@ c           omega2=omega2+omega1
 c     ------------------------------------
 c     solid angle for the central plane zx
 c     ------------------------------------
-                     if (y_dif .ne. y_s) then                             ! if the latitude of the observer cell is the same as the one
-c                                                                         ! of the source cell, we do not compute the solid angle
+                     if (y_dif .ne. y_s) then                             ! if the latitude of the observer voxel is the same as the one
+c                                                                         ! of the source voxel, we do not compute the solid angle
 c                                                                         ! for le zx plane because is is null.
                       call planzx(dx,xc,xn,yc,yn,zc,zn,cthick,
      +                zcellc,r1x,r1y,r1z,r2x,r2y,r2z,r3x,r3y,r3z,r4x
@@ -1301,8 +1341,8 @@ c           omega2=omega2+omega1
 c     ------------------------------------
 c     solid angle for the central plane yz
 c     ------------------------------------
-                     if (x_dif .ne. x_s) then                             ! if the longitude of the observer cell is the same as the 
-c                                                                         ! source cell, we do not compute the solid angle
+                     if (x_dif .ne. x_s) then                             ! if the longitude of the observer voxel is the same as the 
+c                                                                         ! source voxel, we do not compute the solid angle
 c                                                                         ! for the yz plane because it is null.
                       call planyz(dy,xc,xn,yc,yn,zc,zn,cthick,
      +                zcellc,r1x,r1y,r1z,r2x,r2y,r2z,r3x,r3y,r3z,r4x,
@@ -1330,7 +1370,7 @@ c=======================================================================  ! vary
                      ouvang=ouvang*180./pi                                ! Angle in degrees.
 c 
 c=======================================================================
-c Computing emission function of the source toward the scattering cell    
+c Computing emission function of the source toward the scattering voxel    
 c=======================================================================
 c    
                      anglez=nint(180.*angzen/pi)
@@ -1356,12 +1396,12 @@ c
                      P_dif1=P_dif1/nbang 
 c
 c=======================================================================
-c Computing flux reaching the scattering cell
+c Computing flux reaching the scattering voxel
 c=======================================================================
                      fldif1=lamplu(x_s,y_s,stype)*P_dif1*
-     +               omega*transm*transa
+     +               omega*transm*transa*(1.-ff)
 c=======================================================================
-c Computing the scattering probability toward the line of sight cell
+c Computing the scattering probability toward the line of sight voxel
 c=======================================================================
                      if (angzen.lt.(pi/2.)) then                          ! Attribution of the initial and final limits of the 
 c                                                                         ! scattering path.
@@ -1372,43 +1412,42 @@ c                                                                         ! scat
                       zfdif=z_c-0.5*cthick(zceldi)
                      endif
                      anaz=angazi       
-                     call transmitm(angzen,anaz,iun,iun,zidif,ideux,      ! Molecular transmittance of the scattering cell.
+                     call transmitm(angzen,anaz,iun,iun,zidif,ideux,      ! Molecular transmittance of the scattering voxel.
      +               iun,zfdif,lambda,dx,dy,pressi,tran1m)
-                     call transmita(angzen,anaz,iun,iun,zidif,ideux,      ! Aerosol transmittance of the scattering cell.
+                     call transmita(angzen,anaz,iun,iun,zidif,ideux,      ! Aerosol transmittance of the scattering voxel.
      +               iun,zfdif,dx,dy,taua,tran1a)
                      call angle3points (x_s,y_s,z_s,x_dif,y_dif,z_dif,    ! scattering angle.
      +               x_c,y_c,z_c,dx,dy,angdif)
                      call diffusion(omega,angdif,tran1a,tran1m,           ! scattering probability of the direct light.
      +               secdif,fdifan,pdifd1)
 c=======================================================================
-c Computing scattered intensity toward the line of sight cell from the scattering cell  
+c Computing scattered intensity toward the line of sight voxel from the scattering voxel  
 c=======================================================================
                      idif1=fldif1*pdifd1
 c=======================================================================
-c Computing zenith angle between the scattering cell and the line of sight cell
+c Computing zenith angle between the scattering voxel and the line of sight voxel
 c=======================================================================
 
                      call anglezenithal(x_dif,y_dif,z_dif,x_c,y_c,z_c,
-     +               dx,dy,angzen)                                        ! computation of the zenithal angle between the scattering cell and the 
-c                                                                         ! target cell.
-        call angleazimutal(x_dif,y_dif,x_c,y_c,dx,dy,angazi)              ! computation of the azimutal angle surf refl-scattering cell
-        az=nint(angazi*180./pi)+1
-        d2=sqrt((real(x_dif-x_c)*dx)**2.+(real(y_dif-y_c)*dy)**2.)        ! max dist for the horiz (i.e. horizon limitations farter than cell-dif is not considered)
-        call horizon(x_dif,y_dif,z_dif,d2,altsol,nbx,nby,dx,dy,
-     +  zhoriz,latitu,angazi)
-        if ((angzen).lt.zhoriz(az)) then                                  ! beginning shadow condition diffuse-target  
+     +               dx,dy,angzen)                                        ! computation of the zenithal angle between the scattering voxel and the 
+c                                                                         ! line of sight voxel.
+        call angleazimutal(x_dif,y_dif,x_c,y_c,dx,dy,angazi)              ! computation of the azimutal angle surf refl-scattering voxel
+        call horizon(x_dif,y_dif,z_dif,dx,dy,nbx,nby,altsol,
+     +  latitu,angzen,angazi,zhoriz) 
+        if (angzen.lt.zhoriz) then                                      ! beginning shadow condition diffuse-line of sight
 c                                                                 
 c subgrid obstacles                
                      angmin=pi/2.-atan((obsH(x_dif,y_dif)+
      +               altsol(x_dif,y_dif)-z_dif)/drefle(x_dif,y_dif))
-                     monte=monte+19
-c                 monte=nint(rand()*100.)
-                     if (monte.gt.100) monte=monte-100
-                     if (((monte.gt.ofill(x_dif,y_dif)).and.(angzen
-     +               .ge.angmin)).or.(angzen.lt.angmin)) then             ! beginning shadow condition sub-grid obstacles diffuse->target
+
+                    if (angzen.lt.angmin) then                            ! condition obstacles scattering->line of sight
+                       ff=0.
+                    else 
+                       ff=ofill(x_dif,y_dif)
+                    endif
 c                                                                   
 c=======================================================================
-c Computing transmittance between the scattering cell and the line of sight cell
+c Computing transmittance between the scattering voxel and the line of sight voxel
 c=======================================================================
                       anaz=zero
                       call transmitm(angzen,anaz,x_dif,y_dif,z_dif,x_c
@@ -1416,14 +1455,14 @@ c=======================================================================
                       call transmita(angzen,anaz,x_dif,y_dif,z_dif,x_c
      +                ,y_c,z_c,dx,dy,taua,transa) 
 c=======================================================================
-c Computing the solid angle of the line of sight cell as seen from the scattering cell
+c Computing the solid angle of the line of sight voxel as seen from the scattering voxel
 c=======================================================================
-                      xc=dble(x_c)*dble(dx)                               ! Position in meters of the target cell (longitude).
-                      yc=dble(y_c)*dble(dy)                               ! Position in meters of the target cell (latitu).
-                      zc=dble(z_c)                                        ! Position in meters of the target cell (altitude).
-                      xn=dble(x_dif)*dble(dx)                             ! Position in meters of the scattering cell (longitude).
-                      yn=dble(y_dif)*dble(dy)                             ! Position in meters of the scattering cell (latitu).
-                      zn=dble(z_dif)                                      ! Position in meters of the scattering cell (altitude).
+                      xc=dble(x_c)*dble(dx)                               ! Position in meters of the line of sight voxel (longitude).
+                      yc=dble(y_c)*dble(dy)                               ! Position in meters of the line of sight voxel (latitu).
+                      zc=dble(z_c)                                        ! Position in meters of the line of sight voxel (altitude).
+                      xn=dble(x_dif)*dble(dx)                             ! Position in meters of the scattering voxel (longitude).
+                      yn=dble(y_dif)*dble(dy)                             ! Position in meters of the scattering voxel (latitu).
+                      zn=dble(z_dif)                                      ! Position in meters of the scattering voxel (altitude).
 c    ------------------------------------
 c    solid angle for the central plane xy
 c    ------------------------------------
@@ -1440,8 +1479,8 @@ c    ------------------------------------
 c     ------------------------------------
 c     solid angle for the central plane zx
 c     ------------------------------------
-                      if (y_c .ne. y_dif) then                            ! if the latitude of the observer cell is the same as the
-c                                                                         ! source cell, we do not calculate the solid angle
+                      if (y_c .ne. y_dif) then                            ! if the latitude of the observer voxel is the same as the
+c                                                                         ! source voxel, we do not calculate the solid angle
 c                                                                         ! for the zx plane because it is null.
                        call planzx(dx,xc,xn,yc,yn,zc,zn,
      +                 cthick,zcellc,r1x,r1y,r1z,r2x,r2y,r2z,
@@ -1457,8 +1496,8 @@ c                                                                         ! for 
 c     ------------------------------------
 c     solid angle for the central plane yz
 c     ------------------------------------
-                      if (x_c .ne. x_dif) then                            ! if the longitude of the observer cell is the same as the
-c                                                                         ! source cell, we do not calculate the solid angle
+                      if (x_c .ne. x_dif) then                            ! if the longitude of the observer voxel is the same as the
+c                                                                         ! source voxel, we do not calculate the solid angle
 c                                                                         ! for the yz plane because it is null.
                        call planyz(dy,xc,xn,yc,yn,zc,zn,
      +                 cthick,zcellc,r1x,r1y,r1z,r2x,r2y,r2z,
@@ -1473,11 +1512,11 @@ c                                                                         ! for 
                       endif
                       omega=omega1
 c=======================================================================
-c        computation of the scattered flux reaching the target cell
+c        computation of the scattered flux reaching the line of sight voxel
 c=======================================================================
                       fldiff=idif1*omega*transm*
-     +                transa
-                if (cloudt.ne.0) then                                     ! target cell = cloud
+     +                transa*(1.-ff)
+                if (cloudt.ne.0) then                                     ! line of sight voxel = cloud
                   if (cloudh(cloudt).eq.zcellc) then
                      call anglezenithal(x_c,y_c,z_c,x_obs,y_obs,z_obs,
      +               dx,dy,azencl)                                        ! zenith angle from cloud to observer                     
@@ -1487,10 +1526,10 @@ c=======================================================================
                   endif
                 endif
 c=======================================================================
-c   computation of the scattering probability of the scattered light toward the observer cell (exiting cell_c)
+c   computation of the scattering probability of the scattered light toward the observer voxel (exiting voxel_c)
 c=======================================================================
                       if (angzen.lt.(pi/2.)) then                         ! Attribution of the initial and final limits of the path to the
-c                                                                         ! scattering cell.
+c                                                                         ! scattering voxel.
                        zidif=zcdown
                        zfdif=zcup
                       else
@@ -1498,38 +1537,38 @@ c                                                                         ! scat
                        zfdif=zcdown
                       endif
                       anaz=angazi
-                      call transmitm(angzen,anaz,iun,iun,zidif,ideux,         ! Molecular transmittance of the scattering cell.
+                      call transmitm(angzen,anaz,iun,iun,zidif,ideux,     ! Molecular transmittance of the scattering voxel.
      +                iun,zfdif,lambda,dx,dy,pressi,tran1m)
-                      call transmita(angzen,anaz,iun,iun,zidif,ideux,         ! Aerosol transmittance of the scattering cell.
+                      call transmita(angzen,anaz,iun,iun,zidif,ideux,     ! Aerosol transmittance of the scattering voxel.
      +                iun,zfdif,dx,dy,taua,tran1a)    
                       call angle3points (x_dif,y_dif,z_dif,x_c,y_c,       ! scattering angle.
      +                z_c,x_obs,y_obs,z_obs,dx,dy,angdif)
                       call diffusion(omega,angdif,tran1a,tran1m,          ! scattering probability of the direct light.
      +                secdif,fdifan,pdifd2)
 c=======================================================================
-c Computing scattered intensity toward the observer from the line of sight cell
+c Computing scattered intensity toward the observer from the line of sight voxel
 c=======================================================================
                       idiff2=fldiff*pdifd2
                       idiff2=
-     +                idiff2*real(stepdi)                                 ! Correct the result for the skipping of 2nd scattering cells to accelerate the calculation
+     +                idiff2*real(stepdi)                                 ! Correct the result for the skipping of 2nd scattering voxels to accelerate the calculation
                       itodif=                        
      +                itodif+idiff2
-                     endif                                                ! end condition obstacle scattering->target
-       else
-        endif                                                             ! end condition shadow scattering-target                     
-                    endif                                                 ! end condition obstacle source->scattering.
+c                     endif                                               ! end condition obstacle scattering->line of sight
+        else
+        endif                                                             ! end condition shadow scattering-line of sight                     
+c                    endif                                                ! end condition obstacle source->scattering.
                    else
                    endif                                                  ! end condition shadow source-scattering
-                  endif                                                   ! end of the case scattering = Source or target
-                 endif                                                    ! end of the condition "cell of the domain".      
-                enddo                                                     ! end of the loop over the scattering cells.
+                  endif                                                   ! end of the case scattering = Source or line of sight voxel
+                 endif                                                    ! end of the condition "voxel of the domain".      
+                enddo                                                     ! end of the loop over the scattering voxels.
                endif                                                      ! end of the condition ou effdif > dx.
 c End of 2nd scattered intensity calculations    
 c**********************************************************************
-c        computation of the intensity coming from a source to the target toward the sensor
+c        computation of the intensity coming from a source to the line of sight voxel toward the sensor
 c**********************************************************************
                isourc=intdir+itotind+itodif+itotrd                        ! Sum of the intensities of each type of source  
-c                                                                         ! reaching the target cell.
+c                                                                         ! reaching the line of sight voxel.
 c                                                                         ! in the order 1st scat; refl->1st scat; 1st scat->2nd scat, refl->1st scat->2nd scat
                if (verbose.eq.1) then
                 print*,' Total intensity components:'
@@ -1550,13 +1589,13 @@ c**********************************************************************
                                                                           ! ITT stores itotty in a matrix
                ITT(x_s,y_s,stype)=ITT(x_s,y_s,stype)+isourc
 
-          endif                                                           ! end condition distancesource-target-observer <= dx/2
+          endif                                                           ! end condition distance source-line of sight-observer <= dx/2
               endif                                                       ! end of the condition "the luminosity of the ground pixel x_s,y_s in not null".
              enddo                                                        ! end the loop over the lines (latitude) of the domain (y_s).
             enddo                                                         ! end the loop over the column (longitude) of the domain (x_s).
 c
 c   end of the computation of the intensity of one source type
-            itotci=itotci+itotty                                          ! Sum of the intensities of each type to the target cell.
+            itotci=itotci+itotty                                          ! Sum of the intensities of each type to the line of sight voxel.
 c interpolate ITT for fill the step(stype)
             if (step(stype).gt.1) then
              defval=0.
@@ -1597,21 +1636,21 @@ c calculate lpluto
             enddo
            endif                                                          ! end of condition if there are any flux in that source type
            enddo                                                          ! end of the loop over the types of sources (stype).
-c    end of the computation of the intensity coming from a target cell se dirigeant toward the sensor
+c    end of the computation of the intensity coming from a line of sight voxel toward the sensor
 c
 c
 c***********************************************************************
-c        computation of the luminous flux reaching the cell ou se trouve the sensor
+c        computation of the luminous flux reaching the observer voxel
 c***********************************************************************
 c
 c=======================================================================
-c        computation of the zenithal angle between the observateur and the target
+c        computation of the zenithal angle between the observer and the line of sight voxel
 c=======================================================================
            call anglezenithal(x_c,y_c,z_c,x_obs,y_obs,z_obs,dx,dy,
-     +     angzen)                                                        ! computation of the zenithal angle between the target cell and the observer.
+     +     angzen)                                                        ! computation of the zenithal angle between the line of sight voxel and the observer.
 c                                                                         ! end of the case "observer at the same latitu/longitude than the source".
 c=======================================================================
-c        computation of the transmittance between the target and the observer
+c        computation of the transmittance between the line of sight voxel and the observer
 c=======================================================================
            anaz=zero
            call transmitm(angzen,anaz,x_c,y_c,z_c,x_obs,y_obs,z_obs,
@@ -1619,19 +1658,19 @@ c=======================================================================
            call transmita(angzen,anaz,x_c,y_c,z_c,x_obs,y_obs,z_obs,
      +     dx,dy,taua,transa)
 c=======================================================================
-c     computation of the Solid angle of the par the target vu par the observateur
+c     computation of the Solid angle of the line of sight voxel seen fromthe observer
 c=======================================================================
 
 
 c             omega2=0.
 
 
-           xn=dble(x_obs)*dble(dx)                                        ! Position in meters of the observer cell (longitude).
-           yn=dble(y_obs)*dble(dy)                                        ! Position in meters of the observer cell (latitu).
-           zn=dble(z_obs)                                                 ! Position in meters of the observer cell (altitude).
-           xc=dble(x_c)*dble(dx)                                          ! Position in meters of the target (longitude).
-           yc=dble(y_c)*dble(dy)                                          ! Position in meters of the target (latitu).
-           zc=dble(z_c)                                                   ! Position in meters of the target (altitude).
+           xn=dble(x_obs)*dble(dx)                                        ! Position in meters of the observer voxel (longitude).
+           yn=dble(y_obs)*dble(dy)                                        ! Position in meters of the observer voxel (latitu).
+           zn=dble(z_obs)                                                 ! Position in meters of the observer voxel (altitude).
+           xc=dble(x_c)*dble(dx)                                          ! Position in meters of the line of sight voxel (longitude).
+           yc=dble(y_c)*dble(dy)                                          ! Position in meters of the line of sight voxel (latitu).
+           zc=dble(z_c)                                                   ! Position in meters of the line of sight voxel (altitude).
 c    ------------------------------------
 c    solid angle for the central plane xy
 c    ------------------------------------
@@ -1652,8 +1691,8 @@ c           omega2=omega2+omega1
 c     ------------------------------------
 c     solid angle for the central plane zx
 c     ------------------------------------
-           if (y_c .ne. y_obs) then                                       ! if the latitu of the observer cell is the same as
-c                                                                         ! of the source cell, we are not computing the angle solide
+           if (y_c .ne. y_obs) then                                       ! if the latitu of the observer voxel is the same as
+c                                                                         ! of the source voxel, we are not computing the angle solide
 c                                                                         ! for the surface zx car il is egal a 0.
             call planzx(dx,xc,xn,yc,yn,zc,zn,cthick,zcellc,
      +      r1x,r1y,r1z,r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z)
@@ -1674,8 +1713,8 @@ c           omega2=omega2+omega1
 c     ------------------------------------
 c     solid angle for the central plane yz
 c     ------------------------------------
-           if (x_c.ne.x_obs) then                                         ! if the longitude of the observer cell is is the same as
-c                                                                         ! of the source cell, we are not computing the angle solide
+           if (x_c.ne.x_obs) then                                         ! if the longitude of the observer voxel is is the same as
+c                                                                         ! of the source voxel, we are not computing the angle solide
 c                                                                         ! for the surface yz car il is egal a 0
             call planyz(dy,xc,xn,yc,yn,zc,zn,cthick,zcellc,
      +      r1x,r1y,r1z,r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z)
@@ -1695,69 +1734,62 @@ c           omega=omega2
 
 
 c=======================================================================
-c        computation of the flux reaching the objectif of the telescope en provenance of the target cell
+c        computation of the flux reaching the objective of the telescope from the line of sight voxel
 c=======================================================================
-           dis_obs=sqrt((z_c-z_obs)**2.+((real(y_c-y_obs))*dy)**2.
-     a     +((real(x_c-x_obs))*dx)**2.)
-           ometif=pi*(diamobj/2.)**2./dis_obs**2.
-           if (dis_obs.eq.0.) then
-            print*,'ERROR problem with dis_obs',dis_obs
-            stop
-           endif
 
-           flcib=itotci*ometif*transa*transm                              ! computation of the flux reaching the intrument from the line of sight cell
+           flcib=itotci*ometif*transa*transm                              ! computation of the flux reaching the intrument from the line of sight voxel
 
            do x_s=1,nbx
             do y_s=1,nby
              FC(x_s,y_s)=ITC(x_s,y_s)*ometif*transa*transm
             enddo
            enddo
-           omefov=lfente*longfe/focal**2.                                 ! computation of the solid angle of the fente projete sur le ciel.
+
            if (cos(pi-angzen).eq.0.) then 
             print*,'ERROR perfectly horizontal sight is forbidden!'
             stop
            else
              portio=omefov/omega
-c            portio=(omefov*dis_obs*dis_obs)/(cos(pi-angzen)*dx*dy)       ! Fraction of the target cell vue par le fov (Fraction peut 
-c                                                                         ! etre superieure a 1). Le pi ici is du au fait
-c                                                                         ! que angzen is calcule sur le trajand target toward the observateur
+c            portio=(omefov*dis_obs*dis_obs)/(cos(pi-angzen)*dx*dy)       ! Fraction of the line of sight voxel covered by the fov (Fraction can be 
+c                                                                         ! larger than 1). Le pi ici is du au fait
+c                                                                         ! que angzen is calcule sur le path from the line of sight voxel toward the observer
            endif
            if (omega.eq.0.) then
             print*,'ERROR omega=0 (1)'
             stop
            endif
-           fcapt=flcib*portio                                             ! correction for the FOV to the flux reaching the intrument from the line of sight cell
+           fcapt=flcib*portio                                             ! correction for the FOV to the flux reaching the intrument from the line of sight voxel
            do x_s=1,nbx
             do y_s=1,nby
              FCA(x_s,y_s)=FC(x_s,y_s)*portio
             enddo
            enddo
-c   end of the computation of the flux reaching the observer cell en provenance of the target cell
+c   end of the computation of the flux reaching the observer voxel from the line of sight voxel
            ftocap=ftocap+fcapt  
 
            do x_s=1,nbx
             do y_s=1,nby
              FTC(x_s,y_s)=FTC(x_s,y_s)+FCA(x_s,y_s)                       ! FTC is the array of the flux total at the sensor level permettant d'identifier
-                                                                          ! the contribution of chaque cell of the sol au flux total at the sensor level
+                                                                          ! the contribution of each voxel of the ground to the total flux at the observer level
                                                                           ! Le % is simplement donne par FTC/ftocap
              flcumu=flcumu+FCA(x_s,y_s)
             enddo
            enddo
-          endif                                                           ! end of the condition target cell n'est pas observer cell.
-         endif                                                            ! end of the condition target cell inside the modelling domain
+          endif                                                           ! end of the condition line of sight voxel n'est pas observer voxel.
+         endif                                                            ! end of the condition line of sight voxel inside the modelling domain
         endif                                                             ! end condition for continuing of a computation stopped.
-c correction for the FOV to the flux reaching the intrument from the cloud cell
+c correction for the FOV to the flux reaching the intrument from the cloud voxel
            if (cloudt.ne.0) then
-            if (cloudh(cloudt).eq.zcellc) then                           ! target cell = cloud
+            if (cloudh(cloudt).eq.zcellc) then                            ! line of sight voxel = cloud
 c=======================================================================
 c  solid angle of the cloud pixel as seen from observer position
 c=======================================================================
-              xn=dble(x_obs)*dble(dx)                                     ! Position in meters of the observer cell (longitude).
-              yn=dble(y_obs)*dble(dy)                                     ! Position in meters of the observer cell (latitu).
-              zn=dble(z_obs)                                              ! Position in meters of the observer cell (altitude).
-              xc=dble(x_c)*dble(dx)                                       ! Position in meters of the target (longitude).
-              yc=dble(y_c)*dble(dy)                                       ! Position in meters of the target (latitu).
-              zc=dble(z_c)                                                ! Position in meters of the target (altitude).
+              xn=dble(x_obs)*dble(dx)                                     ! Position in meters of the observer voxel (longitude).
+              yn=dble(y_obs)*dble(dy)                                     ! Position in meters of the observer voxel (latitu).
+              zn=dble(z_obs)                                              ! Position in meters of the observer voxel (altitude).
+              xc=dble(x_c)*dble(dx)                                       ! Position in meters of the line of sight voxel (longitude).
+              yc=dble(y_c)*dble(dy)                                       ! Position in meters of the line of sight voxel (latitu).
+              zc=dble(z_c)                                                ! Position in meters of the line of sight voxel (altitude).
 c    ------------------------------------
 c    solid angle for the central plane xy
 c    ------------------------------------
@@ -1769,7 +1801,7 @@ c    ------------------------------------
               else
                  omega=0.
               endif
-c computation of the flux reaching the intrument from the cloud cell
+c computation of the flux reaching the intrument from the cloud voxel
               fcloud=icloud*ometif*transa*transm
               fccld=fcloud*omefov/omega
               fctcld=fctcld+fccld
@@ -1783,8 +1815,8 @@ c computation of the flux reaching the intrument from the cloud cell
      +  ,fccld
         write(2,*) ' Flux sensor accumulated (clear & cloudy) =',ftocap
      +  ,fctcld   
-      endif                                                               ! end condition cell target 1/stoplim
-       enddo                                                              ! end of the loop over the target cells.
+      endif                                                               ! end condition line of sight voxel 1/stoplim
+       enddo                                                              ! end of the loop over the line of sight voxels.
        if (prmaps.eq.1) then
           open(unit=9,file=pclf,status='unknown')
           open(unit=8,file=pcwf,status='unknown')
@@ -1809,7 +1841,7 @@ c computation of the flux reaching the intrument from the cloud cell
      +               /fctnto  
                   else 
                      FTCN(x_s,y_s)=0.
-                  endif                                                   ! FTCN is le % par unite of luminosite of the cell
+                  endif                                                   ! FTCN is le % par unite of luminosite of the voxel
                   write(9,*) x_s,y_s,FTC(x_s,y_s)                         ! emettrice au sol, c'est un % par unite of watt installes
                   write(8,*) x_s,y_s,FTCN(x_s,y_s)
                enddo

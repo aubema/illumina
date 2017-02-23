@@ -28,17 +28,17 @@ c
      +       dx,dy,effdif,nbx,nby,stpdif,irefl,lambda
      +       ,pressi,taua,zcup,zcdown,secdif,fdifan,
      +       x_obs,y_obs,z_obs,epsilx,epsily,
-     +       irefdi,drefl,hobst,ofill,monte,
-     +       alt_sol,latitu,cloudt,cloudh,icloud,stype)
+     +       irefdi,drefl,hobst,ofill,
+     +       altsol,latitu,cloudt,cloudh,icloud)
 c
 c   declarations de variables
 c  
       integer width
       parameter (width=1024)  
       integer x_sr,y_sr,x_dif,y_dif,zcell_dif                             ! Positions source, surface reflectrice, celldiffusantes (cellule)
-      integer x_c,y_c,zcell_c,nbx,nby,stype
+      integer x_c,y_c,zcell_c,nbx,nby
       real z_sr,z_dif,dx,dy                             
-      real cell_t(50),alt_sol(width,width)                                ! Matrice de l'epaisseur des niveaux (metre)
+      real cell_t(50),altsol(width,width)                                 ! Matrice de l'epaisseur des niveaux (metre)
 
       real cell_h(50)                                                     ! Matrice de la hauteur du centre de chaque niveau (metre)
 
@@ -70,10 +70,9 @@ c
       real z_obs
       real epsilx,epsily                                                  ! inclinaison de la surface reflechissante
       real angmin,hobst(width,width),drefl(width,width)
-      integer ofill(width,width)
+      real ofill(width,width)
       parameter (pi=3.1415926)
-      real zenhor(360),d2,angazi                                          ! angle zenithal de l'horizon,distance horizon, angle azimut
-      integer az
+      real zhoriz,angazi                                                  ! angle zenithal de l'horizon,distance horizon, angle azimut
       real latitu
       integer cloudt                                                      ! cloud type 0=clear, 1=Thin Cirrus/Cirrostratus, 2=Thick Cirrus/Cirrostratus, 3=Altostratus/Altocumulus, 4=Cumulus/Cumulonimbus, 5=Stratocumulus
       integer cloudh(5)                                                   ! cloud base layer relative to the lower elevation 
@@ -81,8 +80,7 @@ c
       real azencl                                                         ! zenith angle from cloud to observer
       real icloud                                                         ! cloud reflected intensity
       real zero,anaz
-      integer monte                                                       ! pseudo random number between 0 and 100
-
+      real ff
       data cell_t /0.5,0.6,0.72,0.86,1.04,1.26,1.52,1.84,2.22,            ! Epaisseur des niveaux
      a 2.68,3.24,3.92,4.74,5.72,6.9,8.34,10.08,12.18,14.72,17.78,21.48,
      b 25.94,31.34,37.86,45.74,55.26,66.76,80.64,97.42,117.68,142.16,
@@ -98,11 +96,11 @@ c
       iun=1
       ideux=2
       zero=0.
-      call zone_diffusion(x_sr,y_sr,z_sr,x_c,y_c,zcell_c,                ! Determiner la zone de diffusion
-     +dx,dy,effdif,nbx,nby,alt_sol,zondif,ndiff)
+      call zone_diffusion(x_sr,y_sr,z_sr,x_c,y_c,zcell_c,                 ! Determiner la zone de diffusion
+     +dx,dy,effdif,nbx,nby,altsol,zondif,ndiff)
       z_c=cell_h(zcell_c)
-      irefdi=0.                                                          ! Initialisation de l'intensite diffus par une source ds 1 cell cible         
-      do idi=1,ndiff,stpdif                                              ! Debut de la boucle sur les cellules diffusantes
+      irefdi=0.                                                           ! Initialisation de l'intensite diffus par une source ds 1 cell cible         
+      do idi=1,ndiff,stpdif                                               ! Debut de la boucle sur les cellules diffusantes
        x_dif=zondif(idi,1)
        y_dif=zondif(idi,2)
        zcell_dif=zondif(idi,3)
@@ -128,21 +126,21 @@ c ombrage s_reflechissante-diffusante
           call anglezenithal(x_sr,y_sr,z_sr,x_dif,y_dif,z_dif,dx,dy,      ! Calcul de l'angle zenithal entre la surf reflechissante et la cell diff
      +    angzen)                                                       
           call angleazimutal(x_sr,y_sr,x_dif,y_dif,dx,dy,angazi)          ! calcul de l'angle azimutal surf refl-cell diffusante
-          az=nint(angazi*180./pi)+1
-          d2=sqrt((real(x_dif-x_sr)*dx)**2.+(real(y_dif-y_sr)*dy)**2.)    ! dist max pour l'horiz (i.e. l horizon passe la cell-diff ne compte pas)
-          call horizon(x_sr,y_sr,z_sr,d2,alt_sol,nbx,nby,dx,dy,
-     +    zenhor,latitu,angazi) 
-          if ((angzen).lt.zenhor(az)) then                                ! debut condition ombrage surface refl - diffuse        
+          call horizon(x_sr,y_sr,z_sr,dx,dy,nbx,nby,altsol,
+     +    latitu,angzen,angazi,zhoriz) 
+          if (angzen.lt.zhoriz) then                                      ! debut condition ombrage surface refl - diffuse
 c MA j'ai verifie que angzen ne depasse  jamais pi ou jamais moins que 0
                                                                           ! Fin du cas "observateur a la meme latitu/longitude que la source"
 c obstacle sous maille
            angmin=pi/2.-atan(hobst(x_sr,y_sr)/
      +     drefl(x_sr,y_sr))
-           monte=monte+19
-c                 monte=nint(rand()*100.)
-           if (monte.gt.100) monte=monte-100
-           if (((monte.gt.ofill(x_sr,y_sr)).and.(angzen.ge.angmin)).or.
-     +     (angzen.lt.angmin)) then                                       ! debut condition obstacle reflechi->diffuse               
+           if (angzen.lt.angmin) then                                     ! condition obstacle reflechi->scattered
+              ff=0.
+           else 
+              ff=ofill(x_sr,y_sr)
+           endif
+
+             
 c=======================================================================
 c        Calcul de la transmittance entre la surface reflechissane et la cellule diffusante
 c=======================================================================
@@ -218,7 +216,7 @@ c=======================================================================
 c        Calcul du flux atteignant la cellule diffusante
 c=======================================================================
             flux_dif1=irefl*projap*omega*transm*
-     +      transa
+     +      transa*(1.-ff)
 c=======================================================================
 c   Calcul de la probabilite de diffusion de la lumiere diffuse vers la cellule cible
 c=======================================================================
@@ -230,9 +228,9 @@ c=======================================================================
              zfdif=z_c-0.5*cell_t(zcell_dif)
             endif 
             anaz=angazi
-            call transmitm(angzen,anaz,iun,iun,zidif,ideux,iun,zfdif,         ! Transmittance moleculaire a l'interieur de la cellule diffusante
+            call transmitm(angzen,anaz,iun,iun,zidif,ideux,iun,zfdif,     ! Transmittance moleculaire a l'interieur de la cellule diffusante
      +      lambda,dx,dy,pressi,tran1m)
-            call transmita(angzen,anaz,iun,iun,zidif,ideux,iun,zfdif,         ! Transmittance aerosols a l'interieur de la cellule diffusante
+            call transmita(angzen,anaz,iun,iun,zidif,ideux,iun,zfdif,     ! Transmittance aerosols a l'interieur de la cellule diffusante
      +      dx,dy,taua,tran1a)
             call angle3points(x_sr,y_sr,z_sr,x_dif,y_dif,z_dif,x_c,       ! Angle de diffusion
      +      y_c,z_c,dx,dy,angdif)
@@ -257,22 +255,19 @@ c ombrage s_reflechissante-diffusante
      
      
         call angleazimutal(x_dif,y_dif,x_c,y_c,dx,dy,angazi)              ! calcul de l'angle azimutal surf refl-cell diffusante
-        az=nint(angazi*180./pi)+1
-        d2=sqrt((real(x_dif-x_c)*dx)**2.+(real(y_dif-y_c)*dy)**2.)        ! dist max pour l'horiz (i.e. l horizon passe la cell-diff ne compte pas)
-        call horizon(x_dif,y_dif,z_dif,d2,alt_sol,nbx,nby,dx,dy,
-     +  zenhor,latitu,angazi)  
-
-        if ((angzen).lt.zenhor(az)) then                                  ! debut condition ombrage diffuse-cible           
-     
-     
+        call horizon(x_dif,y_dif,z_dif,dx,dy,nbx,nby,altsol,
+     +  latitu,angzen,angazi,zhoriz) 
+        if (angzen.lt.zhoriz) then                                        ! debut condition ombrage diffuse-cible   
 c obstacle sous maille
             angmin=pi/2.-atan((hobst(x_dif,y_dif)+
-     +      alt_sol(x_dif,y_dif)-z_dif)/drefl(x_dif,y_dif))
-            monte=monte+19
-c                 monte=nint(rand()*100.)
-            if (monte.gt.100) monte=monte-100
-            if (((monte.gt.ofill(x_dif,y_dif)).and.(angzen.ge.angmin))
-     +      .or.(angzen.lt.angmin)) then                                  ! debut condition obstacle sous maille diffuse->cible
+     +      altsol(x_dif,y_dif)-z_dif)/drefl(x_dif,y_dif))
+
+            if (angzen.lt.angmin) then                                    ! condition obstacle sous maille diffuse->cible
+               ff=0.
+            else 
+               ff=ofill(x_dif,y_dif)
+            endif
+
                                                                           ! Fin du cas "observateur a la meme latitu/longitude que la source"
 c=======================================================================
 c        Calcul de la transmittance entre la cellule diffusante et la cellule cible
@@ -339,11 +334,11 @@ c     ------------------------------------
 c=======================================================================
 c        Calcul du flux diffuse atteignant la cellule cible
 c=======================================================================
-            fdiff=idiff1*omega*transm*transa
+            fdiff=idiff1*omega*transm*transa*(1.-ff)
 
 c verifie mais je crosi que le calcul de azencl est facultatif ici
                 if (cloudt.ne.0) then                                     ! target cell = cloud
-                  if (cloudh(cloudt).eq.zcellc) then
+                  if (cloudh(cloudt).eq.zcell_c) then
                      call anglezenithal(x_c,y_c,z_c,x_obs,y_obs,z_obs,
      +               dx,dy,azencl)                                        ! zenith angle from cloud to observer                     
                      call cloudreflectance(angzen,cloudt,rcloud)          ! cloud intensity from direct illum
@@ -365,9 +360,9 @@ c=======================================================================
              zfdif=zcdown
             endif 
             anaz=angazi
-            call transmitm(angzen,anaz,iun,iun,zidif,ideux,iun,zfdif,         ! Transmittance moleculaire a l'interieur de la cellule diffusante
+            call transmitm(angzen,anaz,iun,iun,zidif,ideux,iun,zfdif,     ! Transmittance moleculaire a l'interieur de la cellule diffusante
      +      lambda,dx,dy,pressi,tran1m)
-            call transmita(angzen,anaz,iun,iun,zidif,ideux,iun,zfdif,         ! Transmittance aerosols a l'interieur de la cellule diffusante
+            call transmita(angzen,anaz,iun,iun,zidif,ideux,iun,zfdif,     ! Transmittance aerosols a l'interieur de la cellule diffusante
      +      dx,dy,taua,tran1a)    
             call angle3points (x_dif,y_dif,z_dif,x_c,y_c,z_c,x_obs,       ! Angle de diffusion
      +      y_obs,z_obs,dx,dy,angdif)
@@ -378,9 +373,11 @@ c   Calcul de l'intensite diffusee dirigee vers l'observateur en provenance de l
 c=======================================================================
             idiff2=fdiff*pdifd2*real(stpdif)                              ! corriger le result pr avoir passe des cell afin d'accel le calcul
             irefdi=irefdi+idiff2      
-           endif                                                          ! fin condition obstacle sous maille diffuse->cible 
+c           endif                                                         ! fin condition obstacle sous maille diffuse->cible 
         endif                                                             ! fin condition ombrage diffuse-cible
-          endif                                                           ! fin condition obstacle reflechie->diffuse    
+
+
+c          endif                                                          ! fin condition obstacle reflechie->scattered    
          endif                                                            ! fin  condition ombrage surface refl - diffuse 
         endif                                                             ! Fin du cas Diffusante = Source ou Cible        
        endif                                                              ! Fin de la condition "cellule a l'interieur du domaine"             

@@ -34,6 +34,8 @@ c
          bidon='#'                                                        ! Le caractere # indique que la ligne contient une constante.
          hcnt=0                                                           ! Le nombre de lignes de constantes au debut du fichier (hcnt) est 
 c                                                                         ! fixe a 0.
+         offset=0.
+         gain=0.
          open(unit=1,file=infile,status='old')
          read(1,*)                                                        ! Passe la premiere ligne (il y a toujours un p2).
          do i=1,12                                                        ! Debut de la boucle sur les 12 premieres lignes du fichier.
