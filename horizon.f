@@ -49,7 +49,7 @@ c
      + **(1.5)
       angel=(pi/2.-angz)*180./pi                                          ! lignevisee require angles in degrees and elevation angle
       angaz=anga*180./pi
-c      if (angel.gt.0.) then
+      if (angel.gt.0.) then
 c       print*,'toto1',angel,angaz
 
          call lignevisee(x_c,y_c,z_c,dx,dy,angel,angaz,nbx,nby,           ! Determination of the viewing line (line of sight voxels).
@@ -72,7 +72,9 @@ c         print*,zz,altsol(ii,jj)
          enddo
          zhoriz=minzhor
                print*,zhoriz,pi,pi/2.,dsqr
-c      endif
+      else
+        zhoriz=pi
+      endif
 
       return
       end 
