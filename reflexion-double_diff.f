@@ -81,6 +81,7 @@ c
       real icloud                                                         ! cloud reflected intensity
       real zero,anaz
       real ff
+      integer d2
       data cell_t /0.5,0.6,0.72,0.86,1.04,1.26,1.52,1.84,2.22,            ! Epaisseur des niveaux
      a 2.68,3.24,3.92,4.74,5.72,6.9,8.34,10.08,12.18,14.72,17.78,21.48,
      b 25.94,31.34,37.86,45.74,55.26,66.76,80.64,97.42,117.68,142.16,
@@ -126,7 +127,8 @@ c ombrage s_reflechissante-diffusante
           call anglezenithal(x_sr,y_sr,z_sr,x_dif,y_dif,z_dif,dx,dy,      ! Calcul de l'angle zenithal entre la surf reflechissante et la cell diff
      +    angzen)                                                       
           call angleazimutal(x_sr,y_sr,x_dif,y_dif,dx,dy,angazi)          ! calcul de l'angle azimutal surf refl-cell diffusante
-          call horizon(x_sr,y_sr,z_sr,dx,dy,nbx,nby,altsol,
+          d2=(x_sr-x_dif)**2+(y_sr-y_dif)**2
+          call horizon(d2,x_sr,y_sr,z_sr,dx,dy,nbx,nby,altsol,
      +    latitu,angzen,angazi,zhoriz) 
           if (angzen.lt.zhoriz) then                                      ! debut condition ombrage surface refl - diffuse
 c MA j'ai verifie que angzen ne depasse  jamais pi ou jamais moins que 0
@@ -255,7 +257,8 @@ c ombrage s_reflechissante-diffusante
      
      
         call angleazimutal(x_dif,y_dif,x_c,y_c,dx,dy,angazi)              ! calcul de l'angle azimutal surf refl-cell diffusante
-        call horizon(x_dif,y_dif,z_dif,dx,dy,nbx,nby,altsol,
+        d2=(x_dif-x_c)**2+(y_dif-y_c)**2
+        call horizon(d2,x_dif,y_dif,z_dif,dx,dy,nbx,nby,altsol,
      +  latitu,angzen,angazi,zhoriz) 
         if (angzen.lt.zhoriz) then                                        ! debut condition ombrage diffuse-cible   
 c obstacle sous maille

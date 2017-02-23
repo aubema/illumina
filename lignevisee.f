@@ -103,8 +103,11 @@ c           print*,'horizontal'
       a=0
       r=0.
       dr=da
-      do while (domain.eq.1)
-         if (r.lt.rmax) then
+      cx=x1
+      cy=y1
+      cz=25                                                               ! somewhere in the middle vertically - in order to begin inside the domain
+      do while ((cx.le.nbx).and.(cx.ge.1).and.(cy.le.nby).and.(cy.ge.1)   ! verifier si nous sommes dans le domaine
+     +      .and.(cz.le.50).and.(cz.ge.1).and.(r.lt.rmax))
             r=r+dr
             dr=dr*1.005
             cx = x1 + nint(ix*r/dx)
@@ -116,8 +119,6 @@ c           print*,'horizontal'
                   cz= k
                endif
             enddo
-            if ((cx.le.nbx).and.(cx.ge.1).and.(cy.le.nby).and.(cy.ge.1)   ! verifier si nous sommes dans le domaine
-     +      .and.(cz.le.50).and.(cz.ge.1)) then
                domain=1
                if (z.lt.28000.) then
                   dminx=abs((ix*real(a)*da/dx-real(nint(ix*real(a)*       ! calcul de la distance entre le centre de la cellule et la position du vecteur en unite de largeur de cellule
@@ -139,14 +140,17 @@ c           print*,'horizontal'
                         czp=cz 
                      endif
                   endif
-               else
-                  domain=0
                endif
-            endif
-         endif
          a=a+1
+c      print*,'a=',a,r,cx,cy,cz
       enddo
+
+
+
 c      print*,'a=',a
+
+
+
 c
 c  eviter les angles droits successifs
 c
@@ -183,22 +187,26 @@ c    un cas a eliminer
       viseef(ncellf,1)=visee(ncell,1)
       viseef(ncellf,2)=visee(ncell,2)
       viseef(ncellf,3)=visee(ncell,3)
-
-          ncfin=0
+c
+c
+c arreter le ligne de visee au nuage and forbid cells outside the domain
+c
+          ncfin=1
           do ii=1,ncellf
-c arreter le ligne de visee au nuage
              if (viseef(ii,3).le.cloudz) then
-                 ncfin=ncfin+1
-                 visfin(ii,1)=viseef(ncfin,1)
-                 visfin(ii,2)=viseef(ncfin,2)
-                 visfin(ii,3)=viseef(ncfin,3)
+                if ((viseef(ncfin,1).le.nbx).and.(viseef(ncfin,1).ge.1)   ! verifier si nous sommes dans le domaine
+     +          .and.(viseef(ncfin,2).le.nby).and.(viseef(ncfin,2).ge.1)
+     +          .and.(viseef(ncfin,3).le.50).and.(viseef(ncfin,3).ge.1))
+     +          then   
+                    visfin(ii,1)=viseef(ncfin,1)
+                    visfin(ii,2)=viseef(ncfin,2)
+                    visfin(ii,3)=viseef(ncfin,3)
+                    ncfin=ncfin+1
+                endif
              endif
         
           enddo
           vistep=1
-
-              
-      
-
+          ncfin=ncfin-1
       return
       end

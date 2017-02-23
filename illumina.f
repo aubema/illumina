@@ -223,6 +223,7 @@ c                                                                         ! a li
       real zero
       real anaz
       real ff                                                             ! temporary obstacle filling factor
+      integer d2
       data cthick /0.5,0.6,0.72,0.86,1.04,1.26,1.52,1.84,2.22,            ! thickness of the levels.
      a 2.68,3.24,3.92,4.74,5.72,6.9,8.34,10.08,12.18,14.72,17.78,21.48,
      b 25.94,31.34,37.86,45.74,55.26,66.76,80.64,97.42,117.68,142.16,
@@ -742,8 +743,8 @@ c computation of the horizon for the resolved shadows direct              ! hori
                 call anglezenithal
      +          (x_s,y_s,z_s,x_c,y_c,z_c,dx,dy,angzen)                    ! computation of the zenithal angle between the source and the line of sight voxel.
                 call angleazimutal(x_s,y_s,x_c,y_c,dx,dy,angazi)          ! computation of the angle azimutal direct line of sight-source
-
-                call horizon(x_s,y_s,z_s,dx,dy,nbx,nby,altsol,
+                d2=(x_s-x_c)**2+(y_s-y_c)**2
+                call horizon(d2,x_s,y_s,z_s,dx,dy,nbx,nby,altsol,
      +          latitu,angzen,angazi,zhoriz) 
                 if (angzen.lt.zhoriz) then                                ! the path line of sight-source is not below the horizon => we compute
 
@@ -1060,7 +1061,8 @@ c verify if there is shadow between sr and line of sight voxel
                  call anglezenithal(x_sr,y_sr,z_sr,x_c,y_c,z_c,dx,        ! zenithal angle between the reflecting surface and the line of sight voxel.
      +           dy,angzen)     
                  call angleazimutal(x_sr,y_sr,x_c,y_c,dx,dy,angazi)       ! computation of the azimutal angle reflect-line of sight
-                 call horizon(x_sr,y_sr,z_sr,dx,dy,nbx,nby,altsol,
+                 d2=(x_sr-x_c)**2+(y_sr-y_c)**2
+                 call horizon(d2,x_sr,y_sr,z_sr,dx,dy,nbx,nby,altsol,
      +           latitu,angzen,angazi,zhoriz) 
                  if (angzen.lt.zhoriz) then                               ! the path line of sight-reflec is not below the horizon => we compute
                  if (projap.lt.0.) projap=0.
@@ -1262,7 +1264,8 @@ c shadow source-scattering voxel
 
                    call angleazimutal(x_s,y_s,x_dif,y_dif,dx,dy,          ! computation of the angle azimutal line of sight-scattering voxel
      +             angazi)
-                   call horizon(x_s,y_s,z_s,dx,dy,nbx,nby,altsol,
+                   d2=(x_s-x_dif)**2+(y_s-y_dif)**2
+                   call horizon(d2,x_s,y_s,z_s,dx,dy,nbx,nby,altsol,
      +             latitu,angzen,angazi,zhoriz) 
                    if (angzen.lt.zhoriz) then                           ! beginning condition shadow source-diffusante
 c sub-grid obstacles               
@@ -1432,7 +1435,8 @@ c=======================================================================
      +               dx,dy,angzen)                                        ! computation of the zenithal angle between the scattering voxel and the 
 c                                                                         ! line of sight voxel.
         call angleazimutal(x_dif,y_dif,x_c,y_c,dx,dy,angazi)              ! computation of the azimutal angle surf refl-scattering voxel
-        call horizon(x_dif,y_dif,z_dif,dx,dy,nbx,nby,altsol,
+        d2=(x_c-x_dif)**2+(y_c-y_dif)**2
+        call horizon(d2,x_dif,y_dif,z_dif,dx,dy,nbx,nby,altsol,
      +  latitu,angzen,angazi,zhoriz) 
         if (angzen.lt.zhoriz) then                                      ! beginning shadow condition diffuse-line of sight
 c                                                                 

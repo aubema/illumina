@@ -25,12 +25,13 @@ c
 c    Contact: martin.aube@cegepsherbrooke.qc.ca
 c
 c
-      subroutine horizon(x_c,y_c,z_c,dx,dy,nbx,nby,alt_sol,
+      subroutine horizon(d2,x_c,y_c,z_c,dx,dy,nbx,nby,altsol,
      +latitu,angz,anga,zhoriz) 
       integer i,x_c,y_c,nbx,nby,vistep,cloudz,lcib(1024,3),ncib
-      integer ii,jj
-      real z_c,cell_h(50),alt_sol(1024,1024),dx,dy,pi,zz
-      real latitu,lat,a,b,rterre,angvis,anga,zhoriz,angz
+      integer ii,jj,d2,dsqr
+      real z_c,cell_h(50),altsol(1024,1024),dx,dy,pi,zz
+      real latitu,lat,a,b,rterre,angel,angaz,anga,zhoriz,angz
+      real minzhor
       data cell_h /0.25,0.8,1.46,2.25,3.2,4.35,5.74,7.42,9.45,            ! Hauteur du centre de chaque niveau
      a 11.9,14.86,18.44,22.77,28.,34.31,41.93,51.14,62.27,75.72,91.97,
      b 111.6,135.31,163.95,198.55,240.35,290.85,351.86,425.56,514.59,
@@ -40,22 +41,38 @@ c
       pi=3.1415926   
       vistep=1
       cloudz=50
-      zhoriz=pi/2.
+      zhoriz=pi                                                           ! minimum near horizon angle allowed
       lat=latitu*pi/180.
       a=6378137.0                                                         ! earth equatorial radius
       b=6356752.3                                                         ! earth polar radius
       rterre=a**2.*b**2./((a*cos(lat))**2.+(b*sin(lat))**2.)
      + **(1.5)
-      angvis=90.-angz
-      call lignevisee(x_c,y_c,z_c,dx,dy,angvis,anga,nbx,nby,              ! Determination of the viewing line (line of sight voxels).
-     + vistep,cloudz,lcib,ncib) 
-      do i=1,ncib 
-         ii=lcib(i,1)
-         jj=lcib(i,2)
-         zz=cell_h(lcib(i,3))
-         if (zz.le.alt_sol(ii,jj)) then
-            call anglezenithal(x_c,y_c,z_c,ii,jj,zz,dx,dy,zhoriz)         ! calculate and return the zenithal angle in radian: zhoriz
-         endif
-      enddo
+      angel=(pi/2.-angz)*180./pi                                          ! lignevisee require angles in degrees and elevation angle
+      angaz=anga*180./pi
+c      if (angel.gt.0.) then
+c       print*,'toto1',angel,angaz
+
+         call lignevisee(x_c,y_c,z_c,dx,dy,angel,angaz,nbx,nby,           ! Determination of the viewing line (line of sight voxels).
+     +   vistep,cloudz,lcib,ncib)
+         minzhor=pi
+         do i=1,ncib 
+            ii=lcib(i,1)
+            jj=lcib(i,2)
+            zz=cell_h(lcib(i,3))
+            dsqr=(x_c-ii)**2+(y_c-jj)**2
+            if (dsqr.le.d2) then
+
+
+               if (zz.le.altsol(ii,jj)) then
+c         print*,zz,altsol(ii,jj)
+                  call anglezenithal(x_c,y_c,z_c,ii,jj,zz,dx,dy,zhoriz)      ! calculate and return the zenithal angle in radian: zhoriz
+                  if (zhoriz.lt.minzhor) minzhor=zhoriz
+               endif
+            endif
+         enddo
+         zhoriz=minzhor
+               print*,zhoriz,pi,pi/2.,dsqr
+c      endif
+
       return
       end 
