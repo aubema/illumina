@@ -72,8 +72,8 @@ c
       real angmin,hobst(width,width),drefl(width,width)
       real ofill(width,width)
       parameter (pi=3.1415926)
-      real zhoriz,angazi                                                  ! angle zenithal de l'horizon,distance horizon, angle azimut
-      real latitu
+      real angazi                                                         ! angle zenithal de l'horizon,distance horizon, angle azimut
+      real latitu   
       integer cloudt                                                      ! cloud type 0=clear, 1=Thin Cirrus/Cirrostratus, 2=Thick Cirrus/Cirrostratus, 3=Altostratus/Altocumulus, 4=Cumulus/Cumulonimbus, 5=Stratocumulus
       integer cloudh(5)                                                   ! cloud base layer relative to the lower elevation 
       real rcloud                                                         ! cloud relfecicloudtance 
@@ -81,7 +81,8 @@ c
       real icloud                                                         ! cloud reflected intensity
       real zero,anaz
       real ff,hh
-      integer d2
+c      integer d2
+c      real zhoriz
       data cell_t /0.5,0.6,0.72,0.86,1.04,1.26,1.52,1.84,2.22,            ! Epaisseur des niveaux
      a 2.68,3.24,3.92,4.74,5.72,6.9,8.34,10.08,12.18,14.72,17.78,21.48,
      b 25.94,31.34,37.86,45.74,55.26,66.76,80.64,97.42,117.68,142.16,
@@ -97,6 +98,8 @@ c
       iun=1
       ideux=2
       zero=0.
+      hh=1.
+      latitu=1*latitu
       call zone_diffusion(x_sr,y_sr,z_sr,x_c,y_c,zcell_c,                 ! Determiner la zone de diffusion
      +dx,dy,effdif,nbx,nby,altsol,zondif,ndiff)
       z_c=cell_h(zcell_c)
@@ -127,14 +130,16 @@ c ombrage s_reflechissante-diffusante
           call anglezenithal(x_sr,y_sr,z_sr,x_dif,y_dif,z_dif,dx,dy,      ! Calcul de l'angle zenithal entre la surf reflechissante et la cell diff
      +    angzen)                                                       
           call angleazimutal(x_sr,y_sr,x_dif,y_dif,dx,dy,angazi)          ! calcul de l'angle azimutal surf refl-cell diffusante
-          d2=(x_sr-x_dif)**2+(y_sr-y_dif)**2
-          call horizon(d2,x_sr,y_sr,z_sr,dx,dy,nbx,nby,altsol,
-     +    latitu,angzen,angazi,zhoriz) 
-          if (angzen.lt.zhoriz) then                                      ! debut condition ombrage surface refl - diffuse
-             hh=1.
-          else
-             hh=0.
-          endif
+
+c          d2=(x_sr-x_dif)**2+(y_sr-y_dif)**2
+c          call horizon(d2,x_sr,y_sr,z_sr,dx,dy,nbx,nby,altsol,
+c     +    latitu,angzen,angazi,zhoriz) 
+c          if (angzen.lt.zhoriz) then                                      ! debut condition ombrage surface refl - diffuse
+c             hh=1.
+c          else
+c             hh=0.
+c          endif
+
 c MA j'ai verifie que angzen ne depasse  jamais pi ou jamais moins que 0
                                                                           ! Fin du cas "observateur a la meme latitu/longitude que la source"
 c obstacle sous maille
@@ -261,14 +266,16 @@ c ombrage s_reflechissante-diffusante
      
      
         call angleazimutal(x_dif,y_dif,x_c,y_c,dx,dy,angazi)              ! calcul de l'angle azimutal surf refl-cell diffusante
-        d2=(x_dif-x_c)**2+(y_dif-y_c)**2
-        call horizon(d2,x_dif,y_dif,z_dif,dx,dy,nbx,nby,altsol,
-     +  latitu,angzen,angazi,zhoriz) 
-        if (angzen.lt.zhoriz) then                                        ! debut condition ombrage diffuse-cible
-           hh=1.
-        else
-           hh=0.
-        endif
+
+c        d2=(x_dif-x_c)**2+(y_dif-y_c)**2
+c        call horizon(d2,x_dif,y_dif,z_dif,dx,dy,nbx,nby,altsol,
+c     +  latitu,angzen,angazi,zhoriz) 
+c        if (angzen.lt.zhoriz) then                                        ! debut condition ombrage diffuse-cible
+c           hh=1.
+c        else
+c           hh=0.
+c        endif
+
 c obstacle sous maille
             angmin=pi/2.-atan((hobst(x_dif,y_dif)+
      +      altsol(x_dif,y_dif)-z_dif)/drefl(x_dif,y_dif))

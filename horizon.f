@@ -75,9 +75,10 @@ c               print*,pi/2.-zhoriz
       enddo
       zhoriz=minzhor
 c              print*,zhoriz,pi,pi/2.,dsqr
-      if (abs(zhoriz-pi/2.).le.(1.5*pi/180.)) then
-         if (zhoriz.ge.pi/2.) zhoriz=zhoriz+1.5*pi/180.
-         if ((zhoriz.le.pi/2.) zhoriz=zhoriz-1.5*pi/180.
+      if (abs(zhoriz-pi/2.).le.(3.*pi/180.)) then                        ! semble y avoir un probleme avec un angle pres de pi/2
+         if (zhoriz.le.pi/2.) zhoriz=zhoriz-3.*pi/180.
       endif
+      if (zhoriz.ge.(pi/2.-1.5*pi/180.)) zhoriz=pi
+c         print*,zhoriz
       return
       end 

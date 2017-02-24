@@ -199,7 +199,7 @@ c                                                                         ! a li
       real fctnto,ftcmax                                                  ! FTCN total for all the domain for all lamps
       character*3 lampno                                                  ! lamp number string
       integer imin(120),imax(120),jmin(120),jmax(120)                     ! x and y limits of the zone containing a type of lamp
-      real zhoriz                                                         ! horizon in rad over 360 deg, the first index of the array is for 0 deg while index 360 = 359 deg
+c      real zhoriz                                                         ! horizon in rad over 360 deg, the first index of the array is for 0 deg while index 360 = 359 deg
       real angazi                                                         ! azimuth angle between two points in rad, max dist for the horizon determination
       real latitu                                                         ! approximate latitude of the domain center
       integer vistep                                                      ! line of sight step for low elevation angles vistep=ncells_along_sight/50
@@ -219,7 +219,7 @@ c                                                                         ! a li
       real zero
       real anaz
       real ff,hh                                                          ! temporary obstacle filling factor and horizon blocking factor
-      integer d2
+c      integer d2
       data cthick /0.5,0.6,0.72,0.86,1.04,1.26,1.52,1.84,2.22,            ! thickness of the levels.
      a 2.68,3.24,3.92,4.74,5.72,6.9,8.34,10.08,12.18,14.72,17.78,21.48,
      b 25.94,31.34,37.86,45.74,55.26,66.76,80.64,97.42,117.68,142.16,
@@ -401,6 +401,7 @@ c=======================================================================
        ometif=0.
        omefov=0.
        vistep=1
+       hh=1.
 c***********************************************************************
 c        reading of the environment variables                          *
 c***********************************************************************
@@ -733,14 +734,16 @@ c computation of the horizon for the resolved shadows direct              ! hori
                 call anglezenithal
      +          (x_s,y_s,z_s,x_c,y_c,z_c,dx,dy,angzen)                    ! computation of the zenithal angle between the source and the line of sight voxel.
                 call angleazimutal(x_s,y_s,x_c,y_c,dx,dy,angazi)          ! computation of the angle azimutal direct line of sight-source
-                d2=(x_s-x_c)**2+(y_s-y_c)**2
-                call horizon(d2,x_s,y_s,z_s,dx,dy,nbx,nby,altsol,
-     +          latitu,angzen,angazi,zhoriz) 
-                if (angzen.lt.zhoriz) then                                ! shadow the path line of sight-source is not below the horizon => we compute
-                   hh=1.
-                else
-                   hh=0.
-                endif
+
+c                d2=(x_s-x_c)**2+(y_s-y_c)**2
+c                call horizon(d2,x_s,y_s,z_s,dx,dy,nbx,nby,altsol,
+c     +          latitu,angzen,angazi,zhoriz) 
+c                if (angzen.lt.zhoriz) then                                ! shadow the path line of sight-source is not below the horizon => we compute
+c                   hh=1.
+c                else
+c                   hh=0.
+c                endif
+
 c                                                                         ! beginning condition above the horizon direct
 c sub-grid obstacles             
                 angmin=pi/2.-atan((altsol(x_s,y_s)+obsH(x_s,y_s)
@@ -1051,16 +1054,17 @@ c verify if there is shadow between sr and line of sight voxel
                  call anglezenithal(x_sr,y_sr,z_sr,x_c,y_c,z_c,dx,        ! zenithal angle between the reflecting surface and the line of sight voxel.
      +           dy,angzen)     
                  call angleazimutal(x_sr,y_sr,x_c,y_c,dx,dy,angazi)       ! computation of the azimutal angle reflect-line of sight
-                 d2=(x_sr-x_c)**2+(y_sr-y_c)**2
 
-                 call horizon(d2,x_sr,y_sr,z_sr,dx,dy,nbx,nby,altsol,
-     +           latitu,angzen,angazi,zhoriz) 
+c                 d2=(x_sr-x_c)**2+(y_sr-y_c)**2
+c                 call horizon(d2,x_sr,y_sr,z_sr,dx,dy,nbx,nby,altsol,
+c     +           latitu,angzen,angazi,zhoriz) 
+c
+c                 if (angzen.lt.zhoriz) then                               ! the path line of sight-reflec is not below the horizon => we compute
+c                    hh=1.
+c                 else
+c                    hh=0.
+c                 endif                                                    ! end condition reflecting surf. above horizon
 
-                 if (angzen.lt.zhoriz) then                               ! the path line of sight-reflec is not below the horizon => we compute
-                    hh=1.
-                 else
-                    hh=0.
-                 endif                                                    ! end condition reflecting surf. above horizon
 c
 c ????????????????????????????????
                  irefl=irefl1*projap
@@ -1242,14 +1246,16 @@ c shadow source-scattering voxel
 
                    call angleazimutal(x_s,y_s,x_dif,y_dif,dx,dy,          ! computation of the angle azimutal line of sight-scattering voxel
      +             angazi)
-                   d2=(x_s-x_dif)**2+(y_s-y_dif)**2
-                   call horizon(d2,x_s,y_s,z_s,dx,dy,nbx,nby,altsol,
-     +             latitu,angzen,angazi,zhoriz) 
-                   if (angzen.lt.zhoriz) then                             ! beginning condition shadow source-diffusante
-                      hh=1.
-                   else
-                      hh=0.
-                   endif
+
+c                   d2=(x_s-x_dif)**2+(y_s-y_dif)**2
+c                   call horizon(d2,x_s,y_s,z_s,dx,dy,nbx,nby,altsol,
+c     +             latitu,angzen,angazi,zhoriz) 
+c                   if (angzen.lt.zhoriz) then                             ! beginning condition shadow source-diffusante
+c                      hh=1.
+c                   else
+c                      hh=0.
+c                   endif
+
 c sub-grid obstacles               
                     angmin=pi/2.-atan((obsH(x_s,y_s)+
      +              altsol(x_s,y_s)-z_s)/drefle(x_s,y_s))
@@ -1395,15 +1401,17 @@ c=======================================================================
      +               dx,dy,angzen)                                        ! computation of the zenithal angle between the scattering voxel and the 
 c                                                                         ! line of sight voxel.
         call angleazimutal(x_dif,y_dif,x_c,y_c,dx,dy,angazi)              ! computation of the azimutal angle surf refl-scattering voxel
-        d2=(x_c-x_dif)**2+(y_c-y_dif)**2
 
-        call horizon(d2,x_dif,y_dif,z_dif,dx,dy,nbx,nby,altsol,
-     +  latitu,angzen,angazi,zhoriz) 
-        if (angzen.lt.zhoriz) then                                        ! beginning shadow condition diffuse-line of sight
-           hh=1.
-        else
-           hh=0.
-        endif
+c        d2=(x_c-x_dif)**2+(y_c-y_dif)**2
+c        call horizon(d2,x_dif,y_dif,z_dif,dx,dy,nbx,nby,altsol,
+c     +  latitu,angzen,angazi,zhoriz) 
+c        if (angzen.lt.zhoriz) then                                        ! beginning shadow condition diffuse-line of sight
+c           hh=1.
+c        else
+c           hh=0.
+c        endif
+
+
 c                                                                 
 c subgrid obstacles                
                      angmin=pi/2.-atan((obsH(x_dif,y_dif)+
