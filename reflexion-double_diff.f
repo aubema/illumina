@@ -80,7 +80,7 @@ c
       real azencl                                                         ! zenith angle from cloud to observer
       real icloud                                                         ! cloud reflected intensity
       real zero,anaz
-      real ff
+      real ff,hh
       integer d2
       data cell_t /0.5,0.6,0.72,0.86,1.04,1.26,1.52,1.84,2.22,            ! Epaisseur des niveaux
      a 2.68,3.24,3.92,4.74,5.72,6.9,8.34,10.08,12.18,14.72,17.78,21.48,
@@ -131,6 +131,10 @@ c ombrage s_reflechissante-diffusante
           call horizon(d2,x_sr,y_sr,z_sr,dx,dy,nbx,nby,altsol,
      +    latitu,angzen,angazi,zhoriz) 
           if (angzen.lt.zhoriz) then                                      ! debut condition ombrage surface refl - diffuse
+             hh=1.
+          else
+             hh=0.
+          endif
 c MA j'ai verifie que angzen ne depasse  jamais pi ou jamais moins que 0
                                                                           ! Fin du cas "observateur a la meme latitu/longitude que la source"
 c obstacle sous maille
@@ -218,7 +222,7 @@ c=======================================================================
 c        Calcul du flux atteignant la cellule diffusante
 c=======================================================================
             flux_dif1=irefl*projap*omega*transm*
-     +      transa*(1.-ff)
+     +      transa*(1.-ff)*hh
 c=======================================================================
 c   Calcul de la probabilite de diffusion de la lumiere diffuse vers la cellule cible
 c=======================================================================
@@ -260,7 +264,11 @@ c ombrage s_reflechissante-diffusante
         d2=(x_dif-x_c)**2+(y_dif-y_c)**2
         call horizon(d2,x_dif,y_dif,z_dif,dx,dy,nbx,nby,altsol,
      +  latitu,angzen,angazi,zhoriz) 
-        if (angzen.lt.zhoriz) then                                        ! debut condition ombrage diffuse-cible   
+        if (angzen.lt.zhoriz) then                                        ! debut condition ombrage diffuse-cible
+           hh=1.
+        else
+           hh=0.
+        endif
 c obstacle sous maille
             angmin=pi/2.-atan((hobst(x_dif,y_dif)+
      +      altsol(x_dif,y_dif)-z_dif)/drefl(x_dif,y_dif))
@@ -337,7 +345,7 @@ c     ------------------------------------
 c=======================================================================
 c        Calcul du flux diffuse atteignant la cellule cible
 c=======================================================================
-            fdiff=idiff1*omega*transm*transa*(1.-ff)
+            fdiff=idiff1*omega*transm*transa*(1.-ff)*hh
 
 c verifie mais je crosi que le calcul de azencl est facultatif ici
                 if (cloudt.ne.0) then                                     ! target cell = cloud
@@ -377,11 +385,11 @@ c=======================================================================
             idiff2=fdiff*pdifd2*real(stpdif)                              ! corriger le result pr avoir passe des cell afin d'accel le calcul
             irefdi=irefdi+idiff2      
 c           endif                                                         ! fin condition obstacle sous maille diffuse->cible 
-        endif                                                             ! fin condition ombrage diffuse-cible
+c        endif                                                             ! fin condition ombrage diffuse-cible
 
 
 c          endif                                                          ! fin condition obstacle reflechie->scattered    
-         endif                                                            ! fin  condition ombrage surface refl - diffuse 
+c         endif                                                           ! fin  condition ombrage surface refl - diffuse 
         endif                                                             ! Fin du cas Diffusante = Source ou Cible        
        endif                                                              ! Fin de la condition "cellule a l'interieur du domaine"             
       enddo                                                               ! Fin de la boucle sur les cellules diffusante

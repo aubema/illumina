@@ -67,7 +67,8 @@ c
       angaz1 = (pi*angazi)/180.
       ix = ( sin((pi/2.)-angvi1) ) * (cos(angaz1))                        ! determiner les projections du vecteur de visee selon chaque axe
       iy = ( sin((pi/2.)-angvi1) ) * (sin(angaz1))
-      iz = (cos((pi/2.)-angvi1))
+      iz = (sin(angvi1))
+c      print*,'iz=',iz,ix,iy,angvis,angvi1
       cxp=0
       cyp=0
       czp=0
