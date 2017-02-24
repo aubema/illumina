@@ -81,8 +81,8 @@ c
       real icloud                                                         ! cloud reflected intensity
       real zero,anaz
       real ff,hh
-c      integer d2
-c      real zhoriz
+      integer d2
+      real zhoriz
       data cell_t /0.5,0.6,0.72,0.86,1.04,1.26,1.52,1.84,2.22,            ! Epaisseur des niveaux
      a 2.68,3.24,3.92,4.74,5.72,6.9,8.34,10.08,12.18,14.72,17.78,21.48,
      b 25.94,31.34,37.86,45.74,55.26,66.76,80.64,97.42,117.68,142.16,
@@ -131,14 +131,14 @@ c ombrage s_reflechissante-diffusante
      +    angzen)                                                       
           call angleazimutal(x_sr,y_sr,x_dif,y_dif,dx,dy,angazi)          ! calcul de l'angle azimutal surf refl-cell diffusante
 
-c          d2=(x_sr-x_dif)**2+(y_sr-y_dif)**2
-c          call horizon(d2,x_sr,y_sr,z_sr,dx,dy,nbx,nby,altsol,
-c     +    latitu,angzen,angazi,zhoriz) 
-c          if (angzen.lt.zhoriz) then                                      ! debut condition ombrage surface refl - diffuse
-c             hh=1.
-c          else
-c             hh=0.
-c          endif
+          d2=(x_sr-x_dif)**2+(y_sr-y_dif)**2
+          call horizon(d2,x_sr,y_sr,z_sr,dx,dy,nbx,nby,altsol,
+     +    latitu,angzen,angazi,zhoriz) 
+          if (angzen.lt.zhoriz) then                                      ! debut condition ombrage surface refl - diffuse
+             hh=1.
+          else
+             hh=0.
+          endif
 
 c MA j'ai verifie que angzen ne depasse  jamais pi ou jamais moins que 0
                                                                           ! Fin du cas "observateur a la meme latitu/longitude que la source"
@@ -228,6 +228,7 @@ c        Calcul du flux atteignant la cellule diffusante
 c=======================================================================
             flux_dif1=irefl*projap*omega*transm*
      +      transa*(1.-ff)*hh
+            hh=1.
 c=======================================================================
 c   Calcul de la probabilite de diffusion de la lumiere diffuse vers la cellule cible
 c=======================================================================

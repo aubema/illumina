@@ -735,14 +735,14 @@ c computation of the horizon for the resolved shadows direct              ! hori
      +          (x_s,y_s,z_s,x_c,y_c,z_c,dx,dy,angzen)                    ! computation of the zenithal angle between the source and the line of sight voxel.
                 call angleazimutal(x_s,y_s,x_c,y_c,dx,dy,angazi)          ! computation of the angle azimutal direct line of sight-source
 
-c                d2=(x_s-x_c)**2+(y_s-y_c)**2
-c                call horizon(d2,x_s,y_s,z_s,dx,dy,nbx,nby,altsol,
-c     +          latitu,angzen,angazi,zhoriz) 
-c                if (angzen.lt.zhoriz) then                                ! shadow the path line of sight-source is not below the horizon => we compute
-c                   hh=1.
-c                else
-c                   hh=0.
-c                endif
+                d2=(x_s-x_c)**2+(y_s-y_c)**2
+                call horizon(d2,x_s,y_s,z_s,dx,dy,nbx,nby,altsol,
+     +          latitu,angzen,angazi,zhoriz) 
+                if (angzen.lt.zhoriz) then                                ! shadow the path line of sight-source is not below the horizon => we compute
+                   hh=1.
+                else
+                   hh=0.
+                endif
 
 c                                                                         ! beginning condition above the horizon direct
 c sub-grid obstacles             
@@ -1055,15 +1055,15 @@ c verify if there is shadow between sr and line of sight voxel
      +           dy,angzen)     
                  call angleazimutal(x_sr,y_sr,x_c,y_c,dx,dy,angazi)       ! computation of the azimutal angle reflect-line of sight
 
-c                 d2=(x_sr-x_c)**2+(y_sr-y_c)**2
-c                 call horizon(d2,x_sr,y_sr,z_sr,dx,dy,nbx,nby,altsol,
-c     +           latitu,angzen,angazi,zhoriz) 
-c
-c                 if (angzen.lt.zhoriz) then                               ! the path line of sight-reflec is not below the horizon => we compute
-c                    hh=1.
-c                 else
-c                    hh=0.
-c                 endif                                                    ! end condition reflecting surf. above horizon
+                 d2=(x_sr-x_c)**2+(y_sr-y_c)**2
+                 call horizon(d2,x_sr,y_sr,z_sr,dx,dy,nbx,nby,altsol,
+     +           latitu,angzen,angazi,zhoriz) 
+
+                 if (angzen.lt.zhoriz) then                               ! the path line of sight-reflec is not below the horizon => we compute
+                    hh=1.
+                 else
+                    hh=0.
+                 endif                                                    ! end condition reflecting surf. above horizon
 
 c
 c ????????????????????????????????
@@ -1255,6 +1255,7 @@ c                      hh=1.
 c                   else
 c                      hh=0.
 c                   endif
+                    hh=1.
 
 c sub-grid obstacles               
                     angmin=pi/2.-atan((obsH(x_s,y_s)+
@@ -1410,6 +1411,7 @@ c           hh=1.
 c        else
 c           hh=0.
 c        endif
+         hh=1.
 
 
 c                                                                 
