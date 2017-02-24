@@ -81,7 +81,6 @@ c
       real icloud                                                         ! cloud reflected intensity
       real zero,anaz
       real ff,hh
-      integer d2
       real zhoriz
       data cell_t /0.5,0.6,0.72,0.86,1.04,1.26,1.52,1.84,2.22,            ! Epaisseur des niveaux
      a 2.68,3.24,3.92,4.74,5.72,6.9,8.34,10.08,12.18,14.72,17.78,21.48,
@@ -131,8 +130,7 @@ c ombrage s_reflechissante-diffusante
      +    angzen)                                                       
           call angleazimutal(x_sr,y_sr,x_dif,y_dif,dx,dy,angazi)          ! calcul de l'angle azimutal surf refl-cell diffusante
 
-          d2=(x_sr-x_dif)**2+(y_sr-y_dif)**2
-          call horizon(d2,x_sr,y_sr,z_sr,dx,dy,nbx,nby,altsol,
+          call horizon(x_sr,y_sr,z_sr,dx,dy,nbx,nby,altsol,
      +    latitu,angzen,angazi,zhoriz) 
           if (angzen.lt.zhoriz) then                                      ! debut condition ombrage surface refl - diffuse
              hh=1.
@@ -268,8 +266,8 @@ c ombrage s_reflechissante-diffusante
      
         call angleazimutal(x_dif,y_dif,x_c,y_c,dx,dy,angazi)              ! calcul de l'angle azimutal surf refl-cell diffusante
 
-c        d2=(x_dif-x_c)**2+(y_dif-y_c)**2
-c        call horizon(d2,x_dif,y_dif,z_dif,dx,dy,nbx,nby,altsol,
+
+c        call horizon(x_dif,y_dif,z_dif,dx,dy,nbx,nby,altsol,
 c     +  latitu,angzen,angazi,zhoriz) 
 c        if (angzen.lt.zhoriz) then                                        ! debut condition ombrage diffuse-cible
 c           hh=1.
