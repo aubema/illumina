@@ -112,7 +112,7 @@ def save_pgm(filename,head,p,data):
 	head['gain'] = str(new_gain)
 	head['offset'] = "0.0"
 
-	headstring = "P2\n" + '\n'.join( map(lambda s: '# '+s[0]+' '+s[1], head.iteritems() ) ) + \
+	headstring = "P2\n" + '\n'.join( map(lambda s: '# '+str(s[0])+' '+str(s[1]), head.iteritems() ) ) + \
 			'\n' + ' '.join(map(str,p))
 	_np.savetxt(filename,data,fmt="%d",header=headstring,comments='')
 
