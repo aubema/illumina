@@ -81,10 +81,10 @@ class Illuminutils:
 
         self.params = P
 
-    def pgm_convert(self, srcfile, dstfile, maxint=65535):
+    def pgm_convert(self, srcfile, dstfile, maxint=65535, scale_factor=1.):
         gdal_file =gdal.Open(srcfile)
         band = gdal_file.GetRasterBand(1)
-        data = band.ReadAsArray()
+        data = band.ReadAsArray() * scale_factor
         
         head = { 'x0':self.params['xmin'], 'y0':self.params['ymin'],
                  'pixsize':self.params['pixsize'], 'srs':self.params['srs'] }
@@ -104,7 +104,7 @@ class Illuminutils:
         fname = "refl_b%02d" % band_n
         band_names = map(lambda f: get_MYD09A1_band_name(f, band_n), files)
         warp(band_names, fname+".tif", self.params['srs'], self.params['bbox'], self.params['pixsize'])
-        self.pgm_convert(fname+".tif", fname+".pgm")
+        self.pgm_convert(fname+".tif", fname+".pgm", scale_factor=0.0001)
         if cleanup:
             os.remove(fname+".tif")
         
