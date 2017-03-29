@@ -22,44 +22,47 @@
 #
 #
 # ===================================
-#  Fixed variables for all experiments
-#
+#  reading variables for all experiments from makeBATCH.in file
 
-if [ ! $1 ]
-then outscpt="TortureMammouth"
-else outscpt=$1
-fi
-pixsize=1000                                                   # Size of the pixel
-exp_name="Hawaii"                                              # Base name of the experiment
-pressure="101.3"                                               # Atm pressure of the lowest point
-est_time="110"                                                 # Estimated number of hour per individual run
-mna_file="srtm.pgm"                                            # Numrerical terrain model file name
-rh="70"                                                        # Relative humidity used for mie.out files
-aero_mod="maritime"                                            # aerosol model for the .mie.out files (urban, rural or maritime)
-cloud=0                                                        # Cloud model selection 0=clear, 1=Thin Cirrus/Cirrostratus, 
-                                                               # 2=Thick Cirrus/Cirrostratus, 3=Altostratus/Altocumulus, 
-                                                               # 4=Cumulus/Cumulonimbus, 5=Stratocumulus
-dmin="150"                                                     # Minimal distance to the nearest light source (m)
-# l1 and 13 define radius in wish the simulation resolution will be of 1 and 3 pixels respectively.
-# Everything outside as a resoution of 9 pixels
-l1=27                                                          # l1 must be an odd multiple of 9 (e.g. 9, 27, 45, 63, 81, ...)
-l3=81                                                          # l3 must be an odd multiple of 9 and l3>l1
-stoplim=5000.                                                   # Stop computation when the new voxel contribution is less than 1/stoplim of the cumulated flux (suggested value = 5000.)
-#
-# ===================================
-#  Vectors
-#
-# sites in order:  ORM OT
-x_sites=( 269 )                                                # list of x observer positions 
-y_sites=( 245 )                                                # list of y observer positions (with respect to x_sites)
-z_sites=(  38  )                                                # list of z observer positions (with respect to x_sites)
-                                                               # 0   0   0   0 0.04 .68 5.9  37 164 1141 2000   94  0   equivalent elevations (m)
-saut_dif=( 71 )                                                # list of 2nd scattering computing acceleration factor (ideally a prime number
-r_dif=( 4000 )                                                 # list of 2nd scattering radius
-elevation=( 90 )                              # list of elevation viewing angles  
-azimut=( 0  )                         # list of azimut viewing angles
-tau=( 0.11 )                                                # list of AOD values at 500 nm
-alpha=( 0.7 )                                       # list of angstrom exponents values
+
+
+
+read a outscpt <<< $(grep batch_file_name makeBATCH.in | cut -f1 -d"#")
+read a pixsize <<< $(grep pixel_size makeBATCH.in | cut -f1 -d"#")
+read a exp_name <<< $(grep experiment_name makeBATCH.in | cut -f1 -d"#")
+read a pressure <<< $(grep pressure makeBATCH.in | cut -f1 -d"#")
+read a est_time <<< $(grep estimated_computing_time makeBATCH.in | cut -f1 -d"#")
+read a mna_file <<< $(grep terrain_elevation_file makeBATCH.in | cut -f1 -d"#")
+read a rh <<< $(grep relative_humidity makeBATCH.in | cut -f1 -d"#")
+read a aero_mod <<< $(grep aerosol_model makeBATCH.in | cut -f1 -d"#")
+read a cloud <<< $(grep cloud_model makeBATCH.in | cut -f1 -d"#")
+read a dmin <<< $(grep nearest_source_distance makeBATCH.in | cut -f1 -d"#")
+read a pixsize <<< $(grep pixel_size makeBATCH.in | cut -f1 -d"#")
+read a l1 <<< $(grep 1_radius makeBATCH.in | cut -f1 -d"#")
+read a l3 <<< $(grep 3_radius makeBATCH.in | cut -f1 -d"#")
+read a stoplim <<< $(grep stop_limit makeBATCH.in | cut -f1 -d"#")
+read a sx_sites <<< $(grep x_positions makeBATCH.in | cut -f1 -d"#")
+read a sy_sites <<< $(grep y_positions makeBATCH.in | cut -f1 -d"#")
+read a sz_sites <<< $(grep z_positions makeBATCH.in | cut -f1 -d"#")
+read a ssautdif <<< $(grep scattering_skip makeBATCH.in | cut -f1 -d"#")
+read a sr_dif <<< $(grep scattering_radius makeBATCH.in | cut -f1 -d"#")
+read a selevation  <<< $(grep elevation_angles makeBATCH.in | cut -f1 -d"#")
+read a sazimut <<< $(grep azimuth_angles makeBATCH.in | cut -f1 -d"#")
+read a stau <<< $(grep aerosol_optical_depth makeBATCH.in | cut -f1 -d"#")
+read a salpha <<< $(grep angstrom_coefficients makeBATCH.in | cut -f1 -d"#")
+x_sites=( $sx_sites )
+y_sites=( $sy_sites )
+z_sites=( $sz_sites )
+sautdif=( $ssautdif )
+r_dif=( $sr_dif )
+elevation=( $selevation )
+azimut=( $sazimut )
+tau=( $stau )
+alpha=( $salpha )
+
+
+
+
 #
 # =========================
 # Vectors determined from local files with .lst extensions
