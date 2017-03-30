@@ -18,47 +18,42 @@
 #    along with this program; if not, write to the Free Software
 #    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
-# usage: makeBATCH-multispectral.bash path_to_makeBATCH.in
+# usage: makeBATCH-multispectral.bash parameter_file_path_and_name
 #
 #
 # ===================================
 #  reading variables for all experiments from makeBATCH.in file
 if [ ! $1 ]
 then echo "ERROR -- Please provide the path_to_makeBATCH.in"
-     echo "usage: makeBATCH-multispectral.bash path_to_makeBATCH.in"
+     echo "usage: makeBATCH-multispectral.bash parameter_file_path_and_name"
      exit 0
 fi
-if [ ! -d $1 ]; then
-   echo "ERROR -- "$1" is not a directory"
-   exit 1
-fi
-if [ ! -f $1/makeBATCH.in ]; then
-   echo "ERROR -- No makeBATCH.in file found in " $1
+if [ ! -f $1 ]; then
+   echo "ERROR -- No paremeter file found at " $1
    exit 2
 fi
-read a input_path <<< $(grep path_to_model_inputs $1/makeBATCH.in | cut -f1 -d"#")
-read a outscpt <<< $(grep batch_file_name $1/makeBATCH.in | cut -f1 -d"#")
-read a pixsize <<< $(grep pixel_size $1/makeBATCH.in | cut -f1 -d"#")
-read a exp_name <<< $(grep experiment_name $1/makeBATCH.in | cut -f1 -d"#")
-read a pressure <<< $(grep pressure $1/makeBATCH.in | cut -f1 -d"#")
-read a est_time <<< $(grep estimated_computing_time $1/makeBATCH.in | cut -f1 -d"#")
-read a mna_file <<< $(grep terrain_elevation_file $1/makeBATCH.in | cut -f1 -d"#")
-read a rh <<< $(grep relative_humidity $1/makeBATCH.in | cut -f1 -d"#")
-read a aero_mod <<< $(grep aerosol_model $1/makeBATCH.in | cut -f1 -d"#")
-read a cloud <<< $(grep cloud_model $1/makeBATCH.in | cut -f1 -d"#")
-read a dmin <<< $(grep nearest_source_distance $1/makeBATCH.in | cut -f1 -d"#")
-read a l1 <<< $(grep 1_radius $1/makeBATCH.in | cut -f1 -d"#")
-read a l3 <<< $(grep 3_radius $1/makeBATCH.in | cut -f1 -d"#")
-read a stoplim <<< $(grep stop_limit $1/makeBATCH.in | cut -f1 -d"#")
-read a sx_sites <<< $(grep x_positions $1/makeBATCH.in | cut -f1 -d"#")
-read a sy_sites <<< $(grep y_positions $1/makeBATCH.in | cut -f1 -d"#")
-read a sz_sites <<< $(grep z_positions $1/makeBATCH.in | cut -f1 -d"#")
-read a ssautdif <<< $(grep scattering_skip $1/makeBATCH.in | cut -f1 -d"#")
-read a sr_dif <<< $(grep scattering_radius $1/makeBATCH.in | cut -f1 -d"#")
-read a selevation  <<< $(grep elevation_angles $1/makeBATCH.in | cut -f1 -d"#")
-read a sazimut <<< $(grep azimuth_angles $1/makeBATCH.in | cut -f1 -d"#")
-read a stau <<< $(grep aerosol_optical_depth $1/makeBATCH.in | cut -f1 -d"#")
-read a salpha <<< $(grep angstrom_coefficients $1/makeBATCH.in | cut -f1 -d"#")
+read a outscpt <<< $(grep batch_file_name $1 | cut -f1 -d"#")
+read a pixsize <<< $(grep pixel_size $1 | cut -f1 -d"#")
+read a exp_name <<< $(grep experiment_name $1 | cut -f1 -d"#")
+read a pressure <<< $(grep pressure $1 | cut -f1 -d"#")
+read a est_time <<< $(grep estimated_computing_time $1 | cut -f1 -d"#")
+read a mna_file <<< $(grep terrain_elevation_file $1 | cut -f1 -d"#")
+read a rh <<< $(grep relative_humidity $1 | cut -f1 -d"#")
+read a aero_mod <<< $(grep aerosol_model $1 | cut -f1 -d"#")
+read a cloud <<< $(grep cloud_model $1 | cut -f1 -d"#")
+read a dmin <<< $(grep nearest_source_distance $1 | cut -f1 -d"#")
+read a l1 <<< $(grep 1_radius $1 | cut -f1 -d"#")
+read a l3 <<< $(grep 3_radius $1 | cut -f1 -d"#")
+read a stoplim <<< $(grep stop_limit $1 | cut -f1 -d"#")
+read a sx_sites <<< $(grep x_positions $1 | cut -f1 -d"#")
+read a sy_sites <<< $(grep y_positions $1 | cut -f1 -d"#")
+read a sz_sites <<< $(grep z_positions $1 | cut -f1 -d"#")
+read a ssautdif <<< $(grep scattering_skip $1 | cut -f1 -d"#")
+read a sr_dif <<< $(grep scattering_radius $1 | cut -f1 -d"#")
+read a selevation  <<< $(grep elevation_angles $1 | cut -f1 -d"#")
+read a sazimut <<< $(grep azimuth_angles $1 | cut -f1 -d"#")
+read a stau <<< $(grep aerosol_optical_depth $1 | cut -f1 -d"#")
+read a salpha <<< $(grep angstrom_coefficients $1 | cut -f1 -d"#")
 x_sites=( $sx_sites )
 y_sites=( $sy_sites )
 z_sites=( $sz_sites )
@@ -68,10 +63,6 @@ elevation=( $selevation )
 azimut=( $sazimut )
 tau=( $stau )
 alpha=( $salpha )
-#
-# go to the model inputs directory
-cd $input_path
-pwd
 #
 # =========================
 # Vectors determined from local files with .lst extensions
