@@ -44,7 +44,7 @@ pos = data[index,:2]
 new_zones = np.concatenate( [ pos, zones[:,-1,np.newaxis] ], axis=-1 )
 
 # on enregistre dans un fichier
-np.savetxt("zones.dat", new_zones)
+np.savetxt("zones.dat", new_zones, "%g")
 
 # On corrige pour ILLUMINA
 H = int(raw_input("Quelle est la hauteur de l'image ? (px) : "))
@@ -52,7 +52,7 @@ H = int(raw_input("Quelle est la hauteur de l'image ? (px) : "))
 new_zones[:,0] += 1 # X -> X+1
 new_zones[:,1] = H-new_zones[:,1] # Y -> H-Y
 
-np.savetxt("zones_corr.dat", new_zones)
+np.savetxt("zones_corr.dat", new_zones, "%g")
 
 
 
