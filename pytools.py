@@ -21,9 +21,11 @@ def safe_divide(a,b):
 
 def LOP_norm(angles,x):
 	"""Normalises 'x' as a function of theta over the full sphere.
-	Uses the two first elements of 'angles' as the integration step."""
-	sinx = 2*_np.pi*_np.sin(_np.deg2rad(angles))
-	dtheta = angles[1]-angles[0]
+	Uses the two first elements of 'angles' as the integration step.
+	`angles` must be in degrees."""
+	rad = _np.deg2rad(angles)
+	sinx = 2*_np.pi*_np.sin(rad)
+	dtheta = rad[1]-rad[0]
 	return safe_divide( x, _np.sum(x*sinx)*dtheta )
 
 def SPD_norm(wav, norm_spct, x, factor=683.002):
@@ -40,9 +42,10 @@ def spct_norm(wav, x):
 
 def zon_norm(angles, wavelenght, zone):
 	"""Normalises an Illumina zone LOP"""
-	sinx = 2*_np.pi*_np.sin(_np.deg2rad(angles))
+	rad = _np.deg2rad(angles)
+	sinx = 2*_np.pi*_np.sin(rad)
 	dlambda = wavelenght[1]-wavelenght[0]
-	dtheta = angles[1]-angles[0]
+	dtheta = rad[1]-rad[0]
 	return safe_divide( zone, _np.sum(zone.T*sinx)*dtheta*dlambda )
 
 def parse_inventory(filename, n=0):
@@ -67,7 +70,7 @@ def parse_inventory(filename, n=0):
 def make_zones(theta, lop, wl, spct, ivtr):
 	"""Returns an array of normalized zones.
 	
-	  theta : angles used to define the Light Output Pattern
+	  theta : angles used to define the Light Output Pattern (deg)
 	  lop : Light Output Pattern dictionnary
 	  wl : wavelength used to define the spectrum
 	  spct : Lamp spectrum dictionnary
