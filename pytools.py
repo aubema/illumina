@@ -23,10 +23,10 @@ def LOP_norm(angles,x):
 	"""Normalises 'x' as a function of theta over the full sphere.
 	Uses the two first elements of 'angles' as the integration step.
 	`angles` must be in degrees."""
-	rad = _np.deg2rad(angles)
-	sinx = 2*_np.pi*_np.sin(rad)
-	dtheta = rad[1]-rad[0]
-	return safe_divide( x, _np.sum(x*sinx)*dtheta )
+        a = _np.deg2rad(angles)
+        mids = _np.concatenate([[a[0]],_np.mean([a[1:],a[:-1]],0),[a[-1]]])
+        sinx = 2*_np.pi*(_np.cos(mids[:-1])-_np.cos(mids[1:]))
+        return safe_divide( x, _np.sum(x*sinx) )
 
 def SPD_norm(wav, norm_spct, x, factor=683.002):
 	"""Normalises a spectrum 'x' with a normalisation spectrum to 'factor'.
@@ -42,11 +42,11 @@ def spct_norm(wav, x):
 
 def zon_norm(angles, wavelenght, zone):
 	"""Normalises an Illumina zone LOP"""
-	rad = _np.deg2rad(angles)
-	sinx = 2*_np.pi*_np.sin(rad)
+        a = _np.deg2rad(angles)
+        mids = _np.concatenate([[a[0]],_np.mean([a[1:],a[:-1]],0),[a[-1]]])
+        sinx = 2*_np.pi*(_np.cos(mids[:-1])-_np.cos(mids[1:]))
 	dlambda = wavelenght[1]-wavelenght[0]
-	dtheta = rad[1]-rad[0]
-	return safe_divide( zone, _np.sum(zone.T*sinx)*dtheta*dlambda )
+	return safe_divide( zone, _np.sum(y.T*sinx)*dlambda )
 
 def parse_inventory(filename, n=0):
 	"""Parse an inventory type file.
