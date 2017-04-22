@@ -206,6 +206,7 @@ c      real zhoriz                                                         ! hor
       integer prmaps                                                      ! flag to enable the tracking of contribution and sensitivity maps
       integer cloudt                                                      ! cloud type 0=clear, 1=Thin Cirrus/Cirrostratus, 2=Thick Cirrus/Cirrostratus, 3=Altostratus/Altocumulus, 4=Cumulus/Cumulonimbus, 5=Stratocumulus
       integer cloudh(5),cloudz                                            ! cloud base layer relative to the lower elevation 
+      integer xsrmi,xsrma,ysrmi,ysrma                                     ! limits of the loop valeur for the reflecting surfaces
       real rcloud                                                         ! cloud relfectance 
       real azencl                                                         ! zenith angle from cloud to observer
       real icloud                                                         ! cloud reflected intensity
@@ -550,7 +551,7 @@ c    reading subgrid obstacles average distance
         do i=1,nbx                                                        ! beginning of the loop over all cells along x.
          do j=1,nby                                                       ! beginning of the loop over all cells along y.
           drefle(i,j)=val2d(i,j)/2.                                       ! Filling of the array
-          if (drefle(i,j).eq.0.) drefle(i,j)=10000000.                    ! when outside a zone, block to the theoritical horizon
+          if (drefle(i,j).eq.0.) drefle(i,j)=dx                           ! when outside a zone, block to the size of the cell (typically 1km)
          enddo                                                            ! end of the loop over all cells along y.
         enddo 
 c    ==================================================================
@@ -902,8 +903,16 @@ c=======================================================================
 c                                                                         ! for the reflexion.
        boxy=nint(drefle(x_s,y_s)/dy)                                      ! Number of column to consider up/down of the source for 
 c                                                                         ! the reflexion.
-               do x_sr=x_s-boxx,x_s+boxx                                  ! beginning of the loop over the column (longitude) reflecting.
-                do y_sr=y_s-boxy,y_s+boxy                                 ! beginning of the loop over the rows (latitu) reflecting.
+       xsrmi=x_s-boxx
+       if (xsrmi.lt.1) xsrmi=1
+       xsrma=x_s+boxx
+       if (xsrma.gt.nbx) xsrma=nbx
+       ysrmi=y_s-boxy
+       if (ysrmi.lt.1) ysrmi=1
+       ysrma=y_s+boxy
+       if (ysrma.gt.nby) ysrma=nby
+               do x_sr=xsrmi,xsrma                                        ! beginning of the loop over the column (longitude) reflecting.
+                do y_sr=ysrmi,ysrma                                       ! beginning of the loop over the rows (latitu) reflecting.
                  irefl=0.
                  z_sr=altsol(x_sr,y_sr)   
                   if( (x_sr.gt.nbx).or.(x_sr.lt.1).or.(y_sr.gt.nby)
