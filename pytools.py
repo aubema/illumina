@@ -110,7 +110,7 @@ def save_pgm(filename,head,p,data):
 	
 	if new_gain != 0:
 		data = (data / new_gain)
-	data = data.astype(int)
+	data = _np.round(data).astype(int)
 
 	head['gain'] = str(new_gain)
 	head['offset'] = "0.0"
