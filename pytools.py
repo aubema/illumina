@@ -46,7 +46,7 @@ def zon_norm(angles, wavelenght, zone):
         mids = _np.concatenate([[a[0]],_np.mean([a[1:],a[:-1]],0),[a[-1]]])
         sinx = 2*_np.pi*(_np.cos(mids[:-1])-_np.cos(mids[1:]))
 	dlambda = wavelenght[1]-wavelenght[0]
-	return safe_divide( zone, _np.sum(y.T*sinx)*dlambda )
+	return safe_divide( zone, _np.sum(zone.T*sinx)*dlambda )
 
 def parse_inventory(filename, n=0):
 	"""Parse an inventory type file.
