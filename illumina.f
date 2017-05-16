@@ -840,9 +840,10 @@ c
                   nbang=0.
                   P_dir=0.
                   do na=-nint(ouvang),nint(ouvang)
-                   naz=anglez+na
+                   naz=anglez+na+1
                    if (naz.lt.0) naz=-naz
                    if (naz.gt.181) naz=362-naz                            ! symetric function
+                   if (naz.eq.0) naz=1
                    P_dir=P_dir+pvalno(naz,stype)
                    nbang=nbang+1.
                   enddo
@@ -1017,9 +1018,10 @@ c
                       nbang=0.
                       P_indir=0.
                       do na=-nint(ouvang),nint(ouvang)
-                       naz=anglez+na
+                       naz=anglez+na+1
                        if (naz.lt.0) naz=-naz
                        if (naz.gt.181) naz=362-naz                        ! symetric function
+                       if (naz.eq.0) naz=1
                        P_indir=P_indir+pvalno(naz,stype)
                        nbang=nbang+1.
                       enddo
@@ -1361,13 +1363,12 @@ c
                      nbang=0.
                      P_dif1=0.
                      do na=-nint(ouvang),nint(ouvang)
-                      naz=anglez+na
+                      naz=anglez+na+1
                       if (naz.lt.0) naz=-naz
                       if (naz.gt.181) naz=362-naz                         ! symetric function
-                      if (naz.ne.0) then
-                        P_dif1=P_dif1+pvalno(naz,stype)
-                        nbang=nbang+1. 
-                      endif
+                      if (naz.eq.0) naz=1                     
+                      P_dif1=P_dif1+pvalno(naz,stype)
+                      nbang=nbang+1. 
                      enddo
                      P_dif1=P_dif1/nbang 
 c
