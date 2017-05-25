@@ -29,10 +29,13 @@ then echo "ERROR -- Please provide the path_to_makeBATCH.in"
      exit 0
 fi
 if [ ! -f $1 ]; then
-   echo "ERROR -- No paremeter file found at " $1
+   echo "ERROR -- No parameter file found at " $1
    exit 2
 fi
 read a outscpt <<< $(grep batch_file_name $1 | cut -f1 -d"#")
+if [ $2 ]; then
+	outscpt=$2
+fi
 read a pixsize <<< $(grep pixel_size $1 | cut -f1 -d"#")
 read a exp_name <<< $(grep experiment_name $1 | cut -f1 -d"#")
 read a pressure <<< $(grep pressure $1 | cut -f1 -d"#")
