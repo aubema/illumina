@@ -110,7 +110,7 @@ c           print*,'horizontal'
       do while ((cx.le.nbx).and.(cx.ge.1).and.(cy.le.nby).and.(cy.ge.1)   ! verifier si nous sommes dans le domaine
      +      .and.(cz.le.50).and.(cz.ge.1).and.(r.lt.rmax))
             r=r+dr
-            dr=dr*1.005
+            dr=dr*1.0005
             cx = x1 + nint(ix*r/dx)
             cy = y1 + nint(iy*r/dy)
             z = z1 + iz*r
