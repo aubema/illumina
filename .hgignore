@@ -3,3 +3,4 @@ syntax: glob
 bin
 *.pyc
 L569*
+incoming.hg
