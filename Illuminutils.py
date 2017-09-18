@@ -86,8 +86,13 @@ class Illuminutils:
         band = gdal_file.GetRasterBand(1)
         data = band.ReadAsArray() * scale_factor
         
-        head = { 'x0':self.params['xmin'], 'y0':self.params['ymin'],
-                 'pixsize':self.params['pixsize'], 'srs':self.params['srs'] }
+        pixsize = self.params['pixsize']
+        xmin = self.params['xmin'] + 0.5 * pixsize 
+        ymin = self.params['ymin'] + 0.5 * pixsize 
+        lon0, lat0 = pyproj.Proj("+init="+self.params['srs'])(xmin, ymin, inverse=True)
+
+        head = { 'x0':xmin, 'y0':ymin, 'lon0':lon0, 'lat0':lat0,
+                 'pixsize':pixsize, 'srs':self.params['srs'] }
         p = data.shape[::-1] + (maxint,)
 
         _save_pgm(dstfile, head, p, data)
