@@ -636,6 +636,10 @@ c=======================================================================
        do i=1,ncible
           write(*,1110) lcible(i,1),lcible(i,2),lcible(i,3)
        enddo
+       if (zcello.le.cloudz) then
+          print*,'The observer is inside the cloud! Abort computing.'
+          stop
+       endif
  1110  format(I3,1x,I3,1x,I3)
        fctcld=0.
        ftocap=0.                                                          ! Initialisation of the value of flux received by the sensor
