@@ -64,7 +64,7 @@ c converting to nanoW/cm2/sr en W/m2/sr DNB=DNB*dnbunits
       print*,'Be sure to have in the execution folder:'
       print*,'1- viirs-dnb pgm file'
       print*,'2- zonal file [e.g. Hawaii.zon]'
-      print*,'3- modis pgm files for 3 modis bands'
+      print*,'3- modis pgm files for 4 modis bands'
       print*,'4- modis wavelength and name file [modis.dat]'
       print*,'5- spectral bands file [integration_limits.dat]'
       print*,'6- viirs-dnb spectral response [viirs.dat]'
