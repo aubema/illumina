@@ -136,9 +136,10 @@ if not stop:
             viirs_reject = viirs_dat.copy()
             viirs_reject[viirs_reject >= val] = 0
             viirs_dat[viirs_dat < val] = 0
+            
+            save_pgm(dir_name+"NaturalAndScatteredLight.pgm", viirs_head, viirs_p, viirs_reject)
 
         save_pgm(dir_name+tmp_names['sat'], viirs_head, viirs_p, viirs_dat)
-        save_pgm(dir_name+"NaturalAndScatteredLight.pgm", viirs_head, viirs_p, viirs_reject)
 
     	# Creating symbolic links to necessary reflectance and photometry files
 	modis_files = np.genfromtxt(modis_name,skip_header=1,usecols=1,dtype=str)
