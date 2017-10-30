@@ -636,7 +636,7 @@ c=======================================================================
        do i=1,ncible
           write(*,1110) lcible(i,1),lcible(i,2),lcible(i,3)
        enddo
-       if (zcello.le.cloudz) then
+       if (zcello.ge.cloudz) then
           print*,'The observer is inside the cloud! Abort computing.'
           stop
        endif
