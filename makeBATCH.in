@@ -10,15 +10,15 @@ relative_humidity 70                        # atmospheric reltive humidity
 aerosol_model maritime                      # aerosol model (rural, urban, maritime)
 cloud_model 0                               # cloud model selection 0=clear, 1=Thin Cirrus/Cirrostratus, 2=Thick Cirrus/Cirrostratus, 3=Altostratus/Altocumulus,  4=Cumulus/Cumulonimbus, 5=Stratocumulus
 nearest_source_distance 150                 # minimal distance allowed to the nearest light source (m)
-1_radius 27                                 # length of the side of a square within which the simulation resolution will be one pixel (pixel) - must be an odd multiple of 9 (e.g. 9, 27, 45, 63, 81, ...)
+1_radius 27                                 # length of the side of a square within which the simulation resolution will be one pixel (Full resolution) - must be an odd multiple of 9 (e.g. 9, 27, 45, 63, 81, ...)
 3_radius 81                                 # length of the side of a square within which the simulation resolution will be tree pixels wide (pixel) - must be an odd multiple of 9 but larger than full resolution radius. Outside this radius the resolution will be nine pixels wide.
 stop_limit 5000.                            # Stop computation when the new voxel contribution is less than 1/stoplim of the cumulated flux (suggested value = 5000.)
 x_positions 269                             # list of x positions of the observer (pixel)
-y_positions 245                             # list of y positions of the observer (pixel)
-z_positions 245                             # list of z positions of the observer (pixel)
+y_positions 245                             # list of y positions of the observer (pixel) Linked to x_positions
+z_positions 38                              # list of z positions of the observer (pixel) Linked to x_positions
 scattering_skip 71                          # list of 2nd scattering acceleration factor (must me a prime number)
 scattering_radius 4000                      # list of maximum 2nd scattering radius (m)
-elevation_angles 90                         # list of elevation viewing angles (deg)
+elevation_angles 90 45                      # list of elevation viewing angles (deg)
 azimuth_angles 0 10                         # list of azimuth viewing angles
 aerosol_optical_depth 0.11                  # list of AOD values at 500 nm
-angstrom_coefficients 0.7                   # list of angstrom exponents values
+angstrom_coefficients 0.7                   # list of angstrom exponents values. Linked to aerosol_optical_depth
