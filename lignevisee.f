@@ -113,7 +113,7 @@ c           print*,'horizontal'
                endif
             enddo
                domain=1
-               if (z.lt.28000.) then
+               if (z.le.cell_height(height)) then
                   dminx=abs((ix*real(a)*da/dx-real(nint(ix*real(a)*       ! calcul de la distance entre le centre de la cellule et la position du vecteur en unite de largeur de cellule
      +            da/dx))))
                   dminy=abs((iy*real(a)*da/dy-real(nint(iy*real(a)*
