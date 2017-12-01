@@ -15,7 +15,7 @@ nearest_source_distance 150                 # minimal distance allowed to the ne
 stop_limit 5000.                            # Stop computation when the new voxel contribution is less than 1/stoplim of the cumulated flux (suggested value = 5000.)
 x_positions 269                             # list of x positions of the observer (pixel)
 y_positions 245                             # list of y positions of the observer (pixel) Linked to x_positions
-z_positions 38                              # list of z positions of the observer (pixel) Linked to x_positions
+z_positions 0.                              # list of z positions above ground of the observer (m) Linked to x_positions
 scattering_skip 71                          # list of 2nd scattering acceleration factor (must me a prime number)
 scattering_radius 4000                      # list of maximum 2nd scattering radius (m)
 elevation_angles 90 45                      # list of elevation viewing angles (deg)
