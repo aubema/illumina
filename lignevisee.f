@@ -189,8 +189,8 @@ c
              if (viseef(ii,3).le.cloudz) then
                 if ((viseef(ncfin,1).le.nbx).and.(viseef(ncfin,1).ge.1)   ! verifier si nous sommes dans le domaine
      +          .and.(viseef(ncfin,2).le.nby).and.(viseef(ncfin,2).ge.1)
-     +          .and.(viseef(ncfin,3).le.height).and.(viseef(ncfin,3).ge.1))
-     +          then   
+     +          .and.(viseef(ncfin,3).le.height).and.(viseef(ncfin,3).
+     +          ge.1)) then   
                     visfin(ii,1)=viseef(ncfin,1)
                     visfin(ii,2)=viseef(ncfin,2)
                     visfin(ii,3)=viseef(ncfin,3)

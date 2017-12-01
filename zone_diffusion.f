@@ -36,15 +36,8 @@ c
        integer zondif(3000000,4)
        real x1,y1,z1,x2,y2,z2,x0,y0,z0,alt_sol(width,width)
        real dx,dy,effet,dmin,aire,a,b,c,s,delta,d,deltmx
-       real ,cell_t(height),cell_h(height),d2
-       call verticalscale(cell_t,cell_h)
-      data cell_h /0.25,0.8,1.46,2.25,3.2,4.35,5.74,7.42,9.45,            ! Hauteur du centre de chaque niveau
-     a 11.9,14.86,18.44,22.77,28.,34.31,41.93,51.14,62.27,75.72,91.97,
-     b 111.6,135.31,163.95,198.55,240.35,290.85,351.86,425.56,514.59,
-     c 622.14,752.06,909.,1098.58,1327.59,1604.23,1938.41,2342.1,
-     d 2829.76,3418.85,4130.47,4990.11,6028.55,7282.98,8798.33,
-     e 10628.87,12840.16,15511.4,18738.26,22636.31,27345.16/
-
+       real cell_t(height),cell_h(height),d2
+       call verticalscale(cell_t,cell_h)                                  ! define the vertical scale
  10    ncell=0
        neffet=nint(effet/(dx/2.+dy/2.))+2
 c calcul de position en metre
