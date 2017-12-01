@@ -14,7 +14,7 @@ urban_RH70_0.5500um.mie.out     ! AEROSOL OPTICAL CROSS SECTIONS AND PHASE FUNCT
 100.                            ! Contribution threshold : Stop computation when the new voxel contribution is less than 1/threshold of the cumulated flux (suggested value = 5000.)
 49  7                           ! MEAN FREE PATH TOWARD GROUND [m] ; MEAN OBSTACLE HEIGHT [m]
                                 !
-101 101 1 1                     ! OBSERVER X POSITION [cell unit,cu] ; OBS Y POS [cu] ; OBS Z POS [cu] ; FIRST CELL ALONG LINE OF SIGHT (1=complete)
+101 101 0. 1                     ! OBSERVER X POSITION [cell unit,cu] ; OBS Y POS [cu] ; OBS elevation above the local ground level [m] ; FIRST CELL ALONG LINE OF SIGHT (1=complete)
                                 ! (usefull in case of computer crash) (x=1 et y=1 is the south-west cell)
 90 0                            ! ELEVATION VIEWING ANGLE [deg] ; AZIMUTAL VIEWING ANGLE [deg]
                                 ! (0=north, 90=east, 180=south, 270=west)

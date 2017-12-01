@@ -268,7 +268,7 @@ echo "Starting from "$folder
                                       echo ${#lamp_l[*]} "    ! NUMBER OF SOURCE TYPES [-]"  >> illumina.in
                                       echo $stoplim "                ! Contribution threshold : Stop computation when the new voxel contribution is less than 1/threshold of the cumulated flux (suggested value = 5000.)" >> illumina.in
                                       echo "                !" >> illumina.in
-                                      echo ${x_sites[$ns]} ${y_sites[$ns]} ${z_sites[$ns]}  " 1   ! OBSERVER X POSITION [cell unit] ; OBS Y POS [-] ; OBS Z POS [-] ; BEGINNING CELL ALONG THE LINE OF SIGHT (1=complete)" >> illumina.in
+                                      echo ${x_sites[$ns]} ${y_sites[$ns]} ${z_sites[$ns]}  " 1   ! OBSERVER X POSITION [cell unit] ; OBS Y POS [-] ; OBS elevation above the local ground level [m] ; BEGINNING CELL ALONG THE LINE OF SIGHT (1=complete)" >> illumina.in
                                       echo "    ! (usefull in case of computer crash) (x=1 et y=1 is the south-west cell)" >> illumina.in
                                       echo ${elevation[$ne]} ${azimut[$na]} "   ! ELEVATION VIEWING ANGLE [deg] ; AZIMUTAL VIEWING ANGLE [deg] (0=east, 90=north, 180=west, 270=south)" >> illumina.in
                                       echo "   !   " >> illumina.in

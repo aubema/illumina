@@ -122,7 +122,8 @@ c
       real inclix(width,width)                                            ! tilt of the ground pixel along x (radian).
       real incliy(width,width)                                            ! tilt of the ground pixel along y (radian).   
       integer x_obs,y_obs,zcello                                          ! Position of the observer (INTEGER).
-      real z_obs                                                          ! Height of the observer (meter).
+      real z_o                                                            ! observer height relative to the ground
+      real z_obs                                                          ! Height of the observer (meter) to the vertical grid scale.
       integer lcible(width,3)                                             ! Array for the line of sight voxels along the line of sight.
       integer ncible,icible                                               ! Number of line of sight voxels, number loops over the voxels 
       integer x_c,y_c,zcellc                                              ! Position of the line of sight voxel (INTEGER).
@@ -221,6 +222,7 @@ c      real zhoriz                                                         ! hor
       real anaz
       real ff,hh                                                          ! temporary obstacle filling factor and horizon blocking factor
       data cloudh /44,44,40,33,33/                                        ! 9300.,9300.,4000.,1200.,1100.
+      real dist,distm                                                     ! distance and minimal distance to find observer level
       verbose=0
       zero=0.
       ff=0.
@@ -254,7 +256,7 @@ c=======================================================================
        read(1,*) ntype
        read(1,*) stoplim
        read(1,*)
-       read(1,*) x_obs,y_obs,zcello,nvis0
+       read(1,*) x_obs,y_obs,z_o,nvis0
        read(1,*)
        read(1,*) angvis,azim
        read(1,*) 
@@ -583,6 +585,16 @@ c======================================================================
 c        Quelques operations preparatoires
 c======================================================================
        dy=dx                                                              ! we consider than the echelle is the same over the two axes
+
+       z_obs=z_o+altsol(x_obs,y_obs)                                      ! z_obs = the local observer elevation plus the height of observation above ground (z_o)
+c find nearest vertical grid
+       distm=1000000000.
+       do i=1,height
+          dist=abs(cellh(i)-z_obs)
+          if (dist.le.distm) then
+             distm=dist
+             zcello=i
+          endif
        z_obs=cellh(zcello)                                                ! Attribution of the value in meter to the position z of the observateur.
        largx=dx*real(nbx)                                                 ! computation of the Width along x of the case.
        largy=dy*real(nby)                                                 ! computation of the Width along y of the case.
