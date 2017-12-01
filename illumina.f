@@ -32,12 +32,12 @@ c **    - Angular photometry of a lamp is considered uniform along the azimuth  
 c **    - Sub-grid obstacles considered (with the mean free path of light toward ground and mean obstacle height      **
 c **    - Molecules and aerosol optics (phase function, scattering probability, aerosol absorption)                   **  
 c **    - Exponential concentrations vertical profile (H aerosol= 2km, H molecules= 8km  )                            **
-c **    - Exponential vertical resolution (max height= 30 km)                                                         **
+c **    - Exponential vertical resolution                                                                             **
 c **    - Accounting for heterogeneity of ground reflectance, luminaires number, luminaires heights,                  **
 c **      angular photometry                                                                                          **
 c **    - Wavelength dependant                                                                                        **
 c **    - Clouds models                                                                                               **
-c **    - Ignore the flux scattered by the voxel occupied by the observer (voxelobs=voxelcible)                         **
+c **    - Ignore the flux scattered by the voxel occupied by the observer (voxelobs=voxelcible)                       **
 c **    - Do not support direct observation of a source                                                               ** 
 c **    - Direct observation of the ground not implemented                                                            **
 c **    - Not accounting for molecular absorption                                                                     **
@@ -49,7 +49,7 @@ c **      http://cegepsherbrooke.qc.ca/~aubema/index.php/Prof/IllumEn?action=dow
 c **                                                                                                                  **
 c **********************************************************************************************************************
 c   
-c    Copyright (C) 2012 Martin Aube
+c    Copyright (C) 2017 Martin Aube
 c
 c    This program is free software: you can redistribute it and/or modify
 c    it under the terms of the GNU General Public License as published by
@@ -76,14 +76,14 @@ c     Variables declaration
 c=======================================================================
 c
       integer width,height                                                ! Matrix dimension in Length/width and height
-      parameter (width=1024,height=50)
+      parameter (width=1024,height=100)
       integer iun,ideux
       real pi,pix4
       integer verbose                                                     ! verbose = 1 to have more print out, 0 for silent
       parameter (pi=3.1415926)
       parameter (pix4=4.*pi)
-      real cthick(50)                                                     ! voxel thickness array (meter)
-      real cellh(50)                                                      ! voxel height array (meter)
+      real cthick(height)                                                 ! voxel thickness array (meter)
+      real cellh(height)                                                  ! voxel height array (meter)
       real flcumu                                                         ! Accrued flux along the line of sight
       character*72 mnaf                                                   ! Terrain elevation file.
       character*72 reflf                                                  ! Reflectance file.
@@ -220,23 +220,15 @@ c      real zhoriz                                                         ! hor
       real zero
       real anaz
       real ff,hh                                                          ! temporary obstacle filling factor and horizon blocking factor
-      data cthick /0.5,0.6,0.72,0.86,1.04,1.26,1.52,1.84,2.22,            ! thickness of the levels.
-     a 2.68,3.24,3.92,4.74,5.72,6.9,8.34,10.08,12.18,14.72,17.78,21.48,
-     b 25.94,31.34,37.86,45.74,55.26,66.76,80.64,97.42,117.68,142.16,
-     c 171.72,207.44,250.58,302.7,365.66,441.72,533.6,644.58,778.66,
-     d 940.62,1136.26,1372.6,1658.1,2002.98,2419.6,2922.88,3530.84,
-     e 4265.26,5152.44/
-      data cellh /0.25,0.8,1.46,2.25,3.2,4.35,5.74,7.42,9.45,             ! Height of the center of each vertical level.
-     a 11.9,14.86,18.44,22.77,28.,34.31,41.93,51.14,62.27,75.72,91.97,
-     b 111.6,135.31,163.95,198.55,240.35,290.85,351.86,425.56,514.59,
-     c 622.14,752.06,909.,1098.58,1327.59,1604.23,1938.41,2342.1,
-     d 2829.76,3418.85,4130.47,4990.11,6028.55,7282.98,8798.33,
-     e 10628.87,12840.16,15511.4,18738.26,22636.31,27345.16/
       data cloudh /44,44,40,33,33/                                        ! 9300.,9300.,4000.,1200.,1100.
       verbose=0
       zero=0.
       ff=0.
       print*,'Starting ILLUMINA computations...'
+c
+c determining the vertical scale
+c
+      call verticalscale(cthick,cellh)
 c  
 c=======================================================================
 c        reading of the fichier d'entree (illumina.in)
@@ -323,7 +315,7 @@ c        Initialisation of the arrays and variables
 c=======================================================================
        print*,'Initializing variables...'
        if (cloudt.eq.0) then
-          cloudz=50
+          cloudz=height
        else
           cloudz=cloudh(cloudt)
        endif
@@ -361,7 +353,7 @@ c=======================================================================
          pvalno(i,j)=0.
         enddo
        enddo  
-       do i=1,1024
+       do i=1,width
         do j=1,3
          lcible(i,j)=1
         enddo
@@ -669,7 +661,7 @@ c=======================================================================
          write(2,*) ' Voxel height =',z_c,' m'
       write(2,*) ' Voxel thickness =',cthick(zcellc),' m'
          if( (x_c.gt.nbx).or.(x_c.lt.1).or.(y_c.gt.nby).or.(y_c.lt.1)     ! Condition line of sight voxel inside the modelling domain
-     +      .or.(zcellc.gt.50).or.(zcellc.lt.1) )then
+     +      .or.(zcellc.gt.height).or.(zcellc.lt.1) )then
          else
           if((x_c.eq.x_obs).and.(y_c.eq.y_obs).and.                       ! for the moment, if the line of sight voxel is the observer voxel, 
 c                                                                         ! we do not compute the scattered flux

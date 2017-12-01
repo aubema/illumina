@@ -50,17 +50,19 @@ c   programme principal
 c
       subroutine interpmatrix(dat,x1,x2,y1,y2,intype,window,
      +autom,defval)
+      integer width,height                                                ! Matrix dimension in Length/width and height
+      parameter (width=1024,height=100)
 c
 c ----------
 c
 c   declaration des variables
 c
       real pi2,pi,dmin,maxim,minim,npix
-      real dat(1024,1024),datout(1024,1024)
+      real dat(width,width),datout(width,width)
       real distan,dtotal,window,ndat
       real defval
       integer i,j,intype,autom
-      integer dens(10,1024,1024)
+      integer dens(10,width,width)
       integer x1,x2,y1,y2,nbx,nby
        
 
@@ -71,8 +73,8 @@ c   initialisation des variables
 c
        pi=3.141592654
        pi2=pi*pi
-       do i=1,1024
-        do j=1,1024
+       do i=1,width
+        do j=1,width
           datout(i,j)=0.
         enddo
        enddo

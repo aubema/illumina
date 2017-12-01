@@ -29,33 +29,25 @@ c
 
       subroutine lignevisee (x1,y1,z1,dx,dy,angvis,angazi,
      + nbx,nby,vistep,cloudz,visfin,ncfin)
-
-      integer x1,y1,cx,cy,visee(1024,3),alim,vistep,visfin(1024,3)
-      integer viseef(1024,3),ncellf,cxm,cym,czm,elimf,cloudz
+      integer width,height                                                ! Matrix dimension in Length/width and height
+      parameter (width=1024,height=100)
+      integer x1,y1,cx,cy,visee(width,3),alim,vistep,visfin(width,3)
+      integer viseef(width,3),ncellf,cxm,cym,czm,elimf,cloudz
       integer ncell,nbx,nby,a,cxp,cyp,czp,cz,ncfin,domain
       real z1,xn,yn,zn,dx,dy,distance
-      real celthi(50),cell_height(50),pi
+      real celthi(height),cell_height(height),pi
       real angvis,angazi,ix,iy,iz,amax,da,angaz1,angvi1
       real dminx,dminy,dminz,r,dr,rmax
 
       parameter (pi=3.1415926)
-
-      data celthi /0.5,0.6,0.72,0.86,1.04,1.26,1.52,1.84,2.22,            ! Epaisseur des niveaux
-     a 2.68,3.24,3.92,4.74,5.72,6.9,8.34,10.08,12.18,14.72,17.78,21.48,
-     b 25.94,31.34,37.86,45.74,55.26,66.76,80.64,97.42,117.68,142.16,
-     c 171.72,207.44,250.58,302.7,365.66,441.72,533.6,644.58,778.66,
-     d 940.62,1136.26,1372.6,1658.1,2002.98,2419.6,2922.88,3530.84,
-     e 4265.26,5152.44/
-                                                                          ! Matrice de la hauteur du centre de chaque niveau (metre)
-      data cell_height /0.25,0.8,1.46,2.25,3.2,4.35,5.74,7.42,9.45,       ! Hauteur du centre de chaque niveau
-     a 11.9,14.86,18.44,22.77,28.,34.31,41.93,51.14,62.27,75.72,91.97,
-     b 111.6,135.31,163.95,198.55,240.35,290.85,351.86,425.56,514.59,
-     c 622.14,752.06,909.,1098.58,1327.59,1604.23,1938.41,2342.1,
-     d 2829.76,3418.85,4130.47,4990.11,6028.55,7282.98,8798.33,
-     e 10628.87,12840.16,15511.4,18738.26,22636.31,27345.16/
+c
+c determining the vertical scale
+c
+      call verticalscale(celthi,cell_height)
+c
       cz=1
-      if (cloudz.ne.50) then
-         print*,'Cloud base vertical level:',cloudz,'/50'
+      if (cloudz.ne.height) then
+         print*,'Cloud base vertical level:',cloudz,'/',height
          print*,'Cloud base height (m):',cell_height(cloudz)
       endif
       rmax=sqrt((real(nbx)*dx)**2.+(real(nby)*dy)**2.+30000.**2.)
@@ -72,7 +64,7 @@ c      print*,'iz=',iz,ix,iy,angvis,angvi1
       cxp=0
       cyp=0
       czp=0
-      do k = 1,50                                                         ! trouver le niveau initial
+      do k = 1,height                                                         ! trouver le niveau initial
          if ((z1 .lt. cell_height(k)+celthi(k)/2.) .and. 
      +   (z1 .ge. cell_height(k)-celthi(k)/2.)) then
             cz= k
@@ -84,15 +76,15 @@ c      print*,'iz=',iz,ix,iy,angvis,angvi1
          da=celthi(cz)/100.
       endif                                                               ! determiner l'increment lineaire pour le calcul de la ligne de visee
       if ((real(nbx)*dx.gt.real(nby)*dy).and.(real(nbx)*dx.gt.
-     +cell_height(50)+celthi(50)/2.)) then                                ! determiner la dimension maximale a parcourir
+     +cell_height(height)+celthi(height)/2.)) then                        ! determiner la dimension maximale a parcourir
          amax=real(nbx)*dx
       elseif ((real(nby)*dy.gt.real(nbx)*dx).and.(real(nby)*dy.gt.
-     +cell_height(50)+celthi(50)/2.)) then
+     +cell_height(height)+celthi(height)/2.)) then
          amax=real(nby)*dy
       else
-         amax=cell_height(50)+celthi(50)/2.
+         amax=cell_height(height)+celthi(height)/2.
       endif
-      if (amax.lt.cell_height(50)) amax=cell_height(50)
+      if (amax.lt.cell_height(height)) amax=cell_height(height)
       if (abs(iz).gt.0.017) then 
            alim=2*nint(amax/da/iz)
 c           print*,'oblique or vertical'
@@ -108,13 +100,13 @@ c           print*,'horizontal'
       cy=y1
       cz=25                                                               ! somewhere in the middle vertically - in order to begin inside the domain
       do while ((cx.le.nbx).and.(cx.ge.1).and.(cy.le.nby).and.(cy.ge.1)   ! verifier si nous sommes dans le domaine
-     +      .and.(cz.le.50).and.(cz.ge.1).and.(r.lt.rmax))
+     +      .and.(cz.le.height).and.(cz.ge.1).and.(r.lt.rmax))
             r=r+dr
             dr=dr*1.0005
             cx = x1 + nint(ix*r/dx)
             cy = y1 + nint(iy*r/dy)
             z = z1 + iz*r
-            do k = 1,50
+            do k = 1,height
                if ((z .lt.cell_height(k)+celthi(k)/2.).and. 
      +         (z .ge. cell_height(k)-celthi(k)/2.)) then
                   cz= k
@@ -197,7 +189,7 @@ c
              if (viseef(ii,3).le.cloudz) then
                 if ((viseef(ncfin,1).le.nbx).and.(viseef(ncfin,1).ge.1)   ! verifier si nous sommes dans le domaine
      +          .and.(viseef(ncfin,2).le.nby).and.(viseef(ncfin,2).ge.1)
-     +          .and.(viseef(ncfin,3).le.50).and.(viseef(ncfin,3).ge.1))
+     +          .and.(viseef(ncfin,3).le.height).and.(viseef(ncfin,3).ge.1))
      +          then   
                     visfin(ii,1)=viseef(ncfin,1)
                     visfin(ii,2)=viseef(ncfin,2)

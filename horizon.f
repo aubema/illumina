@@ -27,13 +27,15 @@ c
 c
       subroutine horizon(x_c,y_c,z_c,dx,dy,nbx,nby,altsol,
      +latitu,angz,anga,zhoriz) 
-      integer i,x_c,y_c,nbx,nby,vistep,cloudz,lcib(1024,3),ncib
+      integer width,height                                                ! Matrix dimension in Length/width and height
+      parameter (width=1024,height=100)      
+      integer i,x_c,y_c,nbx,nby,vistep,cloudz,lcib(width,3),ncib
       integer ii,jj
-      real z_c,altsol(1024,1024),dx,dy,pi,zz
+      real z_c,altsol(width,width),dx,dy,pi,zz
       real latitu,lat,a,b,rterre,angvis,anga,zhoriz,angz,hormin
       pi=3.1415926   
       vistep=1
-      cloudz=50
+      cloudz=height
       zhoriz=pi/2.
       lat=latitu*pi/180.
       a=6378137.0                                                         ! earth equatorial radius

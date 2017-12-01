@@ -31,13 +31,15 @@ c
 c   programme principal
 c
       program writeaod
+      integer width,height                                                ! Matrix dimension in Length/width and height
+      parameter (width=1024,height=100)
 c
 c ----------
 c
 c   declaration des variables
 c
       real pixsiz,lat0,lon0,gain,offset,dat
-      real datxy(1024,1024),dmax,s0,magmax,magmin
+      real datxy(width,width),dmax,s0,magmax,magmin
       real En
       character*72 bidon,datfile,nomxyz
       character*73 nompgm
@@ -70,9 +72,9 @@ c
 c   Lecture des donnees
 c
          cmax=0.
-         xmin=1024
+         xmin=width
          xmax=0
-         ymin=1024
+         ymin=width
          ymax=0
 
          open(unit=1,file=nomxyz,status='old')

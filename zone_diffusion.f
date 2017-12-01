@@ -29,12 +29,15 @@ c
 c
        subroutine zone_diffusion(x_1,y_1,z1,x_2,y_2,z_2,dx,dy,effet,
      +         nbx,nby,alt_sol,zondif,ncell)
+      integer width,height                                                ! Matrix dimension in Length/width and height
+      parameter (width=1024,height=100)
        integer x_1,y_1,x_2,y_2,z_2,nbx,nby,i,j,k
        integer ncell,neffet,imin,imax,jmin,jmax
        integer zondif(3000000,4)
-       real x1,y1,z1,x2,y2,z2,x0,y0,z0,alt_sol(1024,1024)
+       real x1,y1,z1,x2,y2,z2,x0,y0,z0,alt_sol(width,width)
        real dx,dy,effet,dmin,aire,a,b,c,s,delta,d,deltmx
-       real cell_h(50),d2 
+       real ,cell_t(height),cell_h(height),d2
+       call verticalscale(cell_t,cell_h)
       data cell_h /0.25,0.8,1.46,2.25,3.2,4.35,5.74,7.42,9.45,            ! Hauteur du centre de chaque niveau
      a 11.9,14.86,18.44,22.77,28.,34.31,41.93,51.14,62.27,75.72,91.97,
      b 111.6,135.31,163.95,198.55,240.35,290.85,351.86,425.56,514.59,
@@ -80,7 +83,7 @@ c
 c
        do i=imin,imax
         do j=jmin,jmax
-         do k=1,50
+         do k=1,height
           x0=real(i)*dx
           y0=real(j)*dy
           z0=cell_h(k)

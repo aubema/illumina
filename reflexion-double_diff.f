@@ -33,14 +33,14 @@ c
 c
 c   declarations de variables
 c  
-      integer width
-      parameter (width=1024)  
+      integer width,height
+      parameter (width=1024,height=100)  
       integer x_sr,y_sr,x_dif,y_dif,zcell_dif                             ! Positions source, surface reflectrice, celldiffusantes (cellule)
       integer x_c,y_c,zcell_c,nbx,nby
       real z_sr,z_dif,dx,dy                             
-      real cell_t(50),altsol(width,width)                                 ! Matrice de l'epaisseur des niveaux (metre)
+      real cell_t(height),altsol(width,width)                             ! Matrice de l'epaisseur des niveaux (metre)
 
-      real cell_h(50)                                                     ! Matrice de la hauteur du centre de chaque niveau (metre)
+      real cell_h(height)                                                 ! Matrice de la hauteur du centre de chaque niveau (metre)
 
       real effdif                                                         ! Distance autour des cellule source et cible qui seront considerees pour calculer la double diffusion
       integer zondif(3000000,4)                                           ! Matrice des cellules diffusantes
@@ -82,23 +82,12 @@ c
       real zero,anaz
       real ff,hh
       real zhoriz
-      data cell_t /0.5,0.6,0.72,0.86,1.04,1.26,1.52,1.84,2.22,            ! Epaisseur des niveaux
-     a 2.68,3.24,3.92,4.74,5.72,6.9,8.34,10.08,12.18,14.72,17.78,21.48,
-     b 25.94,31.34,37.86,45.74,55.26,66.76,80.64,97.42,117.68,142.16,
-     c 171.72,207.44,250.58,302.7,365.66,441.72,533.6,644.58,778.66,
-     d 940.62,1136.26,1372.6,1658.1,2002.98,2419.6,2922.88,3530.84,
-     e 4265.26,5152.44/
-      data cell_h /0.25,0.8,1.46,2.25,3.2,4.35,5.74,7.42,9.45,            ! Hauteur du centre de chaque niveau
-     a 11.9,14.86,18.44,22.77,28.,34.31,41.93,51.14,62.27,75.72,91.97,
-     b 111.6,135.31,163.95,198.55,240.35,290.85,351.86,425.56,514.59,
-     c 622.14,752.06,909.,1098.58,1327.59,1604.23,1938.41,2342.1,
-     d 2829.76,3418.85,4130.47,4990.11,6028.55,7282.98,8798.33,
-     e 10628.87,12840.16,15511.4,18738.26,22636.31,27345.16/
       iun=1
       ideux=2
       zero=0.
       hh=1.
       latitu=1*latitu
+      call verticalscale(cell_t,cell_h)                                   ! define the vertical scale
       call zone_diffusion(x_sr,y_sr,z_sr,x_c,y_c,zcell_c,                 ! Determiner la zone de diffusion
      +dx,dy,effdif,nbx,nby,altsol,zondif,ndiff)
       z_c=cell_h(zcell_c)
