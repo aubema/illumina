@@ -595,6 +595,7 @@ c find nearest vertical grid
              distm=dist
              zcello=i
           endif
+       enddo
        z_obs=cellh(zcello)                                                ! Attribution of the value in meter to the position z of the observateur.
        largx=dx*real(nbx)                                                 ! computation of the Width along x of the case.
        largy=dy*real(nby)                                                 ! computation of the Width along y of the case.
