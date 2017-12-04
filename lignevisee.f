@@ -120,7 +120,7 @@ c           print*,'horizontal'
      +            da/dy))))
                   dminz=abs((z-cell_height(cz))/celthi(cz))
                   distance=sqrt(dminx**2.+dminy**2.+dminz**2.)
-                  if (distance.lt.0.5) then                               ! ne retenir que les positions s'approchant a moins de la demi d'une cellule
+                  if (distance.lt.0.99) then                               ! ne retenir que les positions s'approchant a moins de la demi d'une cellule
                      if ((cx.eq.cxp).and.(cy.eq.cyp).and.(cz.eq.czp))     ! s'assurer de ne pas compter plus d'une fois la meme cellule
      +                then
                      else   

@@ -306,8 +306,8 @@ c  opening output file
        write(2,*) 'Scattering step:',stepdi
        print*,'Scattering step:',stepdi
 
-       write(2,*) 'Observer position (x,y,z)',x_obs,y_obs,zcello
-       print*,'Observer position (x,y,z)',x_obs,y_obs,zcello
+       write(2,*) 'Observer position (x,y,z)',x_obs,y_obs,z_o
+       print*,'Observer position (x,y,z)',x_obs,y_obs,z_o
        write(2,*) 'Elevation angle:',angvis,' azim angle (clockwise fro
      +m north)',azim     
        print*,'Elevation angle:',angvis,' azim angle (counterclockwise f
