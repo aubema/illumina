@@ -203,7 +203,6 @@ c                                                                         ! a li
 c      real zhoriz                                                         ! horizon in rad over 360 deg, the first index of the array is for 0 deg while index 360 = 359 deg
       real angazi                                                         ! azimuth angle between two points in rad, max dist for the horizon determination
       real latitu                                                         ! approximate latitude of the domain center
-      integer vistep                                                      ! line of sight step for low elevation angles vistep=ncells_along_sight/50
       integer prmaps                                                      ! flag to enable the tracking of contribution and sensitivity maps
       integer cloudt                                                      ! cloud type 0=clear, 1=Thin Cirrus/Cirrostratus, 2=Thick Cirrus/Cirrostratus, 3=Altostratus/Altocumulus, 4=Cumulus/Cumulonimbus, 5=Stratocumulus
       integer cloudh(5),cloudz                                            ! cloud base layer relative to the lower elevation 
@@ -223,6 +222,7 @@ c      real zhoriz                                                         ! hor
       real ff,hh                                                          ! temporary obstacle filling factor and horizon blocking factor
       data cloudh /44,44,40,33,33/                                        ! 9300.,9300.,4000.,1200.,1100.
       real dist,distm                                                     ! distance and minimal distance to find observer level
+      real scalef                                                         ! scale factor to calculate the line of sight
       verbose=0
       zero=0.
       ff=0.
@@ -394,7 +394,6 @@ c=======================================================================
        fctcld=0.
        ometif=0.
        omefov=0.
-       vistep=1
        hh=1.
 c***********************************************************************
 c        reading of the environment variables                          *
@@ -632,8 +631,9 @@ c=======================================================================
 c        beginning of the loop over the line of sight voxels
 c=======================================================================
        print*,'Determining voxels crossed by the line of sight...'
+       scalef=1.00001
        call lignevisee(x_obs,y_obs,z_obs,dx,dy,angvis,                    ! Determination of the viewing line (line of sight voxels).
-     + azim,nbx,nby,vistep,cloudz,lcible,ncible)
+     + azim,nbx,nby,cloudz,lcible,ncible,scalef)
        print*,'Total final cells: ',ncible
        print*,'============'
        print*,'x   y   z'
@@ -743,7 +743,7 @@ c computation of the horizon for the resolved shadows direct              ! hori
                 call anglezenithal
      +          (x_s,y_s,z_s,x_c,y_c,z_c,dx,dy,angzen)                    ! computation of the zenithal angle between the source and the line of sight voxel.
                 call angleazimutal(x_s,y_s,x_c,y_c,dx,dy,angazi)          ! computation of the angle azimutal direct line of sight-source
-
+            if (angzen.gt.pi/4.) then                                     ! 45deg. it is unlikely to have a 1km high mountain less than 1
                 call horizon(x_s,y_s,z_s,dx,dy,nbx,nby,altsol,
      +          latitu,angzen,angazi,zhoriz) 
                 if (angzen.lt.zhoriz) then                                ! shadow the path line of sight-source is not below the horizon => we compute
@@ -751,6 +751,9 @@ c computation of the horizon for the resolved shadows direct              ! hori
                 else
                    hh=0.
                 endif
+            else
+               hh=1.
+            endif
 
 c                                                                         ! beginning condition above the horizon direct
 c sub-grid obstacles             
@@ -1073,7 +1076,7 @@ c verify if there is shadow between sr and line of sight voxel
      +           dy,angzen)     
                  call angleazimutal(x_sr,y_sr,x_c,y_c,dx,dy,angazi)       ! computation of the azimutal angle reflect-line of sight
 
-
+            if (angzen.gt.pi/4.) then                                     ! 45deg. it is unlikely to have a 1km high mountain less than 1
                  call horizon(x_sr,y_sr,z_sr,dx,dy,nbx,nby,altsol,
      +           latitu,angzen,angazi,zhoriz) 
 
@@ -1082,7 +1085,9 @@ c verify if there is shadow between sr and line of sight voxel
                  else
                     hh=0.
                  endif                                                    ! end condition reflecting surf. above horizon
-
+            else
+               hh=1.
+            endif
 c
 c ????????????????????????????????
                  irefl=irefl1*projap
@@ -1819,22 +1824,20 @@ c puis load 'fichier.gplot'
        endif                                                              ! end of condition for creating contrib and sensit maps
           print*,'====================================================='
           print*,'          Total flux entering instrument (W)'
-          write(*,2001) ftocap*real(vistep)+fctcld  
+          write(*,2001) ftocap+fctcld  
           print*,'              Sky radiance (W/str/m**2)'       
           write(*,2001) (ftocap+fctcld)/(lfente*
-     +          longfe/focal**2.)/(pi*(diamobj/2.)**2.)*
-     +          real(vistep)
+     +          longfe/focal**2.)/(pi*(diamobj/2.)**2.)
        print*,'  '
        print*,' Interpolation flux error= ',
      +          ftocap-flcumu
        print*,'======================================================='
        write(2,*) '==================================================='
        write(2,*) '          Total flux entering instrument (W)'
-       write(2,2001) ftocap*real(vistep)+fctcld
+       write(2,2001) ftocap+fctcld
         write(2,*) '            Sky radiance (W/str/m**2)          '      
        write(2,2001) (ftocap+fctcld)/(lfente*
-     +          longfe/focal**2.)/(pi*(diamobj/2.)**2.)*
-     +          real(vistep)
+     +          longfe/focal**2.)/(pi*(diamobj/2.)**2.)
        write(2,*) '  '                                                
        write(2,*) 'Interpolation flux errror= ',
      +          ftocap-flcumu

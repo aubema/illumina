@@ -29,12 +29,13 @@ c
      +latitu,angz,anga,zhoriz) 
       integer width,height                                                ! Matrix dimension in Length/width and height
       parameter (width=1024,height=100)      
-      integer i,x_c,y_c,nbx,nby,vistep,cloudz,lcib(width,3),ncib
+      integer i,x_c,y_c,nbx,nby,cloudz,lcib(width,3),ncib
       integer ii,jj
       real z_c,altsol(width,width),dx,dy,pi,zz
       real latitu,lat,a,b,rterre,angvis,anga,zhoriz,angz,hormin
-      pi=3.1415926   
-      vistep=1
+      real scalef
+      pi=3.1415926 
+      scalef=1.01  
       cloudz=height
       zhoriz=pi/2.
       lat=latitu*pi/180.
@@ -45,7 +46,7 @@ c
       angvis=90.-angz
       hormin=pi/2.
       call lignevisee(x_c,y_c,z_c,dx,dy,angvis,anga,nbx,nby,              ! Determination of the viewing line (line of sight voxels).
-     + vistep,cloudz,lcib,ncib) 
+     +cloudz,lcib,ncib,scalef) 
       do i=1,ncib                           
          ii=lcib(i,1)
          jj=lcib(i,2)

@@ -118,7 +118,7 @@ c ombrage s_reflechissante-diffusante
           call anglezenithal(x_sr,y_sr,z_sr,x_dif,y_dif,z_dif,dx,dy,      ! Calcul de l'angle zenithal entre la surf reflechissante et la cell diff
      +    angzen)                                                       
           call angleazimutal(x_sr,y_sr,x_dif,y_dif,dx,dy,angazi)          ! calcul de l'angle azimutal surf refl-cell diffusante
-
+        if (angzen.gt.pi/4.) then                                         ! 45deg. it is unlikely to have a 1km high mountain less than 1 km away
           call horizon(x_sr,y_sr,z_sr,dx,dy,nbx,nby,altsol,
      +    latitu,angzen,angazi,zhoriz) 
           if (angzen.lt.zhoriz) then                                      ! debut condition ombrage surface refl - diffuse
@@ -126,6 +126,9 @@ c ombrage s_reflechissante-diffusante
           else
              hh=0.
           endif
+        else
+           hh=1.
+        endif
 
 c MA j'ai verifie que angzen ne depasse  jamais pi ou jamais moins que 0
                                                                           ! Fin du cas "observateur a la meme latitu/longitude que la source"
