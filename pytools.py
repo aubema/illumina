@@ -106,11 +106,12 @@ def save_pgm(filename,head,p,data):
 	  head : A dictionnary of headers
 	  p : The image parameters as returned by 'load_pgm'
 	  data : Data to be saved"""
+
 	new_gain = _np.max(data)/float(p[2])
-	
 	if new_gain != 0:
 		data = (data / new_gain)
 	data = _np.round(data).astype(int)
+        data[data<0] = 0
 
 	head['gain'] = str(new_gain)
 	head['offset'] = "0.0"
