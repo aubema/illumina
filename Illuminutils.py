@@ -88,8 +88,10 @@ class Illuminutils:
         
         pixsize = self.params['pixsize']
         xmin = self.params['xmin'] + 0.5 * pixsize 
-        ymin = self.params['ymin'] + 0.5 * pixsize 
-        lon0, lat0 = pyproj.Proj("+init="+self.params['srs'])(xmin, ymin, inverse=True)
+        ymin = self.params['ymin'] + 0.5 * pixsize
+        p1 = pyproj.Proj(init=self.params['srs'])
+        p2 = pyproj.Proj(init="epsg:4326") # WGS84 
+        lon0, lat0 = pyproj.transform(p1, p2, xmin, ymin)
 
         head = { 'x0':xmin, 'y0':ymin, 'lon0':lon0, 'lat0':lat0,
                  'pixsize':pixsize, 'srs':self.params['srs'] }
