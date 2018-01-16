@@ -129,7 +129,9 @@ class Illuminutils:
                 for row in xrange(self.params['ysize']):
                     x = self.params['xmin'] + (col + 0.5) * pixsize
                     y = self.params['ymax'] - (row + 0.5) * pixsize
-                    lon, lat = pyproj.Proj("+init="+self.params['srs'])(x, y, inverse=True)
+                    p1 = pyproj.Proj(init=self.params['srs'])
+                    p2 = pyproj.Proj(init="epsg:4326") # WGS84
+                    lon, lat = pyproj.transform(p1, p2, x, y)
                     line = "%i,%i,%f,%f,%f,%f\n" % (col, row, x, y, lon, lat)
                     lookup_file.write(line)
 
