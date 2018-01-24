@@ -105,10 +105,10 @@ c Reading VIIRS-dnb spectral response
         dwav=(wavel(2)-wavel(1))
         viirs_sum=viirs_sum*dwav
 c Normalizing VIIRS-dnb spectral response
-        print*,'Normalizing VIIRS-dnb spectral response...'
-        do nw=1,nwa
-          viirs_sens(nw)=viirs_sens(nw)/viirs_sum
-        enddo
+c        print*,'Normalizing VIIRS-dnb spectral response...'
+c        do nw=1,nwa
+c          viirs_sens(nw)=viirs_sens(nw)/viirs_sum
+c        enddo
       CLOSE(unit=1)
 c lecture de l'image viirs dnb
         print*,'Reading VIIRS-dnb image...'
