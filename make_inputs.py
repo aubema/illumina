@@ -24,7 +24,8 @@ viirs = spct_norm(wav,viirs)
 scotopic = load_spct(wav, np.ones(wav.shape), "Lights/scotopic.dat", 1)
 photopic = load_spct(wav, np.ones(wav.shape), "Lights/photopic.dat", 1)
 
-ratio_ps = float(raw_input("    photopic/scotopic ratio ? (0 <= p/(s+p) <= 1) : "))
+#ratio_ps = float(raw_input("    photopic/scotopic ratio ? (0 <= p/(s+p) <= 1) : "))
+ratio_ps = 1.
 norm_spectrum = ratio_ps*photopic + (1-ratio_ps)*scotopic
 
 spct_files = glob("Lights/*.spct")
