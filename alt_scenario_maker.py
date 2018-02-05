@@ -22,7 +22,8 @@ viirs = spct_norm(wav,viirs)
 scotopic = load_spct(wav, np.ones(wav.shape), "Lights/scotopic.dat", 1)
 photopic = load_spct(wav, np.ones(wav.shape), "Lights/photopic.dat", 1)
 
-ratio_ps = float(raw_input("    photopic/scotopic ratio ? (0 <= p/(s+p) <= 1) : "))
+#ratio_ps = float(raw_input("    photopic/scotopic ratio ? (0 <= p/(s+p) <= 1) : "))
+ratio_ps = 1.
 norm_spectrum = ratio_ps*photopic + (1-ratio_ps)*scotopic
 
 spct_files = glob("Lights/*.spct")
@@ -45,7 +46,7 @@ bool_array = (ilims[0]<=wav)*(wav<ilims[-1])
 y = np.array(map(np.mean,np.array_split(zones[:,:,bool_array],n,-1),[-1]*n)).transpose(1,2,0)
 
 # Photopic/scotopic spectrum
-ratio_ps = float(raw_input("    photopic/scotopic ratio for lamp power ? (0 <= p/(s+p) <= 1) : "))
+#ratio_ps = float(raw_input("    photopic/scotopic ratio for lamp power ? (0 <= p/(s+p) <= 1) : "))
 nspct = ratio_ps*photopic + (1-ratio_ps)*scotopic
 nspct = nspct/np.sum(nspct)
 nspct = np.array(map(np.mean,np.array_split(nspct[bool_array],n)))
