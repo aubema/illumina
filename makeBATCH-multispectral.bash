@@ -84,6 +84,10 @@ read nbx nby bidon < size.tmp
 grep "pixsiz" $mna_file > size.tmp
 read bidon bidon pixsiz bidon < size.tmp
 #
+# find max height
+find_max_height
+read maxh bidon < maxheight.tmp
+
 nmam=0
 folder=`pwd`
 griddir=$folder"/gridmap"
@@ -109,7 +113,7 @@ do xsit=${x_sites[$ns]}
    if [ $ydist -lt $xdist ]
    then let dist=ydist
    fi
-   min_elev=`/bin/echo "180.0/3.14159*a(27345.16/("$pixsiz"*" $dist"))" | /usr/bin/bc -l`
+   min_elev=`/bin/echo "180.0/3.14159*a("$maxh"/("$pixsiz"*" $dist"))" | /usr/bin/bc -l`
    min_elev=`/bin/echo "("$min_elev"+0.5)/1" | /usr/bin/bc `
    echo "min_elev=" $min_elev
    let min_elev=min_elev/2

@@ -89,5 +89,7 @@ echo $F77" viirs2lum-multispectral.f extrants2d.f intrants2d.f interp_modis.f -o
 $F77 viirs2lum-multispectral.f extrants2d.f intrants2d.f interp_modis.f -o bin/viirs2lum
 echo $F77" intrusive.f intrants2d.f extrants2d.f -o bin/intrusive"
 $F77 intrusive.f intrants2d.f extrants2d.f -o bin/intrusive
+echo $F77" find_max_height.f verticalscale.f -o bin/find_max_height"
+$F77 find_max_height.f verticalscale.f -o bin/find_max_height
 chmod a+x bin/*
 chmod a+x *.bash
