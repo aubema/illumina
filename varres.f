@@ -25,7 +25,8 @@ c
        real maxi,rhomax
        real pixsiz,gain,offset,lumlp(width,width),refle(width,width)
        real xcell0,ycell0,lumlpo(width,width),reflo(width,width)
-       real lum,rho,imin,jmin
+       real lum,rho
+       integer imin,jmin,imax,jmax
        integer nx9ma,nx9mi,ny9ma,ny9mi,nx3ma,nx3mi,ny3ma,ny3mi
        integer l3,l1,nx,ny,i,j,valmax,n,px,py
        integer k,l,lx,ly,xi,xf,yi,yf,point(width*width,3),m,p
@@ -139,8 +140,12 @@ c create new lumlp file using a variable mesh grid
           if (imin.lt.1) imin=1
           jmin=py-l1
           if (jmin.lt.1) jmin=1
-          do i=imin,px+l1
-            do j=jmin,py+l1
+          imax=px+l1
+          if (imax.gt.nx) imax=nx
+          jmax=py+l1
+          if (jmax.gt.ny) jmax=ny
+          do i=imin,imax
+            do j=jmin,jmax
               lumlpo(i,j)=lumlp(i,j)
               n=n+1
               point(n,1)=i
