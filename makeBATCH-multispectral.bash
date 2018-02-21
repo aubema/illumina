@@ -113,7 +113,7 @@ do xsit=${x_sites[$ns]}
    if [ $ydist -lt $xdist ]
    then let dist=ydist
    fi
-   min_elev=`/bin/echo "180.0/3.14159*a("$maxh"/("$pixsiz"*" $dist"))" | /usr/bin/bc -l`
+   min_elev=`/bin/echo "180.0/3.14159*a("$maxh"/("$pixsize"*" $dist"))" | /usr/bin/bc -l`
    min_elev=`/bin/echo "("$min_elev"+0.5)/1" | /usr/bin/bc `
    echo "min_elev=" $min_elev
    let min_elev=min_elev/2
