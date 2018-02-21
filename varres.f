@@ -25,7 +25,7 @@ c
        real maxi,rhomax
        real pixsiz,gain,offset,lumlp(width,width),refle(width,width)
        real xcell0,ycell0,lumlpo(width,width),reflo(width,width)
-       real lum,rho
+       real lum,rho,imin,jmin
        integer nx9ma,nx9mi,ny9ma,ny9mi,nx3ma,nx3mi,ny3ma,ny3mi
        integer l3,l1,nx,ny,i,j,valmax,n,px,py
        integer k,l,lx,ly,xi,xf,yi,yf,point(width*width,3),m,p
@@ -82,8 +82,12 @@ c create new lumlp file using a variable mesh grid
           nx9mi=(px-1)/9
           ny9ma=(ny-py)/9
           ny9mi=(py-1)/9
-          do i=-nx9mi+1,nx9ma-1
-            do j=-ny9mi+1,ny9ma-1
+          imin=-nx9mi+1
+          if (imin.lt.1) imin=1
+          jmin=-ny9mi+1
+          if (jmin.lt.1) jmin=1
+          do i=imin,nx9ma-1
+            do j=jmin,ny9ma-1
               lx=i*9
               ly=j*9
               k=px+lx
@@ -106,8 +110,12 @@ c create new lumlp file using a variable mesh grid
           nx3mi=(px-1)/3
           ny3ma=(ny-py)/3
           ny3mi=(py-1)/3
-          do i=-nx3mi,nx3ma
-            do j=-ny3mi,ny3ma
+          imin=-nx3mi
+          if (imin.lt.2) imin=2
+          jmin=-ny3mi
+          if (jmin.lt.2) jmin=2
+          do i=imin,nx3ma
+            do j=jmin,ny3ma
               lx=i*3
               ly=j*3
               k=px+lx
@@ -127,8 +135,12 @@ c create new lumlp file using a variable mesh grid
               endif
             enddo
           enddo
-          do i=px-l1,px+l1
-            do j=py-l1,py+l1
+          imin=px-l1
+          if (imin.lt.1) imin=1
+          jmin=py-l1
+          if (jmin.lt.1) jmin=1
+          do i=imin,px+l1
+            do j=jmin,py+l1
               lumlpo(i,j)=lumlp(i,j)
               n=n+1
               point(n,1)=i
@@ -149,6 +161,8 @@ c creating the reflectance file weighted by the lumlp
             yf=point(i,2)+(point(i,3)-1)/2
             lum=0.
             rho=0.
+            if (xi.lt.1) xi=1
+            if (yi.lt.1) yi=1
             do k=xi,xf
               do l=yi,yf
                  rho=rho+refle(k,l)*lumlp(k,l)
