@@ -84,55 +84,59 @@ c create new lumlp file using a variable mesh grid
           ny9ma=(ny-py)/9
           ny9mi=(py-1)/9
           imin=-nx9mi+1
-          if (imin.lt.1) imin=1
           jmin=-ny9mi+1
-          if (jmin.lt.1) jmin=1
           do i=imin,nx9ma-1
-            do j=jmin,ny9ma-1
-              lx=i*9
-              ly=j*9
-              k=px+lx
-              l=py+ly
-              if ((abs(lx).gt.l3).or.(abs(ly).gt.l3)) then
-                do m=-4,4
-                  do p=-4,4
-                     lumlpo(k,l)=lumlpo(k,l)+lumlp(k+m,l+p)
-                  enddo
-                enddo
-                n=n+1
-                point(n,1)=k
-                point(n,2)=l
-                point(n,3)=9
-                if (lumlpo(k,l).gt.maxi) maxi=lumlpo(k,l)
-              endif
-            enddo
+             do j=jmin,ny9ma-1
+                lx=i*9
+                ly=j*9
+                k=px+lx
+                l=py+ly
+                if ((k.ge.1).and.(l.ge.1)) then
+                   if ((abs(lx).gt.l3).or.(abs(ly).gt.l3)) then
+                      do m=-4,4
+                         do p=-4,4
+                            if ((k+m.ge.1).and.(l+p.ge.1)) then
+                               lumlpo(k,l)=lumlpo(k,l)+lumlp(k+m,l+p)
+                            endif
+                         enddo
+                      enddo
+                      n=n+1
+                      point(n,1)=k
+                      point(n,2)=l
+                      point(n,3)=9
+                      if (lumlpo(k,l).gt.maxi) maxi=lumlpo(k,l)
+                   endif
+                endif
+             enddo
           enddo
           nx3ma=(nx-px)/3
           nx3mi=(px-1)/3
           ny3ma=(ny-py)/3
           ny3mi=(py-1)/3
           imin=-nx3mi
-          if (imin.lt.2) imin=2
           jmin=-ny3mi
-          if (jmin.lt.2) jmin=2
           do i=imin,nx3ma
             do j=jmin,ny3ma
               lx=i*3
               ly=j*3
               k=px+lx
               l=py+ly
-              if ((abs(lx).le.l3).and.(abs(ly)
-     +        .le.l3)) then
-                do m=-1,1
-                  do p=-1,1 
-                    lumlpo(k,l)=lumlpo(k,l)+lumlp(k+m,l+p)
-                  enddo
-                enddo
-                n=n+1
-                point(n,1)=k
-                point(n,2)=l
-                point(n,3)=3
-                if (lumlpo(k,l).gt.maxi) maxi=lumlpo(k,l)
+              if ((k.ge.1).and.(l.ge.1)) then
+                 if ((abs(lx).le.l3).and.(abs(ly)
+     +           .le.l3)) then
+                    do m=-1,1
+                       do p=-1,1
+                          if ((k+m.ge.1).and.(l+p.ge.1)) then                  
+                             lumlpo(k,l)=lumlpo(k,l)+lumlp(k+m,l+p)
+                          endif
+                       enddo
+                    enddo
+                    n=n+1
+                    point(n,1)=k
+                    point(n,2)=l
+                    point(n,3)=3
+                    if (lumlpo(k,l).gt.maxi) maxi=lumlpo(k,l)
+                 endif
               endif
             enddo
           enddo
