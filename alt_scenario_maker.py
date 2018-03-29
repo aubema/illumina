@@ -128,7 +128,9 @@ if alt_type == 2:
         dirname = "Intrants_"+lamp_t+'/'
 
         newZonData = [ filter( lambda z: z[1]==lamp_t, zone ) for zone in zonData ]
-        newZonData[newZonData==[]] = [[0,lamp_t,'0']]
+        for i in range(len(newZonData)):
+            if newZonData[i]==[]:
+                newZonData[i] = [[0,lamp_t,'0']]
         weights = np.asarray(map(lambda z:sum(map(lambda x:x[0],z)),newZonData))
 
         newZones = make_zones( angles, lop, wav, spct, newZonData ) * weights[:,None,None]
