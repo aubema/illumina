@@ -244,7 +244,7 @@ def plot_allsky(phi,r,data,n=100,**kwargs):
     theta = _np.linspace(0,2*_np.pi,n*len(phi)+1)-_np.mean(_np.radians(phi[:2]))
 
     Theta,R = _np.meshgrid(theta,r)
-    if kwargs.has_key("autogain") and kwargs["autogain"]:
+    if not kwargs.has_key("autogain") or kwargs["autogain"]:
         gain = _np.max(data)
         data /= gain
     if data.ndim == 3:
@@ -266,7 +266,7 @@ def plot_allsky(phi,r,data,n=100,**kwargs):
     title_str = ""
     if kwargs.has_key("title"):
         title_str += kwargs["title"]
-    if kwargs.has_key("autogain") and kwargs["autogain"]:
+    if not kwargs.has_key("autogain") or kwargs["autogain"]:
         if title_str != "":
             title_str += '\n'
         title_str += "gain = %.4g" % gain
@@ -277,7 +277,7 @@ def plot_allsky(phi,r,data,n=100,**kwargs):
         _plt.colorbar(label=kwargs["clabel"])
 
     if kwargs.has_key("labels"):
-        for name,pos in labels.iteritems():
+        for name,pos in kwargs["labels"].iteritems():
             _plt.annotate(name,xy=[_np.radians(pos),_np.max(r)],
                           xytext=[_np.radians(pos),_np.max(r)+7],
                           verticalalignment="top" if (90<pos<270) else "bottom",
@@ -288,5 +288,5 @@ def plot_allsky(phi,r,data,n=100,**kwargs):
     _plt.tight_layout()
 
     if kwargs.has_key("fname"):
-        _plt.savefig(fname)
+        _plt.savefig(kwargs["fname"])
         _plt.close()
