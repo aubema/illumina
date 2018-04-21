@@ -220,7 +220,7 @@ c      real zhoriz                                                         ! hor
       real zero
       real anaz
       real ff,hh                                                          ! temporary obstacle filling factor and horizon blocking factor
-      data cloudh /44,44,40,33,33/                                        ! 9300.,9300.,4000.,1200.,1100.
+      data cloudh /73,73,65,54,53/                                        ! 9300.,9300.,4000.,1200.,1100.
       real dist,distm                                                     ! distance and minimal distance to find observer level
       real scalef                                                         ! scale factor to calculate the line of sight
       verbose=0
