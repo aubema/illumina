@@ -258,7 +258,7 @@ def plot_allsky(phi,r,data,n=100,**kwargs):
         m = _plt.pcolormesh(Theta,R,data[:,:,0],color=color,linewidth=0,vmin=0,vmax=1)
         m.set_array(None)
     else:
-        if kwargs.has_key["cmap"]:
+        if kwargs.has_key("cmap"):
             m = _plt.pcolormesh(Theta,R,data,linewidth=0,vmin=0,cmap=kwargs["cmap"])
         else:
             m = _plt.pcolormesh(Theta,R,data,linewidth=0,vmin=0)
