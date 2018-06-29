@@ -201,35 +201,36 @@ def plot_allsky(phi,r,data,n=100,**kwargs):
     """Plot all sky data.
 
     Parameters:
-      phi         : Azimuthal angle (deg). Must be linearly spaced.
-      r           : Elevation angle (deg). Must be in [0;90]
-      data        : (NxM) or (NxMx3) data to plot with N the number of elevation
-                    angles and M the number of azimuthal angles. If 3D the Data
-                    will be represented as an RGB plot.
-      n           : Supersampling. If 'interpolate' is not 'None', it will be applied
-                    to both axis. (Used to make the plot round)
-      interpolate : Interpolation method. Can be 'None', 'linear', 'cubic' or 'quintic'
-      autogain    : If True, the data will be stretched to have a max of 1
-      title       : Figure title
-      clabel      : Colorbar label. If defined, will draw a colorbar (2D data only)
-      fname       : File name. If defined, will save the figure and close it.
-      cmap        : Colormap to use (2D data only). See matplotlib doc for options.
-      labels      : Labels to add to the figure. {'label':position (deg)} dictionnary.
+      phi      : Azimuthal angle (deg). Must be linearly spaced.
+      r        : Elevation angle (deg). Must be in [0;90]
+      data     : (NxM) or (NxMx3) data to plot with N the number of elevation
+                 angles and M the number of azimuthal angles. If 3D the Data
+                 will be represented as an RGB plot.
+      n        : Supersampling. If 'interp' is not 'None', it will be applied
+                 to both axis. (Used to make the plot round)
+      interp   : Interpolation method. Can be 'None', 'linear', 'cubic' or 'quintic'
+      autogain : If True, the data will be stretched to have a max of 1 (def. False)
+      title    : Figure title
+      clabel   : Colorbar label. If defined, will draw a colorbar (2D data only)
+      fname    : File name. If defined, will save the figure and close it.
+      cmap     : Colormap to use (2D data only). See matplotlib doc for options.
+      labels   : Labels to add to the figure. {'label':position (deg)} dictionnary.
+      vmin     : Minimal value of the colorscale (2D data only).
     """
-    if kwargs.has_key("interpolate") and kwargs["interpolate"] != "None":
+    if kwargs.has_key("interp") and kwargs["interp"] != "None":
         ndata = _np.concatenate([data,data[:,0,...][:,None]],axis=1)
         nphi = _np.linspace(phi[0],phi[0]+360,n*len(phi),endpoint=False)
         nr = _np.linspace(r[0],r[-1],n*(len(r)-1)+1)
         if data.ndim == 3:
             data = _np.zeros((len(nr),len(nphi),data.shape[2]))
             for i in range(data.shape[2]):
-                interp = _I.interp2d(_np.concatenate([phi,[phi[0]+360]]),r,ndata[:,:,i],kind=kwargs["interpolate"])
+                interp = _I.interp2d(_np.concatenate([phi,[phi[0]+360]]),r,ndata[:,:,i],kind=kwargs["interp"])
                 data[:,:,i] = interp(nphi,nr)
-            phi = nphi
-            r = nr
         else:
-            interp = _I.interp2d(_np.concatenate([phi,[phi[0]+360]]),r,ndata,kind=kwargs["interpolate"])
-            data = interp(phi,r)
+            interp = _I.interp2d(_np.concatenate([phi,[phi[0]+360]]),r,ndata,kind=kwargs["interp"])
+            data = interp(nphi,nr)
+        phi = nphi
+        r = nr
         n = 1
     else:
         data = _np.repeat(data, n, axis=1)
@@ -244,7 +245,7 @@ def plot_allsky(phi,r,data,n=100,**kwargs):
     theta = _np.linspace(0,2*_np.pi,n*len(phi)+1)-_np.mean(_np.radians(phi[:2]))
 
     Theta,R = _np.meshgrid(theta,r)
-    if not kwargs.has_key("autogain") or kwargs["autogain"]:
+    if kwargs.has_key("autogain") and kwargs["autogain"]:
         gain = _np.max(data)
         data /= gain
     if data.ndim == 3:
@@ -258,15 +259,17 @@ def plot_allsky(phi,r,data,n=100,**kwargs):
         m = _plt.pcolormesh(Theta,R,data[:,:,0],color=color,linewidth=0,vmin=0,vmax=1)
         m.set_array(None)
     else:
+        args = dict()
         if kwargs.has_key("cmap"):
-            m = _plt.pcolormesh(Theta,R,data,linewidth=0,vmin=0,cmap=kwargs["cmap"])
-        else:
-            m = _plt.pcolormesh(Theta,R,data,linewidth=0,vmin=0)
+            args["cmap"] = kwargs["cmap"]
+        if kwargs.has_key("vmin"):
+            args["vmin"] = kwargs["vmin"]
+        m = _plt.pcolormesh(Theta,R,data,linewidth=0,**args)
 
     title_str = ""
     if kwargs.has_key("title"):
         title_str += kwargs["title"]
-    if not kwargs.has_key("autogain") or kwargs["autogain"]:
+    if kwargs.has_key("autogain") and kwargs["autogain"]:
         if title_str != "":
             title_str += '\n'
         title_str += "gain = %.4g" % gain
@@ -274,7 +277,7 @@ def plot_allsky(phi,r,data,n=100,**kwargs):
         _plt.title(title_str)
 
     if kwargs.has_key("clabel"):
-        _plt.colorbar(label=kwargs["clabel"])
+        _plt.colorbar(label=kwargs["clabel"],pad=0.11)
 
     if kwargs.has_key("labels"):
         for name,pos in kwargs["labels"].iteritems():
