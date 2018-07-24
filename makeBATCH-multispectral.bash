@@ -115,8 +115,9 @@ do xsit=${x_sites[$ns]}
    fi
    min_elev=`/bin/echo "180.0/3.14159*a("$maxh"/("$pixsize"*" $dist"))" | /usr/bin/bc -l`
    min_elev=`/bin/echo "("$min_elev"+0.5)/1" | /usr/bin/bc `
-   echo "min_elev=" $min_elev
-   let min_elev=min_elev/2
+   echo "Calculations made at elevation angles lower than " $min_elev " deg may be less accurate in some cases."
+#   let min_elev=min_elev/2
+   let min_elev=1
    mkdir $griddir/"x"${x_sites[$ns]}"y"${y_sites[$ns]}
    echo $griddir
    echo "Site: x"${x_sites[$ns]}"y"${y_sites[$ns]}
