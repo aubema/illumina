@@ -5,7 +5,7 @@ import subprocess as sub, shutil
 from collections import OrderedDict as odict, defaultdict as ddict
 from glob import glob
 from pytools import *
-	
+
 # Load data
 # IMPORTANT : x axis of all similar data must be the same
 
@@ -110,39 +110,39 @@ if not stop:
 	modis_dir = raw_input("modis directory? [e.g. pgms]\n    ")
 	zon_name = out_name+".zon"
 	srtm_name = raw_input("elevation file name? [e.g. srtm.pgm]\n    ")
-	
+
 	dir_name = "./Intrants/"
 	tmp_names = {'sat':"stable_lights.pgm", 'modis':"modis.dat", 'viirs':"viirs.dat", 'zon':"zone.zon"}
 	tmp_list = set(tmp_names.values()) # List of files to be removed after execution
 	tmp_names['integ'] = "integration_limits.dat"
 	tmp_names['srtm'] = "srtm.pgm"
 
-        ans = raw_input("Cutoff low values in the viirs-dnb data? ([y]/n) ")
-        viirs_lowcut = True
-        try:
-            if ans[0] in ['N','n']:
-                viirs_lowcut = False
-        except IndexError:
-            pass
+	ans = raw_input("Cutoff low values in the viirs-dnb data? ([y]/n) ")
+	viirs_lowcut = True
+	try:
+	    if ans[0] in ['N','n']:
+	        viirs_lowcut = False
+	except IndexError:
+	    pass
 
-        viirs_head,viirs_p,viirs_dat = load_pgm(pgm_name)
+	viirs_head,viirs_p,viirs_dat = load_pgm(pgm_name)
 
-        if viirs_lowcut:
-            try:
-                val = float(raw_input("    Cutoff value [default peak value/4] : "))
-            except ValueError:
-                v,c = np.unique(viirs_dat,return_counts=True)
-                val = v[c>=c.max()/4][-1]
+	if viirs_lowcut:
+	    try:
+	        val = float(raw_input("    Cutoff value [default peak value/4] : "))
+	    except ValueError:
+	        v,c = np.unique(viirs_dat,return_counts=True)
+	        val = v[c>=c.max()/4][-1]
 
-            viirs_reject = viirs_dat.copy()
-            viirs_reject[viirs_reject >= val] = 0
-            viirs_dat[viirs_dat < val] = 0
-            
-            save_pgm(dir_name+"NaturalAndScatteredLight.pgm", viirs_head, viirs_p, viirs_reject)
+	    viirs_reject = viirs_dat.copy()
+	    viirs_reject[viirs_reject >= val] = 0
+	    viirs_dat[viirs_dat < val] = 0
 
-        save_pgm(dir_name+tmp_names['sat'], viirs_head, viirs_p, viirs_dat)
+	    save_pgm(dir_name+"NaturalAndScatteredLight.pgm", viirs_head, viirs_p, viirs_reject)
 
-    	# Creating symbolic links to necessary reflectance and photometry files
+	save_pgm(dir_name+tmp_names['sat'], viirs_head, viirs_p, viirs_dat)
+
+	# Creating symbolic links to necessary reflectance and photometry files
 	modis_files = np.genfromtxt(modis_name,skip_header=1,usecols=1,dtype=str)
 	modis_files = map(lambda s: modis_dir+"/"+s,modis_files)
 	zon_files = [ "Lamps/zone%d_lamp.dat" % (i+1) for i in xrange(len(zones)) ]
@@ -171,7 +171,7 @@ if not stop:
 	os.symlink(os.path.abspath(srtm_name),dir_name+tmp_names['srtm'])
 
 	print "Linking mie files..."
-	
+
 	mie_pre = raw_input("    Mie file prefix : ")
 	illum_dir = sorted([s for s in os.environ['PATH'].split(':') if 'illumina' in s.lower() ], key=lambda s:len(s))[0]
 	mie_path = illum_dir + "/Aerosol_optical_prop/"
@@ -179,16 +179,16 @@ if not stop:
 	mie_files = { int(s.split('.')[-3][:3]):s for s in mie_files }
 	mie_wl = np.asarray(sorted(mie_files.keys()))
 	wl2mie = np.asarray([min(mie_wl, key=lambda i: abs(i-j)) for j in x])
-	
+
 	for i in xrange(len(wl2mie)):
 		name = dir_name+mie_pre.strip('_')+"_0.%03d0um.mie.out"%x[i]
-		try:		
+		try:
 			os.symlink(os.path.abspath(mie_files[wl2mie[i]]),name)
 		except OSError as e:
 			if e[0] != 17:
 				raise
 #		tmp_list.add(name)
-	
+
 ans = raw_input("    Executing viirs2lum ? ([y]/n) ")
 
 stop = False
@@ -197,17 +197,17 @@ try:
 		stop = True
 except IndexError:
 	pass
-	
+
 if not stop:
 	print "Launching Fortran..."
 
 	os.chdir(dir_name)
-	p = sub.Popen("viirs2lum", stdin=sub.PIPE)
+	p = sub.Popen("/home/alsimoneau/Desktop/Montsec/hg/illumina/bin/viirs2lum", stdin=sub.PIPE)
 	param = out_name+"\n"+os.path.basename(tmp_names['sat'])+"\n"+os.path.basename(tmp_names['zon'])+"\n"
 	p.communicate(param)
-	
+
 	print "Fortran done."
-	
+
 	for filename in tmp_list:
 		os.remove(os.path.basename(filename))
 
@@ -217,9 +217,7 @@ if not stop:
 		zfile.write('\n'.join( map(lambda n:"%03d"%n, xrange(1,len(zones)+1) ))+'\n')
 	with open("wav.lst",'w') as zfile:
 		zfile.write('\n'.join( map(lambda n:"%03d"%n, x ))+'\n')
-  
+
 	os.chdir("..")
 
 print "Done."
-
-
