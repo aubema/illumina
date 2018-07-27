@@ -202,7 +202,7 @@ if not stop:
 	print "Launching Fortran..."
 
 	os.chdir(dir_name)
-	p = sub.Popen("/home/alsimoneau/Desktop/Montsec/hg/illumina/bin/viirs2lum", stdin=sub.PIPE)
+	p = sub.Popen("viirs2lum", stdin=sub.PIPE)
 	param = out_name+"\n"+os.path.basename(tmp_names['sat'])+"\n"+os.path.basename(tmp_names['zon'])+"\n"
 	p.communicate(param)
 
