@@ -292,18 +292,22 @@ echo "Starting from "$folder
                                       let jobno=nmam/300+1
                                       outscript=$outscpt"_"$jobno
                                       echo "cd " $ici >> $HOME/$outscript
-                                      echo "qsub -W umask=0011 -q qwork@ms  ./execute" >> $HOME/$outscript
+                                      #echo "qsub -W umask=0011 -q qwork@ms  ./execute" >> $HOME/$outscript
+				      echo "sbatch ./execute" >> $HOME/$outscript
                                       echo "sleep 0.05"  >> $HOME/$outscript
                                       echo "#!/bin/csh" > $ici/execute
-                                      echo "#PBS -l cput="$est_time":00:00" >> $ici/execute
-                                      echo "#PBS -l walltime="$est_time":00:00" >> $ici/execute
-                                      echo "#PBS -m bea" >> $ici/execute
-#                                 echo "#PBS -M aubema@gmail.com" >> $ici/execute
+                                      #echo "#PBS -l cput="$est_time":00:00" >> $ici/execute
+                                      #echo "#PBS -l walltime="$est_time":00:00" >> $ici/execute
+                                      #echo "#PBS -m bea" >> $ici/execute
+                                      #echo "#PBS -M aubema@gmail.com" >> $ici/execute
+                                      echo "#SBATCH --job-name=Illumina" >> $ici/execute
+                                      echo "#SBATCH --time="$est_time":00:00" >> $ici/execute
+				      echo "#SBATCH --mem-per-cpu=1920" >> $ici/execute
                                       echo "cd " $ici >> $ici/execute
                                       echo "./illumina" >> $ici/execute
                                       chmod u+x $ici/execute
-#                                 echo "cd " $ici >> $HOME/$outscpt
-#                                 echo "bqsub -P \"command=./illumina >illumina.out\" -q qwork@ms -l walltime="$est_time":00:00" >> $HOME/$outscpt
+                                      #echo "cd " $ici >> $HOME/$outscpt
+                                      #echo "bqsub -P \"command=./illumina >illumina.out\" -q qwork@ms -l walltime="$est_time":00:00" >> $HOME/$outscpt
                                       nl=0        
                                       while [ $nl -lt ${#lamp_l[*]} ]
                                       do let nolp=nl+1
