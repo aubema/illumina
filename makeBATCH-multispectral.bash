@@ -295,7 +295,7 @@ echo "Starting from "$folder
                                       #echo "qsub -W umask=0011 -q qwork@ms  ./execute" >> $HOME/$outscript
 				      echo "sbatch ./execute" >> $HOME/$outscript
                                       echo "sleep 0.05"  >> $HOME/$outscript
-                                      echo "#!/bin/csh" > $ici/execute
+                                      echo "#!/bin/sh" > $ici/execute
                                       #echo "#PBS -l cput="$est_time":00:00" >> $ici/execute
                                       #echo "#PBS -l walltime="$est_time":00:00" >> $ici/execute
                                       #echo "#PBS -m bea" >> $ici/execute
