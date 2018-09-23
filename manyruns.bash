@@ -13,13 +13,16 @@ do  bash $i
     echo "===="
     user=`whoami`
     njob=`squeue -u $user -h | grep -c ""`
-    nwait=`squeue -u $user -h -o "%t" | grep -c "PD"`
+    read -r nlines foo <<< `wc -l $i`
+    nnew=$((nlines/3))
+    ntot=$((nnew+njob))
     echo $njob "initial"
-    while  [ $njob -gt 1000 ] && [ $nwait -gt 100 ]
+    echo $nnew "new"
+    while  [ $ntot -gt 1000 ]
     do 
         njob=`squeue -u $user -h | grep -c ""`
-        nwait=`squeue -u $user -h -o "%t" | grep -c "PD"`
-        echo $njob $nwait
+        ntot=$((nnew+njob))
+        echo $ntot
         sleep 30 
     done
 done
