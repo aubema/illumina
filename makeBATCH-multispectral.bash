@@ -293,6 +293,7 @@ echo "Starting from "$folder
                                       outscript=$outscpt"_"$jobno
                                       echo "cd " $ici >> $HOME/$outscript
                                       #echo "qsub -W umask=0011 -q qwork@ms  ./execute" >> $HOME/$outscript
+				      echo "umask 0011" >> $HOME/$outscript
 				      echo "sbatch ./execute" >> $HOME/$outscript
                                       echo "sleep 0.05"  >> $HOME/$outscript
                                       echo "#!/bin/sh" > $ici/execute
