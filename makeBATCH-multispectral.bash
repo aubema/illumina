@@ -293,7 +293,6 @@ echo "Starting from "$folder
                                       outscript=$outscpt"_"$jobno
                                       echo "cd " $ici >> $HOME/$outscript
                                       #echo "qsub -W umask=0011 -q qwork@ms  ./execute" >> $HOME/$outscript
-				      echo "umask 0011" >> $HOME/$outscript
 				      echo "sbatch ./execute" >> $HOME/$outscript
                                       echo "sleep 0.05"  >> $HOME/$outscript
                                       echo "#!/bin/sh" > $ici/execute
@@ -305,6 +304,7 @@ echo "Starting from "$folder
                                       echo "#SBATCH --time="$est_time":00:00" >> $ici/execute
                                       echo "#SBATCH --mem-per-cpu=1920" >> $ici/execute
                                       echo "cd " $ici >> $ici/execute
+				      echo "umask 0011" >> $ici/execute
                                       echo "./illumina" >> $ici/execute
                                       chmod u+x $ici/execute
                                       #echo "cd " $ici >> $HOME/$outscpt

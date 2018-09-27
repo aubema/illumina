@@ -13,8 +13,7 @@ do  bash $i
     echo "===="
     user=`whoami`
     njob=`squeue -u $user -h | grep -c ""`
-    read -r nlines foo <<< `wc -l $i`
-    nnew=$((nlines/3))
+    nnew=`grep -c -e "sbatch" $i`
     ntot=$((nnew+njob))
     echo $njob "initial"
     echo $nnew "new"
