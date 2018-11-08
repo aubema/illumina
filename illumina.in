@@ -1,6 +1,6 @@
                                 ! Input file for ILLUMINA
 test3                           ! ROOT FILE NAME (every usefull files have to begin with this)
-                                !
+400 400                         ! Modeling domain size W-E and S-N in pixel
 200 200                         ! W-E and S-N CELL SIZES [m]
                                 ! 
 urban_RH70_0.5500um.mie.out     ! AEROSOL OPTICAL CROSS SECTIONS AND PHASE FUNCTION FILE selected from Fichiers.mie.out/ [-]

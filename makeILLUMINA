@@ -27,26 +27,26 @@ F77="gfortran"
 folder=`pwd`
 chmod a+x make*
 # options de debuggage -Wall -fcheck=all -g -fbacktrace -ffpe-trap=zero 
-echo $F77" -mcmodel=medium -O3 illumina.f reflexion-double_diff.f lignevisee.f zone_diffusion.f diffusion.f angle3points.f anglesolide.f transmita.f transmitm.f anglezenithal.f intrants2d.f planzx.f planyz.f planxy.f extrants2d.f angleazimutal.f horizon.f cloudreflectance.f verticalscale.f -o bin/illumina"
-$F77  -mcmodel=medium -O3 illumina.f reflexion-double_diff.f lignevisee.f zone_diffusion.f diffusion.f angle3points.f anglesolide.f transmita.f transmitm.f anglezenithal.f intrants2d.f planzx.f planyz.f planxy.f extrants2d.f angleazimutal.f horizon.f cloudreflectance.f verticalscale.f -o bin/illumina
+echo $F77" -mcmodel=medium -O3 illumina.f reflexion-double_diff.f lignevisee.f zone_diffusion.f diffusion.f angle3points.f anglesolide.f transmita.f transmitm.f anglezenithal.f planzx.f planyz.f planxy.f angleazimutal.f horizon.f cloudreflectance.f verticalscale.f doublein.f doubleout.f -o bin/illumina"
+$F77  -mcmodel=medium -O3 illumina.f reflexion-double_diff.f lignevisee.f zone_diffusion.f diffusion.f angle3points.f anglesolide.f transmita.f transmitm.f anglezenithal.f planzx.f planyz.f planxy.f angleazimutal.f horizon.f cloudreflectance.f verticalscale.f doublein.f doubleout.f -o bin/illumina
 echo $F77" ies2fctem.f -o bin/ies2fctem.exe"
 $F77 ies2fctem.f -o bin/ies2fctem.exe
-echo $F77" continue_illumina.f  -o bin/continue_illumina"
-$F77 continue_illumina.f  -o bin/continue_illumina
-echo $F77" ols2lum.f intrants2d.f extrants2d.f -o bin/ols2lum"
-$F77 ols2lum.f intrants2d.f extrants2d.f -o bin/ols2lum
+echo $F77" continue_illumina.f -o bin/continue_illumina"
+$F77 continue_illumina.f -o bin/continue_illumina
+echo $F77" ols2lum.f doublein.f doubleout.f -o bin/ols2lum"
+$F77 ols2lum.f doublein.f doubleout.f -o bin/ols2lum
 echo $F77" L569-546toVmag-OT.f -o bin/L569-546toVmag-OT"
 $F77 L569-546toVmag-OT.f -o L569-546toVmag-OT
 echo $F77" L569-615toVmag-ORM.f -o bin/L569-615toVmag-ORM"
 $F77 L569-615toVmag-ORM.f -o L569-615toVmag-ORM
-echo $F77" circular-pgm-integ.f intrants2d.f -o bin/circular-pgm-integ"
-$F77 circular-pgm-integ.f intrants2d.f -o bin/circular-pgm-integ
+echo $F77" circular-integ.f doublein.f -o bin/circular-pgm-integ"
+$F77 circular-integ.f doublein.f -o bin/circular-pgm-integ
 echo $F77" CompareToMiro.f -o bin/CompareToMiro"
 $F77 CompareToMiro.f -o bin/CompareToMiro
-echo $F77" moypondpgm16bit.f intrants2d.f extrants2d.f -o bin/moypondpgm16bit"
-$F77 moypondpgm16bit.f intrants2d.f extrants2d.f -o bin/moypondpgm16bit
-echo $F77" interp-pgm16bit.f intrants2d.f extrants2d.f -o bin/interp-pgm16bit"
-$F77 interp-pgm16bit.f intrants2d.f extrants2d.f -o bin/interp-pgm16bit
+echo $F77" moypond.f doublein.f doubleout.f -o bin/moypondpgm16bit"
+$F77 moypond.f doublein.f doubleout.f -o bin/moypondpgm16bit
+echo $F77" interp.f doublein.f doubleout.f -o bin/interp-pgm16bit"
+$F77 interp.f doublein.f doubleout.f -o bin/interp-pgm16bit
 echo $F77" rad2lrad.f -o bin/rad2lrad"
 $F77 rad2lrad.f -o bin/rad2lrad
 # cd rand_map
@@ -57,8 +57,8 @@ $F77 rad2lrad.f -o bin/rad2lrad
 # echo "gcc -lm comp_reduc.c -o ../bin/comp_reduc"
 # gcc comp_reduc.c -o ../bin/comp_reduc -lm
 # cd ..
-echo $F77" readvalue.f intrants2d.f -o bin/readvalue"
-$F77 readvalue.f intrants2d.f -o bin/readvalue
+echo $F77" readvalue.f doublein.f -o bin/readvalue"
+$F77 readvalue.f doublein.f -o bin/readvalue
 echo $F77" utils/mietool/MakeMieIn.f -o bin/MakeMieIn"
 $F77 utils/mietool/MakeMieIn.f -o bin/MakeMieIn
 echo $F77" utils/mietool/MakePSD.f -o bin/MakePSD"
@@ -71,24 +71,24 @@ echo $F77" AllSkyRatio.f -o bin/AllSkyRatio"
 $F77 AllSkyRatio.f -o bin/AllSkyRatio
 echo $F77" rad2polar.f -o bin/rad2polar"
 $F77 rad2polar.f -o bin/rad2polar
-echo $F77" pgmcombine16bit.f intrants2d.f extrants2d.f -o bin/pgmcombine16bit"
-$F77 pgmcombine16bit.f intrants2d.f extrants2d.f -o bin/pgmcombine16bit
-echo $F77" ratiopmg16bit.f intrants2d.f extrants2d.f -o bin/ratiopgm16bit"
-$F77 ratiopgm16bit.f intrants2d.f extrants2d.f -o bin/ratiopgm16bit
-echo $F77" substractpmg16bit.f intrants2d.f extrants2d.f -o bin/substractpgm16bit"
-$F77 substractpgm16bit.f intrants2d.f extrants2d.f -o bin/substractpgm16bit
-echo $F77" varres.f intrants2d.f extrants2d.f -o bin/varres"
-$F77 varres.f intrants2d.f extrants2d.f -o bin/varres
-echo $F77" retres.f intrants2d.f extrants2d.f -o bin/retres"
-$F77 retres.f intrants2d.f extrants2d.f -o bin/retres
-echo $F77" viirs2lum.f intrants2d.f extrants2d.f -o bin/viirs2lum"
-$F77 viirs2lum.f intrants2d.f extrants2d.f -o bin/viirs2lum
-echo $F77" writevalue16bit.f extrants2d.f -o bin/writevalue16bit"
-$F77 writevalue16bit.f extrants2d.f -o bin/writevalue16bit
-echo $F77" viirs2lum-multispectral.f extrants2d.f intrants2d.f interp_modis.f -o bin/viirs2lum "
-$F77 viirs2lum-multispectral.f extrants2d.f intrants2d.f interp_modis.f -o bin/viirs2lum
-echo $F77" intrusive.f intrants2d.f extrants2d.f -o bin/intrusive"
-$F77 intrusive.f intrants2d.f extrants2d.f -o bin/intrusive
+echo $F77" combine.f doublein.f doubleout.f -o bin/pgmcombine16bit"
+$F77 combine.f doublein.f doubleout.f -o bin/pgmcombine16bit
+echo $F77" ratio.f doublein.f doubleout.f -o bin/ratiopgm16bit"
+$F77 ratio.f doublein.f doubleout.f -o bin/ratiopgm16bit
+echo $F77" substract.f doublein.f doubleout.f -o bin/substractpgm16bit"
+$F77 substract.f doublein.f doubleout.f -o bin/substractpgm16bit
+echo $F77" varres.f doublein.f doubleout.f -o bin/varres"
+$F77 varres.f doublein.f doubleout.f -o bin/varres
+echo $F77" retres.f doublein.f doubleout.f -o bin/retres"
+$F77 retres.f doublein.f doubleout.f -o bin/retres
+echo $F77" viirs2lum.f doublein.f doubleout.f -o bin/viirs2lum"
+$F77 viirs2lum.f doublein.f doubleout.f -o bin/viirs2lum
+echo $F77" writevalue.f doubleout.f -o bin/writevalue16bit"
+$F77 writevalue.f doubleout.f -o bin/writevalue16bit
+echo $F77" viirs2lum-multispectral.f doublein.f doubleout.f interp_modis.f -o bin/viirs2lum "
+$F77 viirs2lum-multispectral.f doublein.f doubleout.f interp_modis.f -o bin/viirs2lum
+echo $F77" intrusive.f doublein.f doubleout.f -o bin/intrusive"
+$F77 intrusive.f doublein.f doubleout.f -o bin/intrusive
 echo $F77" find_max_height.f verticalscale.f -o bin/find_max_height"
 $F77 find_max_height.f verticalscale.f -o bin/find_max_height
 chmod a+x bin/*
