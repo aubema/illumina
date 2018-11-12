@@ -31,6 +31,6 @@ c
        print*,'Output bin file name?'
        read*,name3
        call intrants2d(name1,dat1,xcell0,ycell0,pixsiz,nbx,nby)
-       call 2dout(nbx,nby,name3,dat1)
+       call twodout(nbx,nby,name3,dat1)
        stop
        end

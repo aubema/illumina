@@ -34,7 +34,7 @@ c
        read*,pixsiz
        print*,'Output pgm file name?'
        read*,name3
-       call 2din(nbx,nby,name1,dat1)
+       call twodin(nbx,nby,name1,dat1)
        max=0.
        do i=1,nbx
           do j=1,nby
@@ -47,7 +47,7 @@ c
        nom='converted'
        xcell0=0.
        ycell0=0.
-       call extrantstwod (name3,dat1,nom,xcell0,ycell0,pixsiz,
+       call extrants2d(name3,dat1,nom,xcell0,ycell0,pixsiz,
      + gain,offset,nbx,nby,valmax)
        stop
        end
