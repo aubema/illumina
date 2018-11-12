@@ -26,10 +26,8 @@ c
        real xcell0,ycell0
        integer nbx,nby,i,j,valmax
        character*72 name1,name3
-       print*,'pgm file name?'
-       read*,name1
-       print*,'Output bin file name?'
-       read*,name3
+       print*,'Enter pgm file name and output bin file name:'
+       read*,name1,name3
        call intrants2d(name1,dat1,xcell0,ycell0,pixsiz,nbx,nby)
        call twodout(nbx,nby,name3,dat1)
        stop

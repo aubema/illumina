@@ -28,12 +28,9 @@ c
        integer nbx,nby,i,j,valmax
        character*72 name1,name3
        character*12 nom
-       print*,'bin file name?'
-       read*,name1
-       print*,'Pixel size in meter?'
-       read*,pixsiz
-       print*,'Output pgm file name?'
-       read*,name3
+       print*,'Enter bin file name, pixel size in meter and output pgm f
+     +ile name:'
+       read*,name1,pixsiz,name3
        call twodin(nbx,nby,name1,dat1)
        max=0.
        do i=1,nbx

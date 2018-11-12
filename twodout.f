@@ -11,5 +11,5 @@ c write double precision array in binary
             enddo
          enddo
        close(unit=1)
-       stop
+       return
        end
