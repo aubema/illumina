@@ -42,7 +42,7 @@ c
       real datxy(width,width),dmax,s0,magmax,magmin
       real En
       character*72 bidon,datfile,nomxyz
-      character*73 nompgm
+      character*73 nombin
       character*12 nom
       integer i,j,lennom,nx,ny,xmin,ymin,n
       integer maxi,hcnt,valmax
@@ -111,12 +111,12 @@ c ----------------
 c
 c   Ecriture de l image de sortie
 c
-            nompgm='data.pgm'
+            nombin='data.bin'
             nom='data   '
             valmax=65535
             offset=magmax
             gain=-1.*(magmax-magmin)/real(valmax)
             print*,magmin,magmax,gain,offset
-            call extrants2d (nompgm,datxy,nom,lat0,lon0,pixsiz,
+            call extrants2d (nombin,datxy,nom,lat0,lon0,pixsiz,
      +      gain,offset,nx,ny,valmax)
        end

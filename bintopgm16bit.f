@@ -1,8 +1,8 @@
-c programme pour additionner des pgm 16 bit
+c programm to convert bin file to pgm 16 bit
 c
-       program pgmcombine16bit
+       program bintopgm16bit
 c   
-c    Copyright (C) 2011  Martin Aube
+c    Copyright (C) 2018  Martin Aube
 c
 c    This program is free software: you can redistribute it and/or modify
 c    it under the terms of the GNU General Public License as published by
@@ -25,35 +25,29 @@ c
        real total,max
        real pixsiz,gain,offset,dat1(width,width)
        real xcell0,ycell0,dat3(width,width)
-       integer nbx,nby,i,j,valmax,nimg,n
+       integer nbx,nby,i,j,valmax
        character*72 name1,name3
        character*12 nom
-       do i=1,width
-       do j=1,width
-          dat3(i,j)=0.
-       enddo
-       enddo
-       max=0.
-       print*,'Number of pgm to add?'
-       read*,nimg
+       print*,'bin file name?'
+       read*,name1
+       print*,'Pixel size in meter?'
+       read*,pixsiz
        print*,'Output pgm file name?'
        read*,name3
-       do n=1,nimg
-          print*,'pgm file name ',n
-          read*,name1
-          call intrants2d(name1,dat1,xcell0,ycell0,pixsiz,nbx,nby)
-          do i=1,nbx
-             do j=1,nby
-                dat3(i,j)=dat3(i,j)+dat1(i,j)
-                if (dat3(i,j).gt.max) max=dat3(i,j)
-             enddo
+       call 2din(nbx,nby,name1,dat1)
+       max=0.
+       do i=1,nbx
+          do j=1,nby
+             if (dat1(i,j).gt.max) max=dat1(i,j)
           enddo
        enddo
        gain=max/65535.
        offset=0.
        valmax=65535
-       nom='sum'
-       call extrants2d (name3,dat3,nom,xcell0,ycell0,pixsiz,
+       nom='converted'
+       xcell0=0.
+       ycell0=0.
+       call extrants2d (name3,dat1,nom,xcell0,ycell0,pixsiz,
      + gain,offset,nbx,nby,valmax)
        stop
        end

@@ -37,6 +37,9 @@ if [ $2 ]; then
 	outscpt=$2
 fi
 read a pixsize <<< $(grep ^pixel_size $1 | cut -f1 -d"#")
+read a latitu <<< $(grep ^latitudeN $1 | cut -f1 -d"#")
+read a nbx <<< $(grep ^dimension_WE $1 | cut -f1 -d"#")
+read a nby <<< $(grep ^dimension_SN $1 | cut -f1 -d"#")
 read a exp_name <<< $(grep ^experiment_name $1 | cut -f1 -d"#")
 read a pressure <<< $(grep ^pressure $1 | cut -f1 -d"#")
 read a est_time <<< $(grep ^estimated_computing_time $1 | cut -f1 -d"#")
@@ -132,32 +135,34 @@ do xsit=${x_sites[$ns]}
              nl=0
              while [ $nl -lt ${#lamp_l[*]} ]
              do let nolp=nl+1             
-                cp $folder"/"$exp_name"_"${wav[$wl]}"_lumlp_"${lamp_l[$nl]}".pgm" "./"$exp_name"_lumlp_"${lamp_l[$nl]}".pgm"
+                cp $folder"/"$exp_name"_"${wav[$wl]}"_lumlp_"${lamp_l[$nl]}".bin" "./"$exp_name"_lumlp_"${lamp_l[$nl]}".bin"
                 let nl=nl+1
              done
              cp -f *lumlp* original_files
-             cp -f $folder"/modis_"${wav[$wl]}".pgm" "./"$exp_name"_reflect.pgm"
+             cp -f $folder"/modis_"${wav[$wl]}".bin" "./"$exp_name"_reflect.bin"
              cp -f *_reflect* original_files
 
 
 
              # combine lumlp files
 echo "Combining lumlp files..."
-             listlp=`ls -1 *lumlp*.pgm`
-             ls *lumlp*.pgm | grep -c "" > comblp.in
-             echo $exp_name"_lumlp_recombined.pgm" >> comblp.in
+             listlp=`ls -1 *lumlp*.bin`
+             ls *lumlp*.bin | grep -c "" > comblp.in
+             echo $exp_name"_lumlp_recombined.bin" >> comblp.in
              for nlp in $listlp
              do echo $nlp >> comblp.in
              done             
-             cp -f $HOME/hg/illumina/bin/pgmcombine16bit .
-             ./pgmcombine16bit < comblp.in
+             cp -f $HOME/hg/illumina/bin/combine .
+             ./combine < comblp.in
 echo "Making variable resolution grid lumlp files..."
              nl=0
              while [ $nl -lt ${#lamp_l[*]} ]
-             do echo $exp_name"_lumlp_"${lamp_l[$nl]}".pgm"  > varres.in
-                echo $exp_name"_reflect.pgm" >> varres.in
-                echo $exp_name"_lumlp_"${lamp_l[$nl]}"_new.pgm"  >> varres.in
-                echo $exp_name"_reflect_new.pgm"  >> varres.in
+             do echo $exp_name"_lumlp_"${lamp_l[$nl]}".bin"  > varres.in
+                echo $exp_name"_reflect.bin" >> varres.in
+                echo $exp_name"_lumlp_"${lamp_l[$nl]}"_new.bin"  >> varres.in
+                echo $exp_name"_reflect_new.bin"  >> varres.in
+                echo $nbx  >> varres.in
+                echo $nby  >> varres.in
                 echo ${x_sites[$ns]} >> varres.in
                 echo ${y_sites[$ns]} >> varres.in 
                 echo $l1 $l3 >> varres.in 
@@ -168,20 +173,20 @@ echo "Making variable resolution grid lumlp files..."
 
 # creating the variable resolution reflectance
 # this reflectance is a weighted average with the lumlp files on the variable res grid
-                echo $exp_name"_lumlp_recombined.pgm"  > varres.in
-                echo $exp_name"_reflect.pgm" >> varres.in
-                echo $exp_name"_lumlp_"${lamp_l[$nl]}"_new.pgm"  >> varres.in
-                echo $exp_name"_reflect_new.pgm"  >> varres.in
+                echo $exp_name"_lumlp_recombined.bin"  > varres.in
+                echo $exp_name"_reflect.bin" >> varres.in
+                echo $exp_name"_lumlp_"${lamp_l[$nl]}"_new.bin"  >> varres.in
+                echo $exp_name"_reflect_new.bin"  >> varres.in
                 echo ${x_sites[$ns]} >> varres.in
                 echo ${y_sites[$ns]} >> varres.in 
                 echo $l1 $l3 >> varres.in
                 cp -f $HOME/hg/illumina/bin/varres .
                 ./varres 
              
-             listpgm=`ls -1 *_new.pgm`
-             for ipgm in $listpgm
-             do opgm=`echo $ipgm | sed 's/_new//g'`
-                mv -f $ipgm $opgm
+             listbin=`ls -1 *_new.bin`
+             for ibin in $listbin
+             do obin=`echo $ibin | sed 's/_new//g'`
+                mv -f $ibin $obin
              done
        let wl=wl+1
    done
@@ -254,10 +259,10 @@ echo "Starting from "$folder
 #                           
 # creating illumina.in 
                                       echo "                ! Input file for ILLUMINA" > illumina.in
-                                      echo  $exp_name "     ! ROOT FILE NAME (every usefull files have to begin with this)" >> illumina.in
-                                      echo "                !" >> illumina.in
+                                      echo  $exp_name "              ! ROOT FILE NAME (every usefull files have to begin with this)" >> illumina.in
+                                      echo $nbx $nby  "         ! Modeling domain size W-E and S-N in pixel " >> illumina.in
                                       echo $pixsize $pixsize "                ! CELL SIZE [m]" >> illumina.in
-                                      echo "                !" >> illumina.in
+                                      echo $latitu "   ! central latitude north of the domain" >> illumina.in
 
 
 
@@ -315,13 +320,13 @@ echo "Starting from "$folder
                                          ln -s $folder"/fctem_wl_"${wav[$wl]}"_zon_"${lamp_l[$nl]}".dat" "./"$exp_name"_fctem_"${lamp_l[$nl]}".dat"
                                          let nl=nl+1
                                       done
-                                      ln -s $folder"/"$exp_name"_altlp.pgm" "./"$exp_name"_altlp.pgm"
-                                      ln -s $folder"/"$exp_name"_obsth.pgm" "./"$exp_name"_obsth.pgm"
-                                      ln -s $folder"/"$exp_name"_obstd.pgm" "./"$exp_name"_obstd.pgm"
-                                      ln -s $folder"/"$exp_name"_obstf.pgm" "./"$exp_name"_obstf.pgm"
+                                      ln -s $folder"/"$exp_name"_altlp.bin" "./"$exp_name"_altlp.bin"
+                                      ln -s $folder"/"$exp_name"_obsth.bin" "./"$exp_name"_obsth.bin"
+                                      ln -s $folder"/"$exp_name"_obstd.bin" "./"$exp_name"_obstd.bin"
+                                      ln -s $folder"/"$exp_name"_obstf.bin" "./"$exp_name"_obstf.bin"
                                       ln -s $griddir/"x"${x_sites[$ns]}"y"${y_sites[$ns]}/"wl"${wav[$wl]}/* .
-# copie des autres fichiers d intrants
-                                      ln -s $folder/$mna_file "./"$exp_name"_topogra.pgm"
+# copy other bin files
+                                      ln -s $folder/$mna_file "./"$exp_name"_topogra.bin"
                                       cd ..
                                       let ncas=ncas+1
                                       let wl=wl+1

@@ -1,9 +1,10 @@
-c programme pour integrer les signal sur une surface circulaire de position x,y
-c en conformite avec les coordonnees de imagemagick (display) avec un rayon r
+c programm to integrate values on a circle centered at position x,y
+c with a radius r from a bin file
+c 
 c
-       program circularpgminteg
+       program circular-integ
 c   
-c    Copyright (C) 2011  Martin Aube
+c    Copyright (C) 2018  Martin Aube
 c
 c    This program is free software: you can redistribute it and/or modify
 c    it under the terms of the GNU General Public License as published by
@@ -25,29 +26,25 @@ c
        parameter (width=1024)
        real data(width,width),total
        real pixsiz,r,x,y
-       real xcell0,ycell0
        integer nbx,nby,i,j
        character*72 basename
-       character*12 nom
-       print*,'pgm file name?'
+       print*,'bin file name?'
        read*,basename
        print*,'Radius (pixels)?'
        read*,radius
-       print*,'x y coordinates (according to imagemagick definition)?'
+       print*,'x y coordinates (pixel)?'
        read*,x,y
-     
-       nom='data '
-       call intrants2d(basename,data,xcell0,ycell0,pixsiz,nbx,nby)
-            total=0.
-            do i=1,nbx
-             do j=1,nby
-                r=sqrt(real(i-x-1)**2.+real(j-(nby-y))**2.)
-                if (r.le.radius) then
-                  total=total+data(i,j)
-              endif
-             enddo
-            enddo
-         print*,'Integrated value over a circular area of radius=',
-     +   radius,' centered at x=',x,' and y=',y,': ',total
+       call 2din(nbx,nby,basename,data)
+       total=0.
+       do i=1,nbx
+          do j=1,nby
+             r=sqrt(real(i-x)**2.+real(j-y)**2.)
+             if (r.le.radius) then
+                total=total+data(i,j)
+             endif
+          enddo
+       enddo
+       print*,'Integrated value over a circular area of radius=',
+     + radius,' centered at x=',x,' and y=',y,': ',total
        stop
        end

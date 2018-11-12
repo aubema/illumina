@@ -21,21 +21,14 @@ c
       subroutine interp_modis()
       integer width
       parameter (width=1024)
-      real modband(4),refl(width,width,4),avgwav,gain,offset,xcell0
-      real ycell0,dist,dat(width,width)
+      real modband(4),refl(width,width,4),avgwav
+      real dist,dat(width,width)
       real dist1,dist2,wav1,wav2,m,b
-      integer n_modis,i,n_bands,nb,ii,jj,valmax,pixsiz,n1,n2
+      integer n_modis,i,n_bands,nb,ii,jj,n1,n2
       REAL, DIMENSION(:), ALLOCATABLE :: modis_wav
       REAL, DIMENSION(:,:), ALLOCATABLE :: bands
       character*72 mod_file,outfile,bands_file,reflex_file
-      character*12 nom
       character*3 lambda
-      pixsiz=1000.
-      xcell0=0.
-      ycell0=0.
-      valmax=65535
-      gain = 1./real(valmax)
-      offset=0.
 c modis reflectance file list file name
 c format of the file
 c Line 1: nfile
@@ -53,9 +46,7 @@ c
         ALLOCATE(modis_wav(n_modis))
         DO i=1,n_modis
           READ(42,*) modis_wav(i),mod_file
-          nom='reflexion '
-          CALL intrants2d(mod_file,refl(:,:,i),xcell0,ycell0,
-     +    pixsiz,nbx,nby)
+          call 2din(nbx,nby,mod_file,refl(:,:,i))
         ENDDO
       CLOSE(42)
 c
@@ -75,7 +66,7 @@ c
             avgwav=700.
           endif
           write(lambda, '(I3.3)' ) int(avgwav)
-          outfile='modis_'//lambda//'.pgm'
+          outfile='modis_'//lambda//'.bin'
 c interpolate 
           dist1=1000000.
           dist2=1000000.
@@ -111,9 +102,7 @@ c find 2 nearest modis wavelengths
               if (dat(ii,jj).lt.0.) dat(ii,jj)=0.
             enddo
           enddo
-            nom='reflectance'
-            call extrants2d (outfile,dat,nom,xcell0,ycell0,pixsiz,
-     +      gain,offset,nbx,nby,valmax)
+          call 2dout(nbx,nby,outfile,dat)
         ENDDO
       CLOSE(42)
       DEALLOCATE(modis_wav)

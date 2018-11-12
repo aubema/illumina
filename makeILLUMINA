@@ -39,14 +39,14 @@ echo $F77" L569-546toVmag-OT.f -o bin/L569-546toVmag-OT"
 $F77 L569-546toVmag-OT.f -o L569-546toVmag-OT
 echo $F77" L569-615toVmag-ORM.f -o bin/L569-615toVmag-ORM"
 $F77 L569-615toVmag-ORM.f -o L569-615toVmag-ORM
-echo $F77" circular-integ.f 2din.f -o bin/circular-pgm-integ"
-$F77 circular-integ.f 2din.f -o bin/circular-pgm-integ
+echo $F77" circular-integ.f 2din.f -o bin/circular-integ"
+$F77 circular-integ.f 2din.f -o bin/circular-integ
 echo $F77" CompareToMiro.f -o bin/CompareToMiro"
 $F77 CompareToMiro.f -o bin/CompareToMiro
-echo $F77" moypond.f 2din.f 2dout.f -o bin/moypondpgm16bit"
-$F77 moypond.f 2din.f 2dout.f -o bin/moypondpgm16bit
-echo $F77" interp.f 2din.f 2dout.f -o bin/interp-pgm16bit"
-$F77 interp.f 2din.f 2dout.f -o bin/interp-pgm16bit
+echo $F77" moypond.f 2din.f 2dout.f -o bin/moypond"
+$F77 moypond.f 2din.f 2dout.f -o bin/moypond
+echo $F77" blur.f 2din.f 2dout.f -o bin/blur"
+$F77 blur.f 2din.f 2dout.f -o bin/blur
 echo $F77" rad2lrad.f -o bin/rad2lrad"
 $F77 rad2lrad.f -o bin/rad2lrad
 # cd rand_map
@@ -71,12 +71,12 @@ echo $F77" AllSkyRatio.f -o bin/AllSkyRatio"
 $F77 AllSkyRatio.f -o bin/AllSkyRatio
 echo $F77" rad2polar.f -o bin/rad2polar"
 $F77 rad2polar.f -o bin/rad2polar
-echo $F77" combine.f 2din.f 2dout.f -o bin/pgmcombine16bit"
-$F77 combine.f 2din.f 2dout.f -o bin/pgmcombine16bit
-echo $F77" ratio.f 2din.f 2dout.f -o bin/ratiopgm16bit"
-$F77 ratio.f 2din.f 2dout.f -o bin/ratiopgm16bit
-echo $F77" substract.f 2din.f 2dout.f -o bin/substractpgm16bit"
-$F77 substract.f 2din.f 2dout.f -o bin/substractpgm16bit
+echo $F77" combine.f 2din.f 2dout.f -o bin/combine"
+$F77 combine.f 2din.f 2dout.f -o bin/combine
+echo $F77" ratio.f 2din.f 2dout.f -o bin/ratio"
+$F77 ratio.f 2din.f 2dout.f -o bin/ratio
+echo $F77" substract.f 2din.f 2dout.f -o bin/substract"
+$F77 substract.f 2din.f 2dout.f -o bin/substract
 echo $F77" varres.f 2din.f 2dout.f -o bin/varres"
 $F77 varres.f 2din.f 2dout.f -o bin/varres
 echo $F77" retres.f 2din.f 2dout.f -o bin/retres"

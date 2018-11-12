@@ -1,10 +1,11 @@
-       subroutine doublein(nbx,nby,filename,bindata)
+       subroutine 2din(nbx,nby,filename,bindata)
 c read double precision array in binary
        integer nbx,nby,i,j
        real bindata(1024,1024)
        character*72 filename
        open(unit=1,form='unformatted',file=filename,action='read')
-         do j=1,nby
+         read(1) nbx,nby
+         do j=nby,1,-1
             do i=1,nbx
                read(1) bindata(i,j)
             enddo

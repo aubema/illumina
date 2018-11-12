@@ -22,25 +22,19 @@ c
 c
        integer width
        parameter (width=1024)
-       real maxi,rhomax
-       real pixsiz,gain,offset,lumlp(width,width),refle(width,width)
-       real xcell0,ycell0,lumlpo(width,width),reflo(width,width)
+       real lumlp(width,width),refle(width,width)
+       real lumlpo(width,width),reflo(width,width)
        real lum,rho
        integer imin,jmin,imax,jmax
        integer nx9ma,nx9mi,ny9ma,ny9mi,nx3ma,nx3mi,ny3ma,ny3mi
        integer l3,l1,nx,ny,i,j,valmax,n,px,py
        integer k,l,lx,ly,xi,xf,yi,yf,point(width*width,3),m,p
        character*72 lin,rin,lout,rout
-       character*12 nom
-       xcell0=0.
-       ycell0=0.
-       pixsiz=1.
-       nom='varres'
        l1=27
 c width of the 1x1 resolution window
 c l1 must be an odd multiple of 9 (e.g. 9, 27, 45, 63, 81, ...) 
        l3=81     
-c width of the  3x3 resolution window
+c width of the 3x3 resolution window
 c l3 must be an odd multiple of 9 and l3>l1
        open(unit=11,file='varres.in',status='unknown')
           read(11,*) lin
@@ -74,9 +68,7 @@ c limit distance of full resolution and 3x3 resolution
        max=0.
 
 c load lumlp file
-          call intrants2d(lin,lumlp,xcell0,ycell0,pixsiz,
-     +    nx,ny)
-          maxi=0.
+          call 2din(nx,ny,lin,lumlp)
           n=0
 c create new lumlp file using a variable mesh grid 
           nx9ma=(nx-px)/9
@@ -104,7 +96,6 @@ c create new lumlp file using a variable mesh grid
                       point(n,1)=k
                       point(n,2)=l
                       point(n,3)=9
-                      if (lumlpo(k,l).gt.maxi) maxi=lumlpo(k,l)
                    endif
                 endif
              enddo
@@ -135,7 +126,6 @@ c create new lumlp file using a variable mesh grid
                     point(n,1)=k
                     point(n,2)=l
                     point(n,3)=3
-                    if (lumlpo(k,l).gt.maxi) maxi=lumlpo(k,l)
                  endif
               endif
             enddo
@@ -159,10 +149,8 @@ c create new lumlp file using a variable mesh grid
           enddo
           print*,'Maximum acceleration factor: ',nx*ny/n,'X'
 c load reflectance
-          call intrants2d(rin,refle,xcell0,ycell0,pixsiz,
-     +    nx,ny) 
+          call 2din(nx,ny,rin,refle)
 c creating the reflectance file weighted by the lumlp
-          rhomax=0.
           do i=1,n
             xi=point(i,1)-(point(i,3)-1)/2
             xf=point(i,1)+(point(i,3)-1)/2
@@ -183,27 +171,16 @@ c creating the reflectance file weighted by the lumlp
             else
                rho=refle(k,l)
             endif
-            if (rho.gt.rhomax) rhomax=rho
             do k=xi,xf
               do l=yi,yf
                  reflo(k,l)=rho
               enddo
             enddo
           enddo
-c writing average reflectance pgm
-       gain=rhomax/65535.
-       offset=0.
-       valmax=65535
-       nom='avreflectanc'
-       call extrants2d(rout,reflo,nom,xcell0,ycell0,pixsiz,
-     + gain,offset,nx,ny,valmax)
+c writing average reflectance bin
+       call 2dout(nx,ny,rout,reflo)
 c writing lumlp output file with variable resolution
-       gain=maxi/250000.
-       offset=0.
-       valmax=65535
-       nom='lumlp-newres'
-       call extrants2d(lout,lumlpo,nom,xcell0,ycell0,pixsiz,
-     + gain,offset,nx,ny,valmax)
+       call 2dout(nx,ny,lout,lumlpo)
 c writing grid points informations
        open(unit=1,file='grid.txt',status='unknown')
          write(1,*) n

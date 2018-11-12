@@ -1,6 +1,6 @@
-c programme pour faire un ration entre deux pgm 16 bit
+c programm to calculate the ration image of 2 .bin illumina files
 c
-       program ratiopgm16bit
+       program ratio
 c   
 c    Copyright (C) 2011  Martin Aube
 c
@@ -22,35 +22,24 @@ c
 c
        integer width
        parameter (width=1024)
-       real max
-       real pixsiz,gain,offset,dat1(width,width)
-       real xcell0,ycell0,dat2(width,width),dat3(width,width)
-       integer nbx,nby,i,j,valmax
+       real dat1(width,width)
+       real dat2(width,width),dat3(width,width)
+       integer nbx,nby,i,j
        character*72 name1,name2,name3
        character*12 nom
-       print*,'1 st pgm file name?'
+       print*,'1 st bin file name?'
        read*,name1
-       print*,'2 nd pgm file name?'
+       print*,'2 nd bin file name?'
        read*,name2 
-       print*,'Output pgm file name?'
+       print*,'Output bin file name?'
        read*,name3
-       call intrants2d(name1,dat1,xcell0,ycell0,pixsiz,
-     + nbx,nby)
-       call intrants2d(name2,dat2,xcell0,ycell0,pixsiz,
-     + nbx,nby)
-
-           max=0.
-            do i=1,nbx
-             do j=1,nby
-                dat3(i,j)=dat1(i,j)/dat2(i,j)
-                if (dat3(i,j).gt.max) max=dat3(i,j)
-             enddo
-            enddo
-            gain=max/65535.
-            offset=0.
-            valmax=65535
-        nom='ratio'
-        call extrants2d (name3,dat3,nom,xcell0,ycell0,pixsiz,
-     +  gain,offset,nbx,nby,valmax)
+       call 2din(nbx,nby,name1,dat1)
+       call 2din(nbx,nby,name2,dat2)
+       do i=1,nbx
+          do j=1,nby
+             dat3(i,j)=dat1(i,j)/dat2(i,j)
+          enddo
+       enddo
+       call 2dout(nbx,nby,name3,dat3)
        stop
        end

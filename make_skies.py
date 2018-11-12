@@ -6,7 +6,7 @@
 # Date: 2017-02-08
 #
 # Usage: Call in a directory containing data extracted using
-# 'extract-data.bash' with the '-s' option
+# 'extract-output-data.bash' with the '-s' option
 
 import numpy as np
 from glob import glob

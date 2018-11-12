@@ -23,15 +23,12 @@ c
 c
        integer width
        parameter (width=1024)
-       real maxi
-       real pixsiz,gain,offset,lumlp(width,width),donnee(width,width)
-       real xcell0,ycell0,output(width,width)
+       real lumlp(width,width),donnee(width,width)
+       real output(width,width)
        real lum
-       integer nx,ny,i,j,valmax,n
+       integer nbx,nby,i,j,n
        integer k,l,xi,xf,yi,yf,point(width*width,3)
        character*72 lin,fin,fout
-       character*12 nom
-       nom='sensi_contri'
        do i=1,width
        do j=1,width
           donnee(i,j)=0.
@@ -52,13 +49,10 @@ c variable resolution file to convert to full resolution
 c full resolution file
        close(unit=1)
 c load lumlp file
-          call intrants2d(lin,lumlp,xcell0,ycell0,pixsiz,
-     +    nx,ny)
-          maxi=0.
+          call 2din(nbx,nby,lin,lumlp)
           n=0
 c load variable resolution file
-          call intrants2d(fin,donnee,xcell0,ycell0,pixsiz,
-     +    nx,ny) 
+          call 2din(nbx,nby,fin,donnee)
 c loading grid points informations
        open(unit=1,file='grid.txt',status='unknown')
          read(1,*) n
@@ -67,7 +61,6 @@ c loading grid points informations
          enddo
        close(unit=1)
 c creating the output file weighted by the lumlp
-          maxi=0.
           do i=1,n
             xi=point(i,1)-(point(i,3)-1)/2
             xf=point(i,1)+(point(i,3)-1)/2
@@ -85,19 +78,13 @@ c creating the output file weighted by the lumlp
                 if (lum.gt.0.) then
                   output(k,l)=lumlp(k,l)/lum*donnee(point(i,1),
      +            point(i,2))
-                  if (output(k,l).gt.maxi) maxi=output(k,l)
                 else
                   output(k,l)=0.
                 endif
               enddo
             enddo
           enddo
-c writing output pgm
-       gain=maxi/65535.
-       offset=0.
-       valmax=65535
-       nom='finalsenscon'
-       call extrants2d(fout,output,nom,xcell0,ycell0,pixsiz,
-     + gain,offset,nx,ny,valmax)
+c writing output
+       call 2dout(nbx,nby,fout,output)
        stop
        end

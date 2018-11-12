@@ -1,9 +1,9 @@
 #!/bin/bash
-#  Script pour lire une valeur dans un pgm ILLUMINA
+#  Script to read a value in a .bin ILLUMINA file
 #  2012
 #
 #
-#    Copyright (C) 2012  Martin Aube
+#    Copyright (C) 2018  Martin Aube
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -21,15 +21,15 @@
 #    Contact: martin.aube@cegepsherbrooke.qc.ca
 #
 if [ ! $1 ] 
-then echo "Usage readvalue.bash pgm_file x y"
+then echo "Usage readvalue.bash bin_file x y"
      exit 0
 fi
 if [ ! $2 ] 
-then echo "Usage readvalue.bash pgm_file x y"
+then echo "Usage readvalue.bash bin_file x y"
      exit 0
 fi
 if [ ! $3 ] 
-then echo "Usage readvalue.bash pgm_file x y"
+then echo "Usage readvalue.bash bin_file x y"
      exit 0
 fi
 echo $1 > readvalue.in

@@ -1,7 +1,7 @@
 README
 
 GNU General Public License as published by the Free Software Foundation, version 3
-Cite: Martin Aubé martin.aube@cegepsherbrooke.qc.ca
+Cite: Martin Aube martin.aube@cegepsherbrooke.qc.ca
 
 1) Prerequisites
 You need a fortran compiler installed in your system
@@ -14,7 +14,7 @@ Under ubuntu installation command is:
 sudo apt-get install python-pyproj python-matplotlib python-numpy python-gdal
 
 2) Add this line in your .bashrc file:
-PATH=$PATH:$HOME/hg/illumina/bin:$HOME/hg/illumina:$HOME/hg/illumina/utils/dataprep/gdal2pgm
+PATH=$PATH:$HOME/hg/illumina/bin:$HOME/hg/illumina:$HOME/hg/illumina/utils/dataprep/gdal2bin
 
 3) Download the code:
 mkdir hg

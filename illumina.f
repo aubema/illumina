@@ -92,7 +92,6 @@ c
       character*72 pclf,pcwf,pclgp,pcwgp                                  ! File containing contribution and sensitivity maps
       character*72 pclimg,pcwimg                                                                         
       character*72 basenm                                                 ! Base name of files.
-      character*12 nom                                                    
       integer lenbase                                                     ! Length of the Base name of the experiment.
       real lambda,pressi,drefle(width,width)                              ! Wavelength (nanometer), atmospheric pressure (kPa), mean free path to the ground (meter).
       integer ntype                                                       ! Number of light source types or zones considered.
@@ -103,18 +102,14 @@ c
       real altsol(width,width)                                            ! Ground elevation (meter).
       real srefl(width,width)                                             ! Ground reflectance.
       real Hmin                                                           ! Minimum ground elevation of the modeling domain
-      real xcell0                                                         ! Longitude of the south-west pixel of the domain.
-      real ycell0                                                         ! latitude of the south-west pixel of the domain.
-      real gain                                                           ! Gain to retreive the physical value from an ADU in pgm file.
-      real offset                                                         ! Offset to retreive the physical value from an ADU in pgm file.
-      integer valmax                                                      ! Maximum value of the output pgm (usually 65535, i.e. 16 bit)
       integer stype                                                       ! Source type or zone index
       character*72 pafile,lufile,alfile,ohfile,odfile,offile              ! Files related to light sources and obstacles (photometric function of the sources (sr-1), flux (W), height (m), obstacle height (m), obstacle distance (m), obstacle filling factor (0-1).    
       real lamplu(width,width,120)                                        ! Source fluxes
       real lampal(width,width)                                            ! Height of the light sources relative to the ground (meter).
       real pval(181,120),pvalto,pvalno(181,120)                           ! Values of the angular photometry functions (unnormalized, integral, normalized).
       real dtheta                                                         ! Angle increment of the photometric function of the sources 
-      real dx,dy,dxp,dyp,pixsiz                                           ! Width of the voxel (meter)
+      real dx,dy,dxp,dyp                                                  ! Width of the voxel (meter)
+c      real pixsiz                                                         ! pixel size (meter)
       integer boxx,boxy                                                   ! reflection window size (pixels).
       real fdifa(181),fdifan(181)                                         ! Aerosol scattering functions (unnormalized and normalized).
       real extinc,scatte,anglea(181)                                      ! Aerosol cross sections (extinction and scattering), scattering angle (degree).
@@ -241,7 +236,7 @@ c=======================================================================
        read(1,*) basenm
        read(1,*) nbx,nby
        read(1,*) dx,dy
-       read(1,*)
+       read(1,*) latitu
        read(1,*) diffil
        read(1,*) 
        read(1,*) effdif,stepdi
@@ -275,13 +270,13 @@ c
 c  determine the Length of basenm
 c 
       lenbase=index(basenm,' ')-1  
-      mnaf=basenm(1:lenbase)//'_topogra.pgm'                              ! determine the names of input and output files
-      reflf=basenm(1:lenbase)//'_reflect.pgm' 
+      mnaf=basenm(1:lenbase)//'_topogra.bin'                              ! determine the names of input and output files
+      reflf=basenm(1:lenbase)//'_reflect.bin' 
       outfile=basenm(1:lenbase)//'.out'  
       pclf=basenm(1:lenbase)//'_pcl.txt'
       pcwf=basenm(1:lenbase)//'_pcw.txt'
-      pclimg=basenm(1:lenbase)//'_pcl.pgm'
-      pcwimg=basenm(1:lenbase)//'_pcw.pgm'
+      pclimg=basenm(1:lenbase)//'_pcl.bin'
+      pcwimg=basenm(1:lenbase)//'_pcw.bin'
       pclgp=basenm(1:lenbase)//'_pcl.gplot'
       pcwgp=basenm(1:lenbase)//'_pcw.gplot'    
 c  conversion of the geographical viewing angles toward the cartesian 
@@ -401,10 +396,7 @@ c***********************************************************************
 c=======================================================================
 c  reading of the elevation file
 c=======================================================================
-       call intrants2d(mnaf,altsol,xcell0,ycell0,pixsiz,
-     + nbx,nby)
-
-       latitu=ycell0
+       call 2din(nbx,nby,mnaf,altsol)
 
        Hmin=3000000.
        do i=1,nbx                                                         ! beginning of the loop over all cells along x.
@@ -421,8 +413,7 @@ c                                                                         ! sear
 c=======================================================================
 c reading reflectance file
 c=======================================================================
-       call intrants2d(reflf,srefl,xcell0,ycell0,
-     + pixsiz,nbx,nby)
+       call 2din(nbx,nby,reflf,srefl)
        do i=1,nbx                                                         ! beginning of the loop over all cells along x.
         do j=1,nby                                                        ! beginning of the loop over all cells along y.
          if (srefl(i,j).lt.0.) then                                       ! searching of of the negative reflectances
@@ -436,10 +427,10 @@ c  reading of the values of P(theta), height, luminosities and positions
 c   of the sources, obstacle height and distance
 c=======================================================================
 c
-       ohfile=basenm(1:lenbase)//'_obsth.pgm'
-       odfile=basenm(1:lenbase)//'_obstd.pgm'
-       alfile=basenm(1:lenbase)//'_altlp.pgm'                             ! setting the file name of height of the sources lumineuse.
-       offile=basenm(1:lenbase)//'_obstf.pgm'
+       ohfile=basenm(1:lenbase)//'_obsth.bin'
+       odfile=basenm(1:lenbase)//'_obstd.bin'
+       alfile=basenm(1:lenbase)//'_altlp.bin'                             ! setting the file name of height of the sources lumineuse.
+       offile=basenm(1:lenbase)//'_obstf.bin'
        dtheta=.017453293                                                  ! one degree
        do stype=1,ntype                                                   ! beginning of the loop 1 for the 120 types of sources.
         imin(stype)=nbx
@@ -449,7 +440,7 @@ c
         pvalto=0.
         write(lampno, '(I3.3)' ) stype                                    ! support of 120 different sources (3 digits)
         pafile=basenm(1:lenbase)//'_fctem_'//lampno//'.dat'               ! setting the file name of angular photometry.
-        lufile=basenm(1:lenbase)//'_lumlp_'//lampno//'.pgm'               ! setting the file name of the luminosite of the cases.
+        lufile=basenm(1:lenbase)//'_lumlp_'//lampno//'.bin'               ! setting the file name of the luminosite of the cases.
 c    ===================================================================
 c    reading photometry files
         open(UNIT=1, FILE=pafile,status='OLD')                            ! opening file pa#.dat, angular photometry.
@@ -465,8 +456,7 @@ c                                                                         ! (i-1
         enddo   
 c    ===================================================================
 c    reading luminosity files
-        call intrants2d(lufile,val2d,xcell0,ycell0,pixsiz,
-     +  nbx,nby)
+       call 2din(nbx,nby,lufile,val2d)
        do i=1,nbx                                                         ! beginning of the loop over all cells along x.
         do j=1,nby                                                        ! beginning of the loop over all cells along y.
          if (val2d(i,j).lt.0.) then                                       ! searching of negative fluxes
@@ -524,7 +514,7 @@ c    reading luminosity files
        enddo                                                              ! end of the loop 1 over the 120 types of sources. 
 c    ==================================================================
 c    reading lamp heights
-        call intrants2d(alfile,val2d,xcell0,ycell0,pixsiz,nbx,nby)
+         call 2din(nbx,nby,alfile,val2d)
          do i=1,nbx                                                       ! beginning of the loop over all cells along x.
            do j=1,nby                                                     ! beginning of the loop over all cells along y.
              lampal(i,j)=val2d(i,j)                                       ! filling of the array for the lamp stype
@@ -532,7 +522,7 @@ c    reading lamp heights
          enddo                                                            ! end of the loop over all cells along x.
 c    ==================================================================
 c    reading subgrid obstacles average height
-        call intrants2d(ohfile,val2d,xcell0,ycell0,pixsiz,nbx,nby)
+        call 2din(nbx,nby,ohfile,val2d)
         do i=1,nbx                                                        ! beginning of the loop over all cells along x.
          do j=1,nby                                                       ! beginning of the loop over all cells along y.
           obsH(i,j)=val2d(i,j)                                            ! filling of the array
@@ -540,7 +530,7 @@ c    reading subgrid obstacles average height
         enddo 
 c    ==================================================================
 c    reading subgrid obstacles average distance
-        call intrants2d(odfile,val2d,xcell0,ycell0,pixsiz,nbx,nby)
+        call 2din(nbx,nby,odfile,val2d)
         do i=1,nbx                                                        ! beginning of the loop over all cells along x.
          do j=1,nby                                                       ! beginning of the loop over all cells along y.
           drefle(i,j)=val2d(i,j)/2.                                       ! Filling of the array
@@ -549,7 +539,7 @@ c    reading subgrid obstacles average distance
         enddo 
 c    ==================================================================
 c    reading subgrid obstacles filling factor
-        call intrants2d(offile,val2d,xcell0,ycell0,pixsiz,nbx,nby)
+        call 2din(nbx,nby,offile,val2d)
         do i=1,nbx                                                        ! beginning of the loop over all cells along x.
          do j=1,nby                                                       ! beginning of the loop over all cells along y.
           ofill(i,j)=val2d(i,j)                                           ! Filling of the array 0-1
@@ -602,8 +592,7 @@ c find nearest vertical grid
        write(2,*) 'Width of the domain [NS](m):',largx,'#cases:',nbx
        write(2,*) 'Width of the domain [EO](m):',largy,'#cases:',nby
        write(2,*) 'Size of a cell (m):',dx,' X ',dy
-       write(2,*) 'latitu south-west:',ycell0,' longitude south-west:',
-     + xcell0
+       write(2,*) 'latitu center:',latitu
 c=======================================================================
 c        computation of the tilt of the cases along x and along y
 c=======================================================================
@@ -1794,15 +1783,8 @@ c computation of the flux reaching the intrument from the cloud voxel
                   write(8,*) x_s,y_s,FTCN(x_s,y_s)
                enddo
             enddo
-            nom='Grid weight '
-            valmax=65535       
-            gain=ftcmax/real(valmax)
-            offset=0.
-            call extrants2d (pclimg,FTC,nom,xcell0,ycell0,pixsiz,
-     +      gain,offset,nbx,nby,valmax)
-            nom='NormGrid wgt'
-            call extrants2d (pcwimg,FTCN,nom,xcell0,ycell0,pixsiz,
-     +      gain,offset,nbx,nby,valmax)     
+            call 2dout(nbx,nby,pclimg,FTC)
+            call 2dout(nbx,nby,pcwimg,FTCN)     
           close(unit=8)
           close(unit=9)
 c creation of files gnuplot for the visualiser il faut betweenr gnuplot
