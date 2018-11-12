@@ -68,7 +68,7 @@ c limit distance of full resolution and 3x3 resolution
        max=0.
 
 c load lumlp file
-          call 2din(nx,ny,lin,lumlp)
+          call twodin(nx,ny,lin,lumlp)
           n=0
 c create new lumlp file using a variable mesh grid 
           nx9ma=(nx-px)/9
@@ -149,7 +149,7 @@ c create new lumlp file using a variable mesh grid
           enddo
           print*,'Maximum acceleration factor: ',nx*ny/n,'X'
 c load reflectance
-          call 2din(nx,ny,rin,refle)
+          call twodin(nx,ny,rin,refle)
 c creating the reflectance file weighted by the lumlp
           do i=1,n
             xi=point(i,1)-(point(i,3)-1)/2
@@ -178,9 +178,9 @@ c creating the reflectance file weighted by the lumlp
             enddo
           enddo
 c writing average reflectance bin
-       call 2dout(nx,ny,rout,reflo)
+       call twodout(nx,ny,rout,reflo)
 c writing lumlp output file with variable resolution
-       call 2dout(nx,ny,lout,lumlpo)
+       call twodout(nx,ny,lout,lumlpo)
 c writing grid points informations
        open(unit=1,file='grid.txt',status='unknown')
          write(1,*) n

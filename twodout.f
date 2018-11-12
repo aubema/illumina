@@ -1,4 +1,4 @@
-       subroutine 2dout(nbx,nby,filename,bindata)
+       subroutine twodout(nbx,nby,filename,bindata)
 c write double precision array in binary
        integer nbx,nby,i,j
        real bindata(1024,1024)

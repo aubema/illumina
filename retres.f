@@ -49,10 +49,10 @@ c variable resolution file to convert to full resolution
 c full resolution file
        close(unit=1)
 c load lumlp file
-          call 2din(nbx,nby,lin,lumlp)
+          call twodin(nbx,nby,lin,lumlp)
           n=0
 c load variable resolution file
-          call 2din(nbx,nby,fin,donnee)
+          call twodin(nbx,nby,fin,donnee)
 c loading grid points informations
        open(unit=1,file='grid.txt',status='unknown')
          read(1,*) n
@@ -85,6 +85,6 @@ c creating the output file weighted by the lumlp
             enddo
           enddo
 c writing output
-       call 2dout(nbx,nby,fout,output)
+       call twodout(nbx,nby,fout,output)
        stop
        end

@@ -396,7 +396,7 @@ c***********************************************************************
 c=======================================================================
 c  reading of the elevation file
 c=======================================================================
-       call 2din(nbx,nby,mnaf,altsol)
+       call twodin(nbx,nby,mnaf,altsol)
 
        Hmin=3000000.
        do i=1,nbx                                                         ! beginning of the loop over all cells along x.
@@ -413,7 +413,7 @@ c                                                                         ! sear
 c=======================================================================
 c reading reflectance file
 c=======================================================================
-       call 2din(nbx,nby,reflf,srefl)
+       call twodin(nbx,nby,reflf,srefl)
        do i=1,nbx                                                         ! beginning of the loop over all cells along x.
         do j=1,nby                                                        ! beginning of the loop over all cells along y.
          if (srefl(i,j).lt.0.) then                                       ! searching of of the negative reflectances
@@ -456,7 +456,7 @@ c                                                                         ! (i-1
         enddo   
 c    ===================================================================
 c    reading luminosity files
-       call 2din(nbx,nby,lufile,val2d)
+       call twodin(nbx,nby,lufile,val2d)
        do i=1,nbx                                                         ! beginning of the loop over all cells along x.
         do j=1,nby                                                        ! beginning of the loop over all cells along y.
          if (val2d(i,j).lt.0.) then                                       ! searching of negative fluxes
@@ -514,7 +514,7 @@ c    reading luminosity files
        enddo                                                              ! end of the loop 1 over the 120 types of sources. 
 c    ==================================================================
 c    reading lamp heights
-         call 2din(nbx,nby,alfile,val2d)
+         call twodin(nbx,nby,alfile,val2d)
          do i=1,nbx                                                       ! beginning of the loop over all cells along x.
            do j=1,nby                                                     ! beginning of the loop over all cells along y.
              lampal(i,j)=val2d(i,j)                                       ! filling of the array for the lamp stype
@@ -522,7 +522,7 @@ c    reading lamp heights
          enddo                                                            ! end of the loop over all cells along x.
 c    ==================================================================
 c    reading subgrid obstacles average height
-        call 2din(nbx,nby,ohfile,val2d)
+        call twodin(nbx,nby,ohfile,val2d)
         do i=1,nbx                                                        ! beginning of the loop over all cells along x.
          do j=1,nby                                                       ! beginning of the loop over all cells along y.
           obsH(i,j)=val2d(i,j)                                            ! filling of the array
@@ -530,7 +530,7 @@ c    reading subgrid obstacles average height
         enddo 
 c    ==================================================================
 c    reading subgrid obstacles average distance
-        call 2din(nbx,nby,odfile,val2d)
+        call twodin(nbx,nby,odfile,val2d)
         do i=1,nbx                                                        ! beginning of the loop over all cells along x.
          do j=1,nby                                                       ! beginning of the loop over all cells along y.
           drefle(i,j)=val2d(i,j)/2.                                       ! Filling of the array
@@ -539,7 +539,7 @@ c    reading subgrid obstacles average distance
         enddo 
 c    ==================================================================
 c    reading subgrid obstacles filling factor
-        call 2din(nbx,nby,offile,val2d)
+        call twodin(nbx,nby,offile,val2d)
         do i=1,nbx                                                        ! beginning of the loop over all cells along x.
          do j=1,nby                                                       ! beginning of the loop over all cells along y.
           ofill(i,j)=val2d(i,j)                                           ! Filling of the array 0-1
@@ -1783,8 +1783,8 @@ c computation of the flux reaching the intrument from the cloud voxel
                   write(8,*) x_s,y_s,FTCN(x_s,y_s)
                enddo
             enddo
-            call 2dout(nbx,nby,pclimg,FTC)
-            call 2dout(nbx,nby,pcwimg,FTCN)     
+            call twodout(nbx,nby,pclimg,FTC)
+            call twodout(nbx,nby,pcwimg,FTCN)     
           close(unit=8)
           close(unit=9)
 c creation of files gnuplot for the visualiser il faut betweenr gnuplot

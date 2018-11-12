@@ -33,7 +33,7 @@ c
       read*,side  
       print*,'Name of the output bin file ?'  
       read*,nomo     
-      call 2din(nbx,nby,nomi,tau)   
+      call twodin(nbx,nby,nomi,tau)   
 c    
 c ---------
 c
@@ -61,10 +61,8 @@ c
 c
 c ----------
 c
-c   fabrication d'un nouveau fichier pgm
+c   fabrication d'un nouveau fichier bin
 c
-        call extrants2d (nomo,tauout,nom,xcell0,ycell0,pixsiz,
-     +  gain,offset,nbx,nby,valmax)
-        call 2dout(nbx,nby,nomo,tauout)
+        call twodout(nbx,nby,nomo,tauout)
        stop    
        end

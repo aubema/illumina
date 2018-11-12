@@ -33,14 +33,14 @@ c
        read*,name2,weight2       
        print*,'Output bin file name?'
        read*,name3
-       call 2din(nbx,nby,name1,dat1)
-       call 2din(nbx,nby,name2,dat2)
+       call twodin(nbx,nby,name1,dat1)
+       call twodin(nbx,nby,name2,dat2)
        total=weight1+weight2
        do i=1,nbx
           do j=1,nby
              dat3(i,j)=(weight1*dat1(i,j)+weight2*dat2(i,j))/total
           enddo
        enddo
-       call 2dout(nbx,nby,name3,dat3)
+       call twodout(nbx,nby,name3,dat3)
        stop
        end

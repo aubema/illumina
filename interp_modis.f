@@ -46,7 +46,7 @@ c
         ALLOCATE(modis_wav(n_modis))
         DO i=1,n_modis
           READ(42,*) modis_wav(i),mod_file
-          call 2din(nbx,nby,mod_file,refl(:,:,i))
+          call twodin(nbx,nby,mod_file,refl(:,:,i))
         ENDDO
       CLOSE(42)
 c
@@ -102,7 +102,7 @@ c find 2 nearest modis wavelengths
               if (dat(ii,jj).lt.0.) dat(ii,jj)=0.
             enddo
           enddo
-          call 2dout(nbx,nby,outfile,dat)
+          call twodout(nbx,nby,outfile,dat)
         ENDDO
       CLOSE(42)
       DEALLOCATE(modis_wav)

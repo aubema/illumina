@@ -47,7 +47,7 @@ c
        nom='converted'
        xcell0=0.
        ycell0=0.
-       call extrants2d (name3,dat1,nom,xcell0,ycell0,pixsiz,
+       call extrantstwod (name3,dat1,nom,xcell0,ycell0,pixsiz,
      + gain,offset,nbx,nby,valmax)
        stop
        end

@@ -40,13 +40,13 @@ c
        do n=1,nimg
           print*,'bin file name ',n
           read*,name1
-          call 2din(nbx,nby,name1,dat1)
+          call twodin(nbx,nby,name1,dat1)
           do i=1,nbx
              do j=1,nby
                 dat3(i,j)=dat3(i,j)+dat1(i,j)
              enddo
           enddo
        enddo
-       call 2dout(nbx,nby,name3,dat3)       
+       call twodout(nbx,nby,name3,dat3)       
        stop
        end

@@ -24,7 +24,7 @@ c
         read(1,*) nx
         read(1,*) ny
       close(unit=1)
-      call 2din(nbx,nby,nomi,dat)
+      call twodin(nbx,nby,nomi,dat)
       print*,'Value at x=',nx,' and y=',ny,' : ',dat(nx,ny)
       open(unit=2,file='readvalue.out',status='unknown')
          write(2,100) dat(nx,ny)

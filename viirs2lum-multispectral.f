@@ -2,7 +2,7 @@ c programme pour convertir un fichier bin provenant directement
 c de viirs en valeur de 
 c
 c To compile:
-c gfortran viirs2lum-multispectral.f 2dout.f 2din.f interp_modis.f -o viirs2lum
+c gfortran viirs2lum-multispectral.f twodout.f twodin.f interp_modis.f -o viirs2lum
 c
 c possible option if the array sizes are too big: -mcmodel=large 
 c   
@@ -112,7 +112,7 @@ c Normalizing VIIRS-dnb spectral response
       CLOSE(unit=1)
 c lecture de l'image viirs dnb
         print*,'Reading VIIRS-dnb image...'
-        call 2din(nbx,nby,viirs_file,dnb)
+        call twodin(nbx,nby,viirs_file,dnb)
 c interpolate modis images to modelling bands wavelength
 c defined in file integration_limits.dat
         print*,'Interpolation MODIS images...'
@@ -127,7 +127,7 @@ c very dark surface. To overcome cleanly this problem we should make a
 c correction for the estimated scattered light. It is not done yet.
 c the 0.01 threshold is not really validated
         rfile='modis_700.bin'
-        call 2din(nbx,nby,rfile,rho)
+        call twodin(nbx,nby,rfile,rho)
         do i=1,nbx
           do j=1,nbx
               dnb(i,j)=dnb(i,j)*dnbunits*pixsiz*pixsiz
@@ -226,7 +226,7 @@ c determination de la reflectance la plus proche en lambda
 c reading the right modis file
              write(lambda, '(I3.3)' ) int(avgwav(nb))
              rfile='modis_'//lambda//'.bin'
-             call 2din(nbx,nby,rfile,rho)
+             call twodin(nbx,nby,rfile,rho)
             cycle
           endif
         enddo
@@ -303,7 +303,7 @@ c pour obtenir le lumlp de chaque zone et chaque bande
           write(zonenu, '(I3.3)' ) n
           lumfile=basename(1:lenbase)//'_'//waven//'_lumlp_'//
      +    zonenu//'.bin'
-          call 2dout(nbx,nby,lumfile,dat)
+          call twodout(nbx,nby,lumfile,dat)
         enddo
 c
 c
@@ -312,25 +312,25 @@ c fin bouche zones
 c     writing light fixture height relative to the ground bin files
             print*,'Writing light fixture height file...'
             outfile=basename(1:lenbase)//'_altlp.bin'
-            call 2dout(nbx,nby,outfile,lamph)
+            call twodout(nbx,nby,outfile,lamph)
 c
 c
 c     writing obtacle height bin file
             print*,'Writing obtacle height bin file...'
             outfile=basename(1:lenbase)//'_obsth.bin'
-            call 2dout(nbx,nby,outfile,obsth)
+            call twodout(nbx,nby,outfile,obsth)
 c     writing obtacle mean free path bin file
             print*,'Writing obtacle mean free path bin file...'
             outfile=basename(1:lenbase)//'_obstd.bin'
-            call 2dout(nbx,nby,outfile,obstd)
+            call twodout(nbx,nby,outfile,obstd)
 c     writing obtacle filling factor bin file
             print*,'Writing obtacle filling factor bin file...'
             outfile=basename(1:lenbase)//'_obstf.bin'
-            call 2dout(nbx,nby,outfile,obstf)
+            call twodout(nbx,nby,outfile,obstf)
 c     writing zone definition bin file
             print*,'Writing zone definition bin file...'
             outfile=basename(1:lenbase)//'_zone.bin'
-            call 2dout(nbx,nby,outfile,zone)
+            call twodout(nbx,nby,outfile,zone)
 c
 c ===================
 c 
@@ -342,7 +342,7 @@ c creating combined lumlp for each band
             write(zonenu, '(I3.3)' ) n
             lumfile=basename(1:lenbase)//'_'//waven//'_lumlp_'//
      +                zonenu//'.bin'
-            call 2din(nbx,nby,lumfile,dat)
+            call twodin(nbx,nby,lumfile,dat)
             do i=1,nbx
               do j=1,nby
                 datf(i,j)=datf(i,j)+dat(i,j)
@@ -350,7 +350,7 @@ c creating combined lumlp for each band
             enddo
           enddo
           lumfile=basename(1:lenbase)//'_'//waven//'_lumlp.bin'
-          call 2dout(nbx,nby,lumfile,datf)
+          call twodout(nbx,nby,lumfile,datf)
         enddo
         close(unit=11)
       stop

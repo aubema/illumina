@@ -2,7 +2,7 @@ c programm to integrate values on a circle centered at position x,y
 c with a radius r from a bin file
 c 
 c
-       program circular-integ
+c       program circular-integ
 c   
 c    Copyright (C) 2018  Martin Aube
 c
@@ -34,7 +34,7 @@ c
        read*,radius
        print*,'x y coordinates (pixel)?'
        read*,x,y
-       call 2din(nbx,nby,basename,data)
+       call twodin(nbx,nby,basename,data)
        total=0.
        do i=1,nbx
           do j=1,nby

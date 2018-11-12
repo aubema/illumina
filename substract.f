@@ -32,13 +32,13 @@ c
        read*,name2 
        print*,'Output bin file name?'
        read*,name3
-       call 2din(nbx,nby,name1,dat1)
-       call 2din(nbx,nby,name2,dat2)
+       call twodin(nbx,nby,name1,dat1)
+       call twodin(nbx,nby,name2,dat2)
             do i=1,nbx
              do j=1,nby
                 dat3(i,j)=dat1(i,j)-dat2(i,j)
              enddo
             enddo
-        call 2din(nbx,nby,name3,dat3)
+        call twodin(nbx,nby,name3,dat3)
        stop
        end

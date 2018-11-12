@@ -78,7 +78,7 @@ C
        ISIZE=5001
        RIMP=1.
        NBINS=0
-       DO I=0,5002
+       DO I=1,5002
          BEGINBIN(I)=0.
          LARBIN(I)=0.
        enddo

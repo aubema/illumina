@@ -1,6 +1,6 @@
 c intrusive light calculation program
 c
-c gfortran intrusive.f 2din.f 2dout.f -o intrusive
+c gfortran intrusive.f twodin.f twodout.f -o intrusive
 c 
       program intrusive
       integer width                                                       ! Matrix dimension in Length/width and height
@@ -73,7 +73,7 @@ c
  20   close(unit=1)
 c reading obstacle heights
         ohfile=basenm(1:lenbase)//'_obsth.bin'
-        call 2din(nbx,nby,ohfile,val2d)
+        call twodin(nbx,nby,ohfile,val2d)
          do i=1,nbx                                                       ! beginning of the loop over all cells along x.
            do j=1,nby                                                     ! beginning of the loop over all cells along y.
              h_o(i,j)=val2d(i,j)                                          ! Filling of the array
@@ -81,7 +81,7 @@ c reading obstacle heights
          enddo                                                            ! end of the loop over all cells along x.
 c reading obstacle distances
         odfile=basenm(1:lenbase)//'_obstd.bin'
-        call 2din(nbx,nby,odfile,val2d)
+        call twodin(nbx,nby,odfile,val2d)
          do i=1,nbx                                                       ! beginning of the loop over all cells along x.
            do j=1,nby                                                     ! beginning of the loop over all cells along y.
              d_o(i,j)=val2d(i,j)                                          ! Filling of the array
@@ -89,7 +89,7 @@ c reading obstacle distances
          enddo                                                            ! end of the loop over all cells along x.
 c readind lamp heights
         lhfile=basenm(1:lenbase)//'_altlp.bin'
-        call 2din(nbx,nby,lhfile,val2d)
+        call twodin(nbx,nby,lhfile,val2d)
          do i=1,nbx                                                       ! beginning of the loop over all cells along x.
            do j=1,nby                                                     ! beginning of the loop over all cells along y.
              h_l(i,j)=val2d(i,j)                                          ! Filling of the array 
@@ -106,7 +106,7 @@ c
         Iradmax=0.
 c reading modis reflectances
         rfile='modis_'//wav(nw)//'.bin'
-        call 2din(nbx,nby,rfile,val2d)
+        call twodin(nbx,nby,rfile,val2d)
         do i=1,nbx                                                        ! beginning of the loop over all cells along x.
           do j=1,nby                                                      ! beginning of the loop over all cells along y.
             srei(i,j)=val2d(i,j)                                          ! Filling of the array 
@@ -132,7 +132,7 @@ c
 c reading du fluxes
           lfile=basenm(1:lenbase)//'_'//wav(nw)//'_lumlp_'//zon(nz)//
      +'.bin'
-          call 2din(nbx,nby,lfile,val2d)
+          call twodin(nbx,nby,lfile,val2d)
           do i=1,nbx                                                      ! beginning of the loop over all cells along x.
             do j=1,nby                                                    ! beginning of the loop over all cells along y.
               intlu(i,j)=val2d(i,j)                                       ! Filling of the array 
@@ -213,7 +213,7 @@ c writing the instrusive light map for each wavelength
 c
         intrufi=basenm(1:lenbase)//'_'//suffix//'_'//wav(nw)//
      +  '_intrus.bin'
-        call 2dout(nbx,nby,intrufi,Irad)
+        call twodout(nbx,nby,intrufi,Irad)
 
 
       enddo                                                               ! end of loop over wavelength

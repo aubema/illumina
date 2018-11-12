@@ -1,4 +1,4 @@
-       subroutine 2din(nbx,nby,filename,bindata)
+       subroutine twodin(nbx,nby,filename,bindata)
 c read double precision array in binary
        integer nbx,nby,i,j
        real bindata(1024,1024)
