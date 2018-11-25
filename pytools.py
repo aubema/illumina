@@ -101,21 +101,23 @@ def load_pgm(filename):
 
     return head,p,data.reshape(p[1::-1])
 
-def save_pgm(filename,head,p,data):
+def save_pgm(filename,head,p,data,offset=0.):
     """Saves a PGM file.
 
       head : A dictionnary of headers
       p : The image parameters as returned by 'load_pgm'
-      data : Data to be saved"""
+      data : Data to be saved
+      offset : Either a value or 'min', the minimum of the data."""
 
-    new_gain = _np.max(data)/float(p[2])
+    offset = _np.min(data) if offset == "min" else offset
+    new_gain = (_np.max(data)-offset)/float(p[2])
     if new_gain != 0:
-        data = (data / new_gain)
+        data = (data-offset) / new_gain
         data = _np.round(data).astype(int)
         data[data<0] = 0
 
     head['gain'] = str(new_gain)
-    head['offset'] = "0.0"
+    head['offset'] = str(offset)
 
     headstring = "P2\n" + '\n'.join( map(lambda s: '# '+str(s[0])+' '+str(s[1]), head.iteritems() ) ) + \
             '\n' + ' '.join(map(str,p))
@@ -216,7 +218,11 @@ def plot_allsky(phi,r,data,n=100,**kwargs):
       cmap     : Colormap to use (2D data only). See matplotlib doc for options.
       labels   : Labels to add to the figure. {'label':position (deg)} dictionnary.
       vmin     : Minimal value of the colorscale (2D data only).
+      vmax     : Maximal value of the colorscale (2D data only).
+      showpts  : If set to True, will show datapoints.
     """
+    if kwargs.has_key("showpts") and kwargs["showpts"]:
+        xv,yv = _np.meshgrid(_np.deg2rad(phi),90-_np.array(r))
     if kwargs.has_key("interp") and kwargs["interp"] != "None":
         ndata = _np.concatenate([data,data[:,0,...][:,None]],axis=1)
         nphi = _np.linspace(phi[0],phi[0]+360,n*len(phi),endpoint=False)
@@ -264,8 +270,12 @@ def plot_allsky(phi,r,data,n=100,**kwargs):
             args["cmap"] = kwargs["cmap"]
         if kwargs.has_key("vmin"):
             args["vmin"] = kwargs["vmin"]
+        if kwargs.has_key("vmax"):
+            args["vmax"] = kwargs["vmax"]
         m = _plt.pcolormesh(Theta,R,data,linewidth=0,**args)
 
+    if kwargs.has_key("showpts") and kwargs["showpts"]:
+        _plt.plot(xv,yv,"r.")
     title_str = ""
     if kwargs.has_key("title"):
         title_str += kwargs["title"]
