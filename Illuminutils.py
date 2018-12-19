@@ -47,6 +47,7 @@ def warp(srcfiles, dstfile, srs=None, extent=None, resolution=None, resampling_m
     if resolution:
         cmd += ["-tr " + resolution]
     cmd += ["-r " + resampling_method]
+    cmd += ["-dstnodata 0"]
     cmd += [srcfiles, dstfile]
 
     cmd_string = ' '.join(cmd)

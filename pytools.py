@@ -154,25 +154,25 @@ def save_fits(axis,data,filename):
         hdu.header['CDELT%d'%(i+1)] = axis[i][1]
     hdu.writeto(filename,clobber=True)
 
-def load_bin(filename,dtype=np.float32):
+def load_bin(filename,dtype=_np.float32):
     """Load a ILLUMINA binary file.
 
     Returns the data as an array."""
     with open(filename) as f:
-        shape = np.fromfile(f,dtype=np.uint32,count=4)[1:-1][::-1]
-        data = np.fromfile(f,dtype=np.float32,count=-1)[1::3]
+        shape = _np.fromfile(f,dtype=_np.uint32,count=4)[1:-1][::-1]
+        data = _np.fromfile(f,dtype=_np.float32,count=-1)[1::3]
     return data.reshape(shape).astype(dtype)
 
 def save_bin(filename,data):
     """Saves a numpy data array as an ILLUMINA binary file."""
-    data = data.astype(np.float32)
+    data = data.astype(_np.float32)
     shape = data.shape[::-1]
     size = data.size
     data_flat = data.flatten()
-    filler = np.ones(size,dtype=np.float32) * 5.6e-45
+    filler = _np.ones(size,dtype=_np.float32) * 5.6e-45
 
-    head = np.array((8,)+shape+(8,)).astype(np.uint32)
-    body = np.array([filler,data_flat,filler]).T.flatten()
+    head = _np.array((8,)+shape+(8,)).astype(_np.uint32)
+    body = _np.array([filler,data_flat,filler]).T.flatten()
 
     with open(filename,'w') as f:
         head.tofile(f)
