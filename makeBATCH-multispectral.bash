@@ -82,10 +82,12 @@ n=0; while [ $n -lt ${#lamp_l[*]} ] ; do lamp_l[$n]="$(echo -e "${lamp_l[$n]}" |
 # begin of script
 #
 # find domain size and resolution
-grep -v "#" $mna_file | head -2 |tail -1 > size.tmp
-read nbx nby bidon < size.tmp
-grep "pixsiz" $mna_file > size.tmp
-read bidon bidon pixsiz bidon < size.tmp
+#grep -v "#" $mna_file | head -2 |tail -1 > size.tmp
+#read nbx nby bidon < size.tmp
+#grep "pixsiz" $mna_file > size.tmp
+#read bidon bidon pixsiz bidon < size.tmp
+get_shape.py $mna_file > size.tmp
+read nbx nby < size.tmp
 #
 # find max height
 find_max_height
@@ -104,12 +106,12 @@ ns=0
 while [ $ns -lt ${#x_sites[*]} ]
 do xsit=${x_sites[$ns]}
    let xdist=nbx-xsit
-   if [ ${x_sites[$ns]} -lt $xdist ] 
+   if [ ${x_sites[$ns]} -lt $xdist ]
    then let xdist=xsit
    fi
    ysit=${y_sites[$ns]}
    let ydist=nby-ysit
-   if [ $ysit -lt $ydist ] 
+   if [ $ysit -lt $ydist ]
    then let ydist=ysit
    fi
    let dist=xdist
@@ -134,7 +136,7 @@ do xsit=${x_sites[$ns]}
              mkdir original_files
              nl=0
              while [ $nl -lt ${#lamp_l[*]} ]
-             do let nolp=nl+1             
+             do let nolp=nl+1
                 cp $folder"/"$exp_name"_"${wav[$wl]}"_lumlp_"${lamp_l[$nl]}".bin" "./"$exp_name"_lumlp_"${lamp_l[$nl]}".bin"
                 let nl=nl+1
              done
@@ -151,7 +153,7 @@ echo "Combining lumlp files..."
              echo $exp_name"_lumlp_recombined.bin" >> comblp.in
              for nlp in $listlp
              do echo $nlp >> comblp.in
-             done             
+             done
              cp -f $HOME/hg/illumina/bin/combine .
              ./combine < comblp.in
 echo "Making variable resolution grid lumlp files..."
@@ -164,10 +166,10 @@ echo "Making variable resolution grid lumlp files..."
                 echo $nbx  >> varres.in
                 echo $nby  >> varres.in
                 echo ${x_sites[$ns]} >> varres.in
-                echo ${y_sites[$ns]} >> varres.in 
-                echo $l1 $l3 >> varres.in 
+                echo ${y_sites[$ns]} >> varres.in
+                echo $l1 $l3 >> varres.in
                 cp -f $HOME/hg/illumina/bin/varres .
-                ./varres 
+                ./varres
                 let nl=nl+1
              done
 
@@ -178,11 +180,11 @@ echo "Making variable resolution grid lumlp files..."
                 echo $exp_name"_lumlp_"${lamp_l[$nl]}"_new.bin"  >> varres.in
                 echo $exp_name"_reflect_new.bin"  >> varres.in
                 echo ${x_sites[$ns]} >> varres.in
-                echo ${y_sites[$ns]} >> varres.in 
+                echo ${y_sites[$ns]} >> varres.in
                 echo $l1 $l3 >> varres.in
                 cp -f $HOME/hg/illumina/bin/varres .
-                ./varres 
-             
+                ./varres
+
              listbin=`ls -1 *_new.bin`
              for ibin in $listbin
              do obin=`echo $ibin | sed 's/_new//g'`
@@ -192,7 +194,7 @@ echo "Making variable resolution grid lumlp files..."
    done
    let ns=ns+1
 done
-# 
+#
 #
 #
 cd $folder
@@ -202,7 +204,7 @@ echo "Starting from "$folder
       while [ $ns -lt ${#x_sites[*]} ]
       do mkdir "x"${x_sites[$ns]}"y"${y_sites[$ns]}
 # echo "Observer position " $ns "("${x_sites[$ns]}"," ${y_sites[$ns]}"," ${z_sites[$ns]}")"
-         
+
          cd "x"${x_sites[$ns]}"y"${y_sites[$ns]}
          here=`pwd`
          echo "Entering "$here
@@ -210,14 +212,14 @@ echo "Starting from "$folder
                while [ $nsd -lt ${#saut_dif[*]} ]
                do mkdir "sd"${saut_dif[$nsd]}
 # 2nd scat. acceleration factor
-                  cd "sd"${saut_dif[$nsd]}    
+                  cd "sd"${saut_dif[$nsd]}
                   here=`pwd`
                   echo "Entering "$here
                   nrd=0
                   while [ $nrd -lt ${#r_dif[*]} ]
                   do mkdir "rd"${r_dif[$nrd]}
 # 2nd scat. radius
-                     cd "rd"${r_dif[$nrd]} 
+                     cd "rd"${r_dif[$nrd]}
                      here=`pwd`
                      echo "Entering "$here
                      ne=0
@@ -232,11 +234,11 @@ echo "Starting from "$folder
                              then natot=1
 # Pointing toward zenith
                              else natot=${#azimut[*]}
-                             fi     
+                             fi
                              na=0
                              while [ $na -lt $natot ]
                              do mkdir "az"${azimut[$na]}
-# Azimuth viewing angle                    
+# Azimuth viewing angle
                                 cd "az"${azimut[$na]}
                                 here=`pwd`
                                 echo "Entering "$here
@@ -256,8 +258,8 @@ echo "Starting from "$folder
                                       echo "Entering "$here
                                       ln -s $folder"/"*"_RH"*${wav[$wl]}*".mie.out" ./
                                       nlamp=${#lamp_l[*]}
-#                           
-# creating illumina.in 
+#
+# creating illumina.in
                                       echo "                ! Input file for ILLUMINA" > illumina.in
                                       echo  $exp_name "              ! ROOT FILE NAME (every usefull files have to begin with this)" >> illumina.in
                                       echo $nbx $nby  "         ! Modeling domain size W-E and S-N in pixel " >> illumina.in
@@ -271,7 +273,7 @@ echo "Starting from "$folder
                                       echo $aero_mod"_RH"$rh"_0."${wav[$wl]}"0um.mie.out               ! AEROSOL OPTICAL CROSS SECTIONS FILE [-]" >> illumina.in
                                       echo "                !" >> illumina.in
                                       echo ${r_dif[$nrd]} ${saut_dif[$nsd]} "   ! DOUBLE SCATTERING RADIUS [m] ; SCATTERING STEP [-]" >> illumina.in
-                                      echo "                 ! (1=complete, 2= 2 times faster, ...)" >> illumina.in 
+                                      echo "                 ! (1=complete, 2= 2 times faster, ...)" >> illumina.in
                                       echo ${wav[$wl]} "  ! WAVELENGTH [nm]" >> illumina.in
                                       echo $pressure "   ! GROUND LEVEL PRESSURE [kPa]"  >> illumina.in
                                       echo ${tau[$nt]} ${alpha[$nt]} "   ! 500nm AEROSOL OPTICAL DEPTH ; angstrom exponent [-]"  >> illumina.in
@@ -314,7 +316,7 @@ echo "Starting from "$folder
                                       chmod u+x $ici/execute
                                       #echo "cd " $ici >> $HOME/$outscpt
                                       #echo "bqsub -P \"command=./illumina >illumina.out\" -q qwork@ms -l walltime="$est_time":00:00" >> $HOME/$outscpt
-                                      nl=0        
+                                      nl=0
                                       while [ $nl -lt ${#lamp_l[*]} ]
                                       do let nolp=nl+1
                                          ln -s $folder"/fctem_wl_"${wav[$wl]}"_zon_"${lamp_l[$nl]}".dat" "./"$exp_name"_fctem_"${lamp_l[$nl]}".dat"
@@ -352,7 +354,7 @@ echo "Starting from "$folder
                done
                cd ..
                let ns=ns+1
-      done 
+      done
 
 echo "Total number of runs:" $ncas
 let timetot=est_time*ncas
