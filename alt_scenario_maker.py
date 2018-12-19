@@ -100,7 +100,7 @@ for dirname in dirnames:
 if alt_type == 1:
     for z in xrange(len(zones)):
         print "Treating zone : %d/%d"%(z+1,len(zones))
-        lum_files = sorted(glob("Intrants/*lumlp_%03d*.pgm"%(z+1)))
+        lum_files = sorted(glob("Intrants/*lumlp_%03d*.bin"%(z+1)))
         spt_files = sorted(glob("Intrants/fctem*%03d*.dat"%(z+1)))
 
         # Linking files if inventory unchanged (faster)
@@ -108,8 +108,8 @@ if alt_type == 1:
             for name in lum_files+spt_files:
                 os.symlink(os.path.abspath(name), dirnames[0]+os.path.basename(name))
         else:
-            head,p,data = load_pgm(lum_files[0])
-            data = np.asarray([load_pgm(s)[2].reshape((1,-1)) for s in lum_files])
+            data = load_bin(lum_files[0])
+            data = np.asarray([load_bin(s).reshape((1,-1)) for s in lum_files])
             lumtot = np.sum(data*(dl*nspct)[:,None,None],0) # Total luminosity
             spct = np.sum( y[z] * 2*np.pi*np.sin(np.deg2rad(angles))[:,None]
                          * (angles[1]-angles[0]), 0 )
@@ -119,7 +119,7 @@ if alt_type == 1:
 
             # Saving new files
             for wl in xrange(n):
-                save_pgm( dirnames[0] + os.path.basename(lum_files[wl]), head, p, ndata[wl] )
+                save_bin( dirnames[0] + os.path.basename(lum_files[wl]), ndata[wl] )
                 np.savetxt( dirnames[0] + os.path.basename(spt_files[wl]),
                             np.concatenate([y[z,:,wl],angles]).reshape((2,-1)).T )
 if alt_type == 2:
@@ -143,7 +143,7 @@ if alt_type == 2:
 
         for z in xrange(len(zones)):
             print "  Treating zone : %d/%d"%(z+1,len(zones))
-            lum_files = sorted(glob("Intrants/*lumlp_%03d*.pgm"%(z+1)))
+            lum_files = sorted(glob("Intrants/*lumlp_%03d*.bin"%(z+1)))
             spt_files = sorted(glob("Intrants/fctem*%03d*.dat"%(z+1)))
 
             # Linking files if weigth = 1 (faster)
@@ -151,15 +151,12 @@ if alt_type == 2:
                 for name in lum_files+spt_files:
                     os.symlink(os.path.abspath(name), dirname+os.path.basename(name))
             else:
-                #head,p,data = load_pgm(lum_files[0])
-                #data = np.asarray([load_pgm(s)[2] for s in lum_files])
-
                 # Saving new files
                 for wl in xrange(n):
-                    head,p,data = load_pgm(lum_files[wl])
+                    data = load_bin(lum_files[wl])
                     ndata = data * spct_new[z,wl]/spct_old[z,wl]
 
-                    save_pgm( dirname + os.path.basename(lum_files[wl]), head, p, ndata )
+                    save_bin( dirname + os.path.basename(lum_files[wl]), ndata )
                     np.savetxt( dirname + os.path.basename(spt_files[wl]),
                                 np.concatenate([ny[z,:,wl],angles]).reshape((2,-1)).T )
 

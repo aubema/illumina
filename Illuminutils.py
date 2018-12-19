@@ -3,7 +3,7 @@
 import os, subprocess as sub
 from glob import glob
 import gdal, pyproj
-from pytools import save_pgm as _save_pgm
+from pytools import save_bin as _save_bin
 
 def params_parser(fname):
     with open(fname) as f:
@@ -23,7 +23,7 @@ def warp(srcfiles, dstfile, srs=None, extent=None, resolution=None, resampling_m
         resolution: tr
         resampling_method: r
 
-    List parameters (srcfiles, extent) must be given 
+    List parameters (srcfiles, extent) must be given
     as a list or a space separated string.
     """
 
@@ -81,28 +81,24 @@ class Illuminutils:
 
         self.params = P
 
-    def pgm_convert(self, srcfile, dstfile, maxint=65535, scale_factor=1.):
-        gdal_file =gdal.Open(srcfile)
+    def convert(self, srcfile, dstfile, maxint=65535, scale_factor=1.):
+        gdal_file = gdal.Open(srcfile)
         band = gdal_file.GetRasterBand(1)
         data = band.ReadAsArray() * scale_factor
-        
+
         pixsize = self.params['pixsize']
-        xmin = self.params['xmin'] + 0.5 * pixsize 
+        xmin = self.params['xmin'] + 0.5 * pixsize
         ymin = self.params['ymin'] + 0.5 * pixsize
         p1 = pyproj.Proj(init=self.params['srs'])
-        p2 = pyproj.Proj(init="epsg:4326") # WGS84 
+        p2 = pyproj.Proj(init="epsg:4326") # WGS84
         lon0, lat0 = pyproj.transform(p1, p2, xmin, ymin)
 
-        head = { 'x0':xmin, 'y0':ymin, 'lon0':lon0, 'lat0':lat0,
-                 'pixsize':pixsize, 'srs':self.params['srs'] }
-        p = data.shape[::-1] + (maxint,)
-
-        _save_pgm(dstfile, head, p, data)
+        _save_bin(dstfile, data)
 
     def srtm(self, folder, cleanup=True):
         files = glob(folder+"/*.hgt")
         warp(files, "srtm.tif", self.params['srs'], self.params['bbox'], self.params['pixsize'])
-        self.pgm_convert("srtm.tif","srtm.pgm")
+        self.convert("srtm.tif","srtm.bin")
         if cleanup:
             os.remove("srtm.tif")
 
@@ -111,15 +107,15 @@ class Illuminutils:
         fname = "refl_b%02d" % band_n
         band_names = map(lambda f: get_MYD09A1_band_name(f, band_n), files)
         warp(band_names, fname+".tif", self.params['srs'], self.params['bbox'], self.params['pixsize'])
-        self.pgm_convert(fname+".tif", fname+".pgm", scale_factor=0.0001)
+        self.convert(fname+".tif", fname+".bin", scale_factor=0.0001)
         if cleanup:
             os.remove(fname+".tif")
-        
+
 
     def viirs(self, folder, cleanup=True):
         files = glob(folder+"/*.tif")
         warp(files, "stable_lights.tif", self.params['srs'], self.params['bbox'], self.params['pixsize'])
-        self.pgm_convert("stable_lights.tif","stable_lights.pgm")
+        self.convert("stable_lights.tif","stable_lights.bin")
         if cleanup:
             os.remove("stable_lights.tif")
 
@@ -146,5 +142,3 @@ if __name__ == "__main__":
     I.viirs("VIIRS-DNB")
     for i in [1,2,3,4]:
         I.modis("MODIS",i)
-
-

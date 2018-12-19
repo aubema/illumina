@@ -105,17 +105,17 @@ except IndexError:
 if not stop:
 	# Questions for viirs2lum
 	out_name = raw_input("Output root name of the experiment [this name will be used for all the subsequent files]?\n    ")
-	pgm_name = raw_input("viirs-dnb file name? [e.g. stable_lights.pgm]\n    ")
+	bin_name = raw_input("viirs-dnb file name? [e.g. stable_lights.bin]\n    ")
 	modis_name = raw_input("modis reflectance file list file name? [e.g. modis.dat]\n    ")
-	modis_dir = raw_input("modis directory? [e.g. pgms]\n    ")
+	modis_dir = raw_input("modis directory? [e.g. bins]\n    ")
 	zon_name = out_name+".zon"
-	srtm_name = raw_input("elevation file name? [e.g. srtm.pgm]\n    ")
+	srtm_name = raw_input("elevation file name? [e.g. srtm.bin]\n    ")
 
 	dir_name = "./Intrants/"
-	tmp_names = {'sat':"stable_lights.pgm", 'modis':"modis.dat", 'viirs':"viirs.dat", 'zon':"zone.zon"}
+	tmp_names = {'sat':"stable_lights.bin", 'modis':"modis.dat", 'viirs':"viirs.dat", 'zon':"zone.zon"}
 	tmp_list = set(tmp_names.values()) # List of files to be removed after execution
 	tmp_names['integ'] = "integration_limits.dat"
-	tmp_names['srtm'] = "srtm.pgm"
+	tmp_names['srtm'] = "srtm.bin"
 
 	ans = raw_input("Cutoff low values in the viirs-dnb data? ([y]/n) ")
 	viirs_lowcut = True
@@ -125,7 +125,7 @@ if not stop:
 	except IndexError:
 	    pass
 
-	viirs_head,viirs_p,viirs_dat = load_pgm(pgm_name)
+	viirs_dat = load_bin(bin_name)
 
 	if viirs_lowcut:
 	    try:
@@ -138,9 +138,9 @@ if not stop:
 	    viirs_reject[viirs_reject >= val] = 0
 	    viirs_dat[viirs_dat < val] = 0
 
-	    save_pgm(dir_name+"NaturalAndScatteredLight.pgm", viirs_head, viirs_p, viirs_reject)
+	    save_bin(dir_name+"NaturalAndScatteredLight.bin", viirs_reject)
 
-	save_pgm(dir_name+tmp_names['sat'], viirs_head, viirs_p, viirs_dat)
+	save_bin(dir_name+tmp_names['sat'], viirs_dat)
 
 	# Creating symbolic links to necessary reflectance and photometry files
 	modis_files = np.genfromtxt(modis_name,skip_header=1,usecols=1,dtype=str)
@@ -163,7 +163,6 @@ if not stop:
 			f.write((("%s\t"*len(zonfile[i]))[:-1]+"\n") % tuple(zonfile[i]))
 
     	# Linking useful files
-#	os.symlink(os.path.abspath(pgm_name),dir_name+tmp_names['sat'])
 	os.symlink(os.path.abspath(modis_name),dir_name+tmp_names['modis'])
 	os.symlink(os.path.abspath("Lights/viirs.dat"),dir_name+tmp_names['viirs'])
 	os.symlink(os.path.abspath(zon_name),dir_name+tmp_names['zon'])

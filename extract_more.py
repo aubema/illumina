@@ -5,7 +5,7 @@ import subprocess as sub
 import os, re, pyfits
 import matplotlib.pyplot as plt
 from glob import glob
-from pytools import load_pgm, save_fits
+from pytools import load_bin, save_fits
 from collections import defaultdict as ddict
 
 def parse_data(s):
@@ -97,8 +97,7 @@ if mk_cube:
         for cat in ftree[sc]:
             name = cat+'-'+sc.split('-',1)[1]+".fits"
             print "Generating '%s'" % name
-            cube = np.asarray(map(lambda s: load_pgm(files[cat]+"/PCL-%s.pgm"%s)[2], ftree[sc][cat]))
+            cube = np.asarray(map(lambda s: load_bin(files[cat]+"/PCL-%s.bin"%s), ftree[sc][cat]))
             save_fits([(1,1),(1,1),(wl[0],bw[0])],cube,name)
 
 print "\nDone."
-    
