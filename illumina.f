@@ -234,7 +234,7 @@ c=======================================================================
       open(unit=1,file='illumina.in',status='old')
        read(1,*)
        read(1,*) basenm
-       read(1,*) nbx,nby
+c       read(1,*) nbx,nby
        read(1,*) dx,dy
        read(1,*) latitu
        read(1,*) diffil

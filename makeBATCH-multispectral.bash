@@ -38,8 +38,8 @@ if [ $2 ]; then
 fi
 read a pixsize <<< $(grep ^pixel_size $1 | cut -f1 -d"#")
 read a latitu <<< $(grep ^latitudeN $1 | cut -f1 -d"#")
-read a nbx <<< $(grep ^dimension_WE $1 | cut -f1 -d"#")
-read a nby <<< $(grep ^dimension_SN $1 | cut -f1 -d"#")
+#read a nbx <<< $(grep ^dimension_WE $1 | cut -f1 -d"#")
+#read a nby <<< $(grep ^dimension_SN $1 | cut -f1 -d"#")
 read a exp_name <<< $(grep ^experiment_name $1 | cut -f1 -d"#")
 read a pressure <<< $(grep ^pressure $1 | cut -f1 -d"#")
 read a est_time <<< $(grep ^estimated_computing_time $1 | cut -f1 -d"#")

@@ -3,8 +3,6 @@
 batch_file_name  TortureMammouth            # this is the base name of the different script that will be submitted to the queue
 pixel_size 1000                             # pixel size in meter
 latitudeN 45.0                              # Central latitude north of the domain
-dimension_WE 400                            # Modeling domain size W-E in pixel
-dimension_SN 400                            # Modeling domain size S-N in pixel
 experiment_name Hawaii                      # modeling experiment name
 pressure 101.3                              # lowest domain level atmospheric pressure in KPa
 estimated_computing_time 120                # estimated computing time per case in hours
