@@ -262,9 +262,9 @@ echo "Starting from "$folder
 # creating illumina.in
                                       echo "                ! Input file for ILLUMINA" > illumina.in
                                       echo  $exp_name "              ! ROOT FILE NAME (every usefull files have to begin with this)" >> illumina.in
-                                      echo $nbx $nby  "         ! Modeling domain size W-E and S-N in pixel " >> illumina.in
+#                                      echo $nbx $nby  "         ! Modeling domain size W-E and S-N in pixel " >> illumina.in
                                       echo $pixsize $pixsize "                ! CELL SIZE [m]" >> illumina.in
-                                      echo $latitu "   ! central latitude north of the domain" >> illumina.in
+#                                      echo $latitu "   ! central latitude north of the domain" >> illumina.in
 
 
 
