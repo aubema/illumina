@@ -1,11 +1,11 @@
-c programme pour convertir un fichier bin provenant directement 
-c de viirs en valeur de 
+c programme pour convertir un fichier bin provenant directement
+c de viirs en valeur de
 c
 c To compile:
 c gfortran viirs2lum-multispectral.f twodout.f twodin.f interp_modis.f -o viirs2lum
 c
-c possible option if the array sizes are too big: -mcmodel=large 
-c   
+c possible option if the array sizes are too big: -mcmodel=large
+c
 c    Copyright (C) 2015  Martin Aube
 c
 c    This program is free software: you can redistribute it and/or modify
@@ -19,7 +19,7 @@ c    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 c    GNU General Public License for more details.
 c
 c    You should have received a copy of the GNU General Public License
-c    along with this program. If not, see <http://www.gnu.org/licensces/> 
+c    along with this program. If not, see <http://www.gnu.org/licensces/>
 c    Contact: martin.aube@cegepsherbrooke.qc.ca
 c
       program viirs2lum
@@ -36,7 +36,7 @@ c ndb is the number of spectral bands
       real dnb(wid,wid),sumwav,Phi_c(wid,wid),wavel(nwa),viirs_sens(nwa)
       real thetas(nag),obsth(wid,wid),obstd(wid,wid),lamph(wid,wid)
       real obstf(wid,wid),fobst(nzo)
-c     obsth=obstacle height, obstd=mean free path to the ground, 
+c     obsth=obstacle height, obstd=mean free path to the ground,
 c     lamph=lamp height above the ground
       character*72 Gn(nzo),zonfile,viirs_resp,bands_file,fctfile
       character*72 lumfile,outfile,viirs_file,rfile
@@ -74,7 +74,7 @@ c converting to nanoW/cm2/sr en W/m2/sr DNB=DNB*dnbunits
       print*,'================'
       print*,'Output root name of the experiment ?'
       read*,basename
-      lenbase=index(basename,' ')-1 
+      lenbase=index(basename,' ')-1
       print*,'viirs-dnb file name? [e.g. stable-light.bin]'
       read*,viirs_file
       print*,'zonal file name? [e.g. Hawaii.zon]'
@@ -117,11 +117,11 @@ c interpolate modis images to modelling bands wavelength
 c defined in file integration_limits.dat
         print*,'Interpolation MODIS images...'
         call interp_modis()
-c reading modis reflectance at 700nm to filter out the water pixels 
-c rho<0.01 . Water show a very low reflectance in that part of the 
+c reading modis reflectance at 700nm to filter out the water pixels
+c rho<0.01 . Water show a very low reflectance in that part of the
 c spectrum compared to soil and vegetation
-c the problem with low reflectance of water is that in many cases we 
-c enconter large cities next to water and then the scattered light 
+c the problem with low reflectance of water is that in many cases we
+c enconter large cities next to water and then the scattered light
 c over the water surface behave like an important direct source over a
 c very dark surface. To overcome cleanly this problem we should make a
 c correction for the estimated scattered light. It is not done yet.
@@ -176,7 +176,7 @@ c       defining the lamp height for each pixel
                    lamph(i,j)=hlamp(n)
                 endif
               enddo
-            enddo          
+            enddo
         enddo
         do n=1,nzon
 c
@@ -203,8 +203,8 @@ c   reading the barG
 
 c calcul du G_moy pour chaque zone et chaque lambda
             print*,'Computing G_moy...'
-            do nw=1,nwa 
-              G_moy(nw,n)=0.  
+            do nw=1,nwa
+              G_moy(nw,n)=0.
               do na=1,57
                 G_moy(nw,n)=G_moy(nw,n)+spct(nw,na)*
      +          sin(thetas(na)*rad)*1.*rad/
@@ -213,8 +213,8 @@ c calcul du G_moy pour chaque zone et chaque lambda
             enddo
 c calcul du Fdown pour chaque zone et chaque lambda
             print*,'Computing Fdown...'
-            do nw=1,nwa 
-              Fdown(nw,n)=0.  
+            do nw=1,nwa
+              Fdown(nw,n)=0.
               do na=92,181
                 Fdown(nw,n)=Fdown(nw,n)+2.*pi*
      +          spct(nw,na)*sin(thetas(na)*rad)*1.*rad
@@ -288,10 +288,10 @@ c extraire le fctem pour chaque zone et chaque bande
         enddo
 c et multiplier par Phi_c avec la fraction de bande
 c pour obtenir le lumlp de chaque zone et chaque bande
-        do nb=1,n_bands 
+        do nb=1,n_bands
           do i=1,nbx
-            do j=1,nby 
-              do na=1,nag  
+            do j=1,nby
+              do na=1,nag
                 lum(i,j,nb)=lum(i,j,nb)+Phi_c(i,j)
      +          *sp(nb,na)*2.*pi*sin(thetas(na)*rad)*1.*rad
               enddo
@@ -299,6 +299,11 @@ c pour obtenir le lumlp de chaque zone et chaque bande
           enddo
         enddo
         do nb=1,n_bands
+          do i=1,nbx
+            do j=1,nby
+              dat(i,j)=lum(i,j,nb)
+            enddo
+          enddo
           write(waven, '(I3.3)' ) int(avgwav(nb))
           write(zonenu, '(I3.3)' ) n
           lumfile=basename(1:lenbase)//'_'//waven//'_lumlp_'//
@@ -333,7 +338,7 @@ c     writing zone definition bin file
             call twodout(nbx,nby,outfile,zone)
 c
 c ===================
-c 
+c
 c creating combined lumlp for each band
 
         do nb=1,n_bands
