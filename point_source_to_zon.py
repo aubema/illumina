@@ -23,6 +23,8 @@ domain['xsize'] = int((domain['xmax']-domain['xmin'])/domain['pixsize'])
 domain['ysize'] = int((domain['ymax']-domain['ymin'])/domain['pixsize'])
 
 # Read light inventory
+# format:
+#    lat lon watt hlamp hobs dobs fobs S_type P_type
 inv_name = raw_input("    LOP inventory filename : ")
 
 inv = np.loadtxt(inv_name,dtype=object)
@@ -38,17 +40,18 @@ for light in inv:
     p2 = pyproj.Proj(init=domain['srs'])
     x, y = pyproj.transform(p1, p2, lon, lat)
 
-    col = int((x-domain['xmin'])/domain['pixsize'])
-    row = int((y-domain['ymin'])/domain['pixsize'])
+    col = int((x-domain['xmin'])/domain['pixsize']) + 1
+    row = int((y-domain['ymin'])/domain['pixsize']) + 1
 
     data[col,row].append(light[2:])
 
 # Generate zone inventory
-with open("inventory.txt",'w') as inv_file:
+out_name = raw_input("    Output filename : ")
+with open(out_name,'w') as inv_file:
     inv_file.write("# X	Y	R	hobs	dobs	fobst   hlamp	Zone inventory		# Comment\n")
     for col,row in data:
         lights = np.asarray(data[col,row])
-        lights[:,0] /= np.sum(lights[:,0])
+        pow_tot = np.sum(lights[:,0])
 
         hl = np.average(lights[:,1],weights=lights[:,0])
         ho = np.average(lights[:,2],weights=lights[:,0])
@@ -57,7 +60,7 @@ with open("inventory.txt",'w') as inv_file:
 
         frac = ddict(float)
         for i in range(len(data[col,row])):
-            frac[tuple(data[col,row][i][-2:])] += data[col,row][i][0]
+            frac[tuple(data[col,row][i][-2:])] += 100*data[col,row][i][0]/pow_tot
 
         data_line = "%d\t%d\t%g\t%g\t%g\t%g\t%g\t%s\n" % \
                     ( col, row,
