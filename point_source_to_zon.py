@@ -24,7 +24,7 @@ domain['ysize'] = int((domain['ymax']-domain['ymin'])/domain['pixsize'])
 
 # Read light inventory
 # format:
-#    lat lon watt hlamp hobs dobs fobs S_type P_type
+#    lat lon pow hobs dobs fobs hlamp S_type P_type
 inv_name = raw_input("    LOP inventory filename : ")
 
 inv = np.loadtxt(inv_name,dtype=object)
@@ -53,10 +53,10 @@ with open(out_name,'w') as inv_file:
         lights = np.asarray(data[col,row])
         pow_tot = np.sum(lights[:,0])
 
-        hl = np.average(lights[:,1],weights=lights[:,0])
-        ho = np.average(lights[:,2],weights=lights[:,0])
-        do = np.average(lights[:,3],weights=lights[:,0])
-        fo = np.average(lights[:,4],weights=lights[:,0])
+        ho = np.average(lights[:,1],weights=lights[:,0])
+        do = np.average(lights[:,2],weights=lights[:,0])
+        fo = np.average(lights[:,3],weights=lights[:,0])
+        hl = np.average(lights[:,4],weights=lights[:,0])
 
         frac = ddict(float)
         for i in range(len(data[col,row])):
@@ -65,7 +65,7 @@ with open(out_name,'w') as inv_file:
         data_line = "%d\t%d\t%g\t%g\t%g\t%g\t%g\t%s\n" % \
                     ( col, row,
                       domain['pixsize']/2/1000,
-                      hl, ho, do, fo,
+                      ho, do, fo, hl,
                       ' '.join( map(lambda i: "%g_%s_%s" %
                                 (frac[i],i[0],i[1]), frac) ) )
 
