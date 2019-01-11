@@ -5,6 +5,7 @@ import subprocess as sub, shutil
 from collections import OrderedDict as odict, defaultdict as ddict
 from glob import glob
 from pytools import *
+import pyproj
 
 # Load data
 # IMPORTANT : x axis of all similar data must be the same
@@ -31,9 +32,38 @@ norm_spectrum = ratio_ps*photopic + (1-ratio_ps)*scotopic
 spct_files = glob("Lights/*.spct")
 spct = { os.path.basename(s).split('_',1)[0]:load_spct(wav,norm_spectrum,s) for s in spct_files }
 
+# Domain characteristics
+dom_name = raw_input("    Domain definition filename :")
+def params_parser(fname):
+    with open(fname) as f:
+        lines = filter(lambda line: ':' in line, f.readlines())
+
+    params = map(lambda s: map(str.strip, s.split(':',1)), lines)
+    return { p[0]:p[1] for p in params }
+
+domain = params_parser(dom_name)
+
+domain['pixsize'] = float(domain['pixsize'])
+domain['xmin'],domain['ymin'],domain['xmax'],domain['ymax'] = \
+			map(float,domain['bbox'].split())
+
 # lamps distribution
 inv_name = raw_input("    LOP inventory filename : ")
 zonData = parse_inventory(inv_name,7)
+
+# convert lat/lon to x/y
+p1 = pyproj.Proj(init="epsg:4326") # WGS84
+p2 = pyproj.Proj(init=domain['srs'])
+
+for i in range(len(zonData)):
+	lat, lon = zonData[i][:2]
+
+    x, y = pyproj.transform(p1, p2, lon, lat)
+
+    col = int((x-domain['xmin'])/domain['pixsize']) + 1
+    row = int((y-domain['ymin'])/domain['pixsize']) + 1
+
+	zonData[i][:2] = col, row
 
 # make zon file
 with open(inv_name) as f:
