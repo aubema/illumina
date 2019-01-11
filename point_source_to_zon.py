@@ -62,8 +62,13 @@ with open(out_name,'w') as inv_file:
         for i in range(len(data[col,row])):
             frac[tuple(data[col,row][i][-2:])] += 100*data[col,row][i][0]/pow_tot
 
-        data_line = "%d\t%d\t%g\t%g\t%g\t%g\t%g\t%s\n" % \
-                    ( col, row,
+        x = domain['pixsize'] * (col - 0.5) + domain['xmin']
+        y = domain['pixsize'] * (row - 0.5) + domain['ymin']
+
+        lon,lat = pyproj.transform(p2,p1,x,y)
+
+        data_line = ("%g\t"*7+"%s\n") % \
+                    ( lat, lon,
                       domain['pixsize']/2/1000,
                       ho, do, fo, hl,
                       ' '.join( map(lambda i: "%g_%s_%s" %
