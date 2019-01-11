@@ -9,7 +9,7 @@
 
 import numpy as _np
 import matplotlib.pyplot as _plt
-import pyfits as _fits
+import astropy.io.fits as _fits
 import scipy.interpolate as _I
 
 def safe_divide(a,b):
