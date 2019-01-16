@@ -76,7 +76,7 @@ c     Variables declaration
 c=======================================================================
 c
       integer width,height                                                ! Matrix dimension in Length/width and height
-      parameter (width=1024,height=100)
+      parameter (width=25,height=100)
       integer iun,ideux
       real pi,pix4
       integer verbose                                                     ! verbose = 1 to have more print out, 0 for silent
