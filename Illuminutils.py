@@ -6,14 +6,16 @@ import gdal, yaml, h5py
 def warp(srcfiles, projection=None, extent=None):
     bounding_box = [extent["xmin"],extent["ymin"],extent["xmax"],extent["ymax"]]
 
-    ds = gdal.Warp('', srcfiles, format="VRT", dstSRS=projection, outputBounds=bounding_box,
-                   xRes=extent["pixel_size"], yRes=extent["pixel_size"], resampleAlg="cubicspline")
+    vrt = gdal.BuildVRT('',srcfiles)
+    ds = gdal.Warp('', vrt, format="VRT", dstSRS=projection,
+                   outputBounds=bounding_box, xRes=extent["pixel_size"],
+                   yRes=extent["pixel_size"], resampleAlg="cubicspline")
 
     return ds.GetRasterBand(1).ReadAsArray()
 
 def get_MYD09A1_band_name(fname, band_n):
     sub_ds = gdal.Open(fname).GetSubDatasets()
-    return filter(lambda sds: ("b%02d" % band_n) in sds[0], sub_ds)[0]
+    return filter(lambda sds: ("b%02d" % band_n) in sds[0], sub_ds)[0][0]
 
 class Illuminutils:
     def __init__(self, ini):
