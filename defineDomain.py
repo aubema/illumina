@@ -1,17 +1,25 @@
 #!/usr/bin/env python
 
 import pyproj
+import yaml
 
 print "Srcipt to automatically generate 'domain.ini'"
 print "Defalt values are written within [brackets]"
 print ""
 
-with open("domain.ini",'w') as f:
-    f.write("---\n") # Begin YAML file
+scale_factor = 5
+nb_layers = 7
+scale_min = 1
+
+domain = dict()
 
 # Input observatory coordinates
 obs_coords = raw_input("Enter observatory coordinates (lat,lon): ")
 lat,lon = map(float,obs_coords.strip("()").split(","))
+
+domain["observer"] = dict()
+domain["observer"]["latitude"] = lat
+domain["observer"]["longitude"] = lon
 
 # Define projection
 default_srs = "32" + ("6" if lat >= 0 else "7") + "%d" % (lon/6+31) # WGS84/UTM
@@ -25,31 +33,35 @@ except ValueError:
 wgs84 = pyproj.Proj(init="epsg:4326")
 proj  = pyproj.Proj(init="epsg:%s" % srs)
 
-with open("domain.ini",'a') as f:
-    f.write("projection: epsg:%s\n" % srs)
-    f.write("extents:\n")
+domain["projection"] = "epsg:%s" % srs
 
-npix = 25
+npix = scale_factor**2
 x0,y0 = pyproj.transform(wgs84,proj,lon,lat)
-for i in range(7):
-    size = 5**i
+
+domain["nb_pixels"] = npix
+domain["observer"]["x"] = x0
+domain["observer"]["y"] = y0
+
+domain["extents"] = list()
+
+for i in range(nb_layers):
+    size = scale_min * scale_factor**i
 
     xmin = x0 - size*npix/2.
     xmax = x0 + size*npix/2.
     ymin = y0 - size*npix/2.
     ymax = y0 + size*npix/2.
 
-    with open("domain.ini",'a') as f:
-        f.write("  - pixsize: %d\n" % size)
-        f.write("    bounding_box:\n")
-        f.write("      xmin: %d\n" % xmin)
-        f.write("      xmax: %d\n" % xmax)
-        f.write("      ymin: %d\n" % ymin)
-        f.write("      ymax: %d\n" % ymax)
+    domain["extents"].append(dict())
+    domain["extents"][-1]["pixel_size"] = size
+    domain["extents"][-1]["bounding_box"] = dict()
+    domain["extents"][-1]["bounding_box"]["xmin"] = xmin
+    domain["extents"][-1]["bounding_box"]["xmax"] = xmax
+    domain["extents"][-1]["bounding_box"]["ymin"] = ymin
+    domain["extents"][-1]["bounding_box"]["ymax"] = ymax
 
-
-with open("domain.ini",'a') as f:
-    f.write("...\n") # End YAML file
+with open("domain.ini",'w') as f:
+    yaml.dump(domain,f,default_flow_style=False)
 
 # print lon/lat bbox formatted for earthdata
 SE = pyproj.transform(proj,wgs84,xmin,ymin)
