@@ -7,19 +7,13 @@ print "Srcipt to automatically generate 'domain.ini'"
 print "Defalt values are written within [brackets]"
 print ""
 
-scale_factor = 5
-nb_layers = 7
-scale_min = 1
-
-domain = dict()
+domain = dict(scale_factor = 5, nb_layers = 7, scale_min = 1)
 
 # Input observatory coordinates
 obs_coords = raw_input("Enter observatory coordinates (lat,lon): ")
 lat,lon = map(float,obs_coords.strip("()").split(","))
 
-domain["observer"] = dict()
-domain["observer"]["latitude"] = lat
-domain["observer"]["longitude"] = lon
+domain["observer"] = dict(latitude=lat, longitude=lon)
 
 # Define projection
 default_srs = "32" + ("6" if lat >= 0 else "7") + "%d" % (lon/6+31) # WGS84/UTM
@@ -35,7 +29,7 @@ proj  = pyproj.Proj(init="epsg:%s" % srs)
 
 domain["projection"] = "epsg:%s" % srs
 
-npix = scale_factor**2
+npix = domain["scale_factor"]**2
 x0,y0 = pyproj.transform(wgs84,proj,lon,lat)
 
 domain["nb_pixels"] = npix
@@ -44,21 +38,20 @@ domain["observer"]["y"] = y0
 
 domain["extents"] = list()
 
-for i in range(nb_layers):
-    size = scale_min * scale_factor**i
+for i in range(domain["nb_layers"]):
+    size = domain["scale_min"] * domain["scale_factor"]**i
 
     xmin = x0 - size*npix/2.
     xmax = x0 + size*npix/2.
     ymin = y0 - size*npix/2.
     ymax = y0 + size*npix/2.
 
-    domain["extents"].append(dict())
-    domain["extents"][-1]["pixel_size"] = size
-    domain["extents"][-1]["bounding_box"] = dict()
-    domain["extents"][-1]["bounding_box"]["xmin"] = xmin
-    domain["extents"][-1]["bounding_box"]["xmax"] = xmax
-    domain["extents"][-1]["bounding_box"]["ymin"] = ymin
-    domain["extents"][-1]["bounding_box"]["ymax"] = ymax
+    extent = dict()
+    extent["level"] = domain["nb_layers"]-i
+    extent["pixel_size"] = size
+    bbox = dict(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
+    extent.update(bbox)
+    domain["extents"].append(extent)
 
 with open("domain.ini",'w') as f:
     yaml.dump(domain,f,default_flow_style=False)
