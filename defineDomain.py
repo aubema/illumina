@@ -3,31 +3,21 @@
 import pyproj
 import yaml
 
-print "Srcipt to automatically generate 'domain.ini'"
-print "Defalt values are written within [brackets]"
-print ""
+with open("params.in") as f:
+    domain = yaml.load(f)
 
-domain = dict(scale_factor = 5, nb_layers = 7, scale_min = 1)
-
-# Input observatory coordinates
-obs_coords = raw_input("Enter observatory coordinates (lat,lon): ")
-lat,lon = map(float,obs_coords.strip("()").split(","))
+lat = domain.pop("latitude")
+lon = domain.pop("longitude")
 
 domain["observer"] = dict(latitude=lat, longitude=lon)
 
 # Define projection
-default_srs = "32" + ("6" if lat >= 0 else "7") + "%d" % (lon/6+31) # WGS84/UTM
-srs = raw_input("\nEPSG projection to use [%s]: " % default_srs)
-try:
-    srs = str(int(srs))
-except ValueError:
-    print "  Using %s" % default_srs
-    srs = default_srs
+if domain["srs"] == "auto":
+    default_srs = "32" + ("6" if lat >= 0 else "7") + "%d" % (lon/6+31) # WGS84/UTM
+    domain["srs"] = default_srs
 
 wgs84 = pyproj.Proj(init="epsg:4326")
-proj  = pyproj.Proj(init="epsg:%s" % srs)
-
-domain["projection"] = "epsg:%s" % srs
+proj  = pyproj.Proj(init="epsg:%s" % domain['srs'])
 
 npix = domain["scale_factor"]**2
 x0,y0 = pyproj.transform(wgs84,proj,lon,lat)
@@ -67,6 +57,6 @@ S = min(SE[1],SW[1])
 E = max(NE[0],SE[0])
 W = min(NW[0],SW[0])
 
-print "\nBounding box:"
+print "Bounding box:"
 print "  SW: %f,%f" % (S,W)
 print "  NE: %f,%f" % (N,E)

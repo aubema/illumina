@@ -28,7 +28,7 @@ class Illuminutils:
             f.attrs['nb_pixels'] = self.params['nb_pixels']
             f.attrs['scale_factor'] = self.params['scale_factor']
             f.attrs['scale_min'] = self.params['scale_min']
-            f.attrs['projection'] = self.params['projection']
+            f.attrs['srs'] = self.params['srs']
             f.attrs['obs_lat'] = self.params['observer']['latitude']
             f.attrs['obs_lon'] = self.params['observer']['longitude']
             f.attrs['obs_x'] = self.params['observer']['x']
@@ -46,7 +46,7 @@ class Illuminutils:
         files = glob(folder+"/*.hgt")
         data = list()
         for i in range(self.params["nb_layers"]):
-            data.append(warp(files, self.params['projection'], self.params["extents"][i]))
+            data.append(warp(files, self.params['srs'], self.params["extents"][i]))
         self.save(data,"srtm")
 
     def modis(self, folder, band_n):
@@ -55,14 +55,14 @@ class Illuminutils:
         band_names = map(lambda f: get_MYD09A1_band_name(f, band_n), files)
         data = list()
         for i in range(self.params["nb_layers"]):
-            data.append(warp(band_names, self.params['projection'], self.params["extents"][i]))
+            data.append(warp(band_names, self.params['srs'], self.params["extents"][i]))
         self.save(data, fname, scale_factor=0.0001)
 
     def viirs(self, folder):
         files = glob(folder+"/*.tif")
         data = list()
         for i in range(self.params["nb_layers"]):
-            data.append(warp(files, self.params['projection'], self.params["extents"][i]))
+            data.append(warp(files, self.params['srs'], self.params["extents"][i]))
         self.save(data,"stable_lights")
 
 if __name__ == "__main__":
