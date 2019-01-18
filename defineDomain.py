@@ -13,11 +13,11 @@ domain["observer"] = dict(latitude=lat, longitude=lon)
 
 # Define projection
 if domain["srs"] == "auto":
-    default_srs = "32" + ("6" if lat >= 0 else "7") + "%d" % (lon/6+31) # WGS84/UTM
+    default_srs = "epsg:32" + ("6" if lat >= 0 else "7") + "%d" % (lon/6+31) # WGS84/UTM
     domain["srs"] = default_srs
 
 wgs84 = pyproj.Proj(init="epsg:4326")
-proj  = pyproj.Proj(init="epsg:%s" % domain['srs'])
+proj  = pyproj.Proj(init=domain['srs'])
 
 npix = domain["scale_factor"]**2
 x0,y0 = pyproj.transform(wgs84,proj,lon,lat)
