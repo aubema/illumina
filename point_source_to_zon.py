@@ -64,7 +64,7 @@ with open(out_name,'w') as inv_file:
 
         data_line = ("%.06f\t"*2+"%g\t"*5+"%s\n") % \
                     ( lat, lon,
-                      extent['pixel_size']/2/1000,
+                      extent['pixel_size']/2000.,
                       ho, do, fo, hl,
                       ' '.join( map(lambda i: "%g_%s_%s" %
                                 (frac[i],i[0],i[1]), frac) ) )
