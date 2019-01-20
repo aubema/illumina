@@ -7,7 +7,7 @@ def warp(srcfiles, projection=None, extent=None):
     bounding_box = [extent["xmin"],extent["ymin"],extent["xmax"],extent["ymax"]]
 
     vrt = gdal.BuildVRT('',srcfiles)
-    ds = gdal.Warp('', vrt, format="VRT", dstSRS=projection,
+    ds = gdal.Warp('', vrt, format="VRT", dstSRS=projection, dstNodata=0.,
                    outputBounds=bounding_box, xRes=extent["pixel_size"],
                    yRes=extent["pixel_size"], resampleAlg="cubicspline")
 

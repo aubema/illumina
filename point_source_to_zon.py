@@ -33,8 +33,8 @@ for light in inv:
         if extent['xmin'] < x < extent['xmax'] and \
            extent['ymin'] < y < extent['ymax']:
             level = extent['level']
-            col = int((x-extent['xmin'])/extent['pixel_size']) + 1
-            row = int((y-extent['ymin'])/extent['pixel_size']) + 1
+            col = int((x-extent['xmin'])/extent['pixel_size'] - 0.5)
+            row = int((y-extent['ymin'])/extent['pixel_size'] - 0.5)
             break
 
     data[level,col,row].append(light[2:])
@@ -64,7 +64,7 @@ with open(out_name,'w') as inv_file:
 
         data_line = ("%.06f\t"*2+"%g\t"*5+"%s\n") % \
                     ( lat, lon,
-                      extent['pixel_size']/2000.,
+                      extent['pixel_size']/2000., # diameter in km to radii in m
                       ho, do, fo, hl,
                       ' '.join( map(lambda i: "%g_%s_%s" %
                                 (frac[i],i[0],i[1]), frac) ) )
