@@ -11,6 +11,7 @@ import numpy as _np
 import pyproj as _pyproj
 from h5py import File as _HDFile
 from numbers import Integral as _Integral
+from copy import deepcopy as _clone
 
 class MultiScaleData:
     def __init__(self, data):
@@ -97,6 +98,9 @@ class MultiScaleData:
                 ds = File.create_dataset("level_%d" % (len(self)-i), data=self[i])
                 for key,val in self._levels[i][1].iteritems():
                     ds.attrs[key] = val
+
+    def copy(self):
+        return _clone(self)
 
 def Open(filename):
     """Open a multiscale HDF5 data fileself.
