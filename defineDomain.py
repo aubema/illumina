@@ -2,6 +2,25 @@
 
 import pyproj
 import yaml
+import math
+
+def eng_format(x, unit=''):
+    # Credit: 200_success on StackOverflow
+    # https://codereview.stackexchange.com/a/50971
+    #
+    # U+03BC is Greek lowercase mu
+    UNITS = [' ', ' k', ' M', ' G'] + \
+            ([None] * 10) + \
+            [' f', ' p', ' n', u' \u03bc', ' m']
+
+    power_of_1000 = int(math.floor(math.log10(x) // 3))
+    exponent = 3 * power_of_1000
+    prefix = UNITS[power_of_1000]
+    if prefix is None:
+        prefix = '*10^%d ' % exponent
+
+    significand = x * 10**(-exponent)
+    return '%.2f%s%s' % (significand, prefix, unit)
 
 with open("params.in") as f:
     domain = yaml.load(f)
@@ -30,6 +49,11 @@ domain["extents"] = list()
 
 for i in range(domain["nb_layers"]):
     size = domain["scale_min"] * domain["scale_factor"]**i
+
+    print "Layer",i+1
+    print "Pixel size:", eng_format(size,'m')
+    print "Domain size:", eng_format(size*npix,'m')
+    print ""
 
     xmin = x0 - size*npix/2.
     xmax = x0 + size*npix/2.
