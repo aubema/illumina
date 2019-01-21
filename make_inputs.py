@@ -11,6 +11,7 @@ import shutil, re, os, yaml
 from glob import glob
 import pytools as pt
 import MultiScaleData as MSD
+from scipy.interpolate import interp1d as interp
 
 dir_name = "Inputs/"
 shutil.rmtree(dir_name,True)
@@ -61,6 +62,12 @@ x = np.mean([limits[1:],limits[:-1]],0)
 y = np.array(map(np.mean,np.array_split(zones[:,:,bool_array],n,-1),[-1]*n)).transpose(1,2,0)
 
 print "Creating files."
+
+try:
+	os.symlink(os.path.abspath("srtm.hdf5"),dir_name+"srtm.hdf5")
+except OSError as e:
+	if e[0] != 17:
+		raise
 
 for l in xrange(n):
 	for z in xrange(len(zones)):
@@ -138,5 +145,29 @@ with open(dir_name+"/zon.lst",'w') as zfile:
 	zfile.write('\n'.join( map(lambda n:"%03d"%n, xrange(1,len(zones)+1) ))+'\n')
 with open(dir_name+"/wav.lst",'w') as zfile:
 	zfile.write('\n'.join( map(lambda n:"%03d"%n, x ))+'\n')
+
+print "Interpolating reflectance."
+
+wls = np.unique(np.concatenate([x,[700]]))
+circles.clear()
+
+refl_wav = np.loadtxt("modis.dat",usecols=[1])
+refl_raw = [ MSD.Open("refl_b%02d.hdf5" % (i+1)) for i in xrange(len(refl_wav)) ]
+refl_int = [ circles.copy() for i in xrange(len(wls)) ]
+
+for b in xrange(len(refl_raw[0])):
+	dat = np.asarray(map(lambda a: a[b], refl_raw))
+	I = interp(modis_wav, dat, axis=0, copy=False,
+			   bounds_error=False, fill_value='extrapolate')
+	refl = I(wls)
+	for i in xrange(len(wls)):
+		refl_int[i][b] = refl[i]
+
+for i in xrange(len(refl_int)):
+	refl_int[i].save(dir_name+"modis_%03d" % wls[i])
+
+print "Inverting lamp intensity."
+
+#TODO
 
 print "Done."
