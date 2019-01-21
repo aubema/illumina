@@ -36,12 +36,12 @@ spct = { os.path.basename(s).split('_',1)[0]:pt.load_spct(wav,norm_spectrum,s) f
 inv_name = "inventory.txt"
 zonData = pt.parse_inventory(inv_name,7)
 
-print "Calculating the generalized lamps..."
+print "Calculating the generalized lamps."
 
 # Calculate zones lamps
 zones = pt.make_zones(angles, lop, wav, spct, zonData )
 
-print "Splitting in a few wavelengths..."
+print "Splitting in a few wavelengths."
 n = params['nb_bins']
 lmin = params['lambda_min']
 lmax = params['lambda_max']
@@ -60,7 +60,7 @@ with open(lim_file,'ab') as f:
 x = np.mean([limits[1:],limits[:-1]],0)
 y = np.array(map(np.mean,np.array_split(zones[:,:,bool_array],n,-1),[-1]*n)).transpose(1,2,0)
 
-print "Creating files..."
+print "Creating files."
 
 for l in xrange(n):
 	for z in xrange(len(zones)):
@@ -79,7 +79,7 @@ for i in range(1,len(viirs_dat)):
 
 viirs_dat.save(dir_name+"stable_lights")
 
-print "Making zone properties files..."
+print "Making zone properties files."
 
 circles = viirs_dat.copy() # Same geolocalisation
 circles.clear()
@@ -111,7 +111,7 @@ for i,dat in enumerate(zonfile,1):
 	circles.set_circle((dat[0],dat[1]),dat[2]*1000,dat[6])
 circles.save(dir_name+"/"+out_name+"_altlp")
 
-print "Linking mie files..."
+print "Linking mie files."
 
 aero_profile = params['aerosol_profile']
 RH = params['relative_humidity']
