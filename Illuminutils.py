@@ -70,5 +70,5 @@ if __name__ == "__main__":
 
     I.srtm("SRTM")
     I.viirs("VIIRS-DNB")
-    for i in [1,2,3,4]:
+    for i in range(1,8):
         I.modis("MODIS",i)
