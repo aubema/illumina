@@ -12,7 +12,9 @@ from glob import glob
 import pytools as pt
 import MultiScaleData as MSD
 
-shutil.rmtree("Inputs",True)
+dir_name = "Inputs/"
+shutil.rmtree(dir_name,True)
+os.makedirs(dir_name)
 
 with open("inputs_params.in") as f:
 	params = yaml.load(f)
@@ -48,10 +50,10 @@ bool_array = (lmin<=wav)*(wav<lmax)
 
 limits = np.array(map(np.min,np.array_split(wav[bool_array],n,-1))+[lmax])
 
-filename = "integration_limits.dat"
-with open(filename,'w') as f:
+lim_file = dir_name + "integration_limits.dat"
+with open(lim_file,'w') as f:
 	f.write("%d\n"%n)
-with open(filename,'ab') as f:
+with open(lim_file,'ab') as f:
 	np.savetxt(f,limits[:,np.newaxis])
 
 # Create the desired lamp files
@@ -60,14 +62,13 @@ y = np.array(map(np.mean,np.array_split(zones[:,:,bool_array],n,-1),[-1]*n)).tra
 
 print "Creating files..."
 
-dir_name = "Inputs/"
-if not os.path.exists(dir_name):
-	os.makedirs(dir_name)
 for l in xrange(n):
 	for z in xrange(len(zones)):
 		np.savetxt( dir_name+"fctem_wl_%03d_zon_%03d.dat"%(x[l],z+1), np.concatenate([ y[z,:,l],angles ]).reshape((2,-1)).T )
 
 out_name = params['exp_name']
+
+# Removing overlapped light
 viirs_dat = MSD.Open("stable_lights.hdf5")
 
 n = viirs_dat._attrs['scale_factor']
