@@ -43,18 +43,7 @@ zonfile = map(lambda s: s.split()[:7], zonfile)
 
 # Domain characteristics
 dom_name = raw_input("    Domain definition filename : ")
-def params_parser(fname):
-    with open(fname) as f:
-        lines = filter(lambda line: ':' in line, f.readlines())
-
-    params = map(lambda s: map(str.strip, s.split(':',1)), lines)
-    return { p[0]:p[1] for p in params }
-
-domain = params_parser(dom_name)
-
-domain['pixsize'] = float(domain['pixsize'])
-domain['xmin'],domain['ymin'],domain['xmax'],domain['ymax'] = \
-			map(float,domain['bbox'].split())
+domain = yaml.load(dom_name)
 
 # convert lat/lon to x/y
 p1 = pyproj.Proj(init="epsg:4326") # WGS84
