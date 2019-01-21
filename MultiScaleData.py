@@ -91,6 +91,8 @@ class MultiScaleData:
         self.fill(0)
 
     def save(self,filename):
+        if '.' not in filename or 'hdf' not in filename.rsplit('.',1)[-1]:
+            filename += ".hdf5"
         with _HDFile(filename,'w') as File:
             for key,val in self._attrs.iteritems():
                 File.attrs[key] = val

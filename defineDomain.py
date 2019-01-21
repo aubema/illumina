@@ -22,7 +22,7 @@ def eng_format(x, unit=''):
     significand = x * 10**(-exponent)
     return '%.2f%s%s' % (significand, prefix, unit)
 
-with open("params.in") as f:
+with open("domain_params.in") as f:
     domain = yaml.load(f)
 
 lat = domain.pop("latitude")
