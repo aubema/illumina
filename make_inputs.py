@@ -157,7 +157,7 @@ refl_int = [ circles.copy() for i in xrange(len(wls)) ]
 
 for b in xrange(len(refl_raw[0])):
 	dat = np.asarray(map(lambda a: a[b], refl_raw))
-	I = interp(modis_wav, dat, axis=0, copy=False,
+	I = interp(refl_wav, dat, axis=0, copy=False,
 			   bounds_error=False, fill_value='extrapolate')
 	refl = I(wls)
 	for i in xrange(len(wls)):
