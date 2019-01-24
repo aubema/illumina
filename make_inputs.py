@@ -43,23 +43,23 @@ print "Calculating the generalized lamps."
 zones = pt.make_zones(angles, lop, wav, spct, zonData )
 
 print "Splitting in a few wavelengths."
-n = params['nb_bins']
+n_bins = params['nb_bins']
 lmin = params['lambda_min']
 lmax = params['lambda_max']
 
 bool_array = (lmin<=wav)*(wav<lmax)
 
-limits = np.array(map(np.min,np.array_split(wav[bool_array],n,-1))+[lmax])
+limits = np.array(map(np.min,np.array_split(wav[bool_array],n_bins,-1))+[lmax])
 
 lim_file = dir_name + "integration_limits.dat"
 with open(lim_file,'w') as f:
-	f.write("%d\n"%n)
+	f.write("%d\n"%n_bins)
 with open(lim_file,'ab') as f:
 	np.savetxt(f,limits[:,np.newaxis])
 
 # Create the desired lamp files
 x = np.mean([limits[1:],limits[:-1]],0)
-y = np.array(map(np.mean,np.array_split(zones[:,:,bool_array],n,-1),[-1]*n)).transpose(1,2,0)
+y = np.array(map(np.mean,np.array_split(zones[:,:,bool_array],n_bins,-1),[-1]*n_bins)).transpose(1,2,0)
 
 print "Creating files."
 
@@ -69,7 +69,7 @@ except OSError as e:
 	if e[0] != 17:
 		raise
 
-for l in xrange(n):
+for l in xrange(n_bins):
 	for z in xrange(len(zones)):
 		np.savetxt( dir_name+"fctem_wl_%03d_zon_%03d.dat"%(x[l],z+1), np.concatenate([ y[z,:,l],angles ]).reshape((2,-1)).T )
 
@@ -81,14 +81,13 @@ viirs_dat = MSD.Open("stable_lights.hdf5")
 n = viirs_dat._attrs['scale_factor']
 n1 = n * (n/2)
 n2 = n1 + n
-for i in range(1,len(viirs_dat)):
-	viirs_dat[i][n1:n2,n1:n2] = 0
+viirs_dat[1:,n1:n2,n1:n2] = 0
 
 viirs_dat.save(dir_name+"stable_lights")
 
 print "Making zone properties files."
 
-circles = viirs_dat.copy() # Same geolocalisation
+circles = viirs_dat # Same geolocalisation
 circles[:] = 0
 
 zonfile = np.loadtxt(inv_name,usecols=range(7))
@@ -148,26 +147,45 @@ with open(dir_name+"/wav.lst",'w') as zfile:
 
 print "Interpolating reflectance."
 
-wls = np.unique(np.concatenate([x,[700]]))
-circles[:] = 0
+modis = circles
 
 refl_wav = np.loadtxt("modis.dat",usecols=[1])
 refl_raw = [ MSD.Open("refl_b%02d.hdf5" % (i+1)) for i in xrange(len(refl_wav)) ]
-refl_int = [ circles.copy() for i in xrange(len(wls)) ]
 
-for b in xrange(len(refl_raw[0])):
-	dat = np.asarray(map(lambda a: a[b], refl_raw))
-	I = interp(refl_wav, dat, axis=0, copy=False,
-			   bounds_error=False, fill_value='extrapolate')
-	refl = I(wls)
-	for i in xrange(len(wls)):
-		refl_int[i][b] = refl[i]
-
-for i in xrange(len(refl_int)):
-	refl_int[i].save(dir_name+"modis_%03d" % wls[i])
+refl = interp(refl_wav, refl_raw, axis=0, copy=False,
+			  bounds_error=False, fill_value='extrapolate')
+for i in xrange(len(x)):
+	modis[:] = refl(x[i])
+	modis.save(dir_name+"modis_%03d" % x[i])
 
 print "Inverting lamp intensity."
 
-#TODO
+# Water mask
+viirs_dat[refl(700) < 0.01] = 0
+
+zon_mask = MSD.Open(dir_name+"/"+out_name+"_zone.hdf5")
+wl_bin = np.array_split(wav[bool_array],n_bins,-1)
+fctem_bin = np.array_split(zones[:,:,bool_array],n_bins,-1)
+viirs_bin = np.array_split(viirs[bool_array],n_bins,-1)
+
+a = np.deg2rad(angles)
+mids = np.concatenate([[a[0]],np.mean([a[1:],a[:-1]],0),[a[-1]]])
+sinx = 2*np.pi*(np.cos(mids[:-1])-np.cos(mids[1:]))
+
+# Pixel size in cm^2
+S = np.array([ (100.*viirs_dat.pixel_size(i))**2 for i in xrange(len(viirs_dat)) ])
+
+# phie = DNB * S / int( R ( rho/pi Gdown + Gup ) ) dlambda
+for z in xrange(len(zones)):
+	for i in xrange(n_bins):
+		rho = refl(wl_bin[i])
+		gdown = (fctem_bin[i][z] * sinx[:,None])[angles>90].sum(0)
+		gup = (fctem_bin[i][z] * sinx[:,None])[angles<70].sum(0) / sinx[angles<70].sum(-1)
+
+		integ = np.sum((viirs_bin[i] * (rho.T/np.pi * gdown + gup)).T,0) * (wav[1]-wav[0])
+
+		phie = viirs_dat * S[:,None,None] / integ
+
+		phie.save(dir_name+"%s_%03d_lumlp_%03d" % (out_name,x[i],z+1))
 
 print "Done."
