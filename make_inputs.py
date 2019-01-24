@@ -89,7 +89,7 @@ viirs_dat.save(dir_name+"stable_lights")
 print "Making zone properties files."
 
 circles = viirs_dat.copy() # Same geolocalisation
-circles.clear()
+circles[:] = 0
 
 zonfile = np.loadtxt(inv_name,usecols=range(7))
 
@@ -149,7 +149,7 @@ with open(dir_name+"/wav.lst",'w') as zfile:
 print "Interpolating reflectance."
 
 wls = np.unique(np.concatenate([x,[700]]))
-circles.clear()
+circles[:] = 0
 
 refl_wav = np.loadtxt("modis.dat",usecols=[1])
 refl_raw = [ MSD.Open("refl_b%02d.hdf5" % (i+1)) for i in xrange(len(refl_wav)) ]
