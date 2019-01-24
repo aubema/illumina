@@ -31,19 +31,18 @@ class Illuminutils:
             f.attrs['srs'] = self.params['srs']
             f.attrs['obs_lat'] = self.params['observer']['latitude']
             f.attrs['obs_lon'] = self.params['observer']['longitude']
-            f.attrs['obs_x'] = self.params['observer']['x']
-            f.attrs['obs_y'] = self.params['observer']['y']
 
             for i,layer in enumerate(data):
                 P = self.params['extents'][i]
-                ds = f.create_dataset("level_%d" % P['level'], data=layer*scale_factor)
+                ds = f.create_dataset("layer_%d" % P['layer'], data=layer*scale_factor)
                 for key in P:
-                    if key == "level":
+                    if key == "layer":
                         continue
                     ds.attrs[key] = P[key]
 
     def srtm(self, folder):
         files = glob(folder+"/*.hgt")
+        print "    ".join(map(str,files))
         data = list()
         for i in range(self.params["nb_layers"]):
             data.append(warp(files, self.params['srs'], self.params["extents"][i]))
@@ -53,6 +52,7 @@ class Illuminutils:
         files = glob(folder+"/*.hdf")
         fname = "refl_b%02d" % band_n
         band_names = map(lambda f: get_MYD09A1_band_name(f, band_n), files)
+        print "    ".join(map(str,band_names))
         data = list()
         for i in range(self.params["nb_layers"]):
             data.append(warp(band_names, self.params['srs'], self.params["extents"][i]))
@@ -60,6 +60,7 @@ class Illuminutils:
 
     def viirs(self, folder):
         files = glob(folder+"/*.tif")
+        print "    ".join(map(str,files))
         data = list()
         for i in range(self.params["nb_layers"]):
             data.append(warp(files, self.params['srs'], self.params["extents"][i]))

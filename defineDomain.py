@@ -42,15 +42,13 @@ npix = domain["scale_factor"]**2
 x0,y0 = pyproj.transform(wgs84,proj,lon,lat)
 
 domain["nb_pixels"] = npix
-domain["observer"]["x"] = x0
-domain["observer"]["y"] = y0
 
 domain["extents"] = list()
 
 for i in range(domain["nb_layers"]):
     size = domain["scale_min"] * domain["scale_factor"]**i
 
-    print "Layer",i+1
+    print "Layer",i
     print "Pixel size:", eng_format(size,'m')
     print "Domain size:", eng_format(size*npix,'m')
     print ""
@@ -61,7 +59,7 @@ for i in range(domain["nb_layers"]):
     ymax = y0 + size*npix/2.
 
     extent = dict()
-    extent["level"] = domain["nb_layers"]-i
+    extent["layer"] = i
     extent["pixel_size"] = size
     bbox = dict(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
     extent.update(bbox)
