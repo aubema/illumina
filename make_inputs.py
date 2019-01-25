@@ -184,7 +184,7 @@ for z in xrange(len(zones)):
 
 		integ = np.sum((viirs_bin[i] * (rho.T/np.pi * gdown + gup)).T,0) * (wav[1]-wav[0])
 
-		phie = viirs_dat * S[:,None,None] / integ
+		phie = (zon_mask==z) * viirs_dat * S[:,None,None] / integ
 
 		phie.save(dir_name+"%s_%03d_lumlp_%03d" % (out_name,x[i],z+1))
 
