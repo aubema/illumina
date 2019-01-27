@@ -23,15 +23,25 @@ with open("inputs_params.in") as f:
 # Angular distribution (normalised to 1)
 lop_files = glob("Lights/*.lop")
 angles = np.arange(181,dtype=float)
-lop = { os.path.basename(s).split('_',1)[0]:pt.load_lop(angles,s) for s in lop_files }
+lop = {
+	os.path.basename(s).split('_',1)[0] : \
+	pt.load_lop(angles,s) \
+	for s in lop_files }
 
 # Spectral distribution (normalised with scotopric vision to 1)
-wav, viirs = np.loadtxt("Lights/viirs.dat", skiprows=1).T
+wav, viirs = np.loadtxt( "Lights/viirs.dat", skiprows=1 ).T
 viirs = pt.spct_norm(wav,viirs)
-norm_spectrum = pt.load_spct(wav, np.ones(wav.shape), "Lights/photopic.dat", 1)
+norm_spectrum = pt.load_spct(
+	wav,
+	np.ones(wav.shape),
+	"Lights/photopic.dat",
+	1 )
 
 spct_files = glob("Lights/*.spct")
-spct = { os.path.basename(s).split('_',1)[0]:pt.load_spct(wav,norm_spectrum,s) for s in spct_files }
+spct = {
+	os.path.basename(s).split('_',1)[0] : \
+	pt.load_spct(wav,norm_spectrum,s) \
+	for s in spct_files }
 
 # lamps distribution
 inv_name = "inventory.txt"
@@ -49,7 +59,11 @@ lmax = params['lambda_max']
 
 bool_array = (lmin<=wav)*(wav<lmax)
 
-limits = np.array(map(np.min,np.array_split(wav[bool_array],n_bins,-1))+[lmax])
+limits = np.array(map(
+	np.min, np.array_split(
+		wav[bool_array],
+		n_bins,
+		-1 ) ) + [lmax] )
 
 lim_file = dir_name + "integration_limits.dat"
 with open(lim_file,'w') as f:
@@ -59,19 +73,29 @@ with open(lim_file,'ab') as f:
 
 # Create the desired lamp files
 x = np.mean([limits[1:],limits[:-1]],0)
-y = np.array(map(np.mean,np.array_split(zones[:,:,bool_array],n_bins,-1),[-1]*n_bins)).transpose(1,2,0)
+y = np.array(map(
+	np.mean,
+	np.array_split(
+		zones[:,:,bool_array],
+		n_bins,
+		-1),
+	[-1]*n_bins )).transpose(1,2,0)
 
 print "Creating files."
 
 try:
-	os.symlink(os.path.abspath("srtm.hdf5"),dir_name+"srtm.hdf5")
+	os.symlink(
+		os.path.abspath("srtm.hdf5"),
+		dir_name+"srtm.hdf5" )
 except OSError as e:
 	if e[0] != 17:
 		raise
 
 for l in xrange(n_bins):
 	for z in xrange(len(zones)):
-		np.savetxt( dir_name+"fctem_wl_%03d_zon_%03d.dat"%(x[l],z+1), np.concatenate([ y[z,:,l],angles ]).reshape((2,-1)).T )
+		np.savetxt(
+			dir_name+"fctem_wl_%03d_zon_%03d.dat" % (x[l],z+1),
+			np.concatenate([ y[z,:,l],angles ]).reshape((2,-1)).T )
 
 out_name = params['exp_name']
 
@@ -124,7 +148,9 @@ RH = params['relative_humidity']
 mie_pre = aero_profile+"_RH%02d" % RH
 
 ppath = os.environ['PATH'].split(os.pathsep)
-illumpath = filter(lambda s: "illumina" in s and "bin" not in s, ppath)[0]
+illumpath = filter(
+	lambda s: "illumina" in s and "bin" not in s,
+	ppath )[0]
 
 mie_path = illumpath + "/Aerosol_optical_prop/"
 mie_files = glob(mie_path+mie_pre+"*.mie.out")
@@ -141,7 +167,9 @@ for i in xrange(len(wl2mie)):
 			raise
 
 with open(dir_name+"/zon.lst",'w') as zfile:
-	zfile.write('\n'.join( map(lambda n:"%03d"%n, xrange(1,len(zones)+1) ))+'\n')
+	zfile.write('\n'.join( map(
+		lambda n: "%03d"%n,
+		xrange(1,len(zones)+1) ) ) + '\n' )
 with open(dir_name+"/wav.lst",'w') as zfile:
 	zfile.write('\n'.join( map(lambda n:"%03d"%n, x ))+'\n')
 
@@ -150,10 +178,16 @@ print "Interpolating reflectance."
 modis = circles
 
 refl_wav = np.loadtxt("modis.dat",usecols=[1])
-refl_raw = [ MSD.Open("refl_b%02d.hdf5" % (i+1)) for i in xrange(len(refl_wav)) ]
+refl_raw = [ MSD.Open("refl_b%02d.hdf5" % (i+1))
+	for i in xrange(len(refl_wav)) ]
 
-refl = interp(refl_wav, refl_raw, axis=0, copy=False,
-			  bounds_error=False, fill_value='extrapolate')
+refl = interp(
+	refl_wav,
+	refl_raw,
+	axis=0,
+	copy=False,
+	bounds_error=False,
+	fill_value='extrapolate' )
 for i in xrange(len(x)):
 	modis[:] = refl(x[i])
 	modis.save(dir_name+"modis_%03d" % x[i])
@@ -173,16 +207,22 @@ mids = np.concatenate([[a[0]],np.mean([a[1:],a[:-1]],0),[a[-1]]])
 sinx = 2*np.pi*(np.cos(mids[:-1])-np.cos(mids[1:]))
 
 # Pixel size in cm^2
-S = np.array([ (100.*viirs_dat.pixel_size(i))**2 for i in xrange(len(viirs_dat)) ])
+S = np.array([
+	(100.*viirs_dat.pixel_size(i))**2 \
+	for i in xrange(len(viirs_dat)) ])
 
 # phie = DNB * S / int( R ( rho/pi Gdown + Gup ) ) dlambda
 for z in xrange(len(zones)):
 	for i in xrange(n_bins):
 		rho = refl(wl_bin[i])
 		gdown = (fctem_bin[i][z] * sinx[:,None])[angles>90].sum(0)
-		gup = (fctem_bin[i][z] * sinx[:,None])[angles<70].sum(0) / sinx[angles<70].sum(-1)
+		gup = (fctem_bin[i][z] * sinx[:,None])[angles<70].sum(0) / \
+			sinx[angles<70].sum(-1)
 
-		integ = np.sum((viirs_bin[i] * (rho.T/np.pi * gdown + gup)).T,0) * (wav[1]-wav[0])
+		integ = np.sum(
+			(viirs_bin[i] * \
+			(rho.T/np.pi * gdown + gup)).T * \
+			(wav[1]-wav[0]) , 0 )
 
 		phie = (zon_mask==z) * viirs_dat * S[:,None,None] / integ
 

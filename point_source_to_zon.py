@@ -42,7 +42,7 @@ for light in inv:
 # Generate zone inventory
 out_name = raw_input("    Output filename : ")
 with open(out_name,'w') as inv_file:
-    inv_file.write("# X	Y	R	hobs	dobs	fobst   hlamp	Zone inventory		# Comment\n")
+    inv_file.write("# X	Y	R	hobs	dobs	fobst   hlamp	Zone inventory\n")
     for level,col,row in data:
         lights = np.asarray(data[level,col,row])
         pow_tot = np.sum(lights[:,0])

@@ -71,11 +71,16 @@ for d in tree:
     for s in sorted(tree[d].keys()):
         temp.append(tree[d][s])
     spcts[d] = np.asarray(temp).T
-    np.savetxt(d+".dat",spcts[d],header="wavelength\t"+'\t'.join(sorted(tree[d].keys())))
+    np.savetxt(
+        d+".dat",
+        spcts[d],
+        header="wavelength\t"+'\t'.join(sorted(tree[d].keys())))
     if plot_ratio:
         plt.figure()
         for s in sorted(tree[d].keys()):
-            plt.plot(wl,tree[d][s]/tree[d][basename],'-',label=s+" : %.02f" % np.mean(tree[d][s]/tree[d][basename]))
+            plt.plot(
+                wl, tree[d][s]/tree[d][basename], '-',
+                label=s+" : %.02f" % np.mean(tree[d][s]/tree[d][basename]))
         plt.legend(loc=0)
         plt.xlabel("Wavelenght (nm)")
         plt.ylabel("LP ratio after/before")
@@ -97,7 +102,9 @@ if mk_cube:
         for cat in ftree[sc]:
             name = cat+'-'+sc.split('-',1)[1]+".fits"
             print "Generating '%s'" % name
-            cube = np.asarray(map(lambda s: load_bin(files[cat]+"/PCL-%s.bin"%s), ftree[sc][cat]))
+            cube = np.asarray(map(
+                lambda s: load_bin(files[cat]+"/PCL-%s.bin"%s),
+                ftree[sc][cat]))
             save_fits([(1,1),(1,1),(wl[0],bw[0])],cube,name)
 
 print "\nDone."

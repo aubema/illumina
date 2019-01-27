@@ -76,8 +76,13 @@ def make_zones(theta, lop, wl, spct, ivtr):
       wl : wavelength used to define the spectrum
       spct : Lamp spectrum dictionnary
       ivtr : Parsed inventory"""
-    return _np.asarray([ zon_norm(theta, wl, sum(l[0]*spct[l[1]]* \
-        lop[l[2]][:,_np.newaxis] for l in lampData)) for lampData in ivtr ])
+    return _np.asarray([
+        zon_norm(
+            theta,
+            wl,
+            sum(l[0] * spct[l[1]] * lop[l[2]][:,_np.newaxis]
+                for l in lampData) )
+        for lampData in ivtr ])
 
 def load_pgm(filename):
     """Opens a PGM file.
@@ -119,8 +124,11 @@ def save_pgm(filename,head,p,data,offset=0.):
     head['gain'] = str(new_gain)
     head['offset'] = str(offset)
 
-    headstring = "P2\n" + '\n'.join( map(lambda s: '# '+str(s[0])+' '+str(s[1]), head.iteritems() ) ) + \
-            '\n' + ' '.join(map(str,p))
+    headstring = \
+        "P2\n" + \
+        '\n'.join( map(lambda s: '# %s %s' % s, head.iteritems() ) ) + \
+        '\n' + \
+        ' '.join(map(str,p))
     _np.savetxt(filename,data,fmt="%d",header=headstring,comments='')
 
 def load_fits(filename):
@@ -133,11 +141,12 @@ def load_fits(filename):
     hdu = _fits.open(filename)[0]
 
     ax = [ _np.linspace( hdu.header['CRVAL%d'%(i+1)],
-        hdu.header['CRVAL%d'%(i+1)]+hdu.header['CDELT%d'%(i+1)]*(hdu.header['NAXIS%d'%(i+1)]-1),
-        hdu.header['NAXIS%d'%(i+1)] ) for i in xrange(hdu.header['NAXIS']) ]
+        hdu.header['CRVAL%d'%(i+1)] + hdu.header['CDELT%d'%(i+1)] *
+            ( hdu.header['NAXIS%d'%(i+1)]-1 ),
+        hdu.header['NAXIS%d'%(i+1)] )
+        for i in xrange(hdu.header['NAXIS']) ]
 
     return ax,hdu.data.T[:,::-1].T
-
 
 def save_fits(axis,data,filename):
     """Save an array to a fits file. Must be at least 2D.
@@ -210,7 +219,8 @@ def load_lop(angles, filename, interp="cubic"):
     See 'scipy.interpolate.interp1d for interpolation kinds."""
     data = _np.loadtxt(filename).T
     y = data[0] if _np.all(data[1] == angles) else \
-        _I.interp1d(data[1], data[0], kind=interp, bounds_error=False, fill_value=0.)
+        _I.interp1d(data[1], data[0], kind=interp,
+        bounds_error=False, fill_value=0.)
     return LOP_norm(angles,y)
 
 def load_spct(wav, norm_spct, filename, interp="cubic", factor=683.002):
@@ -222,7 +232,8 @@ def load_spct(wav, norm_spct, filename, interp="cubic", factor=683.002):
     See 'scipy.interpolate.interp1d for interpolation kinds."""
     data = _np.loadtxt(filename,skiprows=1).T
     y = data[1] if _np.all(data[0] == wav) else \
-        _I.interp1d(data[0], data[1], kind=interp, bounds_error=False, fill_value=0.)(wav)
+        _I.interp1d(data[0], data[1], kind=interp,
+        bounds_error=False, fill_value=0.)(wav)
     return SPD_norm(wav, norm_spct, y, factor)
 
 def plot_allsky(phi,r,data,n=100,**kwargs):
@@ -256,10 +267,12 @@ def plot_allsky(phi,r,data,n=100,**kwargs):
         if data.ndim == 3:
             data = _np.zeros((len(nr),len(nphi),data.shape[2]))
             for i in range(data.shape[2]):
-                interp = _I.interp2d(_np.concatenate([phi,[phi[0]+360]]),r,ndata[:,:,i],kind=kwargs["interp"])
+                interp = _I.interp2d( _np.concatenate( [phi,[phi[0]+360]] ),
+                    r, ndata[:,:,i], kind=kwargs["interp"] )
                 data[:,:,i] = interp(nphi,nr)
         else:
-            interp = _I.interp2d(_np.concatenate([phi,[phi[0]+360]]),r,ndata,kind=kwargs["interp"])
+            interp = _I.interp2d( _np.concatenate( [phi,[phi[0]+360]] ),
+                r, ndata,kind=kwargs["interp"] )
             data = interp(nphi,nr)
         phi = nphi
         r = nr
@@ -288,7 +301,8 @@ def plot_allsky(phi,r,data,n=100,**kwargs):
     ax.set_theta_zero_location('N')
     ax.xaxis.set_ticklabels(['N','NE','E','SE','S','SW','W','NW'])
     if data.ndim == 3:
-        m = _plt.pcolormesh(Theta,R,data[:,:,0],color=color,linewidth=0,vmin=0,vmax=1)
+        m = _plt.pcolormesh( Theta, R, data[:,:,0],
+            color=color, linewidth=0, vmin=0, vmax=1 )
         m.set_array(None)
     else:
         args = dict()
@@ -317,12 +331,13 @@ def plot_allsky(phi,r,data,n=100,**kwargs):
 
     if kwargs.has_key("labels"):
         for name,pos in kwargs["labels"].iteritems():
-            _plt.annotate(name,xy=[_np.radians(pos),_np.max(r)],
-                          xytext=[_np.radians(pos),_np.max(r)+7],
-                          verticalalignment="top" if (90<pos<270) else "bottom",
-                          horizontalalignment="right" if pos<180 else "left",
-                          annotation_clip=False,
-                          arrowprops=dict(facecolor='black', width=0.1, headlength=0.1))
+            _plt.annotate(name,
+                xy=[_np.radians(pos),_np.max(r)],
+                xytext=[_np.radians(pos),_np.max(r)+7],
+                verticalalignment="top" if (90<pos<270) else "bottom",
+                horizontalalignment="right" if pos<180 else "left",
+                annotation_clip=False,
+                arrowprops=dict(facecolor='black', width=0.1, headlength=0.1))
 
     _plt.tight_layout()
 

@@ -4,18 +4,29 @@ from glob import glob
 import gdal, yaml, h5py
 
 def warp(srcfiles, projection=None, extent=None):
-    bounding_box = [extent["xmin"],extent["ymin"],extent["xmax"],extent["ymax"]]
+    bounding_box = [
+        extent["xmin"],
+        extent["ymin"],
+        extent["xmax"],
+        extent["ymax"] ]
 
     vrt = gdal.BuildVRT('',srcfiles)
-    ds = gdal.Warp('', vrt, format="VRT", dstSRS=projection, dstNodata=0.,
-                   outputBounds=bounding_box, xRes=extent["pixel_size"],
-                   yRes=extent["pixel_size"], resampleAlg="cubicspline")
+    ds = gdal.Warp( '', vrt,
+        format="VRT",
+        dstSRS=projection,
+        dstNodata=0.,
+        outputBounds=bounding_box,
+        xRes=extent["pixel_size"],
+        yRes=extent["pixel_size"],
+        resampleAlg="cubicspline" )
 
     return ds.GetRasterBand(1).ReadAsArray()
 
-def get_MYD09A1_band_name(fname, band_n):
+def MYD09A1_band_name(fname, band_n):
     sub_ds = gdal.Open(fname).GetSubDatasets()
-    return filter(lambda sds: ("b%02d" % band_n) in sds[0], sub_ds)[0][0]
+    return filter(
+        lambda sds: ("b%02d" % band_n) in sds[0],
+        sub_ds )[0][0]
 
 class Illuminutils:
     def __init__(self, ini):
@@ -24,17 +35,21 @@ class Illuminutils:
 
     def save(self, data, dstname, scale_factor=1.):
         with h5py.File(dstname+".hdf5",'w') as f:
-            f.attrs['nb_layers'] = self.params['nb_layers']
-            f.attrs['nb_pixels'] = self.params['nb_pixels']
-            f.attrs['scale_factor'] = self.params['scale_factor']
-            f.attrs['scale_min'] = self.params['scale_min']
-            f.attrs['srs'] = self.params['srs']
+            for key in [
+                'nb_layers',
+                'nb_pixels',
+                'scale_factor',
+                'scale_min',
+                'srs'] :
+                f.attrs[key] = self.params[key]
             f.attrs['obs_lat'] = self.params['observer']['latitude']
             f.attrs['obs_lon'] = self.params['observer']['longitude']
 
             for i,layer in enumerate(data):
                 P = self.params['extents'][i]
-                ds = f.create_dataset("layer_%d" % P['layer'], data=layer*scale_factor)
+                ds = f.create_dataset(
+                    "layer_%d" % P['layer'],
+                    data=layer*scale_factor)
                 for key in P:
                     if key == "layer":
                         continue
@@ -45,17 +60,23 @@ class Illuminutils:
         print "    ".join(map(str,files))
         data = list()
         for i in range(self.params["nb_layers"]):
-            data.append(warp(files, self.params['srs'], self.params["extents"][i]))
+            data.append(warp(
+                files,
+                self.params['srs'],
+                self.params["extents"][i] ))
         self.save(data,"srtm")
 
     def modis(self, folder, band_n):
         files = glob(folder+"/*.hdf")
         fname = "refl_b%02d" % band_n
-        band_names = map(lambda f: get_MYD09A1_band_name(f, band_n), files)
+        band_names = map( lambda f: MYD09A1_band_name(f, band_n), files )
         print "    ".join(map(str,band_names))
         data = list()
         for i in range(self.params["nb_layers"]):
-            data.append(warp(band_names, self.params['srs'], self.params["extents"][i]))
+            data.append(warp(
+                band_names,
+                self.params['srs'],
+                self.params["extents"][i] ))
         self.save(data, fname, scale_factor=0.0001)
 
     def viirs(self, folder):
@@ -63,7 +84,10 @@ class Illuminutils:
         print "    ".join(map(str,files))
         data = list()
         for i in range(self.params["nb_layers"]):
-            data.append(warp(files, self.params['srs'], self.params["extents"][i]))
+            data.append(warp(
+                files,
+                self.params['srs'],
+                self.params["extents"][i] ))
         self.save(data,"stable_lights")
 
 if __name__ == "__main__":

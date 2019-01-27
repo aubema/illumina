@@ -15,14 +15,16 @@ from copy import deepcopy as _clone
 
 class MultiScaleData(_np.ndarray):
     def __new__(cls, data):
-        obj = _np.zeros((data.attrs['nb_layers'],
-                        data.attrs['nb_pixels'],
-                        data.attrs['nb_pixels'])).view(cls)
+        obj = _np.zeros((
+            data.attrs['nb_layers'],
+            data.attrs['nb_pixels'],
+            data.attrs['nb_pixels'] )).view(cls)
         obj._attrs = dict(data.attrs)
         obj._attrs['layers'] = list()
         for i in xrange(data.attrs['nb_layers']):
             obj[i] = data['layer_%i'%i][:]
-            obj._attrs['layers'].append(dict(data['layer_%i'%i].attrs))
+            obj._attrs['layers'].append(
+                dict( data['layer_%i'%i].attrs ) )
 
         return obj
 
@@ -78,7 +80,8 @@ class MultiScaleData(_np.ndarray):
             self[i][d2 <= R**2] = value
 
     def save(self,filename):
-        if '.' not in filename or 'hdf' not in filename.rsplit('.',1)[-1]:
+        if '.' not in filename or \
+            'hdf' not in filename.rsplit('.',1)[-1]:
             filename += ".hdf5"
         with _HDFile(filename,'w') as File:
             for key,val in self._attrs.iteritems():
