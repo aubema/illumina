@@ -15,12 +15,6 @@ from itertools import product as comb, izip
 import numpy as np
 from chainmap import ChainMap
 
-def getp(name,name_list,param_list,params):
-    return \
-        param_list[name_list.index(name)] \
-        if name in name_list \
-        else params[name]
-
 def input_line(val,comment,n_space=30):
     value_str = ' '.join(str(v) for v in val)
     comment_str = ' ; '.join(comment)
@@ -196,4 +190,5 @@ for param_vals in comb(*param_space):
 
     count += 1
 
+print "Final count:", count
 print "Done."

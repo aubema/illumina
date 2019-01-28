@@ -193,38 +193,44 @@ for i in xrange(len(x)):
 
 print "Inverting lamp intensity."
 
+viirs_dat = MSD.Open(dir_name+"stable_lights.hdf5") * 1e-5 #nW/cm^2/sr -> W/m^2/sr
+
 # Water mask
 viirs_dat[refl(700) < 0.01] = 0
 
-zon_mask = MSD.Open(dir_name+"/"+out_name+"_zone.hdf5")
-wl_bin = np.array_split(wav[bool_array],n_bins,-1)
-fctem_bin = np.array_split(zones[:,:,bool_array],n_bins,-1)
-viirs_bin = np.array_split(viirs[bool_array],n_bins,-1)
+circles = MSD.Open(dir_name+"/"+out_name+"_zone.hdf5")
+zon_mask = np.arange(1,len(zones)+1)[:,None,None,None] == circles
 
 a = np.deg2rad(angles)
 mids = np.concatenate([[a[0]],np.mean([a[1:],a[:-1]],0),[a[-1]]])
 sinx = 2*np.pi*(np.cos(mids[:-1])-np.cos(mids[1:]))
 
-# Pixel size in cm^2
+# Pixel size in m^2
 S = np.array([
-	(100.*viirs_dat.pixel_size(i))**2 \
+	viirs_dat.pixel_size(i)**2 \
 	for i in xrange(len(viirs_dat)) ])
 
 # phie = DNB * S / int( R ( rho/pi Gdown + Gup ) ) dlambda
-for z in xrange(len(zones)):
-	for i in xrange(n_bins):
-		rho = refl(wl_bin[i])
-		gdown = (fctem_bin[i][z] * sinx[:,None])[angles>90].sum(0)
-		gup = (fctem_bin[i][z] * sinx[:,None])[angles<70].sum(0) / \
-			sinx[angles<70].sum(-1)
+# [181, 1254, 3, 25, 25]
+rho = refl(wav)
+gdown = (zones * sinx[:,None])[:,angles>90].sum(1)
+gdown = (zon_mask[:,None] * gdown[:,:,None,None,None]).sum(0)
+gup = (zones * sinx[:,None])[:,angles<70].sum(1) / sinx[angles<70].sum()
+gup = (zon_mask[:,None] * gup[:,:,None,None,None]).sum(0)
 
-		integ = np.sum(
-			(viirs_bin[i] * \
-			(rho.T/np.pi * gdown + gup)).T * \
-			(wav[1]-wav[0]) , 0 )
+integ = np.sum( \
+	viirs[:,None,None,None] * \
+	(rho/np.pi * gdown + gup) * \
+	(wav[1]-wav[0]), 0)
 
-		phie = (zon_mask==z) * viirs_dat * S[:,None,None] / integ
+phie = pt.safe_divide(viirs_dat * S[:,None,None], integ)
 
-		phie.save(dir_name+"%s_%03d_lumlp_%03d" % (out_name,x[i],z+1))
+wl_bin = np.array_split(wav[bool_array],n_bins,-1)
+fctem_bin = np.array_split(zones[:,:,bool_array],n_bins,-1)
+
+for i in xrange(n_bins):
+	ratio = (fctem_bin[i].mean(-1) * sinx).sum(1)
+	for z,r in enumerate(ratio,start=1):
+		(phie * r).save(dir_name+"%s_%03d_lumlp_%03d" % (out_name,x[i],z))
 
 print "Done."
