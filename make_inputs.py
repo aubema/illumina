@@ -25,8 +25,7 @@ lop_files = glob("Lights/*.lop")
 angles = np.arange(181,dtype=float)
 lop = {
 	os.path.basename(s).split('_',1)[0] : \
-	pt.load_lop(angles,s) \
-	for s in lop_files }
+	pt.load_lop(angles,s) for s in lop_files }
 
 # Spectral distribution (normalised with scotopric vision to 1)
 wav, viirs = np.loadtxt( "Lights/viirs.dat", skiprows=1 ).T

@@ -24,9 +24,7 @@ def warp(srcfiles, projection=None, extent=None):
 
 def MYD09A1_band_name(fname, band_n):
     sub_ds = gdal.Open(fname).GetSubDatasets()
-    return filter(
-        lambda sds: ("b%02d" % band_n) in sds[0],
-        sub_ds )[0][0]
+    return next( s[0] for s in sub_ds if ("b%02d" % band_n) in s[0] )
 
 class Illuminutils:
     def __init__(self, ini):
@@ -58,12 +56,8 @@ class Illuminutils:
     def srtm(self, folder):
         files = glob(folder+"/*.hgt")
         print "    ".join(map(str,files))
-        data = list()
-        for i in range(self.params["nb_layers"]):
-            data.append(warp(
-                files,
-                self.params['srs'],
-                self.params["extents"][i] ))
+        data = [ warp(files, self.params['srs'], extent) \
+            for extent in self.params['extents'] ]
         self.save(data,"srtm")
 
     def modis(self, folder, band_n):
@@ -71,23 +65,15 @@ class Illuminutils:
         fname = "refl_b%02d" % band_n
         band_names = map( lambda f: MYD09A1_band_name(f, band_n), files )
         print "    ".join(map(str,band_names))
-        data = list()
-        for i in range(self.params["nb_layers"]):
-            data.append(warp(
-                band_names,
-                self.params['srs'],
-                self.params["extents"][i] ))
+        data = [ warp(band_names, self.params['srs'], extent) \
+            for extent in self.params['extents'] ]
         self.save(data, fname, scale_factor=0.0001)
 
     def viirs(self, folder):
         files = glob(folder+"/*.tif")
         print "    ".join(map(str,files))
-        data = list()
-        for i in range(self.params["nb_layers"]):
-            data.append(warp(
-                files,
-                self.params['srs'],
-                self.params["extents"][i] ))
+        data = [ warp(files, self.params['srs'], extent) \
+            for extent in self.params['extents'] ]
         self.save(data,"stable_lights")
 
 if __name__ == "__main__":

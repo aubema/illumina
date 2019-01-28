@@ -48,7 +48,7 @@ domain["nb_pixels"] = npix
 
 domain["extents"] = list()
 
-for i in range(domain["nb_layers"]):
+for i in xrange(domain["nb_layers"]):
     size = domain["scale_min"] * domain["scale_factor"]**i
 
     print "Layer",i

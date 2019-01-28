@@ -15,16 +15,9 @@ from copy import deepcopy as _clone
 
 class MultiScaleData(_np.ndarray):
     def __new__(cls, data):
-        obj = _np.zeros((
-            data.attrs['nb_layers'],
-            data.attrs['nb_pixels'],
-            data.attrs['nb_pixels'] )).view(cls)
+        obj = _np.array([ data[ly][:] for ly in data ]).view(cls)
         obj._attrs = dict(data.attrs)
-        obj._attrs['layers'] = list()
-        for i in xrange(data.attrs['nb_layers']):
-            obj[i] = data['layer_%i'%i][:]
-            obj._attrs['layers'].append(
-                dict( data['layer_%i'%i].attrs ) )
+        obj._attrs['layers'] = [ dict(data[ly].attrs) for ly in data ]
 
         return obj
 
