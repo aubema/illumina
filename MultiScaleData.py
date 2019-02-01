@@ -41,11 +41,13 @@ class MultiScaleData(_np.ndarray):
                 return i
         raise IndexError('Coordinate out of range')
 
-    def _get_col_row(self,coords,layer,dtype=int):
+    def _get_col_row(self,coords,layer,asfloat=False):
         x,y = self._project(coords)
         attrs = self._attrs['layers'][layer]
-        col = dtype((x-attrs['xmin'])/attrs['pixel_size'] - 0.5)
-        row = dtype((y-attrs['ymin'])/attrs['pixel_size'] - 0.5)
+        col = (x-attrs['xmin'])/attrs['pixel_size'] - 0.5
+        row = (attrs['ymax']-y)/attrs['pixel_size'] - 0.5
+        if not asfloat:
+            col,row = int(round(col)),int(round(row))
         return col,row
 
     def _view_latlon(self,coords):
@@ -64,9 +66,14 @@ class MultiScaleData(_np.ndarray):
         return self._attrs['obs_lat'], self._attrs['obs_lon']
 
     def set_circle(self,center,radii,value):
+        """Set a circle to a constant value on all layers.
+
+        center: (lat,lon) tuple
+        radii: Radius in meters
+        value: Value to set the circle to"""
         H = self._attrs['nb_pixels']
         for i in range(len(self)):
-            X0, Y0 = self._get_col_row(center,i,float)
+            X0, Y0 = self._get_col_row(center,i,asfloat=True)
             R = float(radii) / self.pixel_size(i)
             Y, X = _np.ogrid[:H,:H]
             d2 = (X-X0)**2 + (Y-Y0)**2
