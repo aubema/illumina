@@ -14,6 +14,7 @@ from glob import glob
 from itertools import product as comb, izip
 import numpy as np
 from chainmap import ChainMap
+from collections import OrderedDict
 
 def input_line(val,comment,n_space=30):
     value_str = ' '.join(str(v) for v in val)
@@ -61,7 +62,7 @@ multival = sorted( multival, key=lambda s:len(s), reverse=True ) # Semi-arbitrar
 param_space = [ params[k] for k in multival ]
 print "Number of executions:", np.prod(map(len,param_space))
 for param_vals in comb(*param_space):
-    local_params = dict(izip(multival,param_vals))
+    local_params = OrderedDict(izip(multival,param_vals))
     P = ChainMap(local_params,params)
     if "azimuth_angles" in multival \
         and P['elevation_angles'] == 90 \
