@@ -113,7 +113,7 @@ print "Making zone properties files."
 circles = viirs_dat # Same geolocalisation
 circles[:] = 0
 
-zonfile = np.loadtxt(inv_name,usecols=range(7))
+zonfile = np.loadtxt(inv_name,usecols=range(7),ndmin=2)
 
 # zone number
 for i,dat in enumerate(zonfile,1):
