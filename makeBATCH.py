@@ -137,8 +137,8 @@ for param_vals in comb(*param_space):
         ((len(zones), "Number of source types"),),
         ((P['stop_limit'], "Contribution threshold"),),
         (('', ''),),
-        ((ds._attrs['nb_pixels']/2, "Observer X position"),
-         (ds._attrs['nb_pixels']/2, "Observer Y position"),
+        ((ds.shape[2]/2, "Observer X position"),
+         (ds.shape[1]/2, "Observer Y position"),
          (P['observer_elevation'], "Observer elevation above ground [m]"),
          (1, "Beginning cell along line of sight")),
         (('', ''),),
@@ -158,7 +158,7 @@ for param_vals in comb(*param_space):
             "3=Altostratus/Altocumulus, "
             "4=Cumulus/Cumulonimbus, "
             "5=Stratocumulus"),),
-        ((P['nearest_source_distance'], "Minimal distance to nearest light source [m]"),)
+        ((ds.pixel_size(layer)/2, "Minimal distance to nearest light source [m]"),)
     )
 
     with open(fold_name+"illumina.in",'w') as f:
