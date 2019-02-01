@@ -41,10 +41,9 @@ if domain["srs"] == "auto":
 wgs84 = pyproj.Proj(init="epsg:4326")
 proj  = pyproj.Proj(init=domain['srs'])
 
-npix = domain["scale_factor"]**2
 x0,y0 = pyproj.transform(wgs84,proj,lon,lat)
 
-domain["nb_pixels"] = npix
+npix = domain['nb_pixels']
 
 domain["extents"] = list()
 
