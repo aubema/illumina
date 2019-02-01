@@ -211,26 +211,26 @@ S = np.array([
 	for i in xrange(len(viirs_dat)) ])
 
 # phie = DNB * S / int( R ( rho/pi Gdown + Gup ) ) dlambda
-# [181, 1254, 3, 25, 25]
-rho = refl(wav)
 gdown = (zones * sinx[:,None])[:,angles>90].sum(1)
-gdown = (zon_mask[:,None] * gdown[:,:,None,None,None]).sum(0)
+#gdown = np.tensordot(gdown, zon_mask, (0,0))
 gup = (zones * sinx[:,None])[:,angles<70].sum(1) / sinx[angles<70].sum()
-gup = (zon_mask[:,None] * gup[:,:,None,None,None]).sum(0)
+#gup = np.tensordot(gup, zon_mask, (0,0))
 
-integ = np.sum( \
-	viirs[:,None,None,None] * \
-	(rho/np.pi * gdown + gup) * \
-	(wav[1]-wav[0]), 0)
+# Has to be done this way or risk MemoryError
+integ = ( viirs[i] * (refl(wl)/np.pi * gdown[:,i,None,None,None] + \
+	gup[:,i,None,None,None]) for i,wl in enumerate(wav) )
 
-phie = pt.safe_divide(viirs_dat * S[:,None,None], integ)
+phie = np.zeros(circles.shape)
+phie = sum(integ, phie) * (wav[1]-wav[0])
+
+phie = pt.safe_divide(zon_mask * viirs_dat * S[:,None,None], phie)
 
 wl_bin = np.array_split(wav[bool_array],n_bins,-1)
 fctem_bin = np.array_split(zones[:,:,bool_array],n_bins,-1)
 
 for i in xrange(n_bins):
 	ratio = (fctem_bin[i].mean(-1) * sinx).sum(1)
-	for z,r in enumerate(ratio,start=1):
-		(phie * r).save(dir_name+"%s_%03d_lumlp_%03d" % (out_name,x[i],z))
+	for z,r in enumerate(ratio):
+		(phie[z] * r).save(dir_name+"%s_%03d_lumlp_%03d" % (out_name,x[i],z+1))
 
 print "Done."
