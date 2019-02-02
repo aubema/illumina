@@ -64,9 +64,9 @@ print "Number of executions:", np.prod(map(len,param_space))
 for param_vals in comb(*param_space):
     local_params = OrderedDict(izip(multival,param_vals))
     P = ChainMap(local_params,params)
-    if "azimuth_angles" in multival \
-        and P['elevation_angles'] == 90 \
-        and params['azimuth_angles'].index(P['azimuth_angles']) != 0:
+    if "azimuth_angle" in multival \
+        and P['elevation_angle'] == 90 \
+        and params['azimuth_angle'].index(P['azimuth_angle']) != 0:
         continue
 
     fold_name = dir_name + \
@@ -128,7 +128,7 @@ for param_vals in comb(*param_space):
          (ds.pixel_size(layer), "Cell size along Y [m]")),
         (("aerosol.mie.out", "Aerosol optical cross section file"),),
         (('', ''),),
-        ((P['scattering_radius'], "Double scattering radius [m]" ),
+        ((P['scattering_radius']*1000, "Double scattering radius [m]" ),
          (P['scattering_skip'], "Scattering step")),
         (('', ''),),
         ((wavelength, "Wavelength [nm]"),),
@@ -138,13 +138,13 @@ for param_vals in comb(*param_space):
         ((len(zones), "Number of source types"),),
         ((P['stop_limit'], "Contribution threshold"),),
         (('', ''),),
-        ((ds.shape[2]/2, "Observer X position"),
-         (ds.shape[1]/2, "Observer Y position"),
+        ((ds.shape[2]/2 + 1, "Observer X position"),
+         (ds.shape[1]/2 + 1, "Observer Y position"),
          (P['observer_elevation'], "Observer elevation above ground [m]"),
          (1, "Beginning cell along line of sight")),
         (('', ''),),
-        ((P['elevation_angles'], "Elevation viewing angle"),
-         (P['azimuth_angles'], "Azimutal viewing angle")),
+        ((P['elevation_angle'], "Elevation viewing angle"),
+         (P['azimuth_angle'], "Azimutal viewing angle")),
         (('', ''),),
         ((1., "Slit width [m]"),
          (1., "Pixel size [m]"),

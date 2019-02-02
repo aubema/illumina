@@ -101,10 +101,12 @@ out_name = params['exp_name']
 # Removing overlapped light
 viirs_dat = MSD.Open("stable_lights.hdf5")
 
-n = viirs_dat._attrs['scale_factor']
-n1 = n * (n/2)
-n2 = n1 + n
-viirs_dat[1:,n1:n2,n1:n2] = 0
+sf = viirs_dat.scale_factor()
+N = viirs_dat.shape[1]
+n = N / sf
+n = int(n - n%2 + 1) # Round nearest odd
+buff = (N-n)/2
+viirs_dat[1:,buff:N-buff,buff:N-buff] = 0
 
 viirs_dat.save(dir_name+"stable_lights")
 

@@ -55,6 +55,9 @@ class MultiScaleData(_np.ndarray):
         col,row = self._get_col_row(coords,n_layer)
         return data[col:col+1,row:row+1]
 
+    def scale_factor(self):
+        return self._attrs['scale_factor']
+
     def pixel_size(self,index):
         if isinstance(index, _Integral):
             n_layer = index
