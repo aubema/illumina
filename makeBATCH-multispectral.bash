@@ -163,8 +163,6 @@ echo "Making variable resolution grid lumlp files..."
                 echo $exp_name"_reflect.bin" >> varres.in
                 echo $exp_name"_lumlp_"${lamp_l[$nl]}"_new.bin"  >> varres.in
                 echo $exp_name"_reflect_new.bin"  >> varres.in
-                echo $nbx  >> varres.in
-                echo $nby  >> varres.in
                 echo ${x_sites[$ns]} >> varres.in
                 echo ${y_sites[$ns]} >> varres.in
                 echo $l1 $l3 >> varres.in
