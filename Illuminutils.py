@@ -2,6 +2,7 @@
 
 from glob import glob
 import gdal, yaml, h5py
+import hdftools
 
 def warp(srcfiles, projection=None, extent=None):
     bounding_box = [
@@ -32,26 +33,9 @@ class Illuminutils:
             self.params = yaml.load(f)
 
     def save(self, data, dstname, scale_factor=1.):
-        with h5py.File(dstname+".hdf5",'w') as f:
-            for key in [
-                'nb_layers',
-                'nb_pixels',
-                'scale_factor',
-                'scale_min',
-                'srs'] :
-                f.attrs[key] = self.params[key]
-            f.attrs['obs_lat'] = self.params['observer']['latitude']
-            f.attrs['obs_lon'] = self.params['observer']['longitude']
-
-            for i,layer in enumerate(data):
-                P = self.params['extents'][i]
-                ds = f.create_dataset(
-                    "layer_%d" % P['layer'],
-                    data=layer*scale_factor)
-                for key in P:
-                    if key == "layer":
-                        continue
-                    ds.attrs[key] = P[key]
+        scaled_data = [ d*scale_factor for d in data ]
+        ds = hdftools.from_domain(self.params,data)
+        ds.save(dstname)
 
     def srtm(self, folder):
         files = glob(folder+"/*.hgt")

@@ -112,8 +112,7 @@ viirs_dat.save(dir_name+"stable_lights")
 
 print "Making zone properties files."
 
-circles = viirs_dat # Same geolocalisation
-circles[:] = 0
+circles = np.zeros_like(viirs_dat) # Same geolocalisation
 
 zonfile = np.loadtxt(inv_name,usecols=range(7),ndmin=2)
 
@@ -176,8 +175,6 @@ with open(dir_name+"/wav.lst",'w') as zfile:
 
 print "Interpolating reflectance."
 
-modis = circles
-
 refl_wav = np.loadtxt("modis.dat",usecols=[1])
 refl_raw = [ MSD.Open("refl_b%02d.hdf5" % (i+1))
 	for i in xrange(len(refl_wav)) ]
@@ -189,6 +186,8 @@ refl = interp(
 	copy=False,
 	bounds_error=False,
 	fill_value='extrapolate' )
+
+modis = np.zeros_like(circles)
 for i in xrange(len(x)):
 	modis[:] = refl(x[i])
 	modis.save(dir_name+"modis_%03d" % x[i])
@@ -222,7 +221,7 @@ gup = (zones * sinx[:,None])[:,angles<70].sum(1) / sinx[angles<70].sum()
 integ = ( viirs[i] * (refl(wl)/np.pi * gdown[:,i,None,None,None] + \
 	gup[:,i,None,None,None]) for i,wl in enumerate(wav) )
 
-phie = np.zeros(circles.shape)
+phie = np.zeros_like(circles)
 phie = sum(integ, phie) * (wav[1]-wav[0])
 
 phie = pt.safe_divide(zon_mask * viirs_dat * S[:,None,None], phie)

@@ -14,10 +14,14 @@ from numbers import Integral as _Integral
 from copy import deepcopy as _clone
 
 class MultiScaleData(_np.ndarray):
-    def __new__(cls, data):
-        obj = _np.array([ data[ly][:] for ly in data ]).view(cls)
-        obj._attrs = dict(data.attrs)
-        obj._attrs['layers'] = [ dict(data[ly].attrs) for ly in data ]
+    def __new__(cls, params, data=None):
+        obj = _np.asarray(data) if data is not None else \
+            _np.zeros((
+                params['nb_layers'],
+                params['nb_pixels'],
+                params['nb_pixels'] ))
+        obj = obj.view(cls)
+        obj._attrs = params
 
         return obj
 
@@ -95,11 +99,12 @@ class MultiScaleData(_np.ndarray):
                 for key,val in self._attrs['layers'][i].iteritems():
                     ds.attrs[key] = val
 
-    def copy(self):
-        return _clone(self)
-
 def Open(filename):
     """Open a multiscale HDF5 data fileself.
 
     Returns a MultiScaleData object."""
-    return MultiScaleData(_HDFile(filename))
+    ds = _HDFile(filename)
+    data = _np.array([ ds[ly][:] for ly in ds ])
+    params = dict(ds.attrs)
+    params['layers'] = [ dict(ds[ly].attrs) for ly in ds ]
+    return MultiScaleData(params, data)
