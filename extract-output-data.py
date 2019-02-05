@@ -7,9 +7,17 @@
 #
 # February 2019
 
-import os,sys
+import os
+import argparse
 
-for dirpath,dirnames,filenames in os.walk(sys.argv[1]):
+parser = argparse.ArgumentParser(description="Extract Illumina output.")
+parser.add_argument( "exec_dir", help="Execution directory." )
+parser.add_argument( "-d, --domain", dest="params_filename",
+    help="Domain definition file [domain.ini]. If present, extract contribution maps." )
+
+p = parser.parse_args()
+
+for dirpath,dirnames,filenames in os.walk(p.exec_dir):
     out_names = filter(lambda fname: fname.endswith(".out") and \
         not fname.endswith(".mie.out"), filenames)
     if len(out_names) == 0:
@@ -18,4 +26,4 @@ for dirpath,dirnames,filenames in os.walk(sys.argv[1]):
         with open(os.sep.join([dirpath,oname])) as f:
             lines = f.readlines()
 
-        print dirpath.split(os.sep,2)[-1].replace(os.sep,'-'), float(lines[-4])
+        print dirpath.split("exec")[-1][1:], float(lines[-4])
