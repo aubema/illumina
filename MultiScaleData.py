@@ -12,6 +12,7 @@ import pyproj as _pyproj
 from h5py import File as _HDFile
 from numbers import Integral as _Integral
 from copy import deepcopy as _clone
+from itertools import izip as _izip
 
 class MultiScaleData(_np.ndarray):
     def __new__(cls, params, data=None):
@@ -23,7 +24,7 @@ class MultiScaleData(_np.ndarray):
                 nb_pixels + p['observer_size_x']
             )) for p in params['layers'] ]
         obj = _np.asarray(data).view(cls)
-        obj._attrs = params
+        obj._attrs = _clone(params)
 
         return obj
 
@@ -107,6 +108,18 @@ class MultiScaleData(_np.ndarray):
             self[i][ny-buff:] = value
             self[i][:,:buff] = value
             self[i][:,nx-buff:] = value
+
+    def split_observers(self):
+        n = self._attrs['nb_pixels']
+        b = self._attrs['buffer']
+        for lat,lon in _izip( *self.get_obs_pos() ):
+            new = MultiScaleData(self._attrs)
+            for l in xrange(len(new)):
+                xc,yc = new._get_col_row((lat,lon),l)
+                new[l] = new[l][yc-n-b:yc+n+b+1,xc-n-b:xc+n+b+1]
+            new._attrs['obs_lat'] = [lat]
+            new._attrs['obs_lon'] = [lon]
+            yield new
 
     def save(self,filename):
         if '.' not in filename or \

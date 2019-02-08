@@ -99,11 +99,13 @@ for l in xrange(n_bins):
 
 out_name = params['exp_name']
 
-# Removing overlapped light
-viirs_dat = MSD.Open("stable_lights.hdf5")
-viirs_dat.set_overlap(0)
-viirs_dat.set_buffer(0)
-viirs_dat.save(dir_name+"stable_lights")
+try:
+	os.symlink(
+		os.path.abspath("stable_lights.hdf5"),
+		dir_name+"stable_lights.hdf5" )
+except OSError as e:
+	if e[0] != 17:
+		raise
 
 print "Making zone properties files."
 
