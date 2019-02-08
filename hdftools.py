@@ -34,9 +34,9 @@ def from_domain(params,data=None):
         with open(params) as f:
             params = _yaml_load(f)
     attrs = { k:v for k,v in params.iteritems() \
-        if k not in ['extents','observer'] }
-    attrs['obs_lat'] = params['observer']['latitude']
-    attrs['obs_lon'] = params['observer']['longitude']
+        if k not in ['extents','observers'] }
+    attrs['obs_lat'] = [ d['latitude'] for d in params['observers'] ]
+    attrs['obs_lon'] = [ d['longitude'] for d in params['observers'] ]
     attrs['layers'] = [ {k:v for k,v in d.iteritems() if k != 'layer'} \
         for d in params['extents'] ]
     return MSD.MultiScaleData(attrs,data)

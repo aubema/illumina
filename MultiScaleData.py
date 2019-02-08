@@ -15,12 +15,14 @@ from copy import deepcopy as _clone
 
 class MultiScaleData(_np.ndarray):
     def __new__(cls, params, data=None):
-        obj = _np.asarray(data) if data is not None else \
-            _np.zeros((
-                params['nb_layers'],
-                params['nb_pixels'],
-                params['nb_pixels'] ))
-        obj = obj.view(cls)
+        if data is None:
+            n_layers = params['nb_layers']
+            nb_pixels = 2*(params['nb_pixels'] + params['buffer'])
+            data = [ _np.zeros((
+                nb_pixels + p['observer_size_y'],
+                nb_pixels + p['observer_size_x']
+            )) for p in params['layers'] ]
+        obj = _np.asarray(data).view(cls)
         obj._attrs = params
 
         return obj
@@ -60,7 +62,7 @@ class MultiScaleData(_np.ndarray):
         return data[col:col+1,row:row+1]
 
     def scale_factor(self):
-        return self._attrs['scale_factor']
+        return (self._attrs['nb_pixels']+0.5) / (self._attrs['nb_core']+0.5)
 
     def pixel_size(self,index):
         if isinstance(index, _Integral):
@@ -78,13 +80,33 @@ class MultiScaleData(_np.ndarray):
         center: (lat,lon) tuple
         radii: Radius in meters
         value: Value to set the circle to"""
-        H = self._attrs['nb_pixels']
-        for i in range(len(self)):
+        for i in xrange(len(self)):
+            ny,nx = self[i].shape
             X0, Y0 = self._get_col_row(center,i,asfloat=True)
             R = float(radii) / self.pixel_size(i)
-            Y, X = _np.ogrid[:H,:H]
+            Y, X = _np.ogrid[:ny,:nx]
             d2 = (X-X0)**2 + (Y-Y0)**2
             self[i][d2 <= R**2] = value
+
+    def set_overlap(self,value=0):
+        nb_core = self._attrs['nb_core']
+        for i in xrange(1,len(self)):
+            ny,nx = self[i].shape
+            obs_x = self._attrs['layers'][i]['observer_size_x']
+            obs_y = self._attrs['layers'][i]['observer_size_y']
+            self[i][
+                (ny-obs_y)/2 - nb_core : (ny+obs_y)/2 + nb_core,
+                (nx-obs_x)/2 - nb_core : (nx+obs_x)/2 + nb_core
+            ] = value
+
+    def set_buffer(self,value=0):
+        buff = self._attrs['buffer']
+        for i in xrange(len(self)):
+            ny,nx = self[i].shape
+            self[i][:buff] = value
+            self[i][ny-buff:] = value
+            self[i][:,:buff] = value
+            self[i][:,nx-buff:] = value
 
     def save(self,filename):
         if '.' not in filename or \
