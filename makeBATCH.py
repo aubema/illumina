@@ -45,8 +45,15 @@ for fname in glob(sys.argv[1]+"/%s*" % params['batch_file_name']):
 exp_name = params['exp_name']
 
 # Add wavelength and multiscale
+ds = MSDOpen("stable_lights.hdf5")
+
 params['wavelength'] = np.loadtxt("wav.lst").tolist()
-params['layer'] = range(len(MSDOpen("stable_lights.hdf5")))
+params['layer'] = range(len(ds))
+params['observer_coordinates'] = zip(*ds.get_obs_pos())
+
+for pname in ['layer','observer_coordinates']:
+    if len(params[pname]) == 1:
+        params[pname] = params[pname][0]
 
 with open("zon.lst") as f:
     zones = f.read().split()
@@ -69,8 +76,11 @@ for param_vals in comb(*param_space):
         and params['azimuth_angle'].index(P['azimuth_angle']) != 0:
         continue
 
+    coords = P['observer_coordinates']
+    P['observer_coordinates'] = "%g_%g" % coords
+
     fold_name = dir_name + \
-        '/'.join(k+"_%g" % v for k,v in local_params.iteritems()) + '/'
+        '/'.join(k+"_%s" % v for k,v in local_params.iteritems()) + '/'
 
     os.makedirs(fold_name)
     #print fold_name
@@ -100,23 +110,23 @@ for param_vals in comb(*param_space):
     # Copying layer data
     layer = P["layer"]
 
-    ds = MSDOpen("srtm.hdf5")
+    ds = MSDOpen("srtm.hdf5").extract_observer(coords)
     save_bin(fold_name+exp_name+"_topogra.bin", ds[layer])
 
     for name in ["obstd","obsth","obstf","altlp"]:
         ds = MSDOpen( "%s_%s.hdf5" % \
-            ( exp_name, name ) )
+            ( exp_name, name ) ).extract_observer(coords)
         save_bin(fold_name+"%s_%s.bin" % \
             ( exp_name, name ), ds[layer] )
 
     for zon in zones:
         ds = MSDOpen( "%s_%s_lumlp_%s.hdf5" % \
-            ( exp_name, wavelength, zon ) )
+            ( exp_name, wavelength, zon ) ).extract_observer(coords)
         save_bin(fold_name+"%s_lumlp_%s.bin" % \
             ( exp_name, zon ), ds[layer] )
 
     ds = MSDOpen( "modis_%s.hdf5" % \
-        wavelength )
+        wavelength ).extract_observer(coords)
     save_bin(fold_name+"%s_reflect.bin" % \
         exp_name, ds[layer] )
 
@@ -138,8 +148,8 @@ for param_vals in comb(*param_space):
         ((len(zones), "Number of source types"),),
         ((P['stop_limit'], "Contribution threshold"),),
         (('', ''),),
-        ((ds.shape[2]/2 + 1, "Observer X position"),
-         (ds.shape[1]/2 + 1, "Observer Y position"),
+        ((ds[layer].shape[1]/2 + 1, "Observer X position"),
+         (ds[layer].shape[0]/2 + 1, "Observer Y position"),
          (P['observer_elevation'], "Observer elevation above ground [m]"),
          (1, "Beginning cell along line of sight")),
         (('', ''),),
