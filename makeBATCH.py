@@ -122,6 +122,8 @@ for param_vals in comb(*param_space):
     for zon in zones:
         ds = MSDOpen( "%s_%s_lumlp_%s.hdf5" % \
             ( exp_name, wavelength, zon ) ).extract_observer(coords)
+        ds.set_buffer(0)
+        ds.set_overlap(0)
         save_bin(fold_name+"%s_lumlp_%s.bin" % \
             ( exp_name, zon ), ds[layer] )
 
