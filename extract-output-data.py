@@ -17,6 +17,7 @@ parser.add_argument( "-d, --domain", dest="params_filename",
 
 p = parser.parse_args()
 
+failed = []
 for dirpath,dirnames,filenames in os.walk(p.exec_dir):
     out_names = filter(lambda fname: fname.endswith(".out") and \
         not fname.endswith(".mie.out"), filenames)
@@ -26,4 +27,15 @@ for dirpath,dirnames,filenames in os.walk(p.exec_dir):
         with open(os.sep.join([dirpath,oname])) as f:
             lines = f.readlines()
 
-        print dirpath.split("exec")[-1][1:], float(lines[-4])
+        path = dirpath.split("exec")[-1][1:]
+        try:
+            val = float(lines[-4])
+        except:
+            failed.append(path)
+        else:
+            print path, val
+
+print "\nFailed:"
+
+for path in failed:
+    print path

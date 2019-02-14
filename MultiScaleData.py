@@ -121,7 +121,7 @@ class MultiScaleData(_np.ndarray):
         new = MultiScaleData(self._attrs)
         for l in xrange(len(new)):
             xc,yc = new._get_col_row((lat,lon),l)
-            new[l] = new[l][yc-n-b:yc+n+b+1,xc-n-b:xc+n+b+1]
+            new[l] = self[l][yc-n-b:yc+n+b+1,xc-n-b:xc+n+b+1].copy()
         new._attrs['obs_lat'] = [lat]
         new._attrs['obs_lon'] = [lon]
         return new
