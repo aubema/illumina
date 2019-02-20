@@ -7,8 +7,9 @@
 #
 # February 2019
 
-import os
+import os, re
 import argparse
+from collections import defaultdict as ddict
 
 parser = argparse.ArgumentParser(description="Extract Illumina output.")
 parser.add_argument( "exec_dir", default='.', nargs='?', help="Execution directory." )
@@ -18,6 +19,9 @@ parser.add_argument( '-p', '--param', action='append', nargs=2, default=[],
     metavar=('NAME','VALUE(S)'), help="Values of the parameter NAME to extract. Multiple values must be separated by commas.")
 
 p = parser.parse_args()
+
+regex = re.compile(r'/layer_\d+')
+data = ddict(float)
 
 for dirpath,dirnames,filenames in os.walk(p.exec_dir):
     out_names = filter(lambda fname: fname.endswith(".out") and \
@@ -43,4 +47,7 @@ for dirpath,dirnames,filenames in os.walk(p.exec_dir):
 
         path = dirpath.split("exec")[-1][1:]
         val = float(lines[-4])
-        print path, val
+        data[regex.sub('',path)] += val
+
+for key,val in data.iteritems():
+    print key,val
