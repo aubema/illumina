@@ -24,8 +24,9 @@ parser.add_argument( '-p', '--param', action='append', nargs=2, default=[],
 p = parser.parse_args()
 regex = re.compile(r'/layer_(\d+)')
 
-data = ddict(float) if p.params_filename is None else \
-    ddict(partial(from_domain,p.params_filename))
+skyglow = ddict(float)
+if p.params_filename is not None:
+    contrib = ddict(partial(from_domain,p.params_filename))
 
 for dirpath,dirnames,filenames in os.walk(p.exec_dir):
     out_names = filter(lambda fname: fname.endswith(".out") and \
@@ -51,19 +52,18 @@ for dirpath,dirnames,filenames in os.walk(p.exec_dir):
 
         path = dirpath.split("exec")[-1][1:]
         val = float(lines[-4])
-        if p.params_filename is None:
-            data[regex.sub('',path)] += val
-        else:
+        skyglow[regex.sub('',path)] += val
+        if p.params_filename is not None:
             n_layer = int(regex.search(dirpath).groups()[0])
+            key = regex.sub('',path)
+            pix_size = ( contrib[key].pixel_size(n_layer) / 1000. ) ** 2 # in km^2
             pcl_name = filter(lambda s: "pcl.bin" in s, filenames)[0]
             pcl_path = os.path.join(dirpath,pcl_name)
             pcl_data = load_bin(pcl_path)
-            pcl_data *= val / pcl_data.sum()
-            data[regex.sub('',path)][n_layer] = pcl_data
+            pcl_data *= val / pix_size / pcl_data.sum()
+            contrib[key][n_layer] = pcl_data
 
-for key,val in data.iteritems():
-    if p.params_filename is None:
-        print key,val
-    else:
-        val.save(key.replace(os.sep,'-'))
-        print key,sum( v.sum() for v in val )
+for key,val in skyglow.iteritems():
+    print key,val
+    if p.params_filename is not None:
+        contrib[key].save(key.replace(os.sep,'-'))
