@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 
 import numpy as np
-from pytools import *
+import pytools as pt
 from glob import glob
 import os, sys
+import MultiScaleData as MSD
 
 print "What type of scenario do you want to make?"
 print "\t1. Different photometry at constant lumen"
@@ -32,36 +33,36 @@ print "\nLoading data..."
 # Angular distribution (normalised to 1)
 lop_files = glob("Lights/*.lop")
 angles = np.arange(181,dtype=float)
-lop = { os.path.basename(s).split('_',1)[0]:load_lop(angles,s) for s in lop_files }
+lop = { os.path.basename(s).split('_',1)[0]:pt.load_lop(angles,s) for s in lop_files }
 
 # Spectral distribution (normalised with scotopric vision to 1)
 wav, viirs = np.loadtxt("Lights/viirs.dat", skiprows=1).T
-viirs = spct_norm(wav,viirs)
-scotopic = load_spct(wav, np.ones(wav.shape), "Lights/scotopic.dat", 1)
-photopic = load_spct(wav, np.ones(wav.shape), "Lights/photopic.dat", 1)
+viirs = pt.spct_norm(wav,viirs)
+scotopic = pt.load_spct(wav, np.ones(wav.shape), "Lights/scotopic.dat", 1)
+photopic = pt.load_spct(wav, np.ones(wav.shape), "Lights/photopic.dat", 1)
 
 #ratio_ps = float(raw_input("    photopic/scotopic ratio ? (0 <= p/(s+p) <= 1) : "))
 ratio_ps = 1.
 norm_spectrum = ratio_ps*photopic + (1-ratio_ps)*scotopic
 
 spct_files = glob("Lights/*.spct")
-spct = { os.path.basename(s).split('_',1)[0]:load_spct(wav,norm_spectrum,s) for s in spct_files }
+spct = { os.path.basename(s).split('_',1)[0]:pt.load_spct(wav,norm_spectrum,s) for s in spct_files }
 
 if alt_type == 1:
-    zonData = parse_inventory(inv_path)
-    oldZonData = parse_inventory(old_invp,7)
+    zonData = pt.parse_inventory(inv_path)
+    oldZonData = pt.parse_inventory(old_invp,7)
 if alt_type == 2:
-    zonData = parse_inventory(inv_path,7)
+    zonData = pt.parse_inventory(inv_path,7)
 
 print "\nCalculating the generalized lamps..."
 
 # Calculate zones lamps
-zones = make_zones( angles, lop, wav, spct, zonData )
+zones = pt.make_zones( angles, lop, wav, spct, zonData )
 
 # Make bins
-x = np.loadtxt("Intrants/wav.lst")
+x = np.loadtxt("Inputs/wav.lst")
 n = x.size
-ilims = np.genfromtxt("Intrants/integration_limits.dat",skip_header=1)
+ilims = np.genfromtxt("Inputs/integration_limits.dat",skip_header=1)
 dl = ilims[1:]-ilims[:-1]
 bool_array = (ilims[0]<=wav)*(wav<ilims[-1])
 y = np.array(map(np.mean,np.array_split(zones[:,:,bool_array],n,-1),[-1]*n)).transpose(1,2,0)
@@ -73,19 +74,19 @@ if alt_type == 1:
     nspct = nspct/np.sum(nspct)
     nspct = np.array(map(np.mean,np.array_split(nspct[bool_array],n)))
 
-    dirnames = ["Intrants_"+new_name.replace(' ','_')+'/']
+    dirnames = ["Inputs_"+new_name.replace(' ','_')+'/']
 if alt_type == 2:
     lamp_types = set(map(lambda x: x[1], sum(zonData,[])))
-    dirnames = [ "Intrants_"+lamp_t+'/' for lamp_t in lamp_types]
+    dirnames = [ "Inputs_"+lamp_t+'/' for lamp_t in lamp_types]
 
 for dirname in dirnames:
     if not os.path.exists(dirname):
         os.makedirs(dirname)
 
 # Link unmodified files
-fctem = set(glob("Intrants/*fctem*"))
-lumlp = set(glob("Intrants/*lumlp*"))
-intrs = set(glob("Intrants/*"))
+fctem = set(glob("Inputs/*fctem*"))
+lumlp = set(glob("Inputs/*lumlp*"))
+intrs = set(glob("Inputs/*"))
 
 files = intrs-lumlp-fctem
 for dirname in dirnames:
@@ -100,32 +101,33 @@ for dirname in dirnames:
 if alt_type == 1:
     for z in xrange(len(zones)):
         print "Treating zone : %d/%d"%(z+1,len(zones))
-        lum_files = sorted(glob("Intrants/*lumlp_%03d*.bin"%(z+1)))
-        spt_files = sorted(glob("Intrants/fctem*%03d*.dat"%(z+1)))
+        lum_files = sorted(glob("Inputs/*lumlp_%03d*.hdf5"%(z+1)))
+        spt_files = sorted(glob("Inputs/fctem*%03d*.dat"%(z+1)))
 
         # Linking files if inventory unchanged (faster)
         if zonData[z]==oldZonData[z]:
             for name in lum_files+spt_files:
                 os.symlink(os.path.abspath(name), dirnames[0]+os.path.basename(name))
         else:
-            data = load_bin(lum_files[0])
-            data = np.asarray([load_bin(s).reshape((1,-1)) for s in lum_files])
-            lumtot = np.sum(data*(dl*nspct)[:,None,None],0) # Total luminosity
+            attrs = MSD.Open(lum_files[0])._attrs
+            data = np.asarray([MSD.Open(s) for s in lum_files])
+            lumtot = np.sum(data*(dl*nspct)[:,None],0) # Total luminosity
             spct = np.sum( y[z] * 2*np.pi*np.sin(np.deg2rad(angles))[:,None]
                          * (angles[1]-angles[0]), 0 )
-            K = safe_divide(lumtot,np.sum(spct*nspct*dl))
+            K = pt.safe_divide(lumtot,np.sum(spct*nspct*dl))
 
-            ndata = spct[:,None,None]*K[None]
+            ndata = spct[:,None]*K[None]
 
             # Saving new files
-            for wl in xrange(n):
-                save_bin( dirnames[0] + os.path.basename(lum_files[wl]), ndata[wl] )
+            for wl,dat in enumerate(ndata):
+                dat = MSD.MultiScaleData(attrs,dat)
+                dat.save( dirnames[0] + os.path.basename(lum_files[wl]) )
                 np.savetxt( dirnames[0] + os.path.basename(spt_files[wl]),
                             np.concatenate([y[z,:,wl],angles]).reshape((2,-1)).T )
 if alt_type == 2:
     for lamp_t in lamp_types:
         print "Treating lamp : " + lamp_t
-        dirname = "Intrants_"+lamp_t+'/'
+        dirname = "Inputs_"+lamp_t+'/'
 
         newZonData = [ filter( lambda z: z[1]==lamp_t, zone ) for zone in zonData ]
         for i in range(len(newZonData)):
@@ -133,7 +135,7 @@ if alt_type == 2:
                 newZonData[i] = [[0,lamp_t,'0']]
         weights = np.asarray(map(lambda z:sum(map(lambda x:x[0],z)),newZonData))
 
-        newZones = make_zones( angles, lop, wav, spct, newZonData ) * weights[:,None,None]
+        newZones = pt.make_zones( angles, lop, wav, spct, newZonData ) * weights[:,None,None]
         ny = np.array(map(np.mean,np.array_split(newZones[:,:,bool_array],n,-1),[-1]*n)).transpose(1,2,0)
 
         spct_old = np.sum( y  * 2*np.pi*np.sin(np.deg2rad(angles))[:,None]
@@ -143,8 +145,8 @@ if alt_type == 2:
 
         for z in xrange(len(zones)):
             print "  Treating zone : %d/%d"%(z+1,len(zones))
-            lum_files = sorted(glob("Intrants/*lumlp_%03d*.bin"%(z+1)))
-            spt_files = sorted(glob("Intrants/fctem*%03d*.dat"%(z+1)))
+            lum_files = sorted(glob("Inputs/*lumlp_%03d*.hdf5"%(z+1)))
+            spt_files = sorted(glob("Inputs/fctem*%03d*.dat"%(z+1)))
 
             # Linking files if weigth = 1 (faster)
             if weights[z] == 1:
@@ -153,10 +155,10 @@ if alt_type == 2:
             else:
                 # Saving new files
                 for wl in xrange(n):
-                    data = load_bin(lum_files[wl])
+                    data = MSD.Open(lum_files[wl])
                     ndata = data * spct_new[z,wl]/spct_old[z,wl]
 
-                    save_bin( dirname + os.path.basename(lum_files[wl]), ndata )
+                    ndata.save( dirname + os.path.basename(lum_files[wl]) )
                     np.savetxt( dirname + os.path.basename(spt_files[wl]),
                                 np.concatenate([ny[z,:,wl],angles]).reshape((2,-1)).T )
 
