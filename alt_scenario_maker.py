@@ -5,28 +5,25 @@ import pytools as pt
 from glob import glob
 import os, sys
 import MultiScaleData as MSD
+import argparse
 
-print "What type of scenario do you want to make?"
-print "\t1. Different photometry at constant lumen"
-print "\t2. Split lamp power based on spectral composition"
+parser = argparse.ArgumentParser(
+    description="Generates alternatives scenarios based on the current one."
+)
 
-try:
-    alt_type = int(raw_input())
-except ValueError:
-    sys.exit("\nUnrecognized input. Aborted.")
+parser.add_argument("name", nargs='?',
+    help="Name of the new scenario."\
+    "The new inventory data needs to be in `inventory_NAME.txt`."\
+    "If not provided, the current scenario will be separated by technology.")
 
-if alt_type not in range(1,3):
-    sys.exit("\nInvalid type. Aborted.")
+p = parser.parse_args()
 
-print ""
-
-if alt_type == 1:
-    new_name = raw_input("New name: ")
-    old_invp = raw_input("Old inventory path: ")
-    inv_path = raw_input("New inventory path: ")
-
-if alt_type == 2:
-    inv_path = raw_input("Inventory path: ")
+if p.name is not None:
+    new_name = p.name
+    old_invp = "inventory.txt"
+    inv_path = "inventory_%s.txt" % new_name
+else:
+    inv_path = "inventory.txt"
 
 print "\nLoading data..."
 
@@ -48,10 +45,10 @@ norm_spectrum = ratio_ps*photopic + (1-ratio_ps)*scotopic
 spct_files = glob("Lights/*.spct")
 spct = { os.path.basename(s).split('_',1)[0]:pt.load_spct(wav,norm_spectrum,s) for s in spct_files }
 
-if alt_type == 1:
+if p.name is not None:
     zonData = pt.parse_inventory(inv_path)
     oldZonData = pt.parse_inventory(old_invp,7)
-if alt_type == 2:
+else:
     zonData = pt.parse_inventory(inv_path,7)
 
 print "\nCalculating the generalized lamps..."
@@ -68,14 +65,14 @@ bool_array = (ilims[0]<=wav)*(wav<ilims[-1])
 y = np.array(map(np.mean,np.array_split(zones[:,:,bool_array],n,-1),[-1]*n)).transpose(1,2,0)
 
 # Photopic/scotopic spectrum
-if alt_type == 1:
+if p.name is not None:
 #   ratio_ps = float(raw_input("    photopic/scotopic ratio for lamp power ? (0 <= p/(s+p) <= 1) : "))
     nspct = ratio_ps*photopic + (1-ratio_ps)*scotopic
     nspct = nspct/np.sum(nspct)
     nspct = np.array(map(np.mean,np.array_split(nspct[bool_array],n)))
 
     dirnames = ["Inputs_"+new_name.replace(' ','_')+'/']
-if alt_type == 2:
+else:
     lamp_types = set(map(lambda x: x[1], sum(zonData,[])))
     dirnames = [ "Inputs_"+lamp_t+'/' for lamp_t in lamp_types]
 
@@ -98,7 +95,7 @@ for dirname in dirnames:
                 raise
 
 # Main treatement
-if alt_type == 1:
+if p.name is not None:
     for z in xrange(len(zones)):
         print "Treating zone : %d/%d"%(z+1,len(zones))
         lum_files = sorted(glob("Inputs/*lumlp_%03d*.hdf5"%(z+1)))
@@ -124,7 +121,7 @@ if alt_type == 1:
                 dat.save( dirnames[0] + os.path.basename(lum_files[wl]) )
                 np.savetxt( dirnames[0] + os.path.basename(spt_files[wl]),
                             np.concatenate([y[z,:,wl],angles]).reshape((2,-1)).T )
-if alt_type == 2:
+else:
     for lamp_t in lamp_types:
         print "Treating lamp : " + lamp_t
         dirname = "Inputs_"+lamp_t+'/'
