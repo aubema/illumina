@@ -52,7 +52,7 @@ if domain["srs"] == "auto":
     default_srs = \
         "epsg:32" + \
         ("6" if center_lat >= 0 else "7") + \
-        "%d" % (center_lon/6+31) # WGS84/UTM
+        "%02d" % (center_lon/6+31) # WGS84/UTM
     domain["srs"] = default_srs
 
 wgs84 = pyproj.Proj(init="epsg:4326")
@@ -110,10 +110,10 @@ with open("domain.ini",'w') as f:
     yaml.dump(domain,f,default_flow_style=False)
 
 # print lon/lat bbox formatted for earthdata
-SE = pyproj.transform(proj,wgs84,xmin,ymin)
-SW = pyproj.transform(proj,wgs84,xmin,ymax)
-NE = pyproj.transform(proj,wgs84,xmax,ymin)
-NW = pyproj.transform(proj,wgs84,xmax,ymax)
+SE = pyproj.transform(proj,wgs84,xmax,ymin)
+SW = pyproj.transform(proj,wgs84,xmin,ymin)
+NE = pyproj.transform(proj,wgs84,xmax,ymax)
+NW = pyproj.transform(proj,wgs84,xmin,ymax)
 
 N = max(NE[1],NW[1])
 S = min(SE[1],SW[1])
