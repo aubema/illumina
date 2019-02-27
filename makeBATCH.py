@@ -15,6 +15,17 @@ from itertools import product as comb, izip
 import numpy as np
 from chainmap import ChainMap
 from collections import OrderedDict
+import argparse
+
+parser = argparse.ArgumentParser(
+    description="Script producing the directory structure for ILLUMINA."
+)
+parser.add_argument("path", help="Path to the input parameters file [input_params.in].")
+parser.add_argument("batch_name", nargs="?",
+    help="Name for the produced batch file. "\
+    "Will use the one defined in the parameter file if ommited.")
+
+p = parser.parse_args()
 
 def input_line(val,comment,n_space=30):
     value_str = ' '.join(str(v) for v in val)
@@ -28,18 +39,13 @@ def MSDOpen(filename,cached={}):
     cached[filename] = ds
     return ds
 
-# Load parameters
-if len(sys.argv) < 2:
-    print "Error: Must provide input parameter file location."
-    exit()
-
-with open(sys.argv[1]+"/inputs_params.in") as f:
+with open(os.path.join(p.path,"inputs_params.in")) as f:
     params = yaml.load(f)
 
-if len(sys.argv) > 2:
-    params['batch_file_name'] = sys.argv[2]
+if p.batch_name is not None:
+    params['batch_file_name'] = p.batch_name
 
-for fname in glob(sys.argv[1]+"/%s*" % params['batch_file_name']):
+for fname in glob(os.path.join(p.path,"%s*" % params['batch_file_name'])):
     os.remove(fname)
 
 exp_name = params['exp_name']
@@ -59,7 +65,7 @@ with open("zon.lst") as f:
     zones = f.read().split()
 
 # Clear and create execution folder
-dir_name = "exec/"
+dir_name = "exec" + os.sep
 shutil.rmtree(dir_name,True)
 os.makedirs(dir_name)
 
@@ -81,7 +87,7 @@ for param_vals in comb(*param_space):
         P['observer_coordinates'] = "%g_%g" % coords
 
     fold_name = dir_name + \
-        '/'.join(k+"_%s" % v for k,v in local_params.iteritems()) + '/'
+        os.sep.join(k+"_%s" % v for k,v in local_params.iteritems()) + os.sep
 
     os.makedirs(fold_name)
     #print fold_name
