@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 """bbox2params.py - Compute spatial parameters required by illumina
 
 When using Illumina, you need to know the following information:
@@ -43,7 +43,7 @@ from optparse import OptionParser, OptionGroup
 def parseOptions():
     """Parse command line options
 
-    Please refer to the standard python module optparse
+    Please refer to the standard python2 module optparse
     """
     parser = OptionParser()
     parser.add_option('-p', '--pixsiz', dest='pixsiz', action='callback',

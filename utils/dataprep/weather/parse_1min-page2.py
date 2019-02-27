@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 """parse_1min-page2.py - Parse weather data
 
 Usage: parse_1min-page2.py weather_file

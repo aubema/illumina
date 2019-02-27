@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 # Get the size of a ILLUMINA binary
 from pytools import load_bin

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 # cedi est un commentaire
 import numpy as np
 

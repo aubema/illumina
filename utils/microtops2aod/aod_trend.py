@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 #usage: aod_trend.py aod_values.csv requested_times.csv
 #    where: aod_values.csv contains timestamp and aod
 #           requested_times.csv contains spectra name,

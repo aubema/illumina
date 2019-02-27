@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 """Generate mapfile with an entry for every geotif in the directory
 """
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 # Autor : Alexandre SImoneau
 # Date : 2015/10/25

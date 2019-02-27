@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 """imies-run.py
 
 Prepare input for imies and make run.

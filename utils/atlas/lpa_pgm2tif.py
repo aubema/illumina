@@ -1,4 +1,4 @@
-#!/opt/python64/2.7.1/bin/python
+#!/opt/python264/2.7.1/bin/python
 import logging
 import os
 import sys

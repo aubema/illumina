@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 #
 # Library of usefull function related to Illumina and PGM and FITS handling
 #

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 import numpy as np
 from pytools import load_pgm, save_pgm
