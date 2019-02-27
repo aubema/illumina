@@ -227,8 +227,7 @@ def integral():
 		yield arr
 integ = integral()
 
-phie = hdf.from_domain("domain.ini")
-phie = sum(integ, phie) * (wav[1]-wav[0])
+phie = sum(integ) * (wav[1]-wav[0])
 
 for i,p in enumerate(phie):
 	phie[i] = pt.safe_divide(viirs_dat[i] * S[i], p)
