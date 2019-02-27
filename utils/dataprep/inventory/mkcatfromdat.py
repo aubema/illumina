@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 """mkcatfromdat.py - create angular fonction for illumina from dat files
 
 Usage: mkcatfromdat.py dat_file1 dat_file2 ... dat_fileN

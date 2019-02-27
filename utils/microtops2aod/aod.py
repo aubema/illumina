@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 #usage aod.py aod
 #where aod is the requested wavelength for aod in nanometer
 

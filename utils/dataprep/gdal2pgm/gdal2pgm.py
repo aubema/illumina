@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 """gdal2pgm
 
 :Author: Jean-Denis Giguere

@@ -1,7 +1,7 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 """lpawms3.py - WMS-like web mapping service for light polluation atlas
 
-lpawms3.py is OSGeo Mapserver mapscript python2 script which emulate
+lpawms3.py is OSGeo Mapserver mapscript python script which emulate
 a WMS service for the light polluation atlas (http://galileo.graphycs.cegepsherbrooke.qc.ca/atlas/)
 
 It allows on the fly layer creation based on the illumina naming convention.
