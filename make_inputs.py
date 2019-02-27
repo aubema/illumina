@@ -225,9 +225,8 @@ def integral():
 			arr[j] = zon_mask[j] * viirs[i] * \
 				(r(wl)/np.pi * gdown[:,i,None,None] + gup[:,i,None,None])
 		yield arr
-integ = integral()
 
-phie = sum(integ) * (wav[1]-wav[0])
+phie = sum(integral()) * (wav[1]-wav[0])
 
 for i,p in enumerate(phie):
 	phie[i] = pt.safe_divide(viirs_dat[i] * S[i], p)

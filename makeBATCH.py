@@ -65,7 +65,7 @@ os.makedirs(dir_name)
 
 count = 0
 multival = filter( lambda k: isinstance(params[k],list),params )
-multival = sorted( multival, key=lambda s:len(s), reverse=True ) # Semi-arbitrary sort
+multival = sorted( multival, key=len, reverse=True ) # Semi-arbitrary sort
 param_space = [ params[k] for k in multival ]
 print "Number of executions:", np.prod(map(len,param_space))
 for param_vals in comb(*param_space):
@@ -77,7 +77,8 @@ for param_vals in comb(*param_space):
         continue
 
     coords = P['observer_coordinates']
-    P['observer_coordinates'] = "%g_%g" % coords
+    if 'observer_coordinates' in multival:
+        P['observer_coordinates'] = "%g_%g" % coords
 
     fold_name = dir_name + \
         '/'.join(k+"_%s" % v for k,v in local_params.iteritems()) + '/'
