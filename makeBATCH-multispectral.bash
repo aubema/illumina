@@ -86,7 +86,7 @@ n=0; while [ $n -lt ${#lamp_l[*]} ] ; do lamp_l[$n]="$(echo -e "${lamp_l[$n]}" |
 #read nbx nby bidon < size.tmp
 #grep "pixsiz" $mna_file > size.tmp
 #read bidon bidon pixsiz bidon < size.tmp
-get_shape.py $mna_file > size.tmp
+od -j4 -N8 -tdI -An $mna_file > size.tmp
 read nbx nby < size.tmp
 #
 # find max height
