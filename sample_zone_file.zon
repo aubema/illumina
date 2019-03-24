@@ -1,7 +1,0 @@
-5    14         95Cobra_5Sentinel.dat           ! City 86%Na 14%Hg 95%Cobra (CB) 5%Sentinel (SL)
-45   34         66Cobra_34Sentinel.dat          ! Countryside 66%Na 34%Hg 66%CB 34%SL (threshold 45/63)
-241  50   8  10 93Cobra_7Helios.dat             ! Sherbrooke 90%Na 10%Hg 93%CB 7%Helios (HS)
-306  58  25  11 67Helios_22Cobra_11Sentinel.dat ! zone 1 RICE-OMM 89%Na 11%Hg 67%HS 22%CB 11%SL
-305  55   2   0 A210.2.dat                      ! Astrolab's parking LPS 0%Na 0%Hg 100%HS
-264  52   4  20 40Helios_40Cobra_20Sentinel.dat ! Cookshire 80%Na 20%Hg 40%HS 40%CB 20%SL
-321  73   3  20 40Helios_40Cobra_20Sentinel.dat ! Lac-Megantic 80%Na 20%Hg 40%HS 40%CB 20%SL

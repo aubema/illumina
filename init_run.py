@@ -14,7 +14,7 @@ if not os.path.exists("Lights"):
 
 example_files = glob(illumpath+"/Example/*.*")
 files = filter(
-    lambda s: not(s.endswith("bin") or s.endswith("csv")),
+    lambda s: not(s.endswith("hdf5") or s.endswith("csv")),
     example_files)
 
 for filename in files:
