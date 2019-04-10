@@ -19,7 +19,7 @@ shutil.rmtree(dir_name,True)
 os.makedirs(dir_name)
 
 with open("inputs_params.in") as f:
-	params = yaml.load(f)
+	params = yaml.load(f,Loader=yaml.BaseLoader)
 
 # Angular distribution (normalised to 1)
 lop_files = glob("Lights/*.lop")

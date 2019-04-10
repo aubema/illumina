@@ -51,7 +51,7 @@ def plot(ds,n_layer=None,log=False,**options):
 def from_domain(params,data=None):
     if isinstance(params,str):
         with open(params) as f:
-            params = _yaml_load(f)
+            params = _yaml.load(f,Loader=yaml.BaseLoader)
     attrs = { k:v for k,v in params.iteritems() \
         if k not in ['extents','observers'] }
     attrs['obs_lat'] = [ d['latitude'] for d in params['observers'] ]
