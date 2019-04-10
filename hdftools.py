@@ -11,7 +11,7 @@ import MultiScaleData as MSD
 import numpy as _np
 import matplotlib.pyplot as _plt
 import matplotlib.colors as _colors
-from yaml import load as _yaml_load
+import yaml as _yaml
 
 def OpenCached(filename,cached={}):
     if filename in cached:
