@@ -40,7 +40,7 @@ def MSDOpen(filename,cached={}):
     return ds
 
 with open(os.path.join(p.path,"inputs_params.in")) as f:
-    params = yaml.load(f)
+    params = yaml.load(f,Loader=yaml.BaseLoader)
 
 if p.batch_name is not None:
     params['batch_file_name'] = p.batch_name

@@ -1,5 +1,7 @@
 # input parameters
 exp_name: Hawaii
+zones_inventory: inventory.txt
+lamps_inventory:
 nb_bins: 5
 lambda_min: 380
 lambda_max: 830

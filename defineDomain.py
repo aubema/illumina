@@ -27,7 +27,7 @@ def round_odd(n):
     return int(n - n%2 + 1)
 
 with open("domain_params.in") as f:
-    domain = yaml.load(f)
+    domain = yaml.load(f,Loader=yaml.BaseLoader)
 
 obs_lat = domain.pop("latitude")
 obs_lon = domain.pop("longitude")
