@@ -21,7 +21,6 @@ os.makedirs(dir_name)
 with open("inputs_params.in") as f:
 	params = yaml.safe_load(f)
 
-# TODO: Check if lamp is in non-zero zone
 if params['zones_inventory'] is not None and \
 	params['lamps_inventory'] is not None:
 	lamps = np.loadtxt(params['lamps_inventory'],usecols=[0,1])
@@ -38,15 +37,22 @@ if params['zones_inventory'] is not None and \
 	for i,dat in enumerate(zones,1):
 		zones_ind.set_circle((dat[0],dat[1]),dat[2]*1000,i)
 
-	for lat,lon in lamps:
+	failed = set()
+	for l,coords in enumerate(lamps,1):
 		for i in xrange(len(circles)):
 			try:
-				col,row = circles._get_col_row((lat,lon),i)
+				col,row = circles._get_col_row(coords,i)
 				if circles[i][row,col] and col >= 0 and row >= 0:
 					zon_ind = zones_ind[i][row,col]
-					raise ValueError("WARNING: Point source at (%g,%g) falls within non-null zone #%d." % (lat,lon,zon_ind))
+					failed.add((l,coords[0],coords[1],zon_ind))
 			except IndexError:
 				continue
+
+	if len(failed):
+		for l,lat,lon,zon_ind in sorted(failed):
+			print "WARNING: Lamp #%d (%.06g,%.06g) falls within non-null zone #%d" \
+				% (l,lat,lon,zon_ind)
+		raise SystemExit()
 
 # Angular distribution (normalised to 1)
 lop_files = glob("Lights/*.lop")
