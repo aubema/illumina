@@ -50,6 +50,7 @@ if params['zones_inventory'] is not None and \
 
 # Angular distribution (normalised to 1)
 lop_files = glob("Lights/*.lop")
+angles = np.arange(181,dtype=float)
 lop = {
 	os.path.basename(s).split('_',1)[0] : \
 	pt.load_lop(angles,s) for s in lop_files }
