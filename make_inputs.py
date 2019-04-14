@@ -125,13 +125,30 @@ for i in xrange(len(wl2mie)):
 with open(dir_name+"/wav.lst",'w') as zfile:
 	zfile.write('\n'.join( map(lambda n:"%03d"%n, x ))+'\n')
 
-# TODO: Execution logic
 
-# TODO: Change to lamp instead of zones
-execfile(os.path.join(illumpath,"make_zones.py"))
+if params['zones_inventory'] is not None:
+	# TODO: Change to lamp instead of zones
+	dir_name = "Inputs_zones/"
+	os.makedirs(dir_name)
+	execfile(os.path.join(illumpath,"make_zones.py"))
 
-# TODO: Make from lamp inventory
+if params['lamps_inventory'] is not None:
+	# TODO: Make from lamp inventory
+	dir_name = "Inputs_lamps/"
+	os.makedirs(dir_name)
+	execfile(os.path.join(illumpath,"make_lamps.py"))
 
-# TODO: Add both inputs
+if params['zones_inventory'] is not None and \
+	params['lamps_inventory'] is not None:
+	# TODO: Add both inputs
+	pass
+elif params['zones_inventory'] is not None:
+	for fname in glob("Inputs_zones/*"):
+		shutil.move(fname,"Inputs")
+	shutil.rmtree("Inputs_zones",True)
+elif params['lamps_inventory'] is not None:
+	for fname in glob("Inputs_zones/*"):
+		shutil.move(fname,"Inputs")
+	shutil.rmtree("Inputs_lamps",True)
 
 print "Done."

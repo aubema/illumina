@@ -5,5 +5,3 @@
 # Author : Alexandre Simoneau
 #
 # April 2019
-
-import numpy as np
