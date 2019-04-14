@@ -7,7 +7,7 @@ from collections import defaultdict as ddict
 # Read domain.ini
 dom_name = raw_input("    Domain parameters filename : ")
 with open(dom_name) as f:
-    domain = yaml.load(f,Loader=yaml.BaseLoader)
+    domain = yaml.safe_load(f)
 
 # Read light inventory
 # format:
