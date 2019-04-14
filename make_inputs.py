@@ -19,15 +19,37 @@ shutil.rmtree(dir_name,True)
 os.makedirs(dir_name)
 
 with open("inputs_params.in") as f:
-	params = yaml.load(f,Loader=yaml.BaseLoader)
+	params = yaml.safe_load(f)
 
+# TODO: Check if lamp is in non-zero zone
+if params['zones_inventory'] is not None and \
+	params['lamps_inventory'] is not None:
+	lamps = np.loadtxt(params['lamps_inventory'],usecols=[0,1])
+	zones = np.loadtxt(params['zones_inventory'],usecols=[0,1,2])
+	zonData = pt.parse_inventory(params['zones_inventory'],7)
 
-# TODO: Check in lamp is in non-zero zone
+	hasLights = [ sum( x[0] for x in z ) != 0 for z in zonData ]
 
+	circles = hdf.from_domain("domain.ini")
+	for dat,b in izip(zones,hasLights):
+		circles.set_circle((dat[0],dat[1]),dat[2]*1000,b)
+
+	zones_ind = hdf.from_domain("domain.ini")
+	for i,dat in enumerate(zones,1):
+		zones_ind.set_circle((dat[0],dat[1]),dat[2]*1000,i)
+
+	for lat,lon in lamps:
+		for i in xrange(len(circles)):
+			try:
+				col,row = circles._get_col_row((lat,lon),i)
+				if circles[i][row,col] and col >= 0 and row >= 0:
+					zon_ind = zones_ind[i][row,col]
+					raise ValueError("WARNING: Point source at (%g,%g) falls within non-null zone #%d." % (lat,lon,zon_ind))
+			except IndexError:
+				continue
 
 # Angular distribution (normalised to 1)
 lop_files = glob("Lights/*.lop")
-angles = np.arange(181,dtype=float)
 lop = {
 	os.path.basename(s).split('_',1)[0] : \
 	pt.load_lop(angles,s) for s in lop_files }
@@ -97,10 +119,12 @@ with open(dir_name+"/wav.lst",'w') as zfile:
 	zfile.write('\n'.join( map(lambda n:"%03d"%n, x ))+'\n')
 
 # TODO: Execution logic
+
 # TODO: Change to lamp instead of zones
 execfile(os.path.join(illumpath,"make_zones.py"))
-# TODO: Make from lamp inventory
-# TODO: Add both inputs
 
+# TODO: Make from lamp inventory
+
+# TODO: Add both inputs
 
 print "Done."

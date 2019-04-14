@@ -33,7 +33,7 @@ def save(params, data, dstname, scale_factor=1.):
     ds.save(dstname)
 
 with open(glob("*.ini")[0]) as f:
-    params = yaml.load(f,Loader=yaml.BaseLoader)
+    params = yaml.safe_load(f)
 
 files = glob("SRTM/*.hgt")
 print "    ".join(map(str,files))

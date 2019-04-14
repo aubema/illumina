@@ -60,7 +60,7 @@ class MultiScaleData(_np.ndarray):
     def _view_latlon(self,coords):
         n_layer = self._get_layer(coords)
         col,row = self._get_col_row(coords,n_layer)
-        return data[col:col+1,row:row+1]
+        return data[row:row+1,col:col+1]
 
     def scale_factor(self):
         return (self._attrs['nb_pixels']+0.5) / (self._attrs['nb_core']+0.5)
