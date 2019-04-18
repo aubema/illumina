@@ -6,6 +6,8 @@
 #
 # April 2019
 
+print "Building inputs from zones inventory."
+
 # lamps distribution
 inv_name = params['zones_inventory']
 zonData = pt.parse_inventory(inv_name,7)
@@ -40,8 +42,6 @@ for l in xrange(n_bins):
 			dir_name+"fctem_wl_%03d_zon_%03d.dat" % (x[l],z+1),
 			np.concatenate([ y[z,:,l],angles ]).reshape((2,-1)).T )
 
-out_name = params['exp_name']
-
 try:
 	os.symlink(
 		os.path.abspath("stable_lights.hdf5"),
@@ -59,14 +59,14 @@ zonfile = np.loadtxt(inv_name,usecols=range(7),ndmin=2)
 # zone number
 for i,dat in enumerate(zonfile,1):
 	circles.set_circle((dat[0],dat[1]),dat[2]*1000,i)
-circles.save(dir_name+"/"+out_name+"_zone")
+circles.save(dir_name+out_name+"_zone")
 
 for n,name in izip(xrange(3,7),['obsth','obstd','obstf','altlp']):
     for i,dat in enumerate(zonfile,1):
     	circles.set_circle((dat[0],dat[1]),dat[2]*1000,dat[n])
-    circles.save(dir_name+"/"+out_name+"_"+name)
+    circles.save(dir_name+out_name+"_"+name)
 
-with open(dir_name+"/zon.lst",'w') as zfile:
+with open(dir_name+"zon.lst",'w') as zfile:
 	zfile.write('\n'.join( map(
 		lambda n: "%03d"%n,
 		xrange(1,len(zones)+1) ) ) + '\n' )
@@ -86,7 +86,7 @@ refl = [ interp(
 	fill_value='extrapolate'
 ) for refl_raw_layer in izip(*refl_raw) ]
 
-modis = hdf.from_domain("domain.ini")
+modis = hdf.from_domain("domain.ini")https://www.strava.com/routes/new
 for wl in x:
 	for i in xrange(len(modis)):
 		modis[i][:] = refl[i](wl)
@@ -100,7 +100,7 @@ viirs_dat = MSD.Open(dir_name+"stable_lights.hdf5") * 1e-5 #nW/cm^2/sr -> W/m^2/
 for i in xrange(len(viirs_dat)):
 	viirs_dat[i][refl[i](700) < 0.01] = 0
 
-circles = MSD.Open(dir_name+"/"+out_name+"_zone.hdf5")
+circles = MSD.Open(dir_name+out_name+"_zone.hdf5")
 zon_mask = np.empty(len(circles),dtype=object)
 for i in xrange(len(zon_mask)):
 	zon_mask[i] = np.arange(1,len(zones)+1)[:,None,None] == circles[i]
@@ -128,12 +128,14 @@ def integral():
 		yield arr
 
 phie = sum(integral()) * (wav[1]-wav[0])
+# layer, zone, x, y
 
 for i,p in enumerate(phie):
 	phie[i] = pt.safe_divide(viirs_dat[i] * S[i], p)
 
 wl_bin = np.array_split(wav[bool_array],n_bins,-1)
 fctem_bin = np.array_split(zones[:,:,bool_array],n_bins,-1)
+# bin, zone, ang, wl
 
 for n in xrange(n_bins):
 	ratio = (fctem_bin[n].mean(-1) * sinx).sum(1)

@@ -13,16 +13,24 @@ import pytools as pt, hdftools as hdf
 import MultiScaleData as MSD
 from scipy.interpolate import interp1d as interp
 from itertools import izip
+from collections import defaultdict as ddict
+
+print "Preparing the inputs for the experiment."
 
 dir_name = "Inputs/"
 shutil.rmtree(dir_name,True)
 os.makedirs(dir_name)
+
+out_name = params['exp_name']
 
 with open("inputs_params.in") as f:
 	params = yaml.safe_load(f)
 
 if params['zones_inventory'] is not None and \
 	params['lamps_inventory'] is not None:
+
+	print "Validating the inventories."
+
 	lamps = np.loadtxt(params['lamps_inventory'],usecols=[0,1])
 	zones = np.loadtxt(params['zones_inventory'],usecols=[0,1,2])
 	zonData = pt.parse_inventory(params['zones_inventory'],7)
@@ -53,6 +61,8 @@ if params['zones_inventory'] is not None and \
 			print "WARNING: Lamp #%d (%.06g,%.06g) falls within non-null zone #%d" \
 				% (l,lat,lon,zon_ind)
 		raise SystemExit()
+
+print "Loading photometry files."
 
 # Angular distribution (normalised to 1)
 lop_files = glob("Lights/*.lop")
@@ -138,6 +148,8 @@ if params['lamps_inventory'] is not None:
 	os.makedirs(dir_name)
 	execfile(os.path.join(illumpath,"make_lamps.py"))
 
+print "Unifying inputs."
+
 if params['zones_inventory'] is not None and \
 	params['lamps_inventory'] is not None:
 	# TODO: Add both inputs
@@ -147,7 +159,7 @@ elif params['zones_inventory'] is not None:
 		shutil.move(fname,"Inputs")
 	shutil.rmtree("Inputs_zones",True)
 elif params['lamps_inventory'] is not None:
-	for fname in glob("Inputs_zones/*"):
+	for fname in glob("Inputs_lamps/*"):
 		shutil.move(fname,"Inputs")
 	shutil.rmtree("Inputs_lamps",True)
 
