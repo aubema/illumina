@@ -138,13 +138,15 @@ with open(dir_name+"/wav.lst",'w') as zfile:
 
 if params['zones_inventory'] is not None:
 	# TODO: Change to lamp instead of zones
-	dir_name = "Inputs_zones/"
+	dir_name = ".Inputs_zones/"
+	shutil.rmtree(dir_name,True)
 	os.makedirs(dir_name)
 	execfile(os.path.join(illumpath,"make_zones.py"))
 
 if params['lamps_inventory'] is not None:
 	# TODO: Make from lamp inventory
-	dir_name = "Inputs_lamps/"
+	dir_name = ".Inputs_lamps/"
+	shutil.rmtree(dir_name,True)
 	os.makedirs(dir_name)
 	execfile(os.path.join(illumpath,"make_lamps.py"))
 
@@ -155,12 +157,12 @@ if params['zones_inventory'] is not None and \
 	# TODO: Add both inputs
 	pass
 elif params['zones_inventory'] is not None:
-	for fname in glob("Inputs_zones/*"):
+	for fname in glob(".Inputs_zones/*"):
 		shutil.move(fname,"Inputs")
-	shutil.rmtree("Inputs_zones",True)
+	shutil.rmtree(".Inputs_zones",True)
 elif params['lamps_inventory'] is not None:
-	for fname in glob("Inputs_lamps/*"):
+	for fname in glob(".Inputs_lamps/*"):
 		shutil.move(fname,"Inputs")
-	shutil.rmtree("Inputs_lamps",True)
+	shutil.rmtree(".Inputs_lamps",True)
 
 print "Done."
