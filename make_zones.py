@@ -86,7 +86,7 @@ refl = [ interp(
 	fill_value='extrapolate'
 ) for refl_raw_layer in izip(*refl_raw) ]
 
-modis = hdf.from_domain("domain.ini")https://www.strava.com/routes/new
+modis = hdf.from_domain("domain.ini")
 for wl in x:
 	for i in xrange(len(modis)):
 		modis[i][:] = refl[i](wl)

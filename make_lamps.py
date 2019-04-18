@@ -64,7 +64,7 @@ for key,ind in points.iteritems():
         ])
         fctem = np.sum(fctem*lumens[mask,None],0)
 
-        y = [ np.mean(x) for x in \
+        y = [ np.mean(a) for a in \
             np.array_split(
         		fctem[bool_array],
         		n_bins,
@@ -72,8 +72,8 @@ for key,ind in points.iteritems():
             )
         ]
 
-        for wl in x:
-            lumlp[s,wl][layer][row,col] = y
+        for i,wl in enumerate(x):
+            lumlp[s,wl][layer][row,col] = y[i]
 
 print "Saving data."
 
