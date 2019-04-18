@@ -21,8 +21,6 @@ dir_name = "Inputs/"
 shutil.rmtree(dir_name,True)
 os.makedirs(dir_name)
 
-out_name = params['exp_name']
-
 with open("inputs_params.in") as f:
 	params = yaml.safe_load(f)
 
@@ -61,6 +59,8 @@ if params['zones_inventory'] is not None and \
 			print "WARNING: Lamp #%d (%.06g,%.06g) falls within non-null zone #%d" \
 				% (l,lat,lon,zon_ind)
 		raise SystemExit()
+
+out_name = params['exp_name']
 
 print "Loading photometry files."
 

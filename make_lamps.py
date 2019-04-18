@@ -48,15 +48,32 @@ for s in sources:
 
 for key,ind in points.iteritems():
     layer,col,row = key
-    lumens = lampsData[ind][:,2]
+    lumens = lampsData[:,2][ind]
 
     for n,geo in izip(xrange(3,7),['obsth','obstd','obstf','altlp']):
         geometry[geo][layer][row,col] = np.average(
-            lampsData[ind][:,n],
+            lampsData[:,n][ind],
             weights=lumens
         )
 
     local_sources = np.unique(photometry[ind][:,1])
+    for s in local_sources:
+        mask = photometry[:,1][ind] == s
+        fctem = np.array([
+            spct[type] for type in photometry[:,0][ind][mask]
+        ])
+        fctem = np.sum(fctem*lumens[mask,None],0)
+
+        y = [ np.mean(x) for x in \
+            np.array_split(
+        		fctem[bool_array],
+        		n_bins,
+        		-1
+            )
+        ]
+
+        for wl in x:
+            lumlp[s,wl][layer][row,col] = y
 
 print "Saving data."
 
