@@ -69,7 +69,8 @@ lop_files = glob("Lights/*.lop")
 angles = np.arange(181,dtype=float)
 lop = {
 	os.path.basename(s).split('_',1)[0] : \
-	pt.load_lop(angles,s) for s in lop_files }
+	pt.load_lop(angles,s) for s in lop_files
+}
 
 # Spectral distribution (normalised with scotopric vision to 1)
 wav, viirs = np.loadtxt( "Lights/viirs.dat", skiprows=1 ).T
@@ -78,15 +79,18 @@ norm_spectrum = pt.load_spct(
 	wav,
 	np.ones(wav.shape),
 	"Lights/photopic.dat",
-	1 )
+	1
+)
 
 spct_files = glob("Lights/*.spct")
 spct = {
 	os.path.basename(s).split('_',1)[0] : \
 	pt.load_spct(wav,norm_spectrum,s) \
-	for s in spct_files }
+	for s in spct_files
+}
 
 print "Splitting in a few wavelengths."
+
 n_bins = params['nb_bins']
 lmin = params['lambda_min']
 lmax = params['lambda_max']
@@ -106,6 +110,49 @@ with open(lim_file,'ab') as f:
 	np.savetxt(f,limits[:,np.newaxis])
 
 x = np.mean([limits[1:],limits[:-1]],0)
+
+print "Interpolating reflectance."
+
+asper_files = glob("Lights/*.asper")
+asper = {
+	os.path.basename(s).split('.',1)[0] : \
+	np.loadtxt(s) \
+	for s in asper_files
+}
+
+for type in asper:
+	wl,refl = asper[type].T
+	wl *= 1000.
+	refl /= 100.
+	asper[type] = interp(
+		wl, refl,
+		bounds_error=False,
+		fill_value=0.
+	)(wav)
+
+sum_coeffs = sum(
+	params['reflectance'][type] \
+	for type in params['reflectance']
+)
+if sum_coeffs == 0:
+	sum_coeffs = 1.
+
+refl = sum(
+	asper[type]*coeff/sum_coeffs \
+	for type,coeff \
+	in params['reflectance'].iteritems()
+)
+
+reflect = [ np.mean(a) for a in \
+    np.array_split(
+		refl[bool_array],
+		n_bins,
+		-1
+    )
+]
+
+with open(dir_name+"/refl.lst",'w') as zfile:
+	zfile.write('\n'.join( map(lambda n:"%.06g"%n, reflect ))+'\n')
 
 print "Linking mie files."
 

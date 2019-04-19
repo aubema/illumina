@@ -5,6 +5,10 @@ lamps_inventory:
 nb_bins: 5
 lambda_min: 380
 lambda_max: 830
+reflectance:
+    asphalt: 0.8
+    grass: 0.2
+    snow: 0
 aerosol_profile: maritime      # Aerosol profile. 'maritime','urban' or 'rural'
 relative_humidity: 70
 estimated_computing_time: 1    # estimated computing time per case in hours

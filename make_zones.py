@@ -71,27 +71,6 @@ with open(dir_name+"zon.lst",'w') as zfile:
 		lambda n: "%03d"%n,
 		xrange(1,len(zones)+1) ) ) + '\n' )
 
-print "Interpolating reflectance."
-
-refl_wav = np.loadtxt("modis.dat",usecols=[1])
-refl_raw = [ MSD.Open("refl_b%02d.hdf5" % (i+1))
-	for i in xrange(len(refl_wav)) ]
-
-refl = [ interp(
-	refl_wav,
-	refl_raw_layer,
-	axis=0,
-	copy=False,
-	bounds_error=False,
-	fill_value='extrapolate'
-) for refl_raw_layer in izip(*refl_raw) ]
-
-modis = hdf.from_domain("domain.ini")
-for wl in x:
-	for i in xrange(len(modis)):
-		modis[i][:] = refl[i](wl)
-	modis.save(dir_name+"modis_%03d" % wl)
-
 print "Inverting lamp intensity."
 
 viirs_dat = MSD.Open(dir_name+"stable_lights.hdf5") * 1e-5 #nW/cm^2/sr -> W/m^2/sr
