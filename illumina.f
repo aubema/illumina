@@ -86,7 +86,6 @@ c
       real cellh(height)                                                  ! voxel height array (meter)
       real flcumu                                                         ! Accrued flux along the line of sight
       character*72 mnaf                                                   ! Terrain elevation file.
-      character*72 reflf                                                  ! Reflectance file.
       character*72 diffil                                                 ! Aerosol file.
       character*72 outfile                                                ! Results file
       character*72 pclf,pcwf,pclgp,pcwgp                                  ! File containing contribution and sensitivity maps
@@ -272,7 +271,6 @@ c  determine the Length of basenm
 c
       lenbase=index(basenm,' ')-1
       mnaf=basenm(1:lenbase)//'_topogra.bin'                              ! determine the names of input and output files
-      reflf=basenm(1:lenbase)//'_reflect.bin'
       outfile=basenm(1:lenbase)//'.out'
       pclf=basenm(1:lenbase)//'_pcl.txt'
       pcwf=basenm(1:lenbase)//'_pcw.txt'
@@ -292,7 +290,7 @@ c  cartesian, azim=0 toward east, 90 toward north, 180 toward west etc
 c  opening output file
       open(unit=2,file=outfile,status='unknown')
        write(2,*) 'FILE USED:'
-       write(2,*) mnaf,reflf,diffil
+       write(2,*) mnaf,diffil
        print*,'Wavelength (nm):',lambda,
      +       ' Aerosol optical depth:',taua
        write(2,*) 'Wavelength (nm):',lambda,
