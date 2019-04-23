@@ -51,18 +51,21 @@ for fname in glob(os.path.join(p.path,"%s*" % params['batch_file_name'])):
 exp_name = params['exp_name']
 
 # Add wavelength and multiscale
-ds = MSDOpen("stable_lights.hdf5")
+ds = MSDOpen(glob("*.hdf5")[0])
 
 params['wavelength'] = np.loadtxt("wav.lst").tolist()
 params['layer'] = range(len(ds))
 params['observer_coordinates'] = zip(*ds.get_obs_pos())
 
+wls = params['wavelength']
+refls = np.loadtxt("refl.lst").tolist()
+
 for pname in ['layer','observer_coordinates']:
     if len(params[pname]) == 1:
         params[pname] = params[pname][0]
 
-with open("zon.lst") as f:
-    zones = f.read().split()
+with open("lamps.lst") as f:
+    lamps = f.read().split()
 
 # Clear and create execution folder
 dir_name = "exec" + os.sep
@@ -103,10 +106,10 @@ for param_vals in comb(*param_space):
         os.path.abspath(mie_file),
         fold_name+"aerosol.mie.out" )
 
-    for zon in zones:
+    for l,lamp in enumerate(lamps,1):
         os.symlink(
-            os.path.abspath("fctem_wl_%s_zon_%s.dat" % (wavelength,zon)),
-            fold_name+exp_name+"_fctem_"+zon+".dat" )
+            os.path.abspath("fctem_wl_%s_lamp_%s.dat" % (wavelength,lamp)),
+            fold_name+exp_name+"_fctem_%03d.dat" % l )
 
     ppath = os.environ['PATH'].split(os.pathsep)
     illumpath = filter(lambda s: "illumina" in s and "bin" in s, ppath)[0]
@@ -126,18 +129,15 @@ for param_vals in comb(*param_space):
         save_bin(fold_name+"%s_%s.bin" % \
             ( exp_name, name ), ds[layer] )
 
-    for zon in zones:
+    for l,lamp in enumerate(lamps,1):
         ds = MSDOpen( "%s_%s_lumlp_%s.hdf5" % \
-            ( exp_name, wavelength, zon ) ).extract_observer(coords)
+            ( exp_name, wavelength, lamp ) ).extract_observer(coords)
         ds.set_buffer(0)
         ds.set_overlap(0)
-        save_bin(fold_name+"%s_lumlp_%s.bin" % \
-            ( exp_name, zon ), ds[layer] )
+        save_bin(fold_name+"%s_lumlp_%03d.bin" % \
+            ( exp_name, l ), ds[layer] )
 
-    ds = MSDOpen( "modis_%s.hdf5" % \
-        wavelength ).extract_observer(coords)
-    save_bin(fold_name+"%s_reflect.bin" % \
-        exp_name, ds[layer] )
+    reflectance = refls[wls.index(P["wavelength"])]
 
     # Create illumina.in
     input_data = (
@@ -151,10 +151,11 @@ for param_vals in comb(*param_space):
          (P['scattering_skip'], "Scattering step")),
         (('', ''),),
         ((wavelength, "Wavelength [nm]"),),
+        ((reflectance, "Reflectance"),),
         ((P['air_pressure'], "Ground level pressure [kPa]"),),
         ((P['aerosol_optical_depth'], "500nm aerosol optical depth"),
          (P['angstrom_coefficient'], "Angstrom exponent")),
-        ((len(zones), "Number of source types"),),
+        ((len(lamps), "Number of source types"),),
         ((P['stop_limit'], "Contribution threshold"),),
         (('', ''),),
         ((ds[layer].shape[1]/2 + 1, "Observer X position"),

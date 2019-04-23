@@ -100,7 +100,7 @@ c
       integer nbx,nby                                                     ! Number of pixels in the modeling domain.
       real val2d(width,width)                                             ! Temporary input array 2d
       real altsol(width,width)                                            ! Ground elevation (meter).
-      real srefl(width,width)                                             ! Ground reflectance.
+      real srefl                                                          ! Ground reflectance.
       real Hmin                                                           ! Minimum ground elevation of the modeling domain
       integer stype                                                       ! Source type or zone index
       character*72 pafile,lufile,alfile,ohfile,odfile,offile              ! Files related to light sources and obstacles (photometric function of the sources (sr-1), flux (W), height (m), obstacle height (m), obstacle distance (m), obstacle filling factor (0-1).
@@ -246,6 +246,7 @@ c       read(1,*) latitu
        endif
        read(1,*)
        read(1,*) lambda
+       read(1,*) srefl
        read(1,*) pressi
        read(1,*) taua,alpha
        read(1,*) ntype
@@ -325,7 +326,6 @@ c=======================================================================
         do j=1,width
          val2d(i,j)=0.
          altsol(i,j)=0.
-         srefl(i,j)=0.
          inclix(i,j)=0.
          incliy(i,j)=0.
          lpluto(i,j)=0.
@@ -408,18 +408,6 @@ c                                                                         ! sear
        do i=1,nbx                                                         ! beginning of the loop over all cells along x.
         do j=1,nby                                                        ! beginning of the loop over all cells along y.
          altsol(i,j)=altsol(i,j)-Hmin                                     ! subtraction of the Minimum ground elevation
-        enddo                                                             ! end of the loop over all cells along y.
-       enddo
-c=======================================================================
-c reading reflectance file
-c=======================================================================
-       call twodin(nbx,nby,reflf,srefl)
-       do i=1,nbx                                                         ! beginning of the loop over all cells along x.
-        do j=1,nby                                                        ! beginning of the loop over all cells along y.
-         if (srefl(i,j).lt.0.) then                                       ! searching of of the negative reflectances
-           print*,'***,WARNING - Negative reflectance replacing by 0.!'
-           srefl(i,j)=0.
-         endif
         enddo                                                             ! end of the loop over all cells along y.
        enddo
 c=======================================================================
@@ -929,7 +917,7 @@ c                                                                         ! the 
                      print*,'Source pos = Ground cell'
                     endif
                    else
-                    if (srefl(x_sr,y_sr).ne.0.) then                      ! Condition: the surface reflectance is not null
+                    if (srefl.ne.0.) then                                 ! Condition: the surface reflectance is not null
                      haut=-real(x_s-x_sr)*dx*tan(inclix(x_sr,y_sr))       ! if haut is negative, the ground cell is lighted from below
      1               -real(y_s-y_sr)*dy
      2               *tan(incliy(x_sr,y_sr))+z_s-z_sr
@@ -1036,7 +1024,7 @@ c=======================================================================
 c=======================================================================
 c        computation of the intensity reflechie leaving the  surface reflectance
 c=======================================================================
-                      irefl1=flrefl*srefl(x_sr,y_sr)/pi                   ! The factor 1/pi comes from the normalisation of the fonction
+                      irefl1=flrefl*srefl/pi                              ! The factor 1/pi comes from the normalisation of the fonction
                       if (effdif.gt.(dx+dy)/2.) then
                        call reflexdbledif (x_sr,y_sr,z_sr,x_c,y_c,
      +                 zcellc,dx,dy,effdif,nbx,nby,stepdi,

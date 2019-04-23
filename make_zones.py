@@ -28,14 +28,6 @@ y = np.array(map(
 
 print "Creating files."
 
-try:
-	os.symlink(
-		os.path.abspath("srtm.hdf5"),
-		dir_name+"srtm.hdf5" )
-except OSError as e:
-	if e[0] != 17:
-		raise
-
 for l in xrange(n_bins):
 	for z in xrange(len(zones)):
 		np.savetxt(
