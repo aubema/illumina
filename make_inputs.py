@@ -190,16 +190,13 @@ except OSError as e:
 with open(dir_name+"/wav.lst",'w') as zfile:
 	zfile.write('\n'.join( map(lambda n:"%03d"%n, x ))+'\n')
 
-
 if params['zones_inventory'] is not None:
-	# TODO: Change to lamp instead of zones
 	dir_name = ".Inputs_zones/"
 	shutil.rmtree(dir_name,True)
 	os.makedirs(dir_name)
 	execfile(os.path.join(illumpath,"make_zones.py"))
 
 if params['lamps_inventory'] is not None:
-	# TODO: Make from lamp inventory
 	dir_name = ".Inputs_lamps/"
 	shutil.rmtree(dir_name,True)
 	os.makedirs(dir_name)
