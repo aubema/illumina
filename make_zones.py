@@ -66,14 +66,14 @@ S = np.array([
 # phie = DNB * S / int( R ( rho/pi Gdown + Gup ) ) dlambda
 Gdown = (zones * sinx[:,None])[:,:,angles>90].sum(2)
 Gup = (zones * sinx[:,None])[:,:,angles<70].sum(2) / sinx[angles<70].sum()
-integral = np.sum(viirs * (Gdown*refl/np.pi + Gup),-1) * (wav[1]-wav[0])
+integral = np.sum(viirs * (Gdown*refl/np.pi + Gup),(1,2)) * (wav[1]-wav[0])
 
 phie = [
 	pt.safe_divide(
 		viirs_dat[i] * S[i],
 		np.sum(
-			zon_mask[i][:,None] * \
-			integral[:,:,None,None],
+			zon_mask[i] * \
+			integral[:,None,None],
 			0
 		)
 	) \
@@ -100,8 +100,5 @@ for n in xrange(n_bins):
 	for i,s in enumerate(sources):
 		new = hdf.from_domain("domain.ini")
 		for layer in xrange(len(new)):
-			new[layer] = pt.safe_divide(
-				phie[layer][i],
-				r[layer][i]
-			)
+			new[layer] = phie[layer] * r[layer][i]
 		new.save(dir_name+"%s_%03d_lumlp_%s" % (out_name,x[n],s))

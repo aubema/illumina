@@ -1,10 +1,12 @@
 #!/usr/bin/env python2
 
 from glob import glob
-import gdal, yaml, h5py
-import hdftools
+import ogr, osr, gdal
+import yaml, h5py
+import hdftools, math
+import os, tempfile, zipfile
 
-def warp(srcfiles, projection=None, extent=None):
+def warp(srcfiles, projection, extent):
     bounding_box = [
         extent["xmin"],
         extent["ymin"],
@@ -23,9 +25,17 @@ def warp(srcfiles, projection=None, extent=None):
 
     return ds.GetRasterBand(1).ReadAsArray()
 
-def MYD09A1_band_name(fname, band_n):
-    sub_ds = gdal.Open(fname).GetSubDatasets()
-    return next( s[0] for s in sub_ds if ("b%02d" % band_n) in s[0] )
+def rasterize(srcshape, projection, extent):
+    width  = int(math.ceil(abs(extent["xmax"] - extent["xmin"]) / extent["pixel_size"]))
+    height = int(math.ceil(abs(extent["ymax"] - extent["ymin"]) / extent["pixel_size"]))
+    ds = gdal.GetDriverByName('GTiff').Create(os.path.join("WM.tiff"), width, height, 1, gdal.GDT_Byte)
+    ds.SetGeoTransform([extent["xmin"], extent["pixel_size"], 0.0, extent["ymax"], 0.0, -extent["pixel_size"]])
+    srs = osr.SpatialReference()
+    srs.ImportFromProj4(projection)
+    ds.SetProjection(srs.ExportToWkt())
+    ds.GetRasterBand(1).Fill(0)
+    gdal.RasterizeLayer(ds, [1], srcshape, burn_values=[1])
+    return ds.GetRasterBand(1).ReadAsArray()
 
 def save(params, data, dstname, scale_factor=1.):
     scaled_data = [ d*scale_factor for d in data ]
@@ -36,22 +46,37 @@ with open(glob("*.ini")[0]) as f:
     params = yaml.safe_load(f)
 
 files = glob("SRTM/*.hgt")
+if not len(files):
+    print "ERROR: Could not find SRTM file(s), aborting."
+    raise SystemExit
 print "    ".join(map(str,files))
 data = [ warp(files, params['srs'], extent) \
     for extent in params['extents'] ]
 save(params, data, "srtm")
 
-for band_n in xrange(1,8):
-    files = glob("MODIS/*.hdf")
-    fname = "refl_b%02d" % band_n
-    band_names = map( lambda f: MYD09A1_band_name(f, band_n), files )
-    print "    ".join(map(str,band_names))
-    data = [ warp(band_names, params['srs'], extent) \
-        for extent in params['extents'] ]
-    save(params, data, fname, scale_factor=0.0001)
-
 files = glob("VIIRS-DNB/*.tif")
-print "    ".join(map(str,files))
-data = [ warp(files, params['srs'], extent) \
-    for extent in params['extents'] ]
-save(params, data, "stable_lights")
+if not len(files):
+    print "WARNING: Did not find VIIRS file(s)."
+    print "If you don't intend to use zones inventory, you cans safely ignore this."
+else:
+    print "    ".join(map(str,files))
+    data = [ warp(files, params['srs'], extent) \
+        for extent in params['extents'] ]
+    save(params, data, "stable_lights")
+
+
+    zip = zipfile.ZipFile('hydropolys.zip')
+    tempdir = tempfile.mkdtemp(prefix='.',dir='.')
+
+    print "Unzipping..."
+    zip.extractall(tempdir)
+    shape = ogr.Open(os.path.join(tempdir, 'hydropolys.shp')).GetLayer()
+
+    data = [ rasterize(shape, params['srs'], extent) \
+        for extent in params['extents'] ]
+    save(params, data, "water_mask")
+
+    # Clean up after ourselves.
+    for file in os.listdir(tempdir):
+      os.unlink(os.path.join(tempdir, file))
+    os.rmdir(tempdir)
