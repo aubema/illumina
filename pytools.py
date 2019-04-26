@@ -42,12 +42,12 @@ def spct_norm(wav, x):
     return safe_divide( x, _np.sum(x)*dlambda )
 
 def zon_norm(angles, wavelenght, zone):
-    """Normalises an Illumina zone LOP"""
+    """Returns the normalisation factor of an ILLUMINA zone."""
     a = _np.deg2rad(angles)
     mids = _np.concatenate([[a[0]],_np.mean([a[1:],a[:-1]],0),[a[-1]]])
     sinx = 2*_np.pi*(_np.cos(mids[:-1])-_np.cos(mids[1:]))
     dlambda = wavelenght[1]-wavelenght[0]
-    return safe_divide( zone, _np.sum(zone.T*sinx)*dlambda )
+    return _np.sum(zone.T*sinx)*dlambda
 
 def parse_inventory(filename, n=0):
     """Parse an inventory type file.
@@ -68,21 +68,35 @@ def parse_inventory(filename, n=0):
 
     return zonData
 
-def make_zones(theta, lop, wl, spct, ivtr):
+def make_zones(theta, lop, wl, spct, ivtr, sources):
     """Returns an array of normalized zones.
 
       theta : angles used to define the Light Output Pattern (deg)
       lop : Light Output Pattern dictionnary
       wl : wavelength used to define the spectrum
       spct : Lamp spectrum dictionnary
-      ivtr : Parsed inventory"""
-    return _np.asarray([
-        zon_norm(
-            theta,
-            wl,
-            sum(l[0] * spct[l[1]] * lop[l[2]][:,_np.newaxis]
-                for l in lampData) )
-        for lampData in ivtr ])
+      ivtr : Parsed inventory
+      lops : List of LOPs in the inventory"""
+
+    zones = _np.asarray([
+        [
+            _np.ones((len(theta),len(wl))) * \
+            sum(
+                c*spct[t]*lop[l][:,None] \
+                for c,t,l in zone \
+                if l == s
+            ) \
+            for s in sources
+        ] \
+        for zone in ivtr
+    ])
+
+    for i,zone in enumerate(zones):
+        zon = zone.sum(0)
+        norm = zon_norm(theta,wl,zon)
+        zones[i] = safe_divide(zone,norm)
+
+    return zones
 
 def load_pgm(filename):
     """Opens a PGM file.

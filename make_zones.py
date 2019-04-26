@@ -12,40 +12,20 @@ print "Building inputs from zones inventory."
 inv_name = params['zones_inventory']
 zonData = pt.parse_inventory(inv_name,7)
 
-print "Calculating the generalized lamps."
-
-# Calculate zones lamps
-zones = pt.make_zones(angles, lop, wav, spct, zonData )
-
-# Create the desired lamp files
-y = np.array(map(
-	np.mean,
-	np.array_split(
-		zones[:,:,bool_array],
-		n_bins,
-		-1),
-	[-1]*n_bins )).transpose(1,2,0)
-
-print "Creating files."
+sources = np.unique([ lamp[2] for zd in zonData for lamp in zd ])
 
 for l in xrange(n_bins):
-	for z in xrange(len(zones)):
+	for s in sources:
 		np.savetxt(
-			dir_name+"fctem_wl_%03d_zon_%03d.dat" % (x[l],z+1),
-			np.concatenate([ y[z,:,l],angles ]).reshape((2,-1)).T )
+			dir_name+"fctem_wl_%03d_lamp_%s.dat" % (x[l],s),
+			np.concatenate([ lop[s],angles ]).reshape((2,-1)).T )
 
-try:
-	os.symlink(
-		os.path.abspath("stable_lights.hdf5"),
-		dir_name+"stable_lights.hdf5" )
-except OSError as e:
-	if e[0] != 17:
-		raise
+with open(dir_name+"lamps.lst",'w') as zfile:
+	zfile.write('\n'.join( sources ) + '\n' )
 
 print "Making zone properties files."
 
 circles = hdf.from_domain("domain.ini") # Same geolocalisation
-
 zonfile = np.loadtxt(inv_name,usecols=range(7),ndmin=2)
 
 # zone number
@@ -58,18 +38,16 @@ for n,name in izip(xrange(3,7),['obsth','obstd','obstf','altlp']):
     	circles.set_circle((dat[0],dat[1]),dat[2]*1000,dat[n])
     circles.save(dir_name+out_name+"_"+name)
 
-with open(dir_name+"zon.lst",'w') as zfile:
-	zfile.write('\n'.join( map(
-		lambda n: "%03d"%n,
-		xrange(1,len(zones)+1) ) ) + '\n' )
-
 print "Inverting lamp intensity."
 
-viirs_dat = MSD.Open(dir_name+"stable_lights.hdf5") * 1e-5 #nW/cm^2/sr -> W/m^2/sr
+# Calculate zones lamps
+zones = pt.make_zones(angles, lop, wav, spct, zonData, sources )
 
-# Water mask
-for i in xrange(len(viirs_dat)):
-	viirs_dat[i][refl[i](700) < 0.01] = 0
+viirs_dat = MSD.Open("stable_lights.hdf5") * 1e-5 #nW/cm^2/sr -> W/m^2/sr
+
+# TODO: Water mask
+#for i in xrange(len(viirs_dat)):
+#	viirs_dat[i][refl[i](700) < 0.01] = 0
 
 circles = MSD.Open(dir_name+out_name+"_zone.hdf5")
 zon_mask = np.empty(len(circles),dtype=object)
@@ -86,32 +64,44 @@ S = np.array([
 	for i in xrange(len(viirs_dat)) ])
 
 # phie = DNB * S / int( R ( rho/pi Gdown + Gup ) ) dlambda
-gdown = (zones * sinx[:,None])[:,angles>90].sum(1)
-gup = (zones * sinx[:,None])[:,angles<70].sum(1) / sinx[angles<70].sum()
+Gdown = (zones * sinx[:,None])[:,:,angles>90].sum(2)
+Gup = (zones * sinx[:,None])[:,:,angles<70].sum(2) / sinx[angles<70].sum()
+integral = np.sum(viirs * (Gdown*refl/np.pi + Gup),-1) * (wav[1]-wav[0])
 
-# Has to be done this way or risk MemoryError
-def integral():
-	for i,wl in enumerate(wav):
-		arr = np.empty(len(refl),dtype=object)
-		for j,r in enumerate(refl):
-			arr[j] = zon_mask[j] * viirs[i] * \
-				(r(wl)/np.pi * gdown[:,i,None,None] + gup[:,i,None,None])
-		yield arr
+phie = [
+	pt.safe_divide(
+		viirs_dat[i] * S[i],
+		np.sum(
+			zon_mask[i][:,None] * \
+			integral[:,:,None,None],
+			0
+		)
+	) \
+	for i in xrange(len(S))
+]
 
-phie = sum(integral()) * (wav[1]-wav[0])
-# layer, zone, x, y
-
-for i,p in enumerate(phie):
-	phie[i] = pt.safe_divide(viirs_dat[i] * S[i], p)
-
-wl_bin = np.array_split(wav[bool_array],n_bins,-1)
-fctem_bin = np.array_split(zones[:,:,bool_array],n_bins,-1)
-# bin, zone, ang, wl
+ratio = [
+	fctem_bin.mean(-1) \
+	for fctem_bin in np.array_split(
+		(zones*sinx[:,None]).sum(2)[:,:,bool_array]
+		,n_bins
+		,-1
+	)
+]
 
 for n in xrange(n_bins):
-	ratio = (fctem_bin[n].mean(-1) * sinx).sum(1)
-	for z,r in enumerate(ratio):
+	r = [
+		np.sum(
+			zon_mask[layer][:,None] * \
+			ratio[n][:,:,None,None],
+			0
+		) for layer in xrange(len(phie))
+	]
+	for i,s in enumerate(sources):
 		new = hdf.from_domain("domain.ini")
-		for i in xrange(len(phie)):
-			new[i] = (phie[i][z] * r)
-		new.save(dir_name+"%s_%03d_lumlp_%03d" % (out_name,x[n],z+1))
+		for layer in xrange(len(new)):
+			new[layer] = pt.safe_divide(
+				phie[layer][i],
+				r[layer][i]
+			)
+		new.save(dir_name+"%s_%03d_lumlp_%s" % (out_name,x[n],s))
