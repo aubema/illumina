@@ -3,8 +3,9 @@
 from glob import glob
 import ogr, osr, gdal
 import yaml, h5py
-import hdftools, math
-import os, tempfile, zipfile
+import hdftools
+from subprocess import call
+import os
 
 def warp(srcfiles, projection, extent):
     bounding_box = [
@@ -25,17 +26,54 @@ def warp(srcfiles, projection, extent):
 
     return ds.GetRasterBand(1).ReadAsArray()
 
-def rasterize(srcshape, projection, extent):
-    width  = int(math.ceil(abs(extent["xmax"] - extent["xmin"]) / extent["pixel_size"]))
-    height = int(math.ceil(abs(extent["ymax"] - extent["ymin"]) / extent["pixel_size"]))
-    ds = gdal.GetDriverByName('GTiff').Create(os.path.join("WM.tiff"), width, height, 1, gdal.GDT_Byte)
-    ds.SetGeoTransform([extent["xmin"], extent["pixel_size"], 0.0, extent["ymax"], 0.0, -extent["pixel_size"]])
+def prep_shp(infile, projection, extent):
+        cmd  = ['ogr2ogr']
+        cmd += ['-spat',
+            extent['xmin'],
+            extent['ymin'],
+            extent['xmax'],
+            extent['ymax']
+        ]
+        cmd += ['-spat_srs','+init='+projection]
+        cmd += ['-t_srs','+init='+projection]
+        cmd += ['tmp_select.shp']
+        cmd += ['/vsizip/'+os.path.abspath(infile)]
+        cmd = map(str,cmd)
+        print "EXECUTING :", ' '.join(cmd)
+        call(cmd)
+
+        cmd  = ['ogr2ogr']
+        cmd += ['tmp_merge.shp']
+        cmd += ['tmp_select.shp']
+        cmd += ['-dialect','sqlite']
+        cmd += ['-sql','SELECT ST_Union(geometry) AS geometry FROM tmp_select']
+        print "EXECUTING :", ' '.join(cmd)
+        call(cmd)
+
+def rasterize(shpfile, projection, extent):
+    width = int((extent['xmax'] - extent['xmin']) / extent['pixel_size'])
+    height = int((extent['ymax'] - extent['ymin']) / extent['pixel_size'])
+
+    geo_transform = (
+        extent['xmin'],extent['pixel_size'],0,
+        extent['ymax'],0,-extent['pixel_size']
+    )
     srs = osr.SpatialReference()
-    srs.ImportFromProj4(projection)
-    ds.SetProjection(srs.ExportToWkt())
-    ds.GetRasterBand(1).Fill(0)
-    gdal.RasterizeLayer(ds, [1], srcshape, burn_values=[1])
-    return ds.GetRasterBand(1).ReadAsArray()
+    srs.ImportFromEPSG(int(projection.split(':')[1]))
+    proj = srs.ExportToWkt()
+
+    data_source = gdal.OpenEx(shpfile, gdal.OF_VECTOR)
+    driver = gdal.GetDriverByName('MEM')  # In memory dataset
+    target_ds = driver.Create('', width, height, 1, gdal.GDT_Byte)
+    target_ds.SetGeoTransform(geo_transform)
+    target_ds.SetProjection(proj)
+    gdal.Rasterize(target_ds, data_source,
+        bands=[1],
+        burnValues=[1],
+        inverse=True,
+        allTouched=True)
+    return target_ds.GetRasterBand(1).ReadAsArray()
+
 
 def save(params, data, dstname, scale_factor=1.):
     scaled_data = [ d*scale_factor for d in data ]
@@ -64,19 +102,16 @@ else:
         for extent in params['extents'] ]
     save(params, data, "stable_lights")
 
-
-    zip = zipfile.ZipFile('hydropolys.zip')
-    tempdir = tempfile.mkdtemp(prefix='.',dir='.')
-
-    print "Unzipping..."
-    zip.extractall(tempdir)
-    shape = ogr.Open(os.path.join(tempdir, 'hydropolys.shp')).GetLayer()
-
-    data = [ rasterize(shape, params['srs'], extent) \
+    prep_shp(
+        "hydropolys.zip/hydropolys.shp",
+        params['srs'],
+        params['extents'][-1]
+    )
+    data = [ rasterize("tmp_merge.shp", params['srs'], extent) \
         for extent in params['extents'] ]
     save(params, data, "water_mask")
 
-    # Clean up after ourselves.
-    for file in os.listdir(tempdir):
-      os.unlink(os.path.join(tempdir, file))
-    os.rmdir(tempdir)
+    for fname in glob("tmp*"):
+        os.remove(fname)
+
+    print "Done."
