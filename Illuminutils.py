@@ -74,7 +74,6 @@ def rasterize(shpfile, projection, extent):
         allTouched=True)
     return target_ds.GetRasterBand(1).ReadAsArray()
 
-
 def save(params, data, dstname, scale_factor=1.):
     scaled_data = [ d*scale_factor for d in data ]
     ds = hdftools.from_domain(params,scaled_data)

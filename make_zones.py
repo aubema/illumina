@@ -45,9 +45,9 @@ zones = pt.make_zones(angles, lop, wav, spct, zonData, sources )
 
 viirs_dat = MSD.Open("stable_lights.hdf5") * 1e-5 #nW/cm^2/sr -> W/m^2/sr
 
-# TODO: Water mask
-#for i in xrange(len(viirs_dat)):
-#	viirs_dat[i][refl[i](700) < 0.01] = 0
+water_mask = MSD.Open("water_mask.hdf5")
+for i,wm in enumerate(water_mask):
+	viirs_dat[i][wm==0] = 0.
 
 circles = MSD.Open(dir_name+out_name+"_zone.hdf5")
 zon_mask = np.empty(len(circles),dtype=object)
