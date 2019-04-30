@@ -53,12 +53,12 @@ exp_name = params['exp_name']
 # Add wavelength and multiscale
 ds = MSDOpen(glob("*.hdf5")[0])
 
-params['wavelength'] = np.loadtxt("wav.lst").tolist()
+params['wavelength'] = np.loadtxt("wav.lst",ndmin=1).tolist()
 params['layer'] = range(len(ds))
 params['observer_coordinates'] = zip(*ds.get_obs_pos())
 
 wls = params['wavelength']
-refls = np.loadtxt("refl.lst").tolist()
+refls = np.loadtxt("refl.lst",ndmin=1).tolist()
 
 for pname in ['layer','observer_coordinates']:
     if len(params[pname]) == 1:

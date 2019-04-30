@@ -71,11 +71,7 @@ integral = np.sum(viirs * (Gdown*refl/np.pi + Gup),(1,2)) * (wav[1]-wav[0])
 phie = [
 	pt.safe_divide(
 		viirs_dat[i] * S[i],
-		np.sum(
-			zon_mask[i] * \
-			integral[:,None,None],
-			0
-		)
+		np.sum(zon_mask[i] * integral[:,None,None], 0)
 	) \
 	for i in xrange(len(S))
 ]
@@ -83,9 +79,8 @@ phie = [
 ratio = [
 	fctem_bin.mean(-1) \
 	for fctem_bin in np.array_split(
-		(zones*sinx[:,None]).sum(2)[:,:,bool_array]
-		,n_bins
-		,-1
+		(zones*sinx[:,None]).sum(2)[:,:,bool_array],
+		n_bins,-1
 	)
 ]
 
