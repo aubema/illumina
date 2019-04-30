@@ -206,8 +206,32 @@ print "Unifying inputs."
 
 if params['zones_inventory'] is not None and \
 	params['lamps_inventory'] is not None:
-	# TODO: Add both inputs
-	pass
+	lfiles = { fname.split(os.sep)[-1] for fname in glob(".Inputs_lamps/*") }
+	zfiles = { fname.split(os.sep)[-1] for fname in glob(".Inputs_zones/*") }
+	for fname in lfiles-zfiles:
+		shutil.move(os.path.join(".Inputs_lamps",fname),"Inputs")
+	for fname in zfiles-lfiles:
+		shutil.move(os.path.join(".Inputs_zones",fname),"Inputs")
+	for fname in zfiles&lfiles:
+		if "fctem" in fname:
+			shutil.move(os.path.join(".Inputs_lamps",fname),"Inputs")
+		elif fname.endswith('.lst'):
+			with open(os.path.join(".Inputs_lamps",fname)) as f:
+				ldat = f.readlines()
+			with open(os.path.join(".Inputs_zones",fname)) as f:
+				zdat = f.readlines()
+			with open(os.path.join("Inputs",fname),'w') as f:
+				f.write(''.join(sorted(set(ldat+zdat))))
+		elif fname.endswith('.hdf5'):
+			ldat = MSD.Open(os.path.join(".Inputs_lamps",fname))
+			zdat = MSD.Open(os.path.join(".Inputs_zones",fname))
+			for i, dat in enumerate(ldat):
+				zdat[i][dat != 0] = dat[dat != 0]
+			zdat.save(os.path.join("Inputs",fname))
+		else:
+			print "WARNING: File %s not merged properly." % fname
+	shutil.rmtree(".Inputs_lamps",True)
+	shutil.rmtree(".Inputs_zones",True)
 elif params['zones_inventory'] is not None:
 	for fname in glob(".Inputs_zones/*"):
 		shutil.move(fname,"Inputs")
