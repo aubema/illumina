@@ -1,40 +1,81 @@
 #!/usr/bin/env python2
 
 import numpy as np
-import pytools as pt
+import pytools as pt, hdftools as hdf
 from glob import glob
 import os, sys
-from shutil import rmtree
+import shutil
 import MultiScaleData as MSD
-import argparse
+import argparse, yaml
+from itertools import izip
+from scipy.interpolate import interp1d as interp
+from collections import defaultdict as ddict
 
 parser = argparse.ArgumentParser(
     description="Generates alternatives scenarios based on the current one."
 )
-parser.add_argument("mode",
-    help="Execution mode."\
-    "`conversion` replace the current light inventory by a new one "\
-    "while keeping the total emited lumen constant. "\
-    "`split` separates the inventory by lighting technology. ",
-    choices=['conversion','split']
+parser.add_argument("name",
+    help="Name of the new scenario. "\
+    "If provided in 'split' mode, will only extract the technology of that name."
 )
-parser.add_argument("name", nargs='?',
-    help="Name of the new scenario if the mode is set to `conversion`. "\
-    "The new inventory data needs to be in `inventory_NAME.txt`. "\
-    "If the mode is set to `split`, only the specified technology will be extracted. "\
-    "If that technology is not present in the inventory, the output will be all zeros."
+parser.add_argument("-z", "--zones",
+    help="New zones inventory filename."
+)
+parser.add_argument("-l", "--lights",
+    help="New discrete lights inventory filename."
 )
 
 p = parser.parse_args()
 
-if p.mode == "conversion":
-    if p.name is None:
-        parser.error("conversion requires name")
-    new_name = p.name
-    old_invp = "inventory.txt"
-    inv_path = "inventory_%s.txt" % new_name
-elif p.mode == "split":
-    inv_path = "inventory.txt"
+if p.zones == None and p.lights == None:
+    print "ERROR: At least one of 'zones' and 'lights' must be provided."
+    raise SystemExit
+
+dirname = "Inputs_%s/" % p.name
+
+if os.path.exists(dirname):
+    shutil.rmtree(dirname)
+os.makedirs(dirname)
+
+with open("inputs_params.in") as f:
+    params = yaml.safe_load(f)
+
+if p.zones is not None and \
+	p.lights is not None:
+
+	print "Validating the inventories."
+
+	lamps = np.loadtxt(p.lights,usecols=[0,1])
+	zones = np.loadtxt(p.zones,usecols=[0,1,2])
+	zonData = pt.parse_inventory(p.zones,7)
+
+	hasLights = [ sum( x[0] for x in z ) != 0 for z in zonData ]
+
+	circles = hdf.from_domain("domain.ini")
+	for dat,b in izip(zones,hasLights):
+		circles.set_circle((dat[0],dat[1]),dat[2]*1000,b)
+
+	zones_ind = hdf.from_domain("domain.ini")
+	for i,dat in enumerate(zones,1):
+		zones_ind.set_circle((dat[0],dat[1]),dat[2]*1000,i)
+
+	failed = set()
+	for l,coords in enumerate(lamps,1):
+		for i in xrange(len(circles)):
+			try:
+				col,row = circles._get_col_row(coords,i)
+				if circles[i][row,col] and col >= 0 and row >= 0:
+					zon_ind = zones_ind[i][row,col]
+					failed.add((l,coords[0],coords[1],zon_ind))
+			except IndexError:
+				continue
+
+	if len(failed):
+		for l,lat,lon,zon_ind in sorted(failed):
+			print "WARNING: Lamp #%d (%.06g,%.06g) falls within non-null zone #%d" \
+				% (l,lat,lon,zon_ind)
+		raise SystemExit()
+
 
 print "\nLoading data..."
 
@@ -62,133 +103,126 @@ spct = {
     pt.load_spct(wav,norm_spectrum,s) \
 for s in spct_files }
 
-if p.mode == "conversion":
-    zonData = pt.parse_inventory(inv_path)
-    oldZonData = pt.parse_inventory(old_invp,7)
-elif p.mode == "split":
-    zonData = pt.parse_inventory(inv_path,7)
-
-print "\nCalculating the generalized lamps..."
-
-# Calculate zones lamps
-zones = pt.make_zones( angles, lop, wav, spct, zonData )
-
 # Make bins
-x = np.loadtxt("Inputs/wav.lst")
-n = x.size
+x = np.loadtxt("Inputs/wav.lst").tolist()
+n_bins = len(x)
 ilims = np.genfromtxt("Inputs/integration_limits.dat",skip_header=1)
 dl = ilims[1:]-ilims[:-1]
 bool_array = (ilims[0]<=wav)*(wav<ilims[-1])
-y = np.array(map(np.mean,
-        np.array_split(zones[:,:,bool_array],n,-1),[-1]*n
-    )).transpose(1,2,0)
+
+ppath = os.environ['PATH'].split(os.pathsep)
+illumpath = filter(
+	lambda s: "illumina" in s and "bin" not in s,
+	ppath )[0]
+
+out_name = params['exp_name']
+
+asper_files = glob("Lights/*.asper")
+asper = {
+	os.path.basename(s).split('.',1)[0] : \
+	np.loadtxt(s) \
+	for s in asper_files
+}
+
+for type in asper:
+	wl,refl = asper[type].T
+	wl *= 1000.
+	refl /= 100.
+	asper[type] = interp(
+		wl, refl,
+		bounds_error=False,
+		fill_value=0.
+	)(wav)
+
+sum_coeffs = sum(
+	params['reflectance'][type] \
+	for type in params['reflectance']
+)
+if sum_coeffs == 0:
+	sum_coeffs = 1.
+
+refl = sum(
+	asper[type]*coeff/sum_coeffs \
+	for type,coeff \
+	in params['reflectance'].iteritems()
+)
+
+reflect = [ np.mean(a) for a in \
+    np.array_split(
+		refl[bool_array],
+		n_bins,
+		-1
+    )
+]
 
 # Photopic/scotopic spectrum
-if p.mode == "conversion":
 #   ratio_ps = float(raw_input("    photopic/scotopic ratio for lamp power ? (0 <= p/(s+p) <= 1) : "))
-    nspct = ratio_ps*photopic + (1-ratio_ps)*scotopic
-    nspct = nspct/np.sum(nspct)
-    nspct = np.array(map(np.mean,np.array_split(nspct[bool_array],n)))
+nspct = ratio_ps*photopic + (1-ratio_ps)*scotopic
+nspct = nspct/np.sum(nspct)
+nspct = np.array(map(np.mean,np.array_split(nspct[bool_array],n_bins)))
 
-    dirnames = ["Inputs_"+new_name.replace(' ','_')+'/']
-elif p.mode == "split":
-    lamp_types = set(map(lambda x: x[1], sum(zonData,[])))
-    if p.name is not None:
-        if p.name not in lamp_types:
-            print "WARNING: Technology %s not present in inventory." % p.name
-        lamp_types = [ p.name ]
-    dirnames = [ "Inputs_"+lamp_t+'/' for lamp_t in lamp_types]
+if params['zones_inventory'] is not None:
+    dir_name = ".Inputs_zones/"
+    shutil.rmtree(dir_name,True)
+    os.makedirs(dir_name)
+    execfile(os.path.join(illumpath,"make_zones.py"))
 
-for dirname in dirnames:
-    if os.path.exists(dirname):
-        rmtree(dirname)
-    os.makedirs(dirname)
+    oldlumlp = hdf.from_domain("domain.ini")
+    for fname in glob("Inputs/*lumlp*"):
+        ds = MSD.Open(fname)
+        wl = int(fname.split('_')[1])
+        for i, dat in enumerate(ds):
+            oldlumlp[i] += dat * nspct[x.index(wl)] * dl[x.index(wl)]
 
-# Link unmodified files
-fctem = set(glob("Inputs/*fctem*"))
-lumlp = set(glob("Inputs/*lumlp*"))
-intrs = set(glob("Inputs/*"))
+    newlumlp = hdf.from_domain("domain.ini")
+    for fname in glob(os.path.join(dir_name,"*lumlp*")):
+        ds = MSD.Open(fname)
+        for i, dat in enumerate(ds):
+            newlumlp[i] += dat * nspct[x.index(wl)] * dl[x.index(wl)]
 
-files = intrs-lumlp-fctem
-for dirname in dirnames:
-    for name in files:
-        os.symlink(
-            os.path.abspath(name),
-            dirname+os.path.basename(name)
-        )
+    ratio = hdf.from_domain("domain.ini")
+    for i in xrange(len(ratio)):
+        ratio[i] = pt.safe_divide(oldlumlp[i],newlumlp[i])
 
-# Main treatement
-if p.mode == "conversion":
-    for z in xrange(len(zones)):
-        print "Treating zone : %d/%d"%(z+1,len(zones))
-        lum_files = sorted(glob("Inputs/*lumlp_%03d*.hdf5"%(z+1)))
-        spt_files = sorted(glob("Inputs/fctem*%03d*.dat"%(z+1)))
+    for fname in glob(os.path.join(dir_name,"*lumlp*")):
+        ds = MSD.Open(fname)
+        for i, dat in enumerate(ratio):
+            ds[i] *= dat
+        ds.save(fname)
 
-        # Linking files if inventory unchanged (faster)
-        if zonData[z]==oldZonData[z]:
-            for name in lum_files+spt_files:
-                os.symlink(
-                    os.path.abspath(name),
-                    dirnames[0]+os.path.basename(name)
-                )
-        else:
-            attrs = MSD.Open(lum_files[0])._attrs
-            data = np.asarray([MSD.Open(s) for s in lum_files])
-            lumtot = np.sum(data*(dl*nspct)[:,None],0) # Total luminosity
-            spct = np.sum( y[z] * 2*np.pi*np.sin(np.deg2rad(angles))[:,None]
-                * (angles[1]-angles[0]), 0 )
-            K = pt.safe_divide(lumtot,np.sum(spct*nspct*dl))
+if params['lamps_inventory'] is not None:
+	dir_name = ".Inputs_lamps/"
+	shutil.rmtree(dir_name,True)
+	os.makedirs(dir_name)
+	execfile(os.path.join(illumpath,"make_lamps.py"))
 
-            ndata = spct[:,None]*K[None]
+print "Unifying inputs."
 
-            # Saving new files
-            for wl,dat in enumerate(ndata):
-                dat = MSD.MultiScaleData(attrs,dat)
-                dat.save( dirnames[0] + os.path.basename(lum_files[wl]) )
-                np.savetxt( dirnames[0] + os.path.basename(spt_files[wl]),
-                    np.concatenate([y[z,:,wl],angles]).reshape((2,-1)).T )
-elif p.mode == "split":
-    for lamp_t in lamp_types:
-        print "Treating lamp : " + lamp_t
-        dirname = "Inputs_"+lamp_t+'/'
-
-        newZonData = [ [l for l in zone if l[1]==lamp_t] for zone in zonData ]
-        for i in range(len(newZonData)):
-            if newZonData[i]==[]:
-                newZonData[i] = [[0,lamp_t,'0']]
-        weights = np.asarray(map(lambda z:sum(map(lambda x:x[0],z)),newZonData))
-
-        newZones = pt.make_zones( angles, lop, wav, spct, newZonData ) \
-            * weights[:,None,None]
-        ny = np.array(map(np.mean,
-                np.array_split(newZones[:,:,bool_array],n,-1),[-1]*n
-            )).transpose(1,2,0)
-
-        spct_old = np.sum( y  * 2*np.pi*np.sin(np.deg2rad(angles))[:,None]
-            * (angles[1]-angles[0]), 1 )
-        spct_new = np.sum( ny * 2*np.pi*np.sin(np.deg2rad(angles))[:,None]
-            * (angles[1]-angles[0]), 1 )
-
-        for z in xrange(len(zones)):
-            print "  Treating zone : %d/%d"%(z+1,len(zones))
-            lum_files = sorted(glob("Inputs/*lumlp_%03d*.hdf5"%(z+1)))
-            spt_files = sorted(glob("Inputs/fctem*%03d*.dat"%(z+1)))
-
-            # Linking files if weigth = 1 (faster)
-            if weights[z] == 1:
-                for name in lum_files+spt_files:
-                    os.symlink(
-                        os.path.abspath(name),
-                        dirname+os.path.basename(name)
-                    )
-            else:
-                # Saving new files
-                for wl in xrange(n):
-                    data = MSD.Open(lum_files[wl])
-                    ndata = data * spct_new[z,wl]/spct_old[z,wl]
-
-                    ndata.save( dirname + os.path.basename(lum_files[wl]) )
-                    np.savetxt( dirname + os.path.basename(spt_files[wl]),
-                        np.concatenate([ny[z,:,wl],angles]).reshape((2,-1)).T )
+lfiles = { fname.split(os.sep)[-1] for fname in glob(".Inputs_lamps/*") }
+zfiles = { fname.split(os.sep)[-1] for fname in glob(".Inputs_zones/*") }
+for fname in lfiles-zfiles:
+	shutil.move(os.path.join(".Inputs_lamps",fname),dirname)
+for fname in zfiles-lfiles:
+	shutil.move(os.path.join(".Inputs_zones",fname),dirname)
+for fname in zfiles&lfiles:
+	if "fctem" in fname:
+		shutil.move(os.path.join(".Inputs_lamps",fname),dirname)
+	elif fname.endswith('.lst'):
+		with open(os.path.join(".Inputs_lamps",fname)) as f:
+			ldat = f.readlines()
+		with open(os.path.join(".Inputs_zones",fname)) as f:
+			zdat = f.readlines()
+		with open(os.path.join(dirname,fname),'w') as f:
+			f.write(''.join(sorted(set(ldat+zdat))))
+	elif fname.endswith('.hdf5'):
+		ldat = MSD.Open(os.path.join(".Inputs_lamps",fname))
+		zdat = MSD.Open(os.path.join(".Inputs_zones",fname))
+		for i, dat in enumerate(ldat):
+			zdat[i][dat != 0] = dat[dat != 0]
+		zdat.save(os.path.join(dirname,fname))
+	else:
+		print "WARNING: File %s not merged properly." % fname
+shutil.rmtree(".Inputs_lamps",True)
+shutil.rmtree(".Inputs_zones",True)
 
 print "Done."
