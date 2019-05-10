@@ -1,11 +1,11 @@
-c programme pour convertir un fichier pgm provenant directement 
-c de viirs en valeur de 
+c programme pour convertir un fichier bin provenant directement
+c de viirs en valeur de
 c
 c To compile:
-c gfortran viirs2lum-multispectral.f extrants2d.f intrants2d.f interp_modis.f -o viirs2lum
+c gfortran viirs2lum-multispectral.f twodout.f twodin.f interp_modis.f -o viirs2lum
 c
-c possible option if the array sizes are too big: -mcmodel=large 
-c   
+c possible option if the array sizes are too big: -mcmodel=large
+c
 c    Copyright (C) 2015  Martin Aube
 c
 c    This program is free software: you can redistribute it and/or modify
@@ -19,7 +19,7 @@ c    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 c    GNU General Public License for more details.
 c
 c    You should have received a copy of the GNU General Public License
-c    along with this program. If not, see <http://www.gnu.org/licensces/> 
+c    along with this program. If not, see <http://www.gnu.org/licensces/>
 c    Contact: martin.aube@cegepsherbrooke.qc.ca
 c
       program viirs2lum
@@ -31,19 +31,20 @@ c nang is the number of zenith angles in the lop
 c nzo is the number of zones
 c ndb is the number of spectral bands
       integer na,i,j,n
-      integer valmax,nbx,nby,nw,nb,n_bands,lenbase
+      integer nbx,nby,nw,nb,n_bands,lenbase
       real dist,spct(nwa,nag),zone(wid,wid)
       real dnb(wid,wid),sumwav,Phi_c(wid,wid),wavel(nwa),viirs_sens(nwa)
       real thetas(nag),obsth(wid,wid),obstd(wid,wid),lamph(wid,wid)
-c     obsth=obstacle height, obstd=mean free path to the ground, 
+      real obstf(wid,wid),fobst(nzo)
+c     obsth=obstacle height, obstd=mean free path to the ground,
 c     lamph=lamp height above the ground
       character*72 Gn(nzo),zonfile,viirs_resp,bands_file,fctfile
       character*72 lumfile,outfile,viirs_file,rfile
 c     Gn=barG file name
-      character*12 nom,basename,junk
+      character*12 basename,junk
       real x(nzo),y(nzo),r(nzo),hobst(nzo),dobst(nzo),hlamp(nzo)
       real dat(wid,wid),datf(wid,wid)
-      real pi,maxim,gain,offset,xcell0,ycell0,pixsiz,rho(wid,wid),dwav
+      real pi,pixsiz,rho(wid,wid),dwav
       real sp(nbd,nag),lum(wid,wid,nbd),rad,bands(nbd,2)
       real G_moy(nwa,nzo),Fdown(nwa,nzo),fctem(nzo,nbd),avgwav(nbd)
       real tlamb,nwi,dbnunits
@@ -61,9 +62,9 @@ c converting to nanoW/cm2/sr en W/m2/sr DNB=DNB*dnbunits
       ycell0=0.
       xcell0=0.
       print*,'Be sure to have in the execution folder:'
-      print*,'1- viirs-dnb pgm file'
+      print*,'1- viirs-dnb bin file'
       print*,'2- zonal file [e.g. Hawaii.zon]'
-      print*,'3- modis pgm files for 3 modis bands'
+      print*,'3- modis bin files for 4 modis bands'
       print*,'4- modis wavelength and name file [modis.dat]'
       print*,'5- spectral bands file [integration_limits.dat]'
       print*,'6- viirs-dnb spectral response [viirs.dat]'
@@ -73,8 +74,8 @@ c converting to nanoW/cm2/sr en W/m2/sr DNB=DNB*dnbunits
       print*,'================'
       print*,'Output root name of the experiment ?'
       read*,basename
-      lenbase=index(basename,' ')-1 
-      print*,'viirs-dnb file name? [e.g. stable-light.pgm]'
+      lenbase=index(basename,' ')-1
+      print*,'viirs-dnb file name? [e.g. stable-light.bin]'
       read*,viirs_file
       print*,'zonal file name? [e.g. Hawaii.zon]'
       read*,zonfile
@@ -111,22 +112,22 @@ c Normalizing VIIRS-dnb spectral response
       CLOSE(unit=1)
 c lecture de l'image viirs dnb
         print*,'Reading VIIRS-dnb image...'
-        call intrants2d(viirs_file,dnb,xcell0,ycell0,pixsiz,nbx,nby)
+        call twodin(nbx,nby,viirs_file,dnb)
 c interpolate modis images to modelling bands wavelength
 c defined in file integration_limits.dat
         print*,'Interpolation MODIS images...'
         call interp_modis()
-c reading modis reflectance at 700nm to filter out the water pixels 
-c rho<0.01 . Water show a very low reflectance in that part of the 
+c reading modis reflectance at 700nm to filter out the water pixels
+c rho<0.01 . Water show a very low reflectance in that part of the
 c spectrum compared to soil and vegetation
-c the problem with low reflectance of water is that in many cases we 
-c enconter large cities next to water and then the scattered light 
+c the problem with low reflectance of water is that in many cases we
+c enconter large cities next to water and then the scattered light
 c over the water surface behave like an important direct source over a
 c very dark surface. To overcome cleanly this problem we should make a
 c correction for the estimated scattered light. It is not done yet.
 c the 0.01 threshold is not really validated
-        rfile='modis_700.pgm'
-        call intrants2d(rfile,rho,xcell0,ycell0,pixsiz,nbx,nby)
+        rfile='modis_700.bin'
+        call twodin(nbx,nby,rfile,rho)
         do i=1,nbx
           do j=1,nbx
               dnb(i,j)=dnb(i,j)*dnbunits*pixsiz*pixsiz
@@ -156,7 +157,8 @@ c ==============
 c debut boucle sur les zones
 c
         do n=1,nzon
-          read(11,*) x(n),y(n),r(n),Gn(n),hobst(n),dobst(n),hlamp(n)
+          read(11,*) x(n),y(n),r(n),Gn(n),hobst(n),dobst(n),fobst(n),
+     +    hlamp(n)
 c       loop over the modelling domain
             do i=1,nbx
               do j=1,nby
@@ -168,11 +170,13 @@ c       defining the mean obstacle height for each pixel
                    obsth(i,j)=hobst(n)
 c       defining the mean free path to the ground for each pixel
                    obstd(i,j)=dobst(n)
+c       defining obstacle filling factor for each pixel
+                   obstf(i,j)=fobst(n)
 c       defining the lamp height for each pixel
                    lamph(i,j)=hlamp(n)
                 endif
               enddo
-            enddo          
+            enddo
         enddo
         do n=1,nzon
 c
@@ -199,8 +203,8 @@ c   reading the barG
 
 c calcul du G_moy pour chaque zone et chaque lambda
             print*,'Computing G_moy...'
-            do nw=1,nwa 
-              G_moy(nw,n)=0.  
+            do nw=1,nwa
+              G_moy(nw,n)=0.
               do na=1,57
                 G_moy(nw,n)=G_moy(nw,n)+spct(nw,na)*
      +          sin(thetas(na)*rad)*1.*rad/
@@ -209,8 +213,8 @@ c calcul du G_moy pour chaque zone et chaque lambda
             enddo
 c calcul du Fdown pour chaque zone et chaque lambda
             print*,'Computing Fdown...'
-            do nw=1,nwa 
-              Fdown(nw,n)=0.  
+            do nw=1,nwa
+              Fdown(nw,n)=0.
               do na=92,181
                 Fdown(nw,n)=Fdown(nw,n)+2.*pi*
      +          spct(nw,na)*sin(thetas(na)*rad)*1.*rad
@@ -221,8 +225,8 @@ c determination de la reflectance la plus proche en lambda
           if (avgwav(nb).ge.wavel(nw)) then
 c reading the right modis file
              write(lambda, '(I3.3)' ) int(avgwav(nb))
-             rfile='modis_'//lambda//'.pgm'
-             call intrants2d(rfile,rho,xcell0,ycell0,pixsiz,nbx,nby)
+             rfile='modis_'//lambda//'.bin'
+             call twodin(nbx,nby,rfile,rho)
             cycle
           endif
         enddo
@@ -284,10 +288,10 @@ c extraire le fctem pour chaque zone et chaque bande
         enddo
 c et multiplier par Phi_c avec la fraction de bande
 c pour obtenir le lumlp de chaque zone et chaque bande
-        do nb=1,n_bands 
+        do nb=1,n_bands
           do i=1,nbx
-            do j=1,nby 
-              do na=1,nag  
+            do j=1,nby
+              do na=1,nag
                 lum(i,j,nb)=lum(i,j,nb)+Phi_c(i,j)
      +          *sp(nb,na)*2.*pi*sin(thetas(na)*rad)*1.*rad
               enddo
@@ -295,117 +299,63 @@ c pour obtenir le lumlp de chaque zone et chaque bande
           enddo
         enddo
         do nb=1,n_bands
-          write(waven, '(I3.3)' ) int(avgwav(nb))
-          write(zonenu, '(I3.3)' ) n
-          lumfile=basename(1:lenbase)//'_'//waven//'_lumlp_'//
-     +    zonenu//'.pgm'
-          nom='Luminosity'
-          maxim=0.
           do i=1,nbx
             do j=1,nby
               dat(i,j)=lum(i,j,nb)
-                if (maxim.lt.dat(i,j)) then
-                  maxim=dat(i,j)
-                endif
             enddo
           enddo
-          gain=maxim/real(valmax)
-          if (gain.eq.0.) gain=1.
-          call extrants2d(lumfile,dat,nom,xcell0,ycell0,pixsiz,
-     +    gain,offset,nbx,nby,valmax)
+          write(waven, '(I3.3)' ) int(avgwav(nb))
+          write(zonenu, '(I3.3)' ) n
+          lumfile=basename(1:lenbase)//'_'//waven//'_lumlp_'//
+     +    zonenu//'.bin'
+          call twodout(nbx,nby,lumfile,dat)
         enddo
 c
 c
 c fin bouche zones
           enddo
-c     writing light fixture height relative to the ground pgm files
+c     writing light fixture height relative to the ground bin files
             print*,'Writing light fixture height file...'
-            outfile=basename(1:lenbase)//'_altlp.pgm'
-            nom='LampHeight'
-            maxim=0.
-            do i=1,nbx
-              do j=1,nby
-                if (maxim.lt.lamph(i,j)) then
-                  maxim = lamph(i,j)
-                endif
-              enddo
-            enddo
-            gain = maxim/real(valmax)
-            call extrants2d (outfile,lamph,nom,xcell0,ycell0,pixsiz,
-     +      gain,offset,nbx,nby,valmax)
+            outfile=basename(1:lenbase)//'_altlp.bin'
+            call twodout(nbx,nby,outfile,lamph)
 c
 c
-c     writing obtacle height pgm file
-            print*,'Writing obtacle height pgm file...'
-            outfile=basename(1:lenbase)//'_obsth.pgm'
-            maxim=0.
-            do i=1,nbx
-              do j=1,nby
-                if (maxim.lt.obsth(i,j)) then
-                  maxim = obsth(i,j)
-                endif
-              enddo
-            enddo
-            nom='ObstacleH'
-            gain = maxim/real(valmax)
-            call extrants2d (outfile,obsth,nom,xcell0,ycell0,pixsiz,
-     +      gain,offset,nbx,nby,valmax)
-c     writing obtacle mean free path pgm file
-            print*,'Writing obtacle mean free path pgm file...'
-            outfile=basename(1:lenbase)//'_obstd.pgm'
-            nom='obstacleD'
-            maxim=0.
-            do i=1,nbx
-              do j=1,nby
-                if (maxim.lt.obstd(i,j)) then
-                  maxim = obstd(i,j)
-                endif
-              enddo
-            enddo
-            nom='MeanFreePath'
-            gain = maxim/real(valmax)
-            call extrants2d (outfile,obstd,nom,xcell0,ycell0,pixsiz,
-     +      gain,offset,nbx,nby,valmax)
-c     writing zone definition pgm file
-            print*,'Writing zone definition pgm file...'
-            outfile=basename(1:lenbase)//'_zone.pgm'
-            nom='Zonedef'
-            valmax=nzon
-            offset=0.
-            gain=1.
-            call extrants2d (outfile,zone,nom,xcell0,ycell0,pixsiz,
-     +      gain,offset,nbx,nby,valmax)
-            valmax=65535
+c     writing obtacle height bin file
+            print*,'Writing obtacle height bin file...'
+            outfile=basename(1:lenbase)//'_obsth.bin'
+            call twodout(nbx,nby,outfile,obsth)
+c     writing obtacle mean free path bin file
+            print*,'Writing obtacle mean free path bin file...'
+            outfile=basename(1:lenbase)//'_obstd.bin'
+            call twodout(nbx,nby,outfile,obstd)
+c     writing obtacle filling factor bin file
+            print*,'Writing obtacle filling factor bin file...'
+            outfile=basename(1:lenbase)//'_obstf.bin'
+            call twodout(nbx,nby,outfile,obstf)
+c     writing zone definition bin file
+            print*,'Writing zone definition bin file...'
+            outfile=basename(1:lenbase)//'_zone.bin'
+            call twodout(nbx,nby,outfile,zone)
 c
 c ===================
-c 
+c
 c creating combined lumlp for each band
 
         do nb=1,n_bands
           do n=1,nzon
-          write(waven, '(I3.3)' ) int(avgwav(nb))
+            write(waven, '(I3.3)' ) int(avgwav(nb))
             write(zonenu, '(I3.3)' ) n
             lumfile=basename(1:lenbase)//'_'//waven//'_lumlp_'//
-     +                zonenu//'.pgm'
-       call intrants2d(lumfile,dat,xcell0,ycell0,pixsiz,nbx,nby)
-            
+     +                zonenu//'.bin'
+            call twodin(nbx,nby,lumfile,dat)
             do i=1,nbx
               do j=1,nby
                 datf(i,j)=datf(i,j)+dat(i,j)
-                  if (maxim.lt.datf(i,j)) then
-                    maxim=datf(i,j)
-                  endif
-                enddo
               enddo
-
-
-              enddo
-            lumfile=basename(1:lenbase)//'_'//waven//'_lumlp.pgm'
-            nom='Luminosity'
-              gain=maxim/real(valmax)
-              if (gain.eq.0.) gain=1.
-              call extrants2d(lumfile,datf,nom,xcell0,ycell0,pixsiz,
-     +        gain,offset,nbx,nby,valmax)
+            enddo
+          enddo
+          lumfile=basename(1:lenbase)//'_'//waven//'_lumlp.bin'
+          call twodout(nbx,nby,lumfile,datf)
         enddo
         close(unit=11)
       stop

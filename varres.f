@@ -22,24 +22,19 @@ c
 c
        integer width
        parameter (width=1024)
-       real maxi,rhomax
-       real pixsiz,gain,offset,lumlp(width,width),refle(width,width)
-       real xcell0,ycell0,lumlpo(width,width),reflo(width,width)
+       real lumlp(width,width),refle(width,width)
+       real lumlpo(width,width),reflo(width,width)
        real lum,rho
+       integer imin,jmin,imax,jmax
        integer nx9ma,nx9mi,ny9ma,ny9mi,nx3ma,nx3mi,ny3ma,ny3mi
        integer l3,l1,nx,ny,i,j,valmax,n,px,py
        integer k,l,lx,ly,xi,xf,yi,yf,point(width*width,3),m,p
        character*72 lin,rin,lout,rout
-       character*12 nom
-       xcell0=0.
-       ycell0=0.
-       pixsiz=1.
-       nom='varres'
        l1=27
 c width of the 1x1 resolution window
 c l1 must be an odd multiple of 9 (e.g. 9, 27, 45, 63, 81, ...) 
        l3=81     
-c width of the  3x3 resolution window
+c width of the 3x3 resolution window
 c l3 must be an odd multiple of 9 and l3>l1
        open(unit=11,file='varres.in',status='unknown')
           read(11,*) lin
@@ -73,62 +68,78 @@ c limit distance of full resolution and 3x3 resolution
        max=0.
 
 c load lumlp file
-          call intrants2d(lin,lumlp,xcell0,ycell0,pixsiz,
-     +    nx,ny)
-          maxi=0.
+          call twodin(nx,ny,lin,lumlp)
           n=0
 c create new lumlp file using a variable mesh grid 
           nx9ma=(nx-px)/9
           nx9mi=(px-1)/9
           ny9ma=(ny-py)/9
           ny9mi=(py-1)/9
-          do i=-nx9mi+1,nx9ma-1
-            do j=-ny9mi+1,ny9ma-1
-              lx=i*9
-              ly=j*9
-              k=px+lx
-              l=py+ly
-              if ((abs(lx).gt.l3).or.(abs(ly).gt.l3)) then
-                do m=-4,4
-                  do p=-4,4
-                     lumlpo(k,l)=lumlpo(k,l)+lumlp(k+m,l+p)
-                  enddo
-                enddo
-                n=n+1
-                point(n,1)=k
-                point(n,2)=l
-                point(n,3)=9
-                if (lumlpo(k,l).gt.maxi) maxi=lumlpo(k,l)
-              endif
-            enddo
+          imin=-nx9mi+1
+          jmin=-ny9mi+1
+          do i=imin,nx9ma-1
+             do j=jmin,ny9ma-1
+                lx=i*9
+                ly=j*9
+                k=px+lx
+                l=py+ly
+                if ((k.ge.1).and.(l.ge.1)) then
+                   if ((abs(lx).gt.l3).or.(abs(ly).gt.l3)) then
+                      do m=-4,4
+                         do p=-4,4
+                            if ((k+m.ge.1).and.(l+p.ge.1)) then
+                               lumlpo(k,l)=lumlpo(k,l)+lumlp(k+m,l+p)
+                            endif
+                         enddo
+                      enddo
+                      n=n+1
+                      point(n,1)=k
+                      point(n,2)=l
+                      point(n,3)=9
+                   endif
+                endif
+             enddo
           enddo
           nx3ma=(nx-px)/3
           nx3mi=(px-1)/3
           ny3ma=(ny-py)/3
           ny3mi=(py-1)/3
-          do i=-nx3mi,nx3ma
-            do j=-ny3mi,ny3ma
+          imin=-nx3mi
+          jmin=-ny3mi
+          do i=imin,nx3ma
+            do j=jmin,ny3ma
               lx=i*3
               ly=j*3
               k=px+lx
               l=py+ly
-              if ((abs(lx).le.l3).and.(abs(ly)
-     +        .le.l3)) then
-                do m=-1,1
-                  do p=-1,1 
-                    lumlpo(k,l)=lumlpo(k,l)+lumlp(k+m,l+p)
-                  enddo
-                enddo
-                n=n+1
-                point(n,1)=k
-                point(n,2)=l
-                point(n,3)=3
-                if (lumlpo(k,l).gt.maxi) maxi=lumlpo(k,l)
+              if ((k.ge.1).and.(l.ge.1)) then
+                 if ((abs(lx).le.l3).and.(abs(ly)
+     +           .le.l3)) then
+                    do m=-1,1
+                       do p=-1,1
+                          if ((k+m.ge.1).and.(l+p.ge.1)) then                  
+                             lumlpo(k,l)=lumlpo(k,l)+lumlp(k+m,l+p)
+                          endif
+                       enddo
+                    enddo
+                    n=n+1
+                    point(n,1)=k
+                    point(n,2)=l
+                    point(n,3)=3
+                 endif
               endif
             enddo
           enddo
-          do i=px-l1,px+l1
-            do j=py-l1,py+l1
+          imin=px-l1
+          if (imin.lt.1) imin=1
+          jmin=py-l1
+          if (jmin.lt.1) jmin=1
+          imax=px+l1
+          if (imax.gt.nx) imax=nx
+          jmax=py+l1
+          if (jmax.gt.ny) jmax=ny
+          do i=imin,imax
+            do j=jmin,jmax
               lumlpo(i,j)=lumlp(i,j)
               n=n+1
               point(n,1)=i
@@ -138,10 +149,8 @@ c create new lumlp file using a variable mesh grid
           enddo
           print*,'Maximum acceleration factor: ',nx*ny/n,'X'
 c load reflectance
-          call intrants2d(rin,refle,xcell0,ycell0,pixsiz,
-     +    nx,ny) 
+          call twodin(nx,ny,rin,refle)
 c creating the reflectance file weighted by the lumlp
-          rhomax=0.
           do i=1,n
             xi=point(i,1)-(point(i,3)-1)/2
             xf=point(i,1)+(point(i,3)-1)/2
@@ -149,6 +158,8 @@ c creating the reflectance file weighted by the lumlp
             yf=point(i,2)+(point(i,3)-1)/2
             lum=0.
             rho=0.
+            if (xi.lt.1) xi=1
+            if (yi.lt.1) yi=1
             do k=xi,xf
               do l=yi,yf
                  rho=rho+refle(k,l)*lumlp(k,l)
@@ -158,35 +169,18 @@ c creating the reflectance file weighted by the lumlp
             if (lum.ne.0.) then
                rho=rho/lum
             else
-               rho=0.
-
-
-
-
-
+               rho=refle(k,l)
             endif
-                 if (rho.gt.rhomax) rhomax=rho
             do k=xi,xf
               do l=yi,yf
                  reflo(k,l)=rho
-
               enddo
             enddo
           enddo
-c writing average reflectance pgm
-       gain=rhomax/65535.
-       offset=0.
-       valmax=65535
-       nom='avreflectanc'
-       call extrants2d(rout,reflo,nom,xcell0,ycell0,pixsiz,
-     + gain,offset,nx,ny,valmax)
+c writing average reflectance bin
+       call twodout(nx,ny,rout,reflo)
 c writing lumlp output file with variable resolution
-       gain=maxi/250000.
-       offset=0.
-       valmax=65535
-       nom='lumlp-newres'
-       call extrants2d(lout,lumlpo,nom,xcell0,ycell0,pixsiz,
-     + gain,offset,nx,ny,valmax)
+       call twodout(nx,ny,lout,lumlpo)
 c writing grid points informations
        open(unit=1,file='grid.txt',status='unknown')
          write(1,*) n

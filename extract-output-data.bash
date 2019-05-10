@@ -94,20 +94,25 @@ then
    cp -f $i/grid.txt .
 fi
 #
-#  copy output files hereDenver-summer.list
+#  copy input/output files here
 #
 if [ -z "$summary" ]
 then
    cp -f $i/$expname".out" .
-   cp -f $i/*recombined.pgm .
-   cp -f $i/*pcw.pgm .
-   cp -f $i/*pcl.pgm .
+   cp -f $i/*recombined.bin .
+   cp -f $i/*pcw.bin .
+   cp -f $i/*pcl.bin .
+   cp -f $i/illumina.in .
 #   
 #  creating the input file for retres
 #
-   echo $expname"_lumlp_recombined.pgm" > retres.in
-   echo $expname"_pcl.pgm" >> retres.in
-   echo $expname"_pcl_new.pgm" >> retres.in
+   grep "Modeling domain size" illumina.in > toto.tmp
+   read nbx nby bidon < toto.tmp
+   rm -f toto.tmp
+   echo $expname"_lumlp_recombined.bin" > retres.in
+   echo $expname"_pcl.bin" >> retres.in
+   echo $expname"_pcl_new.bin" >> retres.in
+   echo $nbx $nby >> retres.in
 #
 # executing retres   
 #
@@ -115,9 +120,9 @@ then
 #   
 #  creating the input file for retres
 #   
-   echo $expname"_lumlp_recombined.pgm" > retres.in
-   echo $expname"_pcw.pgm" >> retres.in
-   echo $expname"_pcw_new.pgm" >> retres.in
+   echo $expname"_lumlp_recombined.bin" > retres.in
+   echo $expname"_pcw.bin" >> retres.in
+   echo $expname"_pcw_new.bin" >> retres.in
 fi
 
 #
@@ -140,8 +145,8 @@ echo $o
 
 if [ -z "$summary" ]
 then
-   mv ./$expname"_pcl_new.pgm" "./Results/"$expname"/PCL-"$o".pgm"
-   mv ./$expname"_pcw_new.pgm" "./Results/"$expname"/PCW-"$o".pgm"
+   mv ./$expname"_pcl_new.bin" "./Results/"$expname"/PCL-"$o".bin"
+   mv ./$expname"_pcw_new.bin" "./Results/"$expname"/PCW-"$o".bin"
    mv ./$expname".out" "./Results/"$expname"/"$o".out"
 fi
 done

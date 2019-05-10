@@ -5,7 +5,8 @@ import subprocess as sub, shutil
 from collections import OrderedDict as odict, defaultdict as ddict
 from glob import glob
 from pytools import *
-	
+import pyproj
+
 # Load data
 # IMPORTANT : x axis of all similar data must be the same
 
@@ -24,7 +25,8 @@ viirs = spct_norm(wav,viirs)
 scotopic = load_spct(wav, np.ones(wav.shape), "Lights/scotopic.dat", 1)
 photopic = load_spct(wav, np.ones(wav.shape), "Lights/photopic.dat", 1)
 
-ratio_ps = float(raw_input("    photopic/scotopic ratio ? (0 <= p/(s+p) <= 1) : "))
+#ratio_ps = float(raw_input("    photopic/scotopic ratio ? (0 <= p/(s+p) <= 1) : "))
+ratio_ps = 1.
 norm_spectrum = ratio_ps*photopic + (1-ratio_ps)*scotopic
 
 spct_files = glob("Lights/*.spct")
@@ -32,12 +34,41 @@ spct = { os.path.basename(s).split('_',1)[0]:load_spct(wav,norm_spectrum,s) for 
 
 # lamps distribution
 inv_name = raw_input("    LOP inventory filename : ")
-zonData = parse_inventory(inv_name,6)
+zonData = parse_inventory(inv_name,7)
 
 # make zon file
 with open(inv_name) as f:
-	zonfile = strip_comments(f.readlines())
-zonfile = map(lambda s: s.split()[:6], zonfile)
+    zonfile = strip_comments(f.readlines())
+zonfile = map(lambda s: s.split()[:7], zonfile)
+
+# Domain characteristics
+dom_name = raw_input("    Domain definition filename : ")
+def params_parser(fname):
+    with open(fname) as f:
+        lines = filter(lambda line: ':' in line, f.readlines())
+
+    params = map(lambda s: map(str.strip, s.split(':',1)), lines)
+    return { p[0]:p[1] for p in params }
+
+domain = params_parser(dom_name)
+
+domain['pixsize'] = float(domain['pixsize'])
+domain['xmin'],domain['ymin'],domain['xmax'],domain['ymax'] = \
+            map(float,domain['bbox'].split())
+
+# convert lat/lon to x/y
+p1 = pyproj.Proj(init="epsg:4326") # WGS84
+p2 = pyproj.Proj(init=domain['srs'])
+
+for i in range(len(zonData)):
+    lat, lon = zonfile[i][:2]
+
+    x, y = pyproj.transform(p1, p2, lon, lat)
+
+    col = int((x-domain['xmin'])/domain['pixsize']) + 1
+    row = int((y-domain['ymin'])/domain['pixsize']) + 1
+
+    zonfile[i][:2] = col, row
 
 print "Calculating the generalized lamps..."
 
@@ -48,17 +79,17 @@ print "Saving data..."
 
 dirname = "Lamps"
 if not os.path.exists(dirname):
-	os.makedirs(dirname)
+    os.makedirs(dirname)
 
 for i in xrange(len(zones)):
-	bin_zon = np.zeros((len(angles)+1,len(wav)+1))
-	bin_zon[0,0] = len(wav+1)
-	bin_zon[1:,0] = angles
-	bin_zon[0,1:] = wav
-	bin_zon[1:,1:] = zones[i]
+    bin_zon = np.zeros((len(angles)+1,len(wav)+1))
+    bin_zon[0,0] = len(wav+1)
+    bin_zon[1:,0] = angles
+    bin_zon[0,1:] = wav
+    bin_zon[1:,1:] = zones[i]
 
-	np.savetxt("Lamps/zone%i_lamp.dat"%(i+1), bin_zon[1:])
-	bin_zon.astype(np.float32).tofile("Lamps/zone%i_lamp.bin"%(i+1))
+    np.savetxt("Lamps/zone%i_lamp.dat"%(i+1), bin_zon[1:])
+    bin_zon.astype(np.float32).tofile("Lamps/zone%i_lamp.bin"%(i+1))
 
 print "Plotting..."
 
@@ -75,9 +106,9 @@ limits = np.array(map(np.min,np.array_split(wav[bool_array],n,-1))+[lmax])
 
 filename = "integration_limits.dat"
 with open(filename,'w') as f:
-	f.write("%d\n"%n)
+    f.write("%d\n"%n)
 with open(filename,'ab') as f:
-	np.savetxt(f,limits[:,np.newaxis])
+    np.savetxt(f,limits[:,np.newaxis])
 
 # Create the desired lamp files
 x = np.mean([limits[1:],limits[:-1]],0)
@@ -86,138 +117,137 @@ y = np.array(map(np.mean,np.array_split(zones[:,:,bool_array],n,-1),[-1]*n)).tra
 print "Creating files..."
 
 for l in xrange(n):
-	dirname = "Intrants/"
-	if not os.path.exists(dirname):
-		os.makedirs(dirname)
-	for z in xrange(len(zones)):
-		np.savetxt( dirname+"fctem_wl_%03d_zon_%03d.dat"%(x[l],z+1), np.concatenate([ y[z,:,l],angles ]).reshape((2,-1)).T )
+    dirname = "Intrants/"
+    if not os.path.exists(dirname):
+        os.makedirs(dirname)
+    for z in xrange(len(zones)):
+        np.savetxt( dirname+"fctem_wl_%03d_zon_%03d.dat"%(x[l],z+1), np.concatenate([ y[z,:,l],angles ]).reshape((2,-1)).T )
 
 ans = raw_input("    Preparing files for viirs2lum ? ([y]/n) ")
 
 stop = False
 try:
-	if ans[0] in ['N','n']:
-		stop = True
+    if ans[0] in ['N','n']:
+        stop = True
 except IndexError:
-	pass
+    pass
 
 if not stop:
-	# Questions for viirs2lum
-	out_name = raw_input("Output root name of the experiment [this name will be used for all the subsequent files]?\n    ")
-	pgm_name = raw_input("viirs-dnb file name? [e.g. stable-lights.pgm]\n    ")
-	modis_name = raw_input("modis reflectance file list file name? [e.g. modis.dat]\n    ")
-	modis_dir = raw_input("modis directory? [e.g. pgms]\n    ")
-	zon_name = out_name+".zon"
-	srtm_name = raw_input("elevation file name? [e.g. srtm.pgm]\n    ")
-	
-	dir_name = "./Intrants/"
-	tmp_names = {'sat':"stable_lights.pgm", 'modis':"modis.dat", 'viirs':"viirs.dat", 'zon':"zone.zon"}
-	tmp_list = set(tmp_names.values()) # List of files to be removed after execution
-	tmp_names['integ'] = "integration_limits.dat"
-	tmp_names['srtm'] = "srtm.pgm"
+    # Questions for viirs2lum
+    out_name = raw_input("Output root name of the experiment [this name will be used for all the subsequent files]?\n    ")
+    bin_name = raw_input("viirs-dnb file name? [e.g. stable_lights.bin]\n    ")
+    modis_name = raw_input("modis reflectance file list file name? [e.g. modis.dat]\n    ")
+    modis_dir = raw_input("modis directory? [e.g. bins]\n    ")
+    zon_name = out_name+".zon"
+    srtm_name = raw_input("elevation file name? [e.g. srtm.bin]\n    ")
 
-        ans = raw_input("Cutoff low values in the viirs-dnb data? ([y]/n) ")
-        viirs_lowcut = True
+    dir_name = "./Intrants/"
+    tmp_names = {'sat':"stable_lights.bin", 'modis':"modis.dat", 'viirs':"viirs.dat", 'zon':"zone.zon"}
+    tmp_list = set(tmp_names.values()) # List of files to be removed after execution
+    tmp_names['integ'] = "integration_limits.dat"
+    tmp_names['srtm'] = "srtm.bin"
+
+    ans = raw_input("Cutoff low values in the viirs-dnb data? ([y]/n) ")
+    viirs_lowcut = True
+    try:
+        if ans[0] in ['N','n']:
+            viirs_lowcut = False
+    except IndexError:
+        pass
+
+    viirs_dat = load_bin(bin_name)
+
+    if viirs_lowcut:
         try:
-            if ans[0] in ['N','n']:
-                viirs_lowcut = False
-        except IndexError:
-            pass
+            val = float(raw_input("    Cutoff value [default peak value/4] : "))
+        except ValueError:
+            viirs_bin = viirs_dat.astype(np.uint16)
+            v,c = np.unique(viirs_bin,return_counts=True)
+            val = v[c>=c.max()/4][-1]
 
-        viirs_head,viirs_p,viirs_dat = load_pgm(pgm_name)
+        viirs_reject = viirs_dat.copy()
+        viirs_reject[viirs_reject >= val] = 0
+        viirs_dat[viirs_dat < val] = 0
 
-        if viirs_lowcut:
-            try:
-                val = float(raw_input("    Cutoff value [default peak value/4] : "))
-            except ValueError:
-                v,c = np.unique(viirs_dat,return_counts=True)
-                val = v[c>=c.max()/4][-1]
+        save_bin(dir_name+"NaturalAndScatteredLight.bin", viirs_reject)
 
-            viirs_reject = viirs_dat.copy()
-            viirs_reject[viirs_reject >= val] = 0
-            viirs_dat[viirs_dat < val] = 0
+    save_bin(dir_name+tmp_names['sat'], viirs_dat)
 
-        save_pgm(dir_name+tmp_names['sat'], viirs_head, viirs_p, viirs_dat)
-        save_pgm(dir_name+"NaturalAndScatteredLight.pgm", viirs_head, viirs_p, viirs_reject)
+    # Creating symbolic links to necessary reflectance and photometry files
+    modis_files = np.genfromtxt(modis_name,skip_header=1,usecols=1,dtype=str)
+    modis_files = map(lambda s: modis_dir+"/"+s,modis_files)
+    zon_files = [ "Lamps/zone%d_lamp.dat" % (i+1) for i in xrange(len(zones)) ]
+    for filename in np.concatenate([modis_files,zon_files]):
+        name = dir_name+os.path.basename(filename)
+        try:
+            os.symlink(os.path.abspath(filename),name)
+        except OSError as e:
+            if e[0] != 17:
+                raise
+        tmp_list.add(name)
 
-    	# Creating symbolic links to necessary reflectance and photometry files
-	modis_files = np.genfromtxt(modis_name,skip_header=1,usecols=1,dtype=str)
-	modis_files = map(lambda s: modis_dir+"/"+s,modis_files)
-	zon_files = [ "Lamps/zone%d_lamp.dat" % (i+1) for i in xrange(len(zones)) ]
-	for filename in np.concatenate([modis_files,zon_files]):
-		name = dir_name+os.path.basename(filename)
-		try:
-			os.symlink(os.path.abspath(filename),name)
-		except OSError as e:
-			if e[0] != 17:
-				raise
-		tmp_list.add(name)
+    # Creating the zon file based on the inventory
+    with open(zon_name,'w') as f:
+        f.write("%d\n" % len(zonfile))
+        for i in xrange(len(zonfile)):
+            zonfile[i].insert(3,os.path.basename(zon_files[i]))
+            f.write((("%s\t"*len(zonfile[i]))[:-1]+"\n") % tuple(zonfile[i]))
 
-    	# Creating the zon file based on the inventory
-	with open(zon_name,'w') as f:
-		f.write("%d\n" % len(zonfile))
-		for i in xrange(len(zonfile)):
-			zonfile[i].insert(3,os.path.basename(zon_files[i]))
-			f.write((("%s\t"*len(zonfile[i]))[:-1]+"\n") % tuple(zonfile[i]))
+    # Linking useful files
+    os.symlink(os.path.abspath(modis_name),dir_name+tmp_names['modis'])
+    os.symlink(os.path.abspath("Lights/viirs.dat"),dir_name+tmp_names['viirs'])
+    os.symlink(os.path.abspath(zon_name),dir_name+tmp_names['zon'])
+    os.symlink(os.path.abspath("integration_limits.dat"),dir_name+tmp_names['integ'])
+    os.symlink(os.path.abspath(srtm_name),dir_name+tmp_names['srtm'])
 
-    	# Linking useful files
-#	os.symlink(os.path.abspath(pgm_name),dir_name+tmp_names['sat'])
-	os.symlink(os.path.abspath(modis_name),dir_name+tmp_names['modis'])
-	os.symlink(os.path.abspath("Lights/viirs.dat"),dir_name+tmp_names['viirs'])
-	os.symlink(os.path.abspath(zon_name),dir_name+tmp_names['zon'])
-	os.symlink(os.path.abspath("integration_limits.dat"),dir_name+tmp_names['integ'])
-	os.symlink(os.path.abspath(srtm_name),dir_name+tmp_names['srtm'])
+    print "Linking mie files..."
 
-	print "Linking mie files..."
-	
-	mie_pre = raw_input("    Mie file prefix : ")
-	illum_dir = sorted([s for s in os.environ['PATH'].split(':') if 'illumina' in s.lower() ], key=lambda s:len(s))[0]
-	mie_path = illum_dir + "/Aerosol_optical_prop/"
-	mie_files = glob(mie_path+mie_pre+"*.mie.out")
-	mie_files = { int(s.split('.')[-3][:3]):s for s in mie_files }
-	mie_wl = np.asarray(sorted(mie_files.keys()))
-	wl2mie = np.asarray([min(mie_wl, key=lambda i: abs(i-j)) for j in x])
-	
-	for i in xrange(len(wl2mie)):
-		name = dir_name+mie_pre.strip('_')+"_0.%03d0um.mie.out"%x[i]
-		try:		
-			os.symlink(os.path.abspath(mie_files[wl2mie[i]]),name)
-		except OSError as e:
-			if e[0] != 17:
-				raise
-#		tmp_list.add(name)
-	
+    mie_pre = raw_input("    Mie file prefix : ")
+    illum_dir = sorted([s for s in os.environ['PATH'].split(':') if 'illumina' in s.lower() ], key=lambda s:len(s))[0]
+    mie_path = illum_dir + "/Aerosol_optical_prop/"
+    mie_files = glob(mie_path+mie_pre+"*.mie.out")
+    mie_files = { int(s.split('.')[-3][:3]):s for s in mie_files }
+    mie_wl = np.asarray(sorted(mie_files.keys()))
+    wl2mie = np.asarray([min(mie_wl, key=lambda i: abs(i-j)) for j in x])
+
+    for i in xrange(len(wl2mie)):
+        name = dir_name+mie_pre.strip('_')+"_0.%03d0um.mie.out"%x[i]
+        try:
+            os.symlink(os.path.abspath(mie_files[wl2mie[i]]),name)
+        except OSError as e:
+            if e[0] != 17:
+                raise
+#        tmp_list.add(name)
+
 ans = raw_input("    Executing viirs2lum ? ([y]/n) ")
 
 stop = False
 try:
-	if ans[0] in ['N','n']:
-		stop = True
+    if ans[0] in ['N','n']:
+        stop = True
 except IndexError:
-	pass
-	
+    pass
+
 if not stop:
-	print "Launching Fortran..."
+    print "Launching Fortran..."
 
-	os.chdir(dir_name)
-	p = sub.Popen("viirs2lum", stdin=sub.PIPE)
-	param = out_name+"\n"+os.path.basename(tmp_names['sat'])+"\n"+os.path.basename(tmp_names['zon'])+"\n"
-	p.communicate(param)
-	
-	print "Fortran done."
-	
-	for filename in tmp_list:
-		os.remove(os.path.basename(filename))
+    os.chdir(dir_name)
+    p = sub.Popen("viirs2lum", stdin=sub.PIPE)
+    param = out_name+"\n"+os.path.basename(tmp_names['sat'])+"\n"+os.path.basename(tmp_names['zon'])+"\n"
+    p.communicate(param)
 
-	#mie_files = sorted(glob("*.mie.out"))
-	# Writing both .lst files
-	with open("zon.lst",'w') as zfile:
-		zfile.write('\n'.join( map(lambda n:"%03d"%n, xrange(1,len(zones)+1) ))+'\n')
-	with open("wav.lst",'w') as zfile:
-		zfile.write('\n'.join( map(lambda n:"%03d"%n, x ))+'\n')
-  
-	os.chdir("..")
+    print "Fortran done."
+
+    for filename in tmp_list:
+        os.remove(os.path.basename(filename))
+
+    #mie_files = sorted(glob("*.mie.out"))
+    # Writing both .lst files
+    with open("zon.lst",'w') as zfile:
+        zfile.write('\n'.join( map(lambda n:"%03d"%n, xrange(1,len(zones)+1) ))+'\n')
+    with open("wav.lst",'w') as zfile:
+        zfile.write('\n'.join( map(lambda n:"%03d"%n, x ))+'\n')
+
+    os.chdir("..")
 
 print "Done."
-
-

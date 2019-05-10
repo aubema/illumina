@@ -12,15 +12,17 @@ do  bash $i
     echo $i
     echo "===="
     user=`whoami`
-    njob=`bqstat 2>/dev/null | grep -c $user`
-    nwait=`bqstat 2>/dev/null | grep $user | grep -c " Q "`
+    njob=`squeue -u $user -h | grep -c ""`
+    nnew=`grep -c -e "sbatch" $i`
+    ntot=$((nnew+njob))
     echo $njob "initial"
-    while  [ $njob -gt 1000 ] && [ $nwait -gt 100 ]
+    echo $nnew "new"
+    while  [ $ntot -ge 1000 ]
     do 
-       njob=`bqstat 2>/dev/null | grep -c $user`
-       nwait=`bqstat 2>/dev/null | grep $user | grep -c " Q "`
-       echo $njob $nwait
-       sleep 30 
+        njob=`squeue -u $user -h | grep -c ""`
+        ntot=$((nnew+njob))
+        echo $ntot
+        sleep 30 
     done
 done
 echo "End of multiple experiments"

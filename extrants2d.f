@@ -20,7 +20,7 @@ c
 c    Contact: martin.aube@cegepsherbrooke.qc.ca
 c
 c
-         subroutine extrants2d (outfile,valeur,nom,xcell0,ycell0,pixsiz,
+         subroutine extrants2d(outfile,valeur,nom,xcell0,ycell0,pixsiz,
      +   gain,offset,nbx,nby,valmax)
          integer width
          parameter (width=1024)
