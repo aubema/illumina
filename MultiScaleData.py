@@ -54,7 +54,11 @@ class MultiScaleData(_np.ndarray):
         col = (x-attrs['xmin'])/attrs['pixel_size'] - 0.5
         row = (attrs['ymax']-y)/attrs['pixel_size'] - 0.5
         if not asfloat:
-            col,row = int(round(col)),int(round(row))
+            try:
+                col,row = int(round(col)),int(round(row))
+            except TypeError:
+                col = _np.round(col).astype(int)
+                row = _np.round(row).astype(int)
         return col,row
 
     def _view_latlon(self,coords):

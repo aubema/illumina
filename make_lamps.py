@@ -18,13 +18,13 @@ sources = np.unique(photometry[:,1])
 
 print "Classifying points."
 
-points = ddict(list)
+points = dict()
 for layer in xrange(len(domain)):
     ysize,xsize = domain[layer].shape
-    for i,lamp in enumerate(lampsData):
-        col,row = domain._get_col_row(lamp[:2],layer)
-        if 0 <= col < xsize and 0 <= row < ysize:
-            points[layer,col,row].append(i)
+    col,row = domain._get_col_row(lampsData[:,:2].T,layer)
+    valid = (0 <= col) * (col < xsize) * (0 <= row) * (row < ysize) > 0
+    ind = np.where(valid)[0]
+    points[layer] = (col[ind],row[ind],ind)
 
 print "Calculating the generalized lamps."
 
@@ -46,34 +46,36 @@ for s in sources:
     for wl in x:
         lumlp[s,wl] = hdf.from_domain("domain.ini")
 
-for key,ind in points.iteritems():
-    layer,col,row = key
-    lumens = lampsData[:,2][ind]
+for layer,pts in points.iteritems():
+    cols,rows,inds = pts
+    for col,row in np.unique([cols,rows],axis=1).T:
+        ind = inds[ np.logical_and(cols==col,rows==row) ]
+        lumens = lampsData[:,2][ind]
 
-    for n,geo in izip(xrange(3,7),['obsth','obstd','obstf','altlp']):
-        geometry[geo][layer][row,col] = np.average(
-            lampsData[:,n][ind],
-            weights=lumens
-        )
-
-    local_sources = np.unique(photometry[ind][:,1])
-    for s in local_sources:
-        mask = photometry[:,1][ind] == s
-        fctem = np.array([
-            spct[type] for type in photometry[:,0][ind][mask]
-        ])
-        fctem = np.sum(fctem*lumens[mask,None],0)
-
-        y = [ np.mean(a) for a in \
-            np.array_split(
-        		fctem[bool_array],
-        		n_bins,
-        		-1
+        for n,geo in izip(xrange(3,7),['obsth','obstd','obstf','altlp']):
+            geometry[geo][layer][row,col] = np.average(
+                lampsData[:,n][ind],
+                weights=lumens
             )
-        ]
 
-        for i,wl in enumerate(x):
-            lumlp[s,wl][layer][row,col] = y[i]
+        local_sources = np.unique(photometry[ind][:,1])
+        for s in local_sources:
+            mask = photometry[:,1][ind] == s
+            fctem = np.array([
+                spct[type] for type in photometry[:,0][ind][mask]
+            ])
+            fctem = np.sum(fctem*lumens[mask,None],0)
+
+            y = [ np.mean(a) for a in \
+                np.array_split(
+            		fctem[bool_array],
+            		n_bins,
+            		-1
+                )
+            ]
+
+            for i,wl in enumerate(x):
+                lumlp[s,wl][layer][row,col] = y[i]
 
 print "Saving data."
 
