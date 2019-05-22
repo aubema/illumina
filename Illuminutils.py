@@ -82,6 +82,15 @@ def save(params, data, dstname, scale_factor=1.):
 with open(glob("*.ini")[0]) as f:
     params = yaml.safe_load(f)
 
+if os.path.isfile("GHSL.zip"):
+    print "Found GHSL.zip file, processing."
+    data = [ warp(["/vsizip/GHSL.zip/GHSL.tif"], params['srs'], extent) \
+        for extent in params['extents'] ]
+    save(params, data, "obstf")
+else:
+    print "WARNING: Could not find GHSL.zip file."
+    print "If you don't indent to use it, you can safely ignore this."
+
 files = glob("SRTM/*.hgt")
 if not len(files):
     print "ERROR: Could not find SRTM file(s), aborting."
@@ -94,8 +103,12 @@ save(params, data, "srtm")
 files = glob("VIIRS-DNB/*.tif")
 if not len(files):
     print "WARNING: Did not find VIIRS file(s)."
-    print "If you don't intend to use zones inventory, you cans safely ignore this."
+    print "If you don't intend to use zones inventory, you can safely ignore this."
 else:
+    if not os.path.isfile("hydropolys.zip"):
+        print "ERROR: Could not find hydropolys.zip file, aborting."
+        raise SystemExit
+
     print "    ".join(map(str,files))
     data = [ warp(files, params['srs'], extent) \
         for extent in params['extents'] ]
