@@ -48,8 +48,11 @@ class MultiScaleData(_np.ndarray):
                 return i
         raise IndexError('Coordinate out of range')
 
-    def _get_col_row(self,coords,layer,asfloat=False):
-        x,y = self._project(coords)
+    def _get_col_row(self,coords,layer,asfloat=False,proj=False):
+        if not proj:
+            x,y = self._project(coords)
+        else:
+            x,y = coords
         attrs = self._attrs['layers'][layer]
         col = (x-attrs['xmin'])/attrs['pixel_size'] - 0.5
         row = (attrs['ymax']-y)/attrs['pixel_size'] - 0.5
@@ -76,8 +79,11 @@ class MultiScaleData(_np.ndarray):
             n_layer = self._get_layer(index)
         return self._attrs['layers'][n_layer]['pixel_size']
 
-    def get_obs_pos(self):
-        return self._attrs['obs_lat'], self._attrs['obs_lon']
+    def get_obs_pos(self,proj=False):
+        if proj:
+            return self._attrs['obs_x'],self._attrs['obs_y']
+        else:
+            return self._attrs['obs_lat'], self._attrs['obs_lon']
 
     def set_circle(self,center,radii,value):
         """Set a circle to a constant value on all layers.
@@ -114,22 +120,22 @@ class MultiScaleData(_np.ndarray):
             self[i][:,nx-buff:] = value
 
     def split_observers(self):
-        for coords in _izip( *self.get_obs_pos() ):
-            yield self.extract_observer(coords)
+        for coords in _izip( *self.get_obs_pos(proj=True) ):
+            yield self.extract_observer(coords,proj=True)
 
-    def extract_observer(self,coords):
+    def extract_observer(self,coords,proj=False):
         n = self._attrs['nb_pixels']
         b = self._attrs['buffer']
         lat,lon = coords
 
         new = MultiScaleData(self._attrs)
         for l in xrange(len(new)):
-            xc,yc = new._get_col_row((lat,lon),l)
+            xc,yc = new._get_col_row(coords,l,proj=proj)
             new[l] = self[l][yc-n-b:yc+n+b+1,xc-n-b:xc+n+b+1].copy()
             new._attrs['layers'][l]['observer_size_x'] = 1
             new._attrs['layers'][l]['observer_size_y'] = 1
-        new._attrs['obs_lat'] = [lat]
-        new._attrs['obs_lon'] = [lon]
+        new._attrs['obs_x'] = [xc]
+        new._attrs['obs_y'] = [yc]
         return new
 
     def save(self,filename):

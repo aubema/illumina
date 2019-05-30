@@ -40,10 +40,6 @@ except TypeError: # lat and lon not lists
     obs_lat = [obs_lat]
     obs_lon = [obs_lon]
 
-domain['observers'] = \
-    [ {'latitude':lat,'longitude':lon} \
-    for lat,lon in izip(obs_lat,obs_lon) ]
-
 center_lat = ( max(obs_lat) + min(obs_lat) ) / 2.
 center_lon = ( max(obs_lon) + min(obs_lon) ) / 2.
 
@@ -62,6 +58,10 @@ x0,y0 = pyproj.transform(wgs84,proj,center_lon,center_lat)
 
 obs_x,obs_y = zip(*( pyproj.transform(wgs84,proj,lon,lat) \
     for lat,lon in izip(obs_lat,obs_lon) ))
+
+domain['observers'] = \
+    [ {'latitude':lat,'longitude':lon,'x':x,'y':y} \
+    for lat,lon,x,y in izip(obs_lat,obs_lon,obs_x,obs_y) ]
 
 obs_x = np.array(obs_x)
 obs_y = np.array(obs_y)
@@ -107,7 +107,7 @@ for i in xrange(domain["nb_layers"]):
     domain["extents"].append(extent)
 
 with open("domain.ini",'w') as f:
-    yaml.dump(domain,f,default_flow_style=False)
+    yaml.safe_dump(domain,f,default_flow_style=False)
 
 # print lon/lat bbox formatted for earthdata
 SE = pyproj.transform(proj,wgs84,xmax,ymin)

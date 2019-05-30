@@ -56,6 +56,8 @@ def from_domain(params,data=None):
         if k not in ['extents','observers'] }
     attrs['obs_lat'] = [ d['latitude'] for d in params['observers'] ]
     attrs['obs_lon'] = [ d['longitude'] for d in params['observers'] ]
+    attrs['obs_x'] = [ d['x'] for d in params['observers'] ]
+    attrs['obs_y'] = [ d['y'] for d in params['observers'] ]
     attrs['layers'] = [ {k:v for k,v in d.iteritems() if k != 'layer'} \
         for d in params['extents'] ]
     return MSD.MultiScaleData(attrs,data)

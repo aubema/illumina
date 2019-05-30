@@ -50,9 +50,29 @@ for fname in glob(os.path.join(p.path,"%s*" % params['batch_file_name'])):
 
 exp_name = params['exp_name']
 
-# Add wavelength and multiscale
-ds = MSDOpen(glob("*.hdf5")[0])
+ds = MSD.Open(glob("*.hdf5")[0])
 
+# Pre process the obs extract
+print "Preprocessing..."
+shutil.rmtree("obs_data",True)
+lats, lons = ds.get_obs_pos()
+xs, ys = ds.get_obs_pos(proj=True)
+for lat,lon in izip(lats,lons):
+    for i in range(len(ds)):
+        os.makedirs("obs_data/%6f_%6f/%d" % (lat,lon,i))
+
+for fname in glob("*.hdf5"):
+    dataset = MSD.Open(fname)
+    for x,y,lat,lon in izip(xs,ys,lats,lons):
+        clipped = dataset.extract_observer((x,y),proj=True)
+        if "lumlp" in fname:
+            clipped.set_buffer(0)
+            clipped.set_overlap(0)
+        for i,dat in enumerate(clipped):
+            save_bin("obs_data/%6f_%6f/%i/%s" % \
+                (lat,lon,i,fname.rsplit('.',1)[0]+'.bin'), dat)
+
+# Add wavelength and multiscale
 params['wavelength'] = np.loadtxt("wav.lst",ndmin=1).tolist()
 params['layer'] = range(len(ds))
 params['observer_coordinates'] = zip(*ds.get_obs_pos())
@@ -76,8 +96,21 @@ count = 0
 multival = filter( lambda k: isinstance(params[k],list),params )
 multival = sorted( multival, key=len, reverse=True ) # Semi-arbitrary sort
 param_space = [ params[k] for k in multival ]
-print "Number of executions:", np.prod(map(len,param_space))
-for param_vals in comb(*param_space):
+N = np.prod(map(len,param_space))
+print "Number of executions:", N
+
+ms = 0
+for i,param_vals in enumerate(comb(*param_space),1):
+    if 100.*i/N >= ms:
+        if ms%10 == 0:
+            print ms,
+        else:
+            print '..',
+        sys.stdout.flush()
+        ms += 5
+    if i == N:
+        print ''
+
     local_params = OrderedDict(izip(multival,param_vals))
     P = ChainMap(local_params,params)
     if "azimuth_angle" in multival \
@@ -85,9 +118,9 @@ for param_vals in comb(*param_space):
         and params['azimuth_angle'].index(P['azimuth_angle']) != 0:
         continue
 
-    coords = P['observer_coordinates']
+    coords = "%6f_%6f" % P['observer_coordinates']
     if 'observer_coordinates' in multival:
-        P['observer_coordinates'] = "%g_%g" % coords
+        P['observer_coordinates'] = coords
 
     fold_name = dir_name + \
         os.sep.join(k+"_%s" % v for k,v in local_params.iteritems()) + os.sep
@@ -120,22 +153,32 @@ for param_vals in comb(*param_space):
     # Copying layer data
     layer = P["layer"]
 
-    ds = MSDOpen("srtm.hdf5").extract_observer(coords)
-    save_bin(fold_name+exp_name+"_topogra.bin", ds[layer])
+    obs_fold = os.path.join(
+        "obs_data",
+        coords,
+        str(layer)
+    )
+
+    os.symlink(
+        os.path.abspath(os.path.join(obs_fold,"srtm.bin")),
+        fold_name+exp_name+"_topogra.bin"
+    )
 
     for name in ["obstd","obsth","obstf","altlp"]:
-        ds = MSDOpen( "%s_%s.hdf5" % \
-            ( exp_name, name ) ).extract_observer(coords)
-        save_bin(fold_name+"%s_%s.bin" % \
-            ( exp_name, name ), ds[layer] )
+        os.symlink(
+            os.path.abspath(os.path.join(obs_fold,"%s_%s.bin" % \
+                ( exp_name, name ) )),
+            fold_name+"%s_%s.bin" % \
+                ( exp_name, name )
+        )
 
     for l,lamp in enumerate(lamps,1):
-        ds = MSDOpen( "%s_%s_lumlp_%s.hdf5" % \
-            ( exp_name, wavelength, lamp ) ).extract_observer(coords)
-        ds.set_buffer(0)
-        ds.set_overlap(0)
-        save_bin(fold_name+"%s_lumlp_%03d.bin" % \
-            ( exp_name, l ), ds[layer] )
+        os.symlink(
+            os.path.abspath(os.path.join(obs_fold,"%s_%s_lumlp_%s.bin" % \
+                ( exp_name, wavelength, lamp ) )),
+            fold_name+"%s_lumlp_%03d.bin" % \
+                ( exp_name, l )
+        )
 
     reflectance = refls[wls.index(P["wavelength"])]
 
@@ -212,4 +255,5 @@ for param_vals in comb(*param_space):
     count += 1
 
 print "Final count:", count
+
 print "Done."
