@@ -57,7 +57,8 @@ for dirpath,dirnames,filenames in os.walk(p.exec_dir):
             n_layer = int(regex.search(dirpath).groups()[0])
             key = regex.sub('',path)
             pix_size = ( contrib[key].pixel_size(n_layer) / 1000. ) ** 2 # in km^2
-            pcl_name = filter(lambda s: "pcl.bin" in s, filenames)[0]
+            name,uid = oname.split('_',1)
+            pcl_name = '_'.join([name,'pcl',uid.rsplit('.',1)[0]+'.bin'])
             pcl_path = os.path.join(dirpath,pcl_name)
             pcl_data = load_bin(pcl_path)
             pcl_data *= val / pix_size / pcl_data.sum()
