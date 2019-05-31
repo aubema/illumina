@@ -160,12 +160,12 @@ for i,param_vals in enumerate(comb(*param_space),1):
             params['relative_humidity'],
             wavelength )
         os.symlink(
-            os.path.abspath(mie_file),
+            os.path.relpath(mie_file,fold_name),
             fold_name+"aerosol.mie.out" )
 
         for l,lamp in enumerate(lamps,1):
             os.symlink(
-                os.path.abspath("fctem_wl_%s_lamp_%s.dat" % (wavelength,lamp)),
+                os.path.relpath("fctem_wl_%s_lamp_%s.dat" % (wavelength,lamp),fold_name),
                 fold_name+exp_name+"_fctem_%03d.dat" % l )
 
         ppath = os.environ['PATH'].split(os.pathsep)
@@ -184,22 +184,22 @@ for i,param_vals in enumerate(comb(*param_space),1):
         )
 
         os.symlink(
-            os.path.abspath(os.path.join(obs_fold,"srtm.bin")),
+            os.path.relpath(os.path.join(obs_fold,"srtm.bin"),fold_name),
             fold_name+exp_name+"_topogra.bin"
         )
 
         for name in ["obstd","obsth","obstf","altlp"]:
             os.symlink(
-                os.path.abspath(os.path.join(obs_fold,"%s_%s.bin" % \
-                    ( exp_name, name ) )),
+                os.path.relpath(os.path.join(obs_fold,"%s_%s.bin" % \
+                    ( exp_name, name ) ), fold_name),
                 fold_name+"%s_%s.bin" % \
                     ( exp_name, name )
             )
 
         for l,lamp in enumerate(lamps,1):
             os.symlink(
-                os.path.abspath(os.path.join(obs_fold,"%s_%s_lumlp_%s.bin" % \
-                    ( exp_name, wavelength, lamp ) )),
+                os.path.relpath(os.path.join(obs_fold,"%s_%s_lumlp_%s.bin" % \
+                    ( exp_name, wavelength, lamp ) ), fold_name),
                 fold_name+"%s_lumlp_%03d.bin" % \
                     ( exp_name, l )
             )
