@@ -61,7 +61,19 @@ for lat,lon in izip(lats,lons):
     for i in range(len(ds)):
         os.makedirs("obs_data/%6f_%6f/%d" % (lat,lon,i))
 
-for fname in glob("*.hdf5"):
+N = len(glob("*.hdf5"))
+ms = 0
+for i,fname in enumerate(glob("*.hdf5"),1):
+    if 100.*i/N >= ms:
+        if ms%10 == 0:
+            print ms,
+        else:
+            print '..',
+        sys.stdout.flush()
+        ms += 5
+    if i == N:
+        print ''
+
     dataset = MSD.Open(fname)
     for x,y,lat,lon in izip(xs,ys,lats,lons):
         clipped = dataset.extract_observer((x,y),proj=True)
