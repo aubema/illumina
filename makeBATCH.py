@@ -169,7 +169,7 @@ for i,param_vals in enumerate(comb(*param_space),1):
                 fold_name+exp_name+"_fctem_%03d.dat" % l )
 
         ppath = os.environ['PATH'].split(os.pathsep)
-        illumpath = filter(lambda s: "illumina" in s and "bin" in s, ppath)[0]
+        illumpath = filter(lambda s: "/illumina" in s and "/bin" in s, ppath)[0]
         os.symlink(
             os.path.abspath(illumpath+"/illumina"),
             fold_name+"illumina" )
