@@ -16,19 +16,30 @@ def recursive_glob(rootdir='.', pattern='*'):
 
 p = parser.parse_args()
 
-for fname in recursive_glob(pattern='illumina'):
-    fname = os.path.dirname(fname)
-    filenames = glob(os.path.join(fname,"*.out"))
-    filenames = [ f for f in filenames if not f.endswith(".mie.out") ]
+if p.batch:
+    def failed(dirname):
+        print "cd " + os.path.abspath(dirname)
+        print "sbatch ./execute"
+        print "sleep 0.05"
+else:
+    def failed(dirname):
+        print dirname
 
-    try:
-        with open(filenames[0]) as f:
-            if "Sky radiance" not in f.readlines()[-5]:
-                raise IOError(errno.EIO,"Aborted run",fname)
-    except (IndexError,IOError) as err:
-        if p.batch:
-            print "cd " + os.path.abspath(fname)
-            print "sbatch ./execute"
-            print "sleep 0.05"
+for dirname in recursive_glob(pattern='illumina'):
+    dirname = os.path.dirname(dirname)
+    with open("illumina.in") as f:
+        basename = f.readlines()[1].split()[0]
+
+    outnames = glob(os.path.join(dirname,basename+"*.out"))
+    nb_in = len(glob(os.path.join(dirname,"*.in")))
+
+    if nb_in == 1:
+        if len(outnames) == 0:
+            failed(dirname)
         else:
-            print fname
+            with open(outnames[0]) as f:
+                if "Sky radiance" not in f.readlines()[-5]:
+                    failed(dirname)
+    elif os.path.isfile(os.path.join(dirname,basename+".out")) \
+        or len(outnames)+1 != nb_in
+            failed(dirname)
