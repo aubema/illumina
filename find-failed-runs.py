@@ -27,19 +27,22 @@ else:
 
 for dirname in recursive_glob(pattern='illumina'):
     dirname = os.path.dirname(dirname)
-    with open("illumina.in") as f:
-        basename = f.readlines()[1].split()[0]
+    if not os.path.isfile(os.path.join(dirname,"illumina.in")):
+        failed(dirname)
+    else:
+        with open("illumina.in") as f:
+            basename = f.readlines()[1].split()[0]
 
-    outnames = glob(os.path.join(dirname,basename+"*.out"))
-    nb_in = len(glob(os.path.join(dirname,"*.in")))
+        outnames = glob(os.path.join(dirname,basename+"*.out"))
+        nb_in = len(glob(os.path.join(dirname,"*.in")))
 
-    if nb_in == 1:
-        if len(outnames) == 0:
-            failed(dirname)
-        else:
-            with open(outnames[0]) as f:
-                if "Sky radiance" not in f.readlines()[-5]:
-                    failed(dirname)
-    elif os.path.isfile(os.path.join(dirname,basename+".out")) \
-        or len(outnames)+1 != nb_in
-            failed(dirname)
+        if nb_in == 1:
+            if len(outnames) == 0:
+                failed(dirname)
+            else:
+                with open(outnames[0]) as f:
+                    if "Sky radiance" not in f.readlines()[-5]:
+                        failed(dirname)
+        elif os.path.isfile(os.path.join(dirname,basename+".out")) \
+            or len(outnames)+1 != nb_in:
+                failed(dirname)
