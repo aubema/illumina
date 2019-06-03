@@ -30,7 +30,7 @@ for dirname in recursive_glob(pattern='illumina'):
     if not os.path.isfile(os.path.join(dirname,"illumina.in")):
         failed(dirname)
     else:
-        with open("illumina.in") as f:
+        with open(os.path.join(dirname,"illumina.in")) as f:
             basename = f.readlines()[1].split()[0]
 
         outnames = glob(os.path.join(dirname,basename+"*.out"))
