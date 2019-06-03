@@ -27,7 +27,7 @@ for fname in recursive_glob(pattern='illumina'):
                 raise IOError(errno.EIO,"Aborted run",fname)
     except (IndexError,IOError) as err:
         if p.batch:
-            print "cd " + fname
+            print "cd " + os.path.abspath(fname)
             print "sbatch ./execute"
             print "sleep 0.05"
         else:
