@@ -55,7 +55,7 @@ c
             zhoriz=pi/2.-atan((altsol(ii,jj)-altsol(x_c,y_c))/sqrt(dx**
      +      2.*real((ii-x_c))**2.+dy**2.*real((jj-y_c))**2.))
          else
-            zhoriz=pi/2.-0.5*pi/180.                                      ! bug for zhoriz=pi, anyway in the real world pi is almost impossible                                                                                       
+            zhoriz=pi/2.-0.001*pi/180.                                      ! bug for zhoriz=pi, anyway in the real world pi is almost impossible                                                                                       
          endif
          if (zhoriz.lt.hormin) hormin=zhoriz
       enddo

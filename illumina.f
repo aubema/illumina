@@ -397,7 +397,7 @@ c=======================================================================
 c  reading of the elevation file
 c=======================================================================
        call twodin(nbx,nby,mnaf,altsol)
-
+       print*,'Reading elevation model file:',mnaf
        Hmin=3000000.
        do i=1,nbx                                                         ! beginning of the loop over all cells along x.
         do j=1,nby                                                        ! beginning of the loop over all cells along y.
@@ -455,66 +455,29 @@ c                                                                         ! (i-1
          if (pvalto.ne.0.) pvalno(i,stype)=pval(i,stype)/pvalto           ! Normalisation of the photometric function.
         enddo
 c    ===================================================================
-c    reading luminosity files
+c    reading lamp flux files
        call twodin(nbx,nby,lufile,val2d)
+       print*,'Reading lamp flux files:',lufile
        do i=1,nbx                                                         ! beginning of the loop over all cells along x.
-        do j=1,nby                                                        ! beginning of the loop over all cells along y.
-         if (val2d(i,j).lt.0.) then                                       ! searching of negative fluxes
-           print*,'***Negative lamp flux!, stopping execution'
-           stop
-         endif
-        enddo                                                             ! end of the loop over all cells along y.
-       enddo
-        do i=1,nbx                                                        ! searching of the smallest rectangle containing the zone
-         do j=1,nby                                                       ! of non-null luminosity to speedup the calculation
-          if (val2d(i,j).ne.0.) then
-           if (i-1.lt.imin(stype)) imin(stype)=i-2
-           if (imin(stype).lt.1) imin(stype)=1
-           goto 333
-          endif
-         enddo
-        enddo
-        imin(stype)=1
- 333    do i=nbx,1,-1
-         do j=1,nby
-          if (val2d(i,j).ne.0.) then
-           if (i+1.gt.imax(stype)) imax(stype)=i+2
-           if (imax(stype).gt.nbx) imax(stype)=nbx
-           goto 334
-          endif
-         enddo
-        enddo
-        imax(stype)=1
- 334    do j=1,nby
-         do i=1,nbx
-          if (val2d(i,j).ne.0.) then
-           if (j-1.lt.jmin(stype)) jmin(stype)=j-2
-           if (jmin(stype).lt.1) jmin(stype)=1
-           goto 335
-          endif
-         enddo
-        enddo
-        jmin(stype)=1
- 335    do j=nby,1,-1
-         do i=1,nbx
-          if (val2d(i,j).ne.0.) then
-           if (j+1.gt.jmax(stype)) jmax(stype)=j+2
-           if (jmax(stype).gt.nby) jmax(stype)=nby
-           goto 336
-          endif
-         enddo
-        enddo
-        jmax(stype)=1
- 336    do i=1,nbx                                                        ! beginning of the loop over all cells along x.
          do j=1,nby                                                       ! beginning of the loop over all cells along y.
+           if (val2d(i,j).lt.0.) then                                     ! searching of negative fluxes
+             print*,'***Negative lamp flux!, stopping execution'
+             stop
+           elseif (val2d(i,j).ne.0.) then
+             if (i.le.imin(stype)) imin(stype)=i                          ! searching of the smallest rectangle containing the zone
+             if (j.le.jmin(stype)) jmin(stype)=j                          ! of non-null luminosity to speedup the calculation
+             if (i.ge.imax(stype)) imax(stype)=i
+             if (j.ge.jmax(stype)) jmax(stype)=j
+           endif
           lamplu(i,j,stype)=val2d(i,j)                                    ! remplir the array of the lamp type: stype
           totlu(stype)=totlu(stype)+lamplu(i,j,stype)                     ! the total lamp flux should be non-null to proceed to the calculations
          enddo                                                            ! end of the loop over all cells along y.
-        enddo                                                             ! end of the loop over all cells along x.
+       enddo
        enddo                                                              ! end of the loop 1 over the 120 types of sources.
 c    ==================================================================
 c    reading lamp heights
          call twodin(nbx,nby,alfile,val2d)
+         print*,'Reading lamp height file:',alfile
          do i=1,nbx                                                       ! beginning of the loop over all cells along x.
            do j=1,nby                                                     ! beginning of the loop over all cells along y.
              lampal(i,j)=val2d(i,j)                                       ! filling of the array for the lamp stype
@@ -523,6 +486,7 @@ c    reading lamp heights
 c    ==================================================================
 c    reading subgrid obstacles average height
         call twodin(nbx,nby,ohfile,val2d)
+        print*,'Reading obstacle height file:',ohfile
         do i=1,nbx                                                        ! beginning of the loop over all cells along x.
          do j=1,nby                                                       ! beginning of the loop over all cells along y.
           obsH(i,j)=val2d(i,j)                                            ! filling of the array
@@ -531,6 +495,7 @@ c    reading subgrid obstacles average height
 c    ==================================================================
 c    reading subgrid obstacles average distance
         call twodin(nbx,nby,odfile,val2d)
+        print*,'Reading distance between obstacles file:',odfile
         do i=1,nbx                                                        ! beginning of the loop over all cells along x.
          do j=1,nby                                                       ! beginning of the loop over all cells along y.
           drefle(i,j)=val2d(i,j)/2.                                       ! Filling of the array
@@ -540,12 +505,12 @@ c    reading subgrid obstacles average distance
 c    ==================================================================
 c    reading subgrid obstacles filling factor
         call twodin(nbx,nby,offile,val2d)
+        print*,'Reading obstacle filling factor file:',offile
         do i=1,nbx                                                        ! beginning of the loop over all cells along x.
          do j=1,nby                                                       ! beginning of the loop over all cells along y.
-          ofill(i,j)=val2d(i,j)                                           ! Filling of the array 0-1
+          ofill(i,j)=val2d(i,j)                                          ! Filling of the array 0-1
          enddo                                                            ! end of the loop over all cells along y.
         enddo
-
 c=======================================================================
 c        reading of the scattering parameters
 c=======================================================================
@@ -574,7 +539,6 @@ c======================================================================
 c        Quelques operations preparatoires
 c======================================================================
        dy=dx                                                              ! we consider than the echelle is the same over the two axes
-
        z_obs=z_o+altsol(x_obs,y_obs)                                      ! z_obs = the local observer elevation plus the height of observation above ground (z_o)
 c find nearest vertical grid
        distm=1000000000.
@@ -731,8 +695,8 @@ c
 c computation of the horizon for the resolved shadows direct              ! horizon resolution is 1 degree
                 call anglezenithal
      +          (x_s,y_s,z_s,x_c,y_c,z_c,dx,dy,angzen)                    ! computation of the zenithal angle between the source and the line of sight voxel.
-                call angleazimutal(x_s,y_s,x_c,y_c,dx,dy,angazi)          ! computation of the angle azimutal direct line of sight-source
-            if (angzen.gt.pi/4.) then                                     ! 45deg. it is unlikely to have a 1km high mountain less than 1
+                call angleazimutal(x_s,y_s,x_c,y_c,dx,dy,angazi)          ! computation of the azimutal angle direct line of sight-source
+            if (angzen.gt.pi/4.) then                                     ! 45deg. it is unlikely to have a 1km high mountain less than 1 km away. This is to restrict the number of call to horizon function
                 call horizon(x_s,y_s,z_s,dx,dy,nbx,nby,altsol,
      +          latitu,angzen,angazi,zhoriz)
                 if (angzen.lt.zhoriz) then                                ! shadow the path line of sight-source is not below the horizon => we compute
@@ -743,7 +707,6 @@ c computation of the horizon for the resolved shadows direct              ! hori
             else
                hh=1.
             endif
-
 c                                                                         ! beginning condition above the horizon direct
 c sub-grid obstacles
                 angmin=pi/2.-atan((altsol(x_s,y_s)+obsH(x_s,y_s)
@@ -821,8 +784,8 @@ c                                                                         ! for 
                   omega=omega1
 c=======================================================================
 c    Estimation of the half of the underlying angle of the solid angle    ! this angle is used to get a better estimate (average) of
-c                                                                         ! P_dir for le cas of grans solid angles the ou pvalno
-c=======================================================================  ! varie significativement sur +- ouvang.
+c                                                                         ! P_dir for large solid angles or when  pvalno
+c=======================================================================  ! vary rapidly over +- ouvang.
                   ouvang=sqrt(omega/pi)                                   ! Angle in radian.
                   ouvang=ouvang*180./pi                                   ! Angle in degrees.
 c
@@ -854,13 +817,12 @@ c=======================================================================
 c        computation of the flux direct reaching the line of sight voxel
 c=======================================================================
                   fldir=lamplu(x_s,y_s,stype)*P_dir*omega*
-     1            transm*transa*(1.-ff)*hh                                   ! correction for obstacle filling factor
+     1            transm*transa*(1.-ff)*hh                                   ! correction for obstacle filling factori
 c=======================================================================
 c   computation of the scattering probability of the direct light
 c=======================================================================
                   if (angzen.lt.(pi/2.)) then                             ! Attribution of the initial and final limit of the path of
-c                                                                         ! scattering dans the voxel.
-                   zidif=zcdown
+                   zidif=zcdown                                           ! scattering dans the voxel.
                    zfdif=zcup
                   else
                    zidif=zcup
@@ -879,7 +841,6 @@ c=======================================================================
 c   computation of the source contribution a the direct intensity toward the sensor by a line of sight voxel
 c=======================================================================
                   intdir=fldir*pdifdi
-
                 if (cloudt.ne.0) then                                     ! line of sight voxel = cloud
                   if (cloudh(cloudt).eq.zcellc) then
                      call anglezenithal(x_c,y_c,z_c,x_obs,y_obs,z_obs,
@@ -889,8 +850,6 @@ c=======================================================================
      +               fldir*rcloud*abs(cos(azencl))/pi
                   endif
                 endif
-c                else
-c                endif                                                     ! end condition below the horizon direct?
                endif                                                      ! end of the case Position Source is not equal to the line of sight voxel position
 c  end of the computation of the direct intensity
 c **********************************************************************************************************************
@@ -997,7 +956,7 @@ c=======================================================================
      +                r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z)
 c
 c=======================================================================
-c    isimation of the half of the underlying angle of the solid angle     ! this angle servira a obtenir un meilleur isime (moyenne) of
+c    Estimation of the half of the underlying angle of the solid angle    ! this angle servira a obtenir un meilleur isime (moyenne) of
 c                                                                         ! P_dir for le cas of grans solid angles the ou pvalno
 c=======================================================================  ! varie significativement sur +- ouvang.
                       ouvang=sqrt(omega/pi)                               ! Angle in radian.
@@ -1006,7 +965,6 @@ c
 c=======================================================================
 c        computation of the photometric function of the lampadaire toward the  surface reflectance
 c=======================================================================
-c
                       anglez=nint(180.*angzen/pi)
                       if (anglez.lt.0) anglez=-anglez
                       if (anglez.gt.180) anglez=360-anglez
@@ -1029,12 +987,12 @@ c
                       P_indir=P_indir/nbang
 c
 c=======================================================================
-c        computation of the flux reaching the reflecting cell
+c        computation of the flux reaching the reflecting surface
 c=======================================================================
                       flrefl=lamplu(x_s,y_s,stype)*P_indir*
      a                omega*transm*transa
 c=======================================================================
-c        computation of the intensity reflechie leaving the  surface reflectance
+c        computation of the reflected intensity leaving the surface
 c=======================================================================
                       irefl1=flrefl*srefl(x_sr,y_sr)/pi                   ! The factor 1/pi comes from the normalisation of the fonction
                       if (effdif.gt.(dx+dy)/2.) then
@@ -1220,11 +1178,9 @@ c
 c=======================================================================
 c    Determination of the scattering voxels en fonction of the source voxel and the line of sight voxel
 c=======================================================================
-
                itodif=0.                                                  ! Initialisation of the scattered intensity by a source dans
 c                                                                         ! a line of sight voxel compute the double scattering only if
                if (effdif.gt.(dx+dy)/2.) then                             ! radius of scattering is larger than the size of the voxels.
-
                 call zone_diffusion(x_s,y_s,z_s,x_c,y_c,zcellc,dx,dy,
      +          effdif,nbx,nby,altsol,zondif,ndiff)
                 do idi=1,ndiff,stepdi                                     ! beginning of the loop over the scattering voxels.
@@ -1249,25 +1205,12 @@ c
 c=======================================================================
 c        computation of the zenithal angle between the source and the scattering voxel
 c=======================================================================
-
-
 c shadow source-scattering voxel
-
                    call anglezenithal(x_s,y_s,z_s,x_dif,y_dif,z_dif,dx,
      +             dy,angzen)                                             ! computation of the zenithal angle source-scattering voxel.
-
                    call angleazimutal(x_s,y_s,x_dif,y_dif,dx,dy,          ! computation of the angle azimutal line of sight-scattering voxel
      +             angazi)
-
-c                   call horizon(x_s,y_s,z_s,dx,dy,nbx,nby,altsol,
-c     +             latitu,angzen,angazi,zhoriz)
-c                   if (angzen.lt.zhoriz) then                             ! beginning condition shadow source-diffusante
-c                      hh=1.
-c                   else
-c                      hh=0.
-c                   endif
                     hh=1.
-
 c sub-grid obstacles
                     angmin=pi/2.-atan((obsH(x_s,y_s)+
      +              altsol(x_s,y_s)-z_s)/drefle(x_s,y_s))
@@ -1288,7 +1231,6 @@ c=======================================================================
 c=======================================================================
 c     computation of the Solid angle of the par the scattering voxel seen from the source
 c=======================================================================
-
                      xc=dble(x_dif)*dble(dx)                              ! Position in meters of the scattering voxel (longitude).
                      yc=dble(y_dif)*dble(dy)                              ! Position in meters of the scattering voxel (latitu).
                      zc=dble(z_dif)                                       ! Position in meters of the scattering voxel (altitude).
@@ -1407,7 +1349,6 @@ c=======================================================================
 c=======================================================================
 c Computing zenith angle between the scattering voxel and the line of sight voxel
 c=======================================================================
-
                      call anglezenithal(x_dif,y_dif,z_dif,x_c,y_c,z_c,
      +               dx,dy,angzen)                                        ! computation of the zenithal angle between the scattering voxel and the
 c                                                                         ! line of sight voxel.
@@ -1421,13 +1362,10 @@ c        else
 c           hh=0.
 c        endif
          hh=1.
-
-
 c
 c subgrid obstacles
                      angmin=pi/2.-atan((obsH(x_dif,y_dif)+
      +               altsol(x_dif,y_dif)-z_dif)/drefle(x_dif,y_dif))
-
                     if (angzen.lt.angmin) then                            ! condition obstacles scattering->line of sight
                        ff=0.
                     else
@@ -1541,12 +1479,6 @@ c=======================================================================
      +                idiff2*real(stepdi)                                 ! Correct the result for the skipping of 2nd scattering voxels to accelerate the calculation
                       itodif=
      +                itodif+idiff2
-c                     endif                                               ! end condition obstacle scattering->line of sight
-c        else
-c        endif                                                             ! end condition shadow scattering-line of sight
-c                    endif                                                ! end condition obstacle source->scattering.
-c                   else
-c                   endif                                                  ! end condition shadow source-scattering
                   endif                                                   ! end of the case scattering = Source or line of sight voxel
                  endif                                                    ! end of the condition "voxel of the domain".
                 enddo                                                     ! end of the loop over the scattering voxels.
@@ -1676,9 +1608,7 @@ c                                                                         ! for 
 c=======================================================================
 c        computation of the flux reaching the objective of the telescope from the line of sight voxel
 c=======================================================================
-
            flcib=itotci*ometif*transa*transm                              ! computation of the flux reaching the intrument from the line of sight voxel
-
            do x_s=1,nbx
             do y_s=1,nby
              FC(x_s,y_s)=ITC(x_s,y_s)*ometif*transa*transm
