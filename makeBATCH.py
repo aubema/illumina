@@ -27,6 +27,8 @@ parser.add_argument("batch_name", nargs="?",
 parser.add_argument("-c", "--compact", action="store_true",
     help="If provided, will reduce the number of subfolder produced " \
     "by combining executions with similar parameters.")
+parser.add_argument("-N", "--batch_size", default=300, type=int,
+    help="Number of execution per batch file. Defaults to 300.")
 
 p = parser.parse_args()
 
@@ -148,8 +150,9 @@ for i,param_vals in enumerate(comb(*param_space),1):
         ) + os.sep
 
     unique_ID = '-'.join( "%s_%s" % item for item in local_params.iteritems() )
-
     wavelength = "%03d" % P["wavelength"]
+    layer = P["layer"]
+    reflectance = refls[wls.index(P["wavelength"])]
 
     if not os.path.isdir(fold_name):
         os.makedirs(fold_name)
@@ -175,8 +178,6 @@ for i,param_vals in enumerate(comb(*param_space),1):
             fold_name+"illumina" )
 
         # Copying layer data
-        layer = P["layer"]
-
         obs_fold = os.path.join(
             "obs_data",
             coords,
@@ -203,8 +204,6 @@ for i,param_vals in enumerate(comb(*param_space),1):
                 fold_name+"%s_lumlp_%03d.bin" % \
                     ( exp_name, l )
             )
-
-        reflectance = refls[wls.index(P["wavelength"])]
 
     # Create illumina.in
     input_data = (
@@ -270,7 +269,7 @@ for i,param_vals in enumerate(comb(*param_space),1):
             p.path + \
                 '/' + \
                 params['batch_file_name'] + \
-                "_%d" % ((count/300)+1) ,
+                "_%d" % ((count/p.batch_size)+1) ,
             'a' ) as f:
             f.write("cd %s\n" % os.path.abspath(fold_name))
             f.write("sbatch ./execute\n")
