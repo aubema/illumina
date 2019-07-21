@@ -32,7 +32,7 @@ for light in inv:
 
         if extent['xmin'] < x < extent['xmax'] and \
            extent['ymin'] < y < extent['ymax']:
-            level = extent['level']
+            level = extent['layer']
             col = int((x-extent['xmin'])/extent['pixel_size'] - 0.5)
             row = int((y-extent['ymin'])/extent['pixel_size'] - 0.5)
             break
@@ -56,7 +56,7 @@ with open(out_name,'w') as inv_file:
         for i in range(len(lights)):
             frac[tuple(lights[i][-2:])] += 100*lights[i][0]/pow_tot
 
-        extent = domain['extents'][domain['nb_layers']-level]
+        extent = domain['extents'][domain['nb_layers']-level-1]
         x = extent['pixel_size'] * (col - 0.5) + extent['xmin']
         y = extent['pixel_size'] * (row - 0.5) + extent['ymin']
 

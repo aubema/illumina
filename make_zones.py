@@ -64,8 +64,9 @@ S = np.array([
 	for i in xrange(len(viirs_dat)) ])
 
 # phie = DNB * S / int( R ( rho/pi Gdown + Gup ) ) dlambda
-Gdown = (zones * sinx[:,None])[:,:,angles>90].sum(2)
-Gup = (zones * sinx[:,None])[:,:,angles<70].sum(2) / sinx[angles<70].sum()
+Gdown = np.tensordot(zones[:,:,angles>90],sinx[angles>90],axes=([2],[0]))
+Gup = np.tensordot(zones[:,:,angles<70],sinx[angles<70],axes=([2],[0])) \
+	/ sinx[angles<70].sum()
 integral = np.sum(viirs * (Gdown*refl/np.pi + Gup),(1,2)) * (wav[1]-wav[0])
 
 phie = [

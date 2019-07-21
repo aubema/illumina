@@ -44,7 +44,7 @@ def plot(ds,n_layer=None,log=False,**options):
         _plt.pcolor(
             X*psize,
             Y*psize,
-            layer[buff:-buff,buff:-buff][::-1],
+            layer[buff:n-buff,buff:n-buff][::-1],
             **options
         )
 

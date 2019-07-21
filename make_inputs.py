@@ -74,13 +74,16 @@ lop = {
 
 # Spectral distribution (normalised with scotopric vision to 1)
 wav, viirs = np.loadtxt( "Lights/viirs.dat", skiprows=1 ).T
-viirs = pt.spct_norm(wav,viirs)
-norm_spectrum = pt.load_spct(
-	wav,
-	np.ones(wav.shape),
-	"Lights/photopic.dat",
-	1
-)
+viirs /= np.max(viirs)
+#viirs = pt.spct_norm(wav,viirs)0000000000000000000
+# norm_spectrum = pt.load_spct(
+# 	wav,
+# 	np.ones(wav.shape),
+# 	"Lights/photopic.dat",
+# 	1
+# )
+wav, norm_spectrum = np.loadtxt("Lights/photopic.dat", skiprows=1).T
+norm_spectrum /= np.max(norm_spectrum)
 
 spct_files = glob("Lights/*.spct")
 spct = {
