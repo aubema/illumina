@@ -72,7 +72,7 @@ for dirpath,dirnames,filenames in os.walk(p.exec_dir):
             if oname == basename + ".out":
                 pcl_name = filter(lambda s: "pcl.bin" in s, filenames)[0]
             else:
-                pcl_name = '_'.join([ basename,'pcl',params+.bin ])
+                pcl_name = '_'.join([ basename,'pcl',params+".bin" ])
             pcl_path = os.path.join(dirpath,pcl_name)
             pcl_data = load_bin(pcl_path)
             pcl_data *= val / pix_size / pcl_data.sum()
