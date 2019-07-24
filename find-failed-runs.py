@@ -41,7 +41,8 @@ for dirname in recursive_glob(pattern='illumina'):
                 failed(dirname)
             else:
                 with open(outnames[0]) as f:
-                    if "Sky radiance" not in f.readlines()[-5]:
+                    lines = f.readlines()
+                    if len(lines) < 5 or "Sky radiance" not in lines[-5]:
                         failed(dirname)
         elif os.path.isfile(os.path.join(dirname,basename+".out")) \
             or len(outnames)+1 != nb_in:
