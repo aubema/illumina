@@ -30,7 +30,7 @@ if p.params_filename is not None:
     contrib = ddict(partial(from_domain,p.params_filename))
 
 for dirpath,dirnames,filenames in os.walk(p.exec_dir):
-    if os.path.isfile(os.path.join(dirpath,'illumina.in')):
+    if not os.path.isfile(os.path.join(dirpath,'illumina.in')):
         continue
 
     with open(os.path.join(dirpath,'illumina.in')) as f:
@@ -45,7 +45,7 @@ for dirpath,dirnames,filenames in os.walk(p.exec_dir):
         if oname == basename + ".out":
             params = dirpath.split('exec'+os.sep)[1].replace(os.sep,'-')
         else:
-            params = oname.rstrip('.out')
+            params = oname.rstrip('.out').strip(basename+'_')
 
         try:
             for pname,pvals in p.param:
@@ -81,4 +81,4 @@ for dirpath,dirnames,filenames in os.walk(p.exec_dir):
 for key,val in skyglow.iteritems():
     print key,val
     if p.params_filename is not None:
-        contrib[key].save(key.replace(os.sep,'-'))
+        contrib[key].save(key)
