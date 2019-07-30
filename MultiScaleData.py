@@ -145,9 +145,12 @@ class MultiScaleData(_np.ndarray):
         with _HDFile(filename,'w') as File:
             for key,val in self._attrs.iteritems():
                 if key != "layers":
-                    File.attrs[key] = val
+                    if "obs" not in key:
+                        File.attrs[key] = val
+                    else:
+                        ds = File.create_dataset(key.replace('_','/'), data=val)
             for i in xrange(len(self)):
-                ds = File.create_dataset("layer_%d" % i, data=self[i])
+                ds = File.create_dataset("layers/%d" % i, data=self[i])
                 for key,val in self._attrs['layers'][i].iteritems():
                     ds.attrs[key] = val
 
@@ -156,7 +159,8 @@ def Open(filename):
 
     Returns a MultiScaleData object."""
     ds = _HDFile(filename)
-    data = _np.array([ ds[ly][:] for ly in ds ])
+    data = _np.array([ ds['layers'][n][:] for n in ds['layers'] ])
     params = dict(ds.attrs)
-    params['layers'] = [ dict(ds[ly].attrs) for ly in ds ]
+    params['layers'] = [ dict(ds['layers'][n].attrs) for n in ds['layers'] ]
+    params.update( ('obs_'+k, ds['obs'][k][:]) for k in ds['obs'] )
     return MultiScaleData(params, data)
