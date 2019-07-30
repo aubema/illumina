@@ -91,7 +91,7 @@ else:
     print "WARNING: Could not find GHSL.zip file."
     print "If you don't indent to use it, you can safely ignore this."
 
-files = glob("SRTM/*.hgt")
+files = sorted(glob("SRTM/*.hgt"))
 if not len(files):
     print "ERROR: Could not find SRTM file(s), aborting."
     raise SystemExit
@@ -100,7 +100,7 @@ data = [ warp(files, params['srs'], extent) \
     for extent in params['extents'] ]
 save(params, data, "srtm")
 
-files = glob("VIIRS-DNB/*.tif")
+files = sorted(glob("VIIRS-DNB/*.tif"))
 if not len(files):
     print "WARNING: Did not find VIIRS file(s)."
     print "If you don't intend to use zones inventory, you can safely ignore this."
