@@ -182,13 +182,7 @@ for i in xrange(len(wl2mie)):
 		if e[0] != 17:
 			raise
 
-try:
-	os.symlink(
-		os.path.abspath("srtm.hdf5"),
-		dir_name+"srtm.hdf5" )
-except OSError as e:
-	if e[0] != 17:
-		raise
+shutil.copy("srtm.hdf5",dir_name)
 
 with open(dir_name+"/wav.lst",'w') as zfile:
 	zfile.write('\n'.join( map(lambda n:"%03d"%n, x ))+'\n')

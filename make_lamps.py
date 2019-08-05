@@ -48,34 +48,36 @@ for s in sources:
 
 for layer,pts in points.iteritems():
     cols,rows,inds = pts
-    for col,row in np.unique([cols,rows],axis=1).T:
-        ind = inds[ np.logical_and(cols==col,rows==row) ]
-        lumens = lampsData[:,2][ind]
+    if len(inds):
+        for col,row in np.unique([cols,rows],axis=1).T:
+            ind = inds[ np.logical_and(cols==col,rows==row) ]
+            lumens = lampsData[:,2][ind]
 
-        for n,geo in izip(xrange(3,7),['obsth','obstd','obstf','altlp']):
-            geometry[geo][layer][row,col] = np.average(
-                lampsData[:,n][ind],
-                weights=lumens
-            )
-
-        local_sources = np.unique(photometry[ind][:,1])
-        for s in local_sources:
-            mask = photometry[:,1][ind] == s
-            fctem = np.array([
-                spct[type] for type in photometry[:,0][ind][mask]
-            ])
-            fctem = np.sum(fctem*lumens[mask,None],0)
-
-            y = [ np.mean(a) for a in \
-                np.array_split(
-            		fctem[bool_array],
-            		n_bins,
-            		-1
+            for n,geo in izip(xrange(3,7),['obsth','obstd','obstf','altlp']):
+                geometry[geo][layer][row,col] = np.average(
+                    lampsData[:,n][ind],
+                    weights=lumens
                 )
-            ]
 
-            for i,wl in enumerate(x):
-                lumlp[s,wl][layer][row,col] = y[i]
+            local_sources = np.unique(photometry[ind][:,1])
+            for s in local_sources:
+                mask = photometry[:,1][ind] == s
+                fctem = np.array([
+                    spct[type] for type in photometry[:,0][ind][mask]
+                ])
+                fctem = np.sum(fctem*lumens[mask,None],0)
+
+                y = [ np.mean(a) for a in \
+                    np.array_split(
+                		fctem[bool_array],
+                		n_bins,
+                		-1
+                    )
+                ]
+
+                for i,wl in enumerate(x):
+                    lumlp[s,wl][layer][row,col] = y[i]
+
 
 print "Saving data."
 
