@@ -136,6 +136,7 @@ class MultiScaleData(_np.ndarray):
             new._attrs['layers'][l]['observer_size_y'] = 1
         new._attrs['obs_x'] = [xc]
         new._attrs['obs_y'] = [yc]
+        new._attrs['nb_core'] = 1
         return new
 
     def save(self,filename):

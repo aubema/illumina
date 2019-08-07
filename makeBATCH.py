@@ -57,6 +57,8 @@ exp_name = params['exp_name']
 
 ds = MSD.Open(glob("*.hdf5")[0])
 
+half_width = ds._attrs['nb_pixels'] + ds._attrs['buffer'] + 1
+
 # Pre process the obs extract
 print "Preprocessing..."
 shutil.rmtree("obs_data",True)
@@ -224,8 +226,8 @@ for i,param_vals in enumerate(comb(*param_space),1):
         ((len(lamps), "Number of source types"),),
         ((P['stop_limit'], "Contribution threshold"),),
         (('', ''),),
-        ((ds[layer].shape[1]/2 + 1, "Observer X position"),
-         (ds[layer].shape[0]/2 + 1, "Observer Y position"),
+        ((half_width, "Observer X position"),
+         (half_width, "Observer Y position"),
          (P['observer_elevation'], "Observer elevation above ground [m]"),
          (1, "Beginning cell along line of sight")),
         (('', ''),),
