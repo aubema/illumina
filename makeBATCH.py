@@ -39,7 +39,7 @@ def updown(N=0):
         yield N+n
 
 def isPrime(n) :
-    if (n <= 1) :
+    if (n < 1) :
         return False
     if (n <= 3) :
         return True
