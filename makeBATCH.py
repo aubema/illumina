@@ -11,11 +11,12 @@ import MultiScaleData as MSD
 import sys, yaml, os, shutil
 from pytools import save_bin
 from glob import glob
-from itertools import product as comb, izip
+from itertools import product as comb, izip, count as itcount
 import numpy as np
 from chainmap import ChainMap
 from collections import OrderedDict
 import argparse
+from math import sqrt
 
 parser = argparse.ArgumentParser(
     description="Script producing the directory structure for ILLUMINA."
@@ -31,6 +32,30 @@ parser.add_argument("-N", "--batch_size", default=300, type=int,
     help="Number of execution per batch file. Defaults to 300.")
 
 p = parser.parse_args()
+
+def updown(N=0):
+    for n in itcount():
+        yield N-n
+        yield N+n
+
+def isPrime(n) :
+    if (n <= 1) :
+        return False
+    if (n <= 3) :
+        return True
+    if (n % 2 == 0 or n % 3 == 0) :
+        return False
+    i = 5
+    while(i * i <= n) :
+        if (n % i == 0 or n % (i + 2) == 0) :
+            return False
+        i = i + 6
+    return True
+
+def nearest_prime(N):
+    for n in updown(int(N)):
+        if isPrime(n):
+            return n
 
 def input_line(val,comment,n_space=30):
     value_str = ' '.join(str(v) for v in val)
@@ -207,6 +232,10 @@ for i,param_vals in enumerate(comb(*param_space),1):
                     ( exp_name, l )
             )
 
+    scattering_skip = nearest_prime(
+        P['scattering_skip'] / (ds.pixel_size(layer)/1000.)**2
+    )
+
     # Create illumina.in
     input_data = (
         (('', "Input file for ILLUMINA"),),
@@ -216,7 +245,7 @@ for i,param_vals in enumerate(comb(*param_space),1):
         (("aerosol.mie.out", "Aerosol optical cross section file"),),
         (('', ''),),
         ((P['scattering_radius']*1000, "Double scattering radius [m]" ),
-         (P['scattering_skip'], "Scattering step")),
+         (scattering_skip, "Scattering step")),
         (('', ''),),
         ((wavelength, "Wavelength [nm]"),),
         ((reflectance, "Reflectance"),),
