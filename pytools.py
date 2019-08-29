@@ -9,6 +9,7 @@
 
 import numpy as _np
 import matplotlib.pyplot as _plt
+import matplotlib.colors as _colors
 import astropy.io.fits as _fits
 import scipy.interpolate as _I
 
@@ -268,6 +269,7 @@ def plot_allsky(phi,r,data,n=100,**kwargs):
       fname    : File name. If defined, will save the figure and close it.
       cmap     : Colormap to use (2D data only). See matplotlib doc for options.
       labels   : Labels to add to the figure. {'label':position (deg)} dictionnary.
+      log      : Logaritmic color scale (def. False)
       vmin     : Minimal value of the colorscale (2D data only).
       vmax     : Maximal value of the colorscale (2D data only).
       showpts  : If set to True, will show datapoints.
@@ -326,6 +328,11 @@ def plot_allsky(phi,r,data,n=100,**kwargs):
             args["vmin"] = kwargs["vmin"]
         if kwargs.has_key("vmax"):
             args["vmax"] = kwargs["vmax"]
+        if kwargs.has_key("log") and kwargs["log"]:
+            args['norm'] = _colors.LogNorm(
+                vmin=kwargs['vmin'],
+                vmax=kwargs['vmax']
+            )
         m = _plt.pcolormesh(Theta,R,data,linewidth=0,**args)
 
     if kwargs.has_key("showpts") and kwargs["showpts"]:

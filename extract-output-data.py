@@ -65,7 +65,7 @@ for dirpath,dirnames,filenames in os.walk(p.exec_dir):
 
         val = float(lines[-4])
         skyglow[regex.sub('',params)] += val
-        if p.params_filename is not None and val != 0:
+        if p.params_filename is not None:
             n_layer = int(regex.search(params).groups()[0])
             key = regex.sub('',params)
             pix_size = ( contrib[key].pixel_size(n_layer) / 1000. ) ** 2 # in km^2
