@@ -51,8 +51,8 @@ def prep_shp(infile, projection, extent):
         call(cmd)
 
 def rasterize(shpfile, projection, extent):
-    width = int((extent['xmax'] - extent['xmin']) / extent['pixel_size'])
-    height = int((extent['ymax'] - extent['ymin']) / extent['pixel_size'])
+    width = int(round((extent['xmax'] - extent['xmin']) / extent['pixel_size']))
+    height = int(round((extent['ymax'] - extent['ymin']) / extent['pixel_size']))
 
     geo_transform = (
         extent['xmin'],extent['pixel_size'],0,
