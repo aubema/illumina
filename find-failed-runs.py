@@ -36,7 +36,7 @@ for dirname in recursive_glob(pattern='illumina'):
         outnames = glob(os.path.join(dirname,basename+"*.out"))
         nb_in = len(glob(os.path.join(dirname,"*.in")))
 
-        if nb_in == 1:
+        if nb_in <= 2:
             if len(outnames) == 0:
                 failed(dirname)
             else:
