@@ -1,23 +1,42 @@
 #!/usr/bin/python2
 # cedi est un commentaire
 import numpy as np
+import sys
 
-filename = raw_input("IES filename : ")
+nV,nH = 0,0
+aV,aH = [],[]
+data = []
+dump = []
+
+filename = raw_input("input filename : ")
+
 with open(filename) as f:
-	data = f.readlines()
-data = filter(None,map(str.strip, data))
-data = filter(lambda s: s[0].isdigit(), data)
-data = sum(map(lambda s: s.split(),data),[])
+    for line in f.readlines():
+        vals = line.split()
 
-nbV  = int(data[3])
-nbH  = int(data[4])
-Vang = data[13:13+nbV]
-Hang = data[13+nbV:13+nbV+nbH]
-data = map(None,*[iter(data[13+nbV+nbH:])]*nbH)
+        try:
+            vals = [ int(float(v)) for v in vals ]
+        except ValueError:
+            continue
+
+        if nV == 0:
+            nV,nH = vals[3],vals[4]
+        elif len(dump) == 0:
+            dump.extend(vals)
+        elif len(aV) < nV:
+            aV.extend(vals)
+        elif len(aH) < nH:
+            aH.extend(vals)
+        else:
+            data.extend(vals)
+
+aV = np.array(aV)
+aH = np.array(aH)
+data = np.array(data).reshape((nH,nV))
 
 outname = raw_input("out filename : ")
 with open(outname,'w') as f:
-	f.write("%d %d\n" % (nbV,nbH))
-	f.write(' '.join(Vang)+'\n')
-	f.write(' '.join(Hang)+'\n')
-	f.write('\n'.join([' '.join(d) for d in data])+'\n')
+	f.write("%d %d\n" % (nV,nH))
+	f.write(' '.join(map(str,aV))+'\n')
+	f.write(' '.join(map(str,aH))+'\n')
+	f.write('\n'.join([' '.join(map(str,d)) for d in data])+'\n')
