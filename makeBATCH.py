@@ -107,14 +107,20 @@ for i,fname in enumerate(glob("*.hdf5"),1):
         print ''
 
     dataset = MSD.Open(fname)
-    for x,y,lat,lon in izip(xs,ys,lats,lons):
-        clipped = dataset.extract_observer((x,y),proj=True)
+    for clipped in dataset.split_observers():
+        lat,lon = clipped.get_obs_pos()
+        lat,lon = lat[0],lon[0]
+
         if "lumlp" in fname:
             clipped.set_buffer(0)
             clipped.set_overlap(0)
         for i,dat in enumerate(clipped):
             save_bin("obs_data/%6f_%6f/%i/%s" % \
                 (lat,lon,i,fname.rsplit('.',1)[0]+'.bin'), dat)
+        if "srtm" in fname:
+            for l in xrange(len(clipped)):
+                clipped[l][:] = 0
+            clipped.save("obs_data/%6f_%6f/blank" % (lat,lon))
 
 # Add wavelength and multiscale
 params['wavelength'] = np.loadtxt("wav.lst",ndmin=1).tolist()

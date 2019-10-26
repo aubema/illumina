@@ -120,22 +120,36 @@ class MultiScaleData(_np.ndarray):
             self[i][:,nx-buff:] = value
 
     def split_observers(self):
-        for coords in _izip( *self.get_obs_pos(proj=True) ):
-            yield self.extract_observer(coords,proj=True)
+        for obs_id in xrange(len(self.get_obs_pos())):
+            yield self.extract_observer(obs_id)
 
-    def extract_observer(self,coords,proj=False):
+    def extract_observer(self,obs_id):
         n = self._attrs['nb_pixels']
         b = self._attrs['buffer']
-        lat,lon = coords
+
+        x = self._attrs['obs_x'][obs_id]
+        y = self._attrs['obs_y'][obs_id]
+        lat = self._attrs['obs_lat'][obs_id]
+        lon = self._attrs['obs_lon'][obs_id]
 
         new = MultiScaleData(self._attrs)
         for l in xrange(len(new)):
-            xc,yc = new._get_col_row(coords,l,proj=proj)
+            xc,yc = new._get_col_row((lat,lon),l)
             new[l] = self[l][yc-n-b:yc+n+b+1,xc-n-b:xc+n+b+1].copy()
+
+            pix_size = new._attrs['layers'][l]['pixel_size']
+            ny,nx = self[l].shape
+            new._attrs['layers'][l]['xmin'] += (xc-n-b)*pix_size
+            new._attrs['layers'][l]['xmax'] -= (nx-(xc+n+b+1))*pix_size
+            new._attrs['layers'][l]['ymin'] += (yc-n-b)*pix_size
+            new._attrs['layers'][l]['ymax'] -= (ny-(yc+n+b+1))*pix_size
             new._attrs['layers'][l]['observer_size_x'] = 1
             new._attrs['layers'][l]['observer_size_y'] = 1
-        new._attrs['obs_x'] = [xc]
-        new._attrs['obs_y'] = [yc]
+
+        new._attrs['obs_x'] = [x]
+        new._attrs['obs_y'] = [y]
+        new._attrs['obs_lat'] = [lat]
+        new._attrs['obs_lon'] = [lon]
         return new
 
     def save(self,filename):
