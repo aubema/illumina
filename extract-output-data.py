@@ -13,6 +13,7 @@ from collections import defaultdict as ddict
 from hdftools import MSD, from_domain
 from functools import partial
 from pytools import load_bin
+from glob import glob
 
 parser = argparse.ArgumentParser(description="Extract Illumina output.")
 parser.add_argument( "exec_dir", default='.', nargs='?',
@@ -54,7 +55,7 @@ for dirpath,dirnames,filenames in os.walk(p.exec_dir):
         if oname == basename + ".out":
             params = dirpath.split('exec'+os.sep)[1].replace(os.sep,'-')
         else:
-            params = oname.rstrip('.out').strip(basename+'_')
+            params = oname[len(basename)+1:-4]
 
         try:
             for pname,pvals in p.param:
@@ -78,10 +79,15 @@ for dirpath,dirnames,filenames in os.walk(p.exec_dir):
             n_layer = int(regex_layer.search(params).groups()[0])
             key = regex_layer.sub('',params)
             if not contrib.has_key(key):
-                coords = re.match(
-                    regex_coords,
-                    params).group(1)
-                blank = dirpath.split('exec')[0]+"/obs_data/%s/blank.hdf5" % coords
+                try:
+                    coords = re.match(
+                        regex_coords,
+                        params).group(1)
+                    blank = dirpath.split('exec')[0]+"/obs_data/%s/blank.hdf5" % coords
+                except AttributeError:
+                    # No match, only 1 coord
+                    blank = glob(dirpath.split('exec')[0]+"/obs_data/*/blank.hdf5")[0]
+                    
                 contrib[key] = MSDOpen(blank).copy()
 
             pix_size = ( contrib[key].pixel_size(n_layer) / 1000. ) ** 2 # in km^2

@@ -120,7 +120,7 @@ class MultiScaleData(_np.ndarray):
             self[i][:,nx-buff:] = value
 
     def split_observers(self):
-        for obs_id in xrange(len(self.get_obs_pos())):
+        for obs_id in xrange(len(self.get_obs_pos()[0])):
             yield self.extract_observer(obs_id)
 
     def extract_observer(self,obs_id):
