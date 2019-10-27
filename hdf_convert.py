@@ -17,16 +17,21 @@ parser.add_argument( 'outname', help="Output file name. The extension is added a
 p = parser.parse_args()
 
 hdf = MSD.Open(p.filename)
+hdf.set_buffer(-1)
+hdf.set_overlap(-1)
 
 if p.format == 'raster':
     driver = gdal.GetDriverByName("GTiff")
     srs = osr.SpatialReference()
     srs.ImportFromEPSG(int(hdf._attrs['srs'].split(':')[1]))
 
+    b = hdf._attrs['buffer']
+
     for l,data in enumerate(hdf):
-        xmin = hdf._attrs['layers'][l]['xmin']
-        ymax = hdf._attrs['layers'][l]['ymax']
         pix_size = hdf._attrs['layers'][l]['pixel_size']
+        xmin = hdf._attrs['layers'][l]['xmin'] + b*pix_size
+        ymax = hdf._attrs['layers'][l]['ymax'] - b*pix_size
+        data = data[b:-b,b:-b]
         ds = driver.Create(
             p.outname+"_%d.tif" % l,
             data.shape[1],
@@ -37,6 +42,7 @@ if p.format == 'raster':
         ds.SetProjection(srs.ExportToWkt())
         ds.SetGeoTransform((xmin,pix_size,0,ymax,0,-pix_size))
         ds.GetRasterBand(1).WriteArray(data[::-1])
+        ds.GetRasterBand(1).SetNoDataValue(-1)
 
 elif p.format == 'vector':
     points = {'x':[],'y':[],'val':[]}
@@ -45,10 +51,10 @@ elif p.format == 'vector':
         ymin = hdf._attrs['layers'][l]['ymin']
         pix_size = hdf._attrs['layers'][l]['pixel_size']
 
-        pts = np.where(hdf[l])
+        pts = np.where(hdf[l]!=-1)
         points['x'].extend( (pts[1]+0.5)*pix_size + xmin )
         points['y'].extend( (pts[0]+0.5)*pix_size + ymin )
-        points['val'].extend(hdf[l][hdf[l]!=0])
+        points['val'].extend(hdf[l][hdf[l]!=-1])
 
     gdf = gpd.GeoDataFrame(
         points,
