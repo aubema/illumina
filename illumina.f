@@ -258,9 +258,10 @@ c       read(1,*) latitu
        read(1,*)
        read(1,*) lfente,longfe,focal,diamobj
        read(1,*)
+       read(1,*)
        read(1,*) reflsiz
        read(1,*) cloudt
-       read(1,*) dminlp 
+       read(1,*) dminlp
       close(1)
 c
 c computing the actual AOD at the wavelength lambda

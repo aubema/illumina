@@ -107,14 +107,20 @@ for i,fname in enumerate(glob("*.hdf5"),1):
         print ''
 
     dataset = MSD.Open(fname)
-    for x,y,lat,lon in izip(xs,ys,lats,lons):
-        clipped = dataset.extract_observer((x,y),proj=True)
+    for clipped in dataset.split_observers():
+        lat,lon = clipped.get_obs_pos()
+        lat,lon = lat[0],lon[0]
+
         if "lumlp" in fname:
             clipped.set_buffer(0)
             clipped.set_overlap(0)
         for i,dat in enumerate(clipped):
             save_bin("obs_data/%6f_%6f/%i/%s" % \
                 (lat,lon,i,fname.rsplit('.',1)[0]+'.bin'), dat)
+        if "srtm" in fname:
+            for l in xrange(len(clipped)):
+                clipped[l][:] = 0
+            clipped.save("obs_data/%6f_%6f/blank" % (lat,lon))
 
 # Add wavelength and multiscale
 params['wavelength'] = np.loadtxt("wav.lst",ndmin=1).tolist()
@@ -261,7 +267,7 @@ for i,param_vals in enumerate(comb(*param_space),1):
          (1, "Beginning cell along line of sight")),
         (('', ''),),
         ((P['elevation_angle'], "Elevation viewing angle"),
-         (P['azimuth_angle'], "Azimutal viewing angle")),
+         (P['azimuth_angle'], "Azimuthal viewing angle")),
         (('', ''),),
         ((1., "Slit width [m]"),
          (1., "Pixel size [m]"),
@@ -269,6 +275,7 @@ for i,param_vals in enumerate(comb(*param_space),1):
          (1.1283791671, "Apperture diameter [m]")),
         (('', "to get W/str/m**2, SW*PS*pi*AD**2/4/FL**2 = 1"),),
         (('', "1. 1. 1. 1.1283791671 is doing exactly that"),),
+        ((P['reflextion_radius'], "Radius around the light source where reflextions are computed"),),
         ((P['cloud_model'], "Cloud model: "
             "0=clear, "
             "1=Thin Cirrus/Cirrostratus, "
@@ -276,7 +283,7 @@ for i,param_vals in enumerate(comb(*param_space),1):
             "3=Altostratus/Altocumulus, "
             "4=Cumulus/Cumulonimbus, "
             "5=Stratocumulus"),),
-        ((ds.pixel_size(layer)/2, "Minimal distance to nearest light source [m]"),)
+        ((P['nearest_source_distance'], "Minimal distance to nearest light source [m]"),)
     )
 
     with open(fold_name+unique_ID+".in",'w') as f:
