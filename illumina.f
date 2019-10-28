@@ -93,6 +93,7 @@ c
       character*72 basenm                                                 ! Base name of files.
       integer lenbase                                                     ! Length of the Base name of the experiment.
       real lambda,pressi,drefle(width,width)                              ! Wavelength (nanometer), atmospheric pressure (kPa), mean free path to the ground (meter).
+      real reflsiz                                                        ! Size of the reflecting surface
       integer ntype                                                       ! Number of light source types or zones considered.
       real largx                                                          ! Width (x axis) of the modeling domain (meter).
       real largy                                                          ! Length (y axis) of the modeling domain (meter).
@@ -108,7 +109,7 @@ c
       real pval(181,120),pvalto,pvalno(181,120)                           ! Values of the angular photometry functions (unnormalized, integral, normalized).
       real dtheta                                                         ! Angle increment of the photometric function of the sources
       real dx,dy,dxp,dyp                                                  ! Width of the voxel (meter)
-c      real pixsiz                                                         ! pixel size (meter)
+c      real pixsiz                                                        ! pixel size (meter)
       integer boxx,boxy                                                   ! reflection window size (pixels).
       real fdifa(181),fdifan(181)                                         ! Aerosol scattering functions (unnormalized and normalized).
       real extinc,scatte,anglea(181)                                      ! Aerosol cross sections (extinction and scattering), scattering angle (degree).
@@ -257,9 +258,9 @@ c       read(1,*) latitu
        read(1,*)
        read(1,*) lfente,longfe,focal,diamobj
        read(1,*)
-       read(1,*)
+       read(1,*) reflsiz
        read(1,*) cloudt
-       read(1,*) dminlp
+       read(1,*) dminlp 
       close(1)
 c
 c computing the actual AOD at the wavelength lambda
@@ -876,7 +877,7 @@ c=======================================================================
                   endif
                 endif
 c                else
-c                endif                                                     ! end condition below the horizon direct?
+c                endif                                                    ! end condition below the horizon direct?
                endif                                                      ! end of the case Position Source is not equal to the line of sight voxel position
 c  end of the computation of the direct intensity
 c **********************************************************************************************************************
@@ -887,9 +888,9 @@ c        etablissement of the conditions ands boucles
 c=======================================================================
                itotind=0.                                                 ! Initialisation of the reflected intensity of the source
                itotrd=0.
-       boxx=nint(drefle(x_s,y_s)/dx)                                      ! Number of column to consider left/right of the source
+       boxx=nint(reflsiz/dx)                                              ! Number of column to consider left/right of the source
 c                                                                         ! for the reflexion.
-       boxy=nint(drefle(x_s,y_s)/dy)                                      ! Number of column to consider up/down of the source for
+       boxy=nint(reflsiz/dy)                                              ! Number of column to consider up/down of the source for
 c                                                                         ! the reflexion.
        xsrmi=x_s-boxx
        if (xsrmi.lt.1) xsrmi=1
@@ -945,18 +946,18 @@ c=======================================================================
                       zn=dble(z_s)                                        ! Position in meters of the source (altitude).
                       epsilx=inclix(x_sr,y_sr)                            ! tilt along x of the ground reflectance
                       epsily=incliy(x_sr,y_sr)                            ! tilt along x of the ground reflectance
-                      if (dx.gt.drefle(x_s,y_s)*2.) then                  ! use a sub-grid surface when the mean free path to the ground is smaller than the cell size
+                      if (dx.gt.reflsiz) then                             ! use a sub-grid surface when the mean free path to the ground is smaller than the cell size
                        if ((x_sr.eq.x_s).and.(y_sr.eq.y_s)) then
-                        dxp=drefle(x_s,y_s)*2.
+                        dxp=reflsiz
                        else
                         dxp=dx
                        endif
                       else
                        dxp=dx
                       endif
-                      if (dy.gt.drefle(x_s,y_s)*2.) then
+                      if (dy.gt.reflsiz) then
                        if ((x_sr.eq.x_s).and.(y_sr.eq.y_s)) then
-                        dyp=drefle(x_s,y_s)*2.
+                        dyp=reflsiz
                        else
                         dyp=dy
                        endif
