@@ -76,18 +76,21 @@ for dirpath,dirnames,filenames in os.walk(p.exec_dir):
         val = float(lines[-4])
         skyglow[regex_layer.sub('',params)] += val
         if p.contrib:
-            n_layer = int(regex_layer.search(params).groups()[0])
+            try:
+                n_layer = int(regex_layer.search(params).groups()[0])
+            except AttributeError:
+                # No match, only 1 layer
+                n_layer = 0
+
             key = regex_layer.sub('',params)
             if not contrib.has_key(key):
                 try:
-                    coords = re.match(
-                        regex_coords,
-                        params).group(1)
+                    coords = re.match(regex_coords,params).group(1)
                     blank = dirpath.split('exec')[0]+"/obs_data/%s/blank.hdf5" % coords
                 except AttributeError:
                     # No match, only 1 coord
                     blank = glob(dirpath.split('exec')[0]+"/obs_data/*/blank.hdf5")[0]
-                    
+
                 contrib[key] = MSDOpen(blank).copy()
 
             pix_size = ( contrib[key].pixel_size(n_layer) / 1000. ) ** 2 # in km^2
@@ -97,7 +100,7 @@ for dirpath,dirnames,filenames in os.walk(p.exec_dir):
                 pcl_name = '_'.join([ basename,'pcl',params+".bin" ])
             pcl_path = os.path.join(dirpath,pcl_name)
             pcl_data = load_bin(pcl_path)
-            pcl_data *= val / pix_size / pcl_data.sum()
+            pcl_data *= val / pcl_data.sum()
             contrib[key][n_layer] = pcl_data
 
 for key,val in skyglow.iteritems():

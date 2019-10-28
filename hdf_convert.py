@@ -11,6 +11,8 @@ parser = argparse.ArgumentParser(
 )
 parser.add_argument( '-f', '--format', default='vector',
     choices=['vector','raster'], help="Output type." )
+parser.add_argument( '-log', action='store_true', help="If set, outputs the log10 of the data.")
+parser.add_argument( '-area', action='store_true', help="If set, outputs the data in units per area [km^2]." )
 parser.add_argument( 'filename', help="Input file name. Must be HDF format." )
 parser.add_argument( 'outname', help="Output file name. The extension is added automatically.")
 
@@ -32,6 +34,10 @@ if p.format == 'raster':
         xmin = hdf._attrs['layers'][l]['xmin'] + b*pix_size
         ymax = hdf._attrs['layers'][l]['ymax'] - b*pix_size
         data = data[b:-b,b:-b]
+        if p.area:
+            data /= (hdf.pixel_size(l)/1000.)**2
+        if p.log:
+            data = np.log10(data)
         ds = driver.Create(
             p.outname+"_%d.tif" % l,
             data.shape[1],
@@ -41,8 +47,8 @@ if p.format == 'raster':
         )
         ds.SetProjection(srs.ExportToWkt())
         ds.SetGeoTransform((xmin,pix_size,0,ymax,0,-pix_size))
-        ds.GetRasterBand(1).WriteArray(data[::-1])
-        ds.GetRasterBand(1).SetNoDataValue(-1)
+        ds.GetRasterBand(1).WriteArray(data)
+        ds.GetRasterBand(1).SetNoDataValue(-np.inf if p.log else -1)
 
 elif p.format == 'vector':
     points = {'x':[],'y':[],'val':[]}
@@ -54,7 +60,12 @@ elif p.format == 'vector':
         pts = np.where(hdf[l]!=-1)
         points['x'].extend( (pts[1]+0.5)*pix_size + xmin )
         points['y'].extend( (pts[0]+0.5)*pix_size + ymin )
-        points['val'].extend(hdf[l][hdf[l]!=-1])
+        data = hdf[l][hdf[l]!=-1]
+        if p.area:
+            data /= (hdf.pixel_size(l)/1000.)**2
+        if p.log:
+            data = np.log10(data)
+        points['val'].extend(data)
 
     gdf = gpd.GeoDataFrame(
         points,

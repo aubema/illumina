@@ -267,7 +267,7 @@ for i,param_vals in enumerate(comb(*param_space),1):
          (1, "Beginning cell along line of sight")),
         (('', ''),),
         ((P['elevation_angle'], "Elevation viewing angle"),
-         (P['azimuth_angle'], "Azimutal viewing angle")),
+         (P['azimuth_angle'], "Azimuthal viewing angle")),
         (('', ''),),
         ((1., "Slit width [m]"),
          (1., "Pixel size [m]"),
@@ -282,7 +282,7 @@ for i,param_vals in enumerate(comb(*param_space),1):
             "3=Altostratus/Altocumulus, "
             "4=Cumulus/Cumulonimbus, "
             "5=Stratocumulus"),),
-        ((ds.pixel_size(layer)/2, "Minimal distance to nearest light source [m]"),)
+        ((P['nearest_source_distance'], "Minimal distance to nearest light source [m]"),)
     )
 
     with open(fold_name+unique_ID+".in",'w') as f:
