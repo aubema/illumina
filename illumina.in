@@ -1,26 +1,26 @@
-                                ! Input file for ILLUMINA
-test3                           ! ROOT FILE NAME (every usefull files have to begin with this)
-                                ! 
-200 200                         ! W-E and S-N CELL SIZES [m]
-45.0                            ! Central latitude north of the domain
-urban_RH70_0.5500um.mie.out     ! AEROSOL OPTICAL CROSS SECTIONS AND PHASE FUNCTION FILE selected from Fichiers.mie.out/ [-]
-                                !
-2000 64                         ! DOUBLE SCATTERING RADIUS (generally 2000 is a minimum) [m] ; 2nd ORDER SCATTERING SAMPLING STEP [-]  
-                                ! (SAMPLING STEP=1=>complete, 2=> 2 times faster, ...)
-550                             ! WAVELENGTH [nm] 
-101.3                           ! GROUND LEVEL PRESSURE @ model bottom [kPa]
-0.07                            ! AEROSOL OPTICAL DEPTH [-]
-1                               ! NUMBER OF SOURCE TYPES [-]
-100.                            ! Contribution threshold : Stop computation when the new voxel contribution is less than 1/threshold of the cumulated flux (suggested value = 5000.)
-49  7                           ! MEAN FREE PATH TOWARD GROUND [m] ; MEAN OBSTACLE HEIGHT [m]
-                                !
-101 101 0. 1                     ! OBSERVER X POSITION [cell unit,cu] ; OBS Y POS [cu] ; OBS elevation above the local ground level [m] ; FIRST CELL ALONG LINE OF SIGHT (1=complete)
-                                ! (usefull in case of computer crash) (x=1 et y=1 is the south-west cell)
-90 0                            ! ELEVATION VIEWING ANGLE [deg] ; AZIMUTAL VIEWING ANGLE [deg]
-                                ! (0=north, 90=east, 180=south, 270=west)
-1. 1. 1. 1.1283791671           ! SLIT WIDTH [m] ; SLIT LENGHT [m] ; OBJECTIVE FOCAL LENGTH [m] ; EFFECTIVE OBJECTIVE DIAMETER [m]
-                                ! to get the radiance in W/str/m**2, SW*PS*pi*AD**2/4/FL**2 should equal 1                               
- ! 1. 1. 1. 1.1283791671 is doing exactly that
-0                               ! Cloud model selection 0=clear, 1=Thin Cirrus/Cirrostratus, 2=Thick Cirrus/Cirrostratus, 3=Altostratus/Altocumulus, 4=Cumulus/Cumulonimbus, 5=Stratocumulus
-150                             ! Minimal distance to the nearest light source (m)
+                               ! Input file for ILLUMINA
+Hawaii                         ! Root file name
+625.0 625.0                    ! Cell size along X [m] ; Cell size along Y [m]
+aerosol.mie.out                ! Aerosol optical cross section file
+                               ! 
+0 181                          ! Double scattering radius [m] ; Scattering step
+                               ! 
+605                            ! Wavelength [nm]
+0.0747932                      ! Reflectance
+101.3                          ! Ground level pressure [kPa]
+0.11 0.7                       ! 500nm aerosol optical depth ; Angstrom exponent
+1                              ! Number of source types
+5000.0                         ! Contribution threshold
+                               ! 
+13 13 0 1                      ! Observer X position ; Observer Y position ; Observer elevation above ground [m] ; Beginning cell along line of s
+ight
+                               ! 
+90 0                           ! Elevation viewing angle ; Azimuthal viewing angle
+                               ! 
+1.0 1.0 1.0 1.1283791671       ! Slit width [m] ; Pixel size [m] ; Focal length [m] ; Apperture diameter [m]
+                               ! to get W/str/m**2, SW*PS*pi*AD**2/4/FL**2 = 1  / 1. 1. 1. 1.1283791671 is doing exactly that
+62.                            ! Maximum radius for reflexion on the groud surface
+0                              ! Cloud model: 0=clear, 1=Thin Cirrus/Cirrostratus, 2=Thick Cirrus/Cirrostratus, 3=Altostratus/Altocumulus, 4=Cumu
+lus/Cumulonimbus, 5=Stratocumulus
+0.                             ! Minimal distance to nearest light source [m]
 
