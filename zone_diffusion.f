@@ -30,14 +30,14 @@ c
        subroutine zone_diffusion(x_1,y_1,z1,x_2,y_2,z_2,dx,dy,effet,
      +         nbx,nby,alt_sol,zondif,ncell)
       integer width,height                                                ! Matrix dimension in Length/width and height
-      parameter (width=1024,height=100)
+      parameter (width=1024,height=1024)
        integer x_1,y_1,x_2,y_2,z_2,nbx,nby,i,j,k
        integer ncell,neffet,imin,imax,jmin,jmax
        integer zondif(3000000,4)
        real x1,y1,z1,x2,y2,z2,x0,y0,z0,alt_sol(width,width)
        real dx,dy,effet,dmin,aire,a,b,c,s,delta,d,deltmx
        real cell_t(height),cell_h(height),d2
-       call verticalscale(cell_t,cell_h)                                  ! define the vertical scale
+       call verticalscale(dx,cell_t,cell_h)                                  ! define the vertical scale
  10    ncell=0
        neffet=nint(effet/(dx/2.+dy/2.))+2
 c calcul de position en metre

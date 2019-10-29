@@ -30,7 +30,7 @@ c
       subroutine lignevisee (x1,y1,z1,dx,dy,angvis,angazi,
      + nbx,nby,cloudz,visfin,ncfin,scalef)
       integer width,height                                                ! Matrix dimension in Length/width and height
-      parameter (width=1024,height=100)
+      parameter (width=1024,height=1024)
       integer x1,y1,cx,cy,visee(width,3)
       integer visfin(width,3)
       integer viseef(width,3),ncellf,cxm,cym,czm,cloudz
@@ -46,7 +46,7 @@ c
 c
 c determining the vertical scale
 c
-      call verticalscale(celthi,cell_height)
+      call verticalscale(dx,celthi,cell_height)
 c
       cz=1
       if (cloudz.ne.height) then

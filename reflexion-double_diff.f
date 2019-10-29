@@ -34,7 +34,7 @@ c
 c   declarations de variables
 c  
       integer width,height
-      parameter (width=1024,height=100)  
+      parameter (width=1024,height=1024)  
       integer x_sr,y_sr,x_dif,y_dif,zcell_dif                             ! Positions source, surface reflectrice, celldiffusantes (cellule)
       integer x_c,y_c,zcell_c,nbx,nby
       real z_sr,z_dif,dx,dy                             
@@ -87,7 +87,7 @@ c
       zero=0.
       hh=1.
       latitu=1*latitu
-      call verticalscale(cell_t,cell_h)                                   ! define the vertical scale
+      call verticalscale(dx,cell_t,cell_h)                                   ! define the vertical scale
       call zone_diffusion(x_sr,y_sr,z_sr,x_c,y_c,zcell_c,                 ! Determiner la zone de diffusion
      +dx,dy,effdif,nbx,nby,altsol,zondif,ndiff)
       z_c=cell_h(zcell_c)

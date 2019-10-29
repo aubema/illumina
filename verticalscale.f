@@ -24,15 +24,18 @@ c
 c    Contact: martin.aube@cegepsherbrooke.qc.ca
 c
 c
-      subroutine verticalscale(cthick,cellh) 
+      subroutine verticalscale(dx,cthick,cellh) 
       integer width,height                                                ! Matrix dimension in Length/width and height
-      parameter (width=1024,height=100)
+      parameter (width=1024,height=1024)
       integer nz
+      real dx                                                             ! Size of the pixel (meter)
       real cthick(height)                                                 ! voxel thickness array (meter)
       real cellh(height)                                                  ! voxel height array (meter)
       real expo                                                           ! multiplicative factor to increase the cell thinkness Thick=thick_0*expo**(zcell_c-1)
-      expo=1.111                                                          ! the magic number of Mont-Megantic observatory ;-) Cheers Bernard Malenfant!
-      cthick(1)=0.5                                                       ! thickness of the first level
+c      expo=1.111                                                          ! the magic number of Mont-Megantic observatory ;-) Cheers Bernard Malenfant!
+      expo=1.00
+c      cthick(1)=0.5                                                       ! thickness of the first level
+      cthick(1)=dx
       cellh(1)=cthick(1)/2.
       do nz=2,height
          cthick(nz)=cthick(nz-1)*expo

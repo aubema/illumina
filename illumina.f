@@ -76,7 +76,7 @@ c     Variables declaration
 c=======================================================================
 c
       integer width,height                                                ! Matrix dimension in Length/width and height
-      parameter (width=1024,height=100)
+      parameter (width=1024,height=1024)
       integer iun,ideux
       real pi,pix4
       integer verbose                                                     ! verbose = 1 to have more print out, 0 for silent
@@ -200,7 +200,7 @@ c      real zhoriz                                                         ! hor
       real latitu                                                         ! approximate latitude of the domain center
       integer prmaps                                                      ! flag to enable the tracking of contribution and sensitivity maps
       integer cloudt                                                      ! cloud type 0=clear, 1=Thin Cirrus/Cirrostratus, 2=Thick Cirrus/Cirrostratus, 3=Altostratus/Altocumulus, 4=Cumulus/Cumulonimbus, 5=Stratocumulus
-      integer cloudh(5),cloudz                                            ! cloud base layer relative to the lower elevation
+      integer cloudz                                                      ! cloud base layer relative to the lower elevation
       integer xsrmi,xsrma,ysrmi,ysrma                                     ! limits of the loop valeur for the reflecting surfaces
       real rcloud                                                         ! cloud relfectance
       real azencl                                                         ! zenith angle from cloud to observer
@@ -215,17 +215,14 @@ c      real zhoriz                                                         ! hor
       real zero
       real anaz
       real ff,hh                                                          ! temporary obstacle filling factor and horizon blocking factor
-      data cloudh /73,73,65,54,53/                                        ! 9300.,9300.,4000.,1200.,1100.
+      real cloudh(5)
+      data cloudh /9300.,9300.,4000.,1200.,1100./                         ! 9300.,9300.,4000.,1200.,1100.
       real dist,distm                                                     ! distance and minimal distance to find observer level
       real scalef                                                         ! scale factor to calculate the line of sight
       verbose=0
       zero=0.
       ff=0.
       print*,'Starting ILLUMINA computations...'
-c
-c determining the vertical scale
-c
-      call verticalscale(cthick,cellh)
 c
 c=======================================================================
 c        reading of the fichier d'entree (illumina.in)
@@ -234,9 +231,7 @@ c=======================================================================
       open(unit=1,file='illumina.in',status='old')
        read(1,*)
        read(1,*) basenm
-c       read(1,*) nbx,nby
        read(1,*) dx,dy
-c       read(1,*) latitu
        read(1,*) diffil
        read(1,*)
        read(1,*) effdif,stepdi
@@ -262,6 +257,10 @@ c       read(1,*) latitu
        read(1,*) cloudt
        read(1,*) dminlp
       close(1)
+c
+c determining the vertical scale
+c
+      call verticalscale(dx,cthick,cellh)
 c
 c computing the actual AOD at the wavelength lambda
 c
@@ -314,7 +313,11 @@ c=======================================================================
        if (cloudt.eq.0) then
           cloudz=height
        else
-          cloudz=cloudh(cloudt)
+          do nci=1,height
+             if (cellh(nci).gt.cloudh(cloudt)) then
+                cloudz=nci-1
+             endif
+          enddo
        endif
        prmaps=1
        iun=0
@@ -572,7 +575,17 @@ c find nearest vertical grid
              zcello=i
           endif
        enddo
-       z_obs=cellh(zcello)                                                ! Attribution of the value in meter to the position z of the observateur.
+
+
+
+
+
+c       z_obs=cellh(zcello)                                                ! Attribution of the value in meter to the position z of the observateur.
+
+
+
+
+
        largx=dx*real(nbx)                                                 ! computation of the Width along x of the case.
        largy=dy*real(nby)                                                 ! computation of the Width along y of the case.
 
@@ -618,10 +631,11 @@ c=======================================================================
           write(*,1110) lcible(i,1),lcible(i,2),lcible(i,3)
        enddo
        if (zcello.ge.cloudz) then
-          print*,'The observer is inside the cloud! Abort computing.'
+          print*,'The observer is inside the cloud! Abort computing.',
+     +    zcello,cloudz
           stop
        endif
- 1110  format(I3,1x,I3,1x,I3)
+ 1110  format(I4,1x,I4,1x,I4)
        fctcld=0.
        ftocap=0.                                                          ! Initialisation of the value of flux received by the sensor
        fcapt=1.
@@ -652,13 +666,32 @@ c=======================================================================
          if( (x_c.gt.nbx).or.(x_c.lt.1).or.(y_c.gt.nby).or.(y_c.lt.1)     ! Condition line of sight voxel inside the modelling domain
      +      .or.(zcellc.gt.height).or.(zcellc.lt.1) )then
          else
-          if((x_c.eq.x_obs).and.(y_c.eq.y_obs).and.                       ! for the moment, if the line of sight voxel is the observer voxel,
-c                                                                         ! we do not compute the scattered flux
-     +    (zcellc.eq.zcello))then
-           if (verbose.eq.1) then
-             print*,'Scat voxel = Observer voxel'
-           endif
-          else
+
+
+
+
+
+
+
+
+
+
+
+c          if((x_c.eq.x_obs).and.(y_c.eq.y_obs).and.                       ! for the moment, if the line of sight voxel is the observer voxel,
+                                                                         ! we do not compute the scattered flux
+c     +    (zcellc.eq.zcello))then
+c           if (verbose.eq.1) then
+c             print*,'Scat voxel = Observer voxel'
+c           endif
+c         else
+
+
+
+
+
+
+
+
            dis_obs=sqrt((z_c-z_obs)**2.+((real(y_c-y_obs))*dy)**2.
      a     +((real(x_c-x_obs))*dx)**2.)
            if (dis_obs.eq.0.) then
@@ -667,7 +700,7 @@ c                                                                         ! we d
             stop
            endif
            ometif=pi*(diamobj/2.)**2./dis_obs**2.
-           omefov=lfente*longfe/focal**2.                                 ! computation of the solid angle of the fente projete sur le ciel.
+           omefov=lfente*longfe/focal**2.                                 ! computation of the solid angle of the spectrometer slit on the sky
 
            zcdown=z_c-0.5*cthick(zcellc)                                  ! lower limit of the line of sight voxel.
            zcup=z_c+0.5*cthick(zcellc)                                    ! upper limit of the line of sight voxel.
@@ -703,11 +736,11 @@ c *     computation of the direct intensity toward the sensor by a line of sight
 c **********************************************************************************************************************
                dirck=0                                                    ! Initialisation of the verification of the position of the source.
                if ( (x_s.eq.x_c).and.(y_s.eq.y_c).and.( abs(z_s-z_c)      ! if the positions x and y of the source and the line of sight voxel are the
-c                                                                         ! memes alors.
+c                                                                         ! same then...
      +         .lt.(cthick(zcellc)/2.) ) )then
                 dirck=1
                 if (verbose.eq.1) then
-                 print*,'Source insiof scat voxel'
+                 print*,'Source inside of scat voxel'
                 endif
                endif                                                      ! end of the case positions x and y source and line of sight voxel identical.
                if (dirck.ne.1) then                                       ! the source is not at the line of sight voxel position
@@ -745,6 +778,7 @@ c=======================================================================
 c computation of the transmittance between the source and the line of sight
 c=======================================================================
                   anaz=zero
+                  print*,'Source>LOS'
                   call transmitm(angzen,anaz,x_s,y_s,z_s,x_c,y_c,z_c,
      +            lambda,dx,dy,pressi,transm)
                   call transmita(angzen,anaz,x_s,y_s,z_s,x_c,y_c,z_c,
@@ -803,7 +837,7 @@ c                                                                         ! for 
                    omega=0.
                   endif
                   if (omega.gt.0.) then
-                   if (omega .gt. omega1) omega1 = omega                  ! On garof the solid angle le plus grand
+                   if (omega .gt. omega1) omega1 = omega                  ! We keep the largest solid angle
                   endif
                   omega=omega1
 c=======================================================================
@@ -832,8 +866,12 @@ c
                    if (naz.lt.0) naz=-naz
                    if (naz.gt.181) naz=362-naz                            ! symetric function
                    if (naz.eq.0) naz=1
-                   P_dir=P_dir+pvalno(naz,stype)
-                   nbang=nbang+1.
+
+
+
+
+            P_dir=P_dir+pvalno(naz,stype)*abs(sin(pi*real(naz)/180.))/2.
+                   nbang=nbang+1.*abs(sin(pi*real(naz)/180.))/2.
                   enddo
                   P_dir=P_dir/nbang
 c
@@ -854,6 +892,7 @@ c                                                                         ! scat
                    zfdif=zcdown
                   endif
                   anaz=angazi
+                  print*,'LOSCelldirect',omega,P_dir
                   call transmitm (angzen,anaz,iun,iun,zidif,ideux,iun,    ! Transmittance molecular of the scattering voxel.
      +            zfdif,lambda,dx,dy,pressi,tran1m)
                   call transmita (angzen,anaz,iun,iun,zidif,ideux,iun,    ! Transmittance aerosols of the scattering voxel.
@@ -931,6 +970,7 @@ c=======================================================================
 c        computation of the transmittance between the source and the ground surface
 c=======================================================================
                       anaz=zero
+                      print*,'Source-ground'
                       call transmitm(angzen,anaz,x_s,y_s,z_s,x_sr,y_sr,
      +                z_sr,lambda,dx,dy,pressi,transm)
                       call transmita(angzen,anaz,x_s,y_s,z_s,x_sr,y_sr,
@@ -1010,8 +1050,13 @@ c
                        if (naz.lt.0) naz=-naz
                        if (naz.gt.181) naz=362-naz                        ! symetric function
                        if (naz.eq.0) naz=1
-                       P_indir=P_indir+pvalno(naz,stype)
-                       nbang=nbang+1.
+
+       P_indir=P_indir+pvalno(naz,stype)*abs(sin(pi*real(naz)/180.))/2.
+                   nbang=nbang+1.*abs(sin(pi*real(naz)/180.))/2.
+
+
+c                       P_indir=P_indir+pvalno(naz,stype)
+c                      nbang=nbang+1.
                       enddo
                       P_indir=P_indir/nbang
 c
@@ -1091,6 +1136,7 @@ c=======================================================================
 c        computation of the transmittance between the  ground surface and the line of sight voxel
 c=======================================================================
                         anaz=zero
+                        print*,'Ground-LOS'
                         call transmitm(angzen,anaz,x_sr,y_sr,z_sr,x_c,
      +                  y_c,z_c,lambda,dx,dy,pressi,transm)
                         call transmita(angzen,anaz,x_sr,y_sr,z_sr,x_c,
@@ -1179,6 +1225,7 @@ c                                                                         ! scat
                          zfdif=zcdown
                         endif
                         anaz=angazi
+                        print*,'reflectCellLOS'
                         call transmitm(angzen,anaz,iun,iun,zidif,         ! Transmittance molecular of the scattering voxel.
      +                  ideux,iun,zfdif,lambda,dx,dy,pressi,tran1m)
                         call transmita(angzen,anaz,iun,iun,zidif,         ! Transmittance aerosols of the scattering voxel.
@@ -1268,6 +1315,7 @@ c=======================================================================
 c        computation of the transmittance between the source and the scattering voxel
 c=======================================================================
                      anaz=zero
+                     print*,'source>LOS'
                      call transmitm(angzen,anaz,x_s,y_s,z_s,x_dif,
      +               y_dif,z_dif,lambda,dx,dy,pressi,transm)
                      call transmita(angzen,anaz,x_s,y_s,z_s,x_dif,
@@ -1357,8 +1405,14 @@ c
                       if (naz.lt.0) naz=-naz
                       if (naz.gt.181) naz=362-naz                         ! symetric function
                       if (naz.eq.0) naz=1
-                      P_dif1=P_dif1+pvalno(naz,stype)
-                      nbang=nbang+1.
+
+
+         P_dif1=P_dif1+pvalno(naz,stype)*abs(sin(pi*real(naz)/180.))/2.
+                   nbang=nbang+1.*abs(sin(pi*real(naz)/180.))/2.
+
+
+c                      P_dif1=P_dif1+pvalno(naz,stype)
+c                      nbang=nbang+1.
                      enddo
                      P_dif1=P_dif1/nbang
 c
@@ -1602,6 +1656,7 @@ c=======================================================================
 c        computation of the transmittance between the line of sight voxel and the observer
 c=======================================================================
            anaz=zero
+           print*,'transLOS-obs'
            call transmitm(angzen,anaz,x_c,y_c,z_c,x_obs,y_obs,z_obs,
      +     lambda,dx,dy,pressi,transm)
            call transmita(angzen,anaz,x_c,y_c,z_c,x_obs,y_obs,z_obs,
@@ -1699,7 +1754,20 @@ c   end of the computation of the flux reaching the observer voxel from the line
              flcumu=flcumu+FCA(x_s,y_s)
             enddo
            enddo
-          endif                                                           ! end of the condition line of sight voxel n'est pas observer voxel.
+
+
+
+
+
+
+
+c          endif                                                           ! end of the condition line of sight voxel n'est pas observer voxel.
+
+
+
+
+
+
          endif                                                            ! end of the condition line of sight voxel inside the modelling domain
         endif                                                             ! end condition for continuing of a computation stopped.
 c correction for the FOV to the flux reaching the intrument from the cloud voxel
