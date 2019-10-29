@@ -36,14 +36,14 @@ c
       subroutine transmitm(angle,anaz,x_i,y_i,z_i,x_f,y_f,z_f,
      + lambda,dx,dy,pressi,transm)
       integer width,height                                                ! Matrix dimension in Length/width and height
-      parameter (width=1024,height=100)
+      parameter (width=1024,height=1024)
       real angle,deltam,e,pressi,transm,lambda                            ! Declaration des variables.
       real lamdm,dist1,dist2,dist1m,dist2m
       real mprime,z_i,z_f,dx,dy,dist,pi
       integer x_i,y_i,x_f,y_f,k
       real cell_h(height),cell_t(height),anaz    
       integer zinf,zsup
-      call verticalscale(cell_t,cell_h)                                   ! defining vertical scale
+      call verticalscale(dx,cell_t,cell_h)                                   ! defining vertical scale
       pi=3.1415926                                                        ! Attribution d'une valeur a la constante pi.
       e=2.71828182844                                                     ! Attribution d'une valeur a la constante e.
       lamdm=lambda/1000.                                                  ! Les equations suivantes utilisent des lambdas en microns.
@@ -89,6 +89,9 @@ c
                stop
              endif 
   
+
+            print*,'Deltam_horiz=',deltam
+
           else                                                            ! usual case where the cell is crossed vertically 
             if (angle.ge.pi)  angle=pi               
             deltam=abs((((exp(-1.*z_i/8000.))-(exp(-1.*z_f/8000.))))/
@@ -97,6 +100,9 @@ c
                print*,'ERREUR cos(angle)=0 (1a), angle=',angle
                stop
               endif
+
+           print*,'Deltam_verti=',deltam
+
          endif
       mprime=deltam*(pressi/101.3)
 c  transmittance tiree de Kneizys et al. (1980)   

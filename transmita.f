@@ -37,14 +37,14 @@ c
       subroutine transmita(angle,anaz,x_i,y_i,z_i,x_f,y_f,z_f,
      + dx,dy,taua,transa)
       integer width,height                                                ! Matrix dimension in Length/width and height
-      parameter (width=1024,height=100)
+      parameter (width=1024,height=1024)
       real angle,deltam,e,transa,pi                                       ! Declaration des variables.
       real dist1,dist2,dist1m,dist2m                                      ! angle is the zenith angle
       real z_i,z_f,dx,dy,dist,taua
       integer x_i,y_i,x_f,y_f,k
       real cell_h(height),cell_th(height),anaz    
       integer zinf,zsup
-      call verticalscale(cell_th,cell_h)                                  ! define vertical scale
+      call verticalscale(dx,cell_th,cell_h)                                  ! define vertical scale
       pi=3.1415926                                                        ! Attribution d'une valeur a la constante pi.
       e=2.718281828     
        dist1m=3000000.      
@@ -71,14 +71,9 @@ c
          endif    
          dist=sqrt((real(x_f-x_i)*dx)**2.+(real(y_f-y_i)*dy)**2.)  
          if (dist.lt.dx) dist=dx       
-         if (abs(angle-pi/2.).lt.abs(atan(cell_th(zsup)/dist)))           ! angle under which the cell is crossed horizontally
+         if (abs(angle-pi/2.).lt.abs(atan(cell_th(zsup)/dist/2.)))           ! angle under which the cell is crossed horizontally
      +   then 
-
-
-
             anaz=abs(anaz-real(nint(anaz/(pi/2.)))*(pi/2.))                   ! angle equivalent de projection sur l'axe x premier quadrant, nécessaire car on calcule toujours la transmittance avec deux cellules voisines sur l'axe des x
-
-
             deltam=(exp(-1.*cell_h(zsup)/2000.)*dist)/2000./
      +      sin(angle)/abs(cos(anaz))
              if (sin(angle).eq.0.) then
