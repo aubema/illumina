@@ -258,6 +258,7 @@ c       read(1,*) latitu
        read(1,*)
        read(1,*) lfente,longfe,focal,diamobj
        read(1,*)
+       read(1,*)
        read(1,*) reflsiz
        read(1,*) cloudt
        read(1,*) dminlp
