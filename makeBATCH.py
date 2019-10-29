@@ -275,7 +275,7 @@ for i,param_vals in enumerate(comb(*param_space),1):
          (1.1283791671, "Apperture diameter [m]")),
         (('', "to get W/str/m**2, SW*PS*pi*AD**2/4/FL**2 = 1"),),
         (('', "1. 1. 1. 1.1283791671 is doing exactly that"),),
-        ((P['reflextion_radius'], "Radius around the light source where reflextions are computed"),),
+        ((P['reflection_radius'], "Radius around the light source where reflextions are computed"),),
         ((P['cloud_model'], "Cloud model: "
             "0=clear, "
             "1=Thin Cirrus/Cirrostratus, "
