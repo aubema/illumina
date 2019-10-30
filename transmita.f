@@ -71,11 +71,15 @@ c
          endif    
          dist=sqrt((real(x_f-x_i)*dx)**2.+(real(y_f-y_i)*dy)**2.)  
          if (dist.lt.dx) dist=dx       
-         if (abs(angle-pi/2.).lt.abs(atan(cell_th(zsup)/dist/2.)))           ! angle under which the cell is crossed horizontally
+         if (abs(angle-pi/2.).lt.abs(atan(cell_th(zsup)/dist)))           ! angle under which the cell is crossed horizontally
      +   then 
             anaz=abs(anaz-real(nint(anaz/(pi/2.)))*(pi/2.))                   ! angle equivalent de projection sur l'axe x premier quadrant, nécessaire car on calcule toujours la transmittance avec deux cellules voisines sur l'axe des x
             deltam=(exp(-1.*cell_h(zsup)/2000.)*dist)/2000./
      +      sin(angle)/abs(cos(anaz))
+
+
+          print*,anaz*180./pi
+
              if (sin(angle).eq.0.) then
                print*,'ERREUR sin(angle)=0 (1b), angle=',angle
                print*,x_i,y_i,z_i,zinf,x_f,y_f,z_f,zsup
