@@ -101,7 +101,8 @@ for dirpath,dirnames,filenames in os.walk(p.exec_dir):
             pcl_path = os.path.join(dirpath,pcl_name)
             pcl_data = load_bin(pcl_path)
             pcl_data *= val / pcl_data.sum()
-            contrib[key][n_layer] = pcl_data
+            b = (pcl_data.shape[0] - contrib[key][n_layer].shape[0]) // 2
+            contrib[key][n_layer] = pcl_data[b:-b,b:-b]
 
 for key,val in skyglow.iteritems():
     print key,val

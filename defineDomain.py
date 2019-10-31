@@ -71,11 +71,12 @@ obs_size_y = 2 * np.max( np.abs(obs_y - y0) )
 
 R = int(domain['nb_pixels']/2)
 r = int( ( domain['nb_pixels'] / float(domain.pop('scale_factor')) ) / 2 )
-buff = domain['buffer']
+buff = (512-R) // 2
 scale = (R+0.5) / (r+0.5)
 
 domain['nb_pixels'] = R
 domain['nb_core'] = r
+domain['buffer'] = buff
 domain["extents"] = list()
 
 for i in xrange(domain["nb_layers"]):
