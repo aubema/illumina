@@ -96,7 +96,7 @@ c
          endif
          transa=tranaa*abs(exp(-1.*z_i/2000.)-exp(-1.*z_f/2000.))
          if (transa.gt.1.) then 
-            print*,'ERREUR avec transa',transa,deltam,taua
+            print*,'ERREUR avec transa',transa,z_i,z_f
             stop
          endif
       return

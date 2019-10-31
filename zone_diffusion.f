@@ -32,7 +32,7 @@ c
       integer width,height                                                ! Matrix dimension in Length/width and height
       parameter (width=1024,height=1024)
        integer x_1,y_1,x_2,y_2,z_2,nbx,nby,i,j,k
-       integer ncell,neffet,imin,imax,jmin,jmax
+       integer ncell,neffet,imin,imax,jmin,jmax,kmax
        integer zondif(3000000,4)
        real x1,y1,z1,x2,y2,z2,x0,y0,z0,alt_sol(width,width)
        real dx,dy,effet,dmin,aire,a,b,c,s,delta,d,deltmx
@@ -72,17 +72,18 @@ c
        else
          jmax=y_2+neffet
        endif
-       if (jmax.gt.nby) jmax=nby     
+       if (jmax.gt.nby) jmax=nby
+       kmax=z_2+neffet     
 c
        do i=imin,imax
         do j=jmin,jmax
-         do k=1,height
+         do k=1,kmax
           x0=real(i)*dx
           y0=real(j)*dy
           z0=cell_h(k)
           if (z0.gt.alt_sol(i,j)) then
-           a=sqrt((x1-x0)**2.+(y1-y0)**2.+(z1-z0)**2.)                    ! voir http://mathworld.wolfram.com/Point-LineDistance3-Dimensional.html
-           b=sqrt((x1-x2)**2.+(y1-y2)**2.+(z1-z2)**2.)                    ! et http://mathworld.wolfram.com/TriangleArea.html
+           a=sqrt((x1-x0)**2.+(y1-y0)**2.+(z1-z0)**2.)                    ! see http://mathworld.wolfram.com/Point-LineDistance3-Dimensional.html
+           b=sqrt((x1-x2)**2.+(y1-y2)**2.+(z1-z2)**2.)                    ! and http://mathworld.wolfram.com/TriangleArea.html
            c=sqrt((x2-x0)**2.+(y2-y0)**2.+(z2-z0)**2.)
            delta=abs(a-c)
            s=(a+b+c)/2.

@@ -96,7 +96,7 @@ c
          endif
       transm=tranam*abs(exp(-1.*z_i/8000.)-exp(-1.*z_f/8000.))
       if ((tranam.lt.0.).or.(tranam.gt.1.)) then
-         print*,'ERREUR avec transm',tranam,mprime,z_f,z_i,angle,
+         print*,'ERREUR avec transm',tranam,z_f,z_i,angle,
      +   lamdm,lambda
          stop
       endif

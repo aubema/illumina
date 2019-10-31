@@ -90,5 +90,9 @@ c----------------------------------------
 c                                                                         ! la division par 4 pi).
       pdif = prob_a+prob_m                                                ! Ce calcul est approximatif et bon seulement si 1-transa et
 c                                                                         ! 1-transm sont tres petits.
+      if (pdif.lt.0.) then
+         print*,'Pdif=',pdif,prob_a,prob_m
+         stop
+      endif
       return
       end

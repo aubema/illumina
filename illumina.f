@@ -119,7 +119,7 @@ c      real pixsiz                                                        ! pixe
       integer x_obs,y_obs,zcello                                          ! Position of the observer (INTEGER).
       real z_o                                                            ! observer height relative to the ground
       real z_obs                                                          ! Height of the observer (meter) to the vertical grid scale.
-      integer lcible(width,3)                                             ! Array for the line of sight voxels along the line of sight.
+      integer lcible(width,3)                                           ! Array for the line of sight voxels along the line of sight.
       integer ncible,icible                                               ! Number of line of sight voxels, number loops over the voxels
       integer x_c,y_c,zcellc                                              ! Position of the line of sight voxel (INTEGER).
       real z_c                                                            ! Height of the line of sight voxel (metre).
@@ -573,6 +573,7 @@ c======================================================================
        dy=dx                                                              ! we consider than the echelle is the same over the two axes
 
        z_obs=z_o+altsol(x_obs,y_obs)                                      ! z_obs = the local observer elevation plus the height of observation above ground (z_o)
+       if (z_obs.eq.0.) z_obs=0.001
 c find nearest vertical grid
        distm=1000000000.
        do i=1,height
@@ -660,6 +661,10 @@ c=======================================================================
          z_c=cellh(zcellc)                                                ! Definition of the vertical position (meter) of the line of sight
          y_c=lcible(icible,2)                                             ! Definition of the position (voxel) of the line of sight
          x_c=lcible(icible,1)                                             ! Definition of the position (voxel) of the line of sight
+
+          print*,'zcellc',zcellc,lcible(icible,3),z_c,icible
+
+
          print*,'=================================================='
          print*,' Progression along the line of sight :',
      +   icible,'/',ncible,'(',x_c,',',y_c,')'
@@ -902,8 +907,13 @@ c                                                                         ! scat
      +            zfdif,dx,dy,tran1m,distd,tranam)
                   call transmita(angzen,anaz,iun,iun,zidif,ideux,iun,     ! Transmittance aerosols of the scattering voxel.
      +            zfdif,dx,dy,tran1a,distd,tranaa)
+
+c          print*,'tata-1'
+
                   call angle3points (x_s,y_s,z_s,x_c,y_c,z_c,x_obs,       ! scattering angle.
      +            y_obs,z_obs,dx,dy,angdif)
+
+c          print*,'tata0'
                   call diffusion(omega,angdif,tranam,tranaa,              ! scattering probability of the direct light.
      +            secdif,distd,fdifan,pdifdi,z_c)
 c=======================================================================
@@ -1233,8 +1243,14 @@ c                                                                         ! scat
      +          ideux,iun,zfdif,dx,dy,tran1m,distd,tranam)
                         call transmita(angzen,anaz,iun,iun,zidif,         ! Transmittance aerosols of the scattering voxel.
      +                  ideux,iun,zfdif,dx,dy,tran1a,distd,tranaa)
+
+c             print*,'tata2',x_sr,y_sr,z_sr,x_c,y_c,z_c
+
                         call angle3points (x_sr,y_sr,z_sr,x_c,y_c,z_c,    ! scattering angle.
      +                  x_obs,y_obs,z_obs,dx,dy,angdif)
+
+c             print*,'tata3'
+
                         call diffusion(omega,angdif,tranam,               ! scattering probability of the reflected light.
      +                  tranaa,distd,secdif,fdifan,pdifin,z_c)
 c=======================================================================
@@ -1264,6 +1280,10 @@ c                                                                         ! a li
 
                 call zone_diffusion(x_s,y_s,z_s,x_c,y_c,zcellc,dx,dy,
      +          effdif,nbx,nby,altsol,zondif,ndiff)
+
+
+c       print*,'tata1'
+
                 do idi=1,ndiff,stepdi                                     ! beginning of the loop over the scattering voxels.
                  x_dif=zondif(idi,1)
                  y_dif=zondif(idi,2)
@@ -1428,19 +1448,31 @@ c Computing the scattering probability toward the line of sight voxel
 c=======================================================================
                      if (angzen.lt.(pi/2.)) then                          ! Attribution of the initial and final limits of the
 c                                                                         ! scattering path.
-                      zidif=z_c-0.5*cthick(zceldi)
-                      zfdif=z_c+0.5*cthick(zceldi)
+                      zidif=cellh(zceldi)-0.5*cthick(zceldi)
+                      zfdif=cellh(zceldi)+0.5*cthick(zceldi)
+c                      zidif=z_c-0.5*cthick(zceldi)
+c                      zfdif=z_c+0.5*cthick(zceldi)
+
                      else
-                      zidif=z_c+0.5*cthick(zceldi)
-                      zfdif=z_c-0.5*cthick(zceldi)
+                      zidif=cellh(zceldi)+0.5*cthick(zceldi)
+                      zfdif=cellh(zceldi)-0.5*cthick(zceldi)
+c                      zidif=z_c+0.5*cthick(zceldi)
+c                      zfdif=z_c-0.5*cthick(zceldi)
                      endif
                      anaz=angazi
                      call transmitm(angzen,anaz,iun,iun,zidif,ideux,      ! Molecular transmittance of the scattering voxel.
      +               iun,zfdif,dx,dy,tran1m,distd,tranam)
                      call transmita(angzen,anaz,iun,iun,zidif,ideux,      ! Aerosol transmittance of the scattering voxel.
      +               iun,zfdif,dx,dy,tran1a,distd,tranaa)
+
+
+c          print*,'tata5'
+
                      call angle3points (x_s,y_s,z_s,x_dif,y_dif,z_dif,    ! scattering angle.
      +               x_c,y_c,z_c,dx,dy,angdif)
+
+c         print*,'tata6'
+
                      call diffusion(omega,angdif,tranam,tranaa,distd,           ! scattering probability of the direct light.
      +               secdif,fdifan,pdifd1,z_dif)
 c=======================================================================
@@ -1572,10 +1604,23 @@ c                                                                         ! scat
      +                iun,zfdif,dx,dy,tran1m,distd,tranam)
                       call transmita(angzen,anaz,iun,iun,zidif,ideux,     ! Aerosol transmittance of the scattering voxel.
      +                iun,zfdif,dx,dy,tran1a,distd,tranaa)
+
+
+        print*,'tata7',x_dif,y_dif,z_dif,x_c,y_c,z_c,x_obs,y_obs,z_obs
+        print*,zcellc
+
                       call angle3points (x_dif,y_dif,z_dif,x_c,y_c,       ! scattering angle.
      +                z_c,x_obs,y_obs,z_obs,dx,dy,angdif)
+
+
+c          print*,'tata8'
+
+
                       call diffusion(omega,angdif,tranam,tranaa,distd          ! scattering probability of the direct light.
      +                secdif,fdifan,pdifd2,z_c)
+
+c          print*,'tata9'
+   
 c=======================================================================
 c Computing scattered intensity toward the observer from the line of sight voxel
 c=======================================================================
