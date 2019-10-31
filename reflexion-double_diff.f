@@ -238,7 +238,7 @@ c=======================================================================
             call angle3points(x_sr,y_sr,z_sr,x_dif,y_dif,z_dif,x_c,       ! Angle de diffusion
      +      y_c,z_c,dx,dy,angdif)
             call diffusion(omega,angdif,tranam,tranaa,distd,secdif,             ! Probabilite de diffusion de la lumiere directe      
-     +      fdifan,pdif_dif1,z_sr)
+     +      fdifan,pdif_dif1,z_dif)
             if (flux_dif1.lt.0.) print*,'FLUX_DIF1=',flux_dif1,
      +      irefl,projap,omega,transm,transa
 c=======================================================================
@@ -377,7 +377,7 @@ c=======================================================================
             call angle3points (x_dif,y_dif,z_dif,x_c,y_c,z_c,x_obs,       ! Angle de diffusion
      +      y_obs,z_obs,dx,dy,angdif)
             call diffusion(omega,angdif,tranam,tranaa,distd,secdif,             ! Probabilite de diffusion de la lumiere directe
-     +      fdifan,pdifd2,z_dif)
+     +      fdifan,pdifd2,z_c)
 c=======================================================================
 c   Calcul de l'intensite diffusee dirigee vers l'observateur en provenance de la cellule cible
 c=======================================================================
