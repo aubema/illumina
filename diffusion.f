@@ -31,12 +31,13 @@ c
 c    Contact: martin.aube@cegepsherbrooke.qc.ca
 c
 c
-      subroutine diffusion (omega,angdif,transa,transm,secdif,
-     +   fonc_a,pdif)
-      real angdif,pdif,prob_a,prob_m,transa,transm,secdif 
+      subroutine diffusion (omega,angdif,tranam,tranaa,distd,secdif,
+     +   fonc_a,pdif,altit)
+      real angdif,pdif,prob_a,prob_m,secdif 
       real fctmol,pi,fonc_a(181),fonc_ae
-      real angdeg
+      real angdeg,tranam,tranaa
       real omega,ouvang,nbang
+      real altit,distd
       integer rang,na,naz
       parameter (pi=3.1415926)
 c--------------------------------------------------------
@@ -67,25 +68,25 @@ c
                   naz=rang+na
                   if (naz.le.0) naz=-naz+2
                   if (naz.gt.181) naz=362-naz                             ! La fonction est symetrique.
-                  fonc_ae=fonc_ae+fonc_a(naz)
-                  nbang=nbang+1.
+              fonc_ae=fonc_ae+fonc_a(naz)*abs(sin(pi*real(naz)/180.))/2.
+                  nbang=nbang+1.*abs(sin(pi*real(naz)/180.))/2.
                 enddo
                 fonc_ae=fonc_ae/nbang 
                 nbang=0.
                 fctmol=0.
                 do na=-nint(ouvang),nint(ouvang)
        fctmol=fctmol+0.75*(1.+((cos(angdif+real(na)*pi/180.))
-     +                  **2.))/(4.*pi)                                    ! L'integrale de la fonction de diffusion des molecules sur tous 
+     + **2.))/(4.*pi)*abs(sin(pi*real(naz)/180.))/2.                      ! L'integrale de la fonction de diffusion des molecules sur tous 
 c                                                                         ! les angles solides est de 4pi  fonc_ae=fonc_ae+fonc_a(naz).
-                  nbang=nbang+1.
+                  nbang=nbang+1.*abs(sin(pi*real(naz)/180.))/2.
                 enddo
                 fctmol=fctmol/nbang                      
 c      
 c----------------------------------------
 c  Calcul des probabilites de diffusion par unite d'angle solide 
 c----------------------------------------    
-      prob_a=(1.-transa)*secdif*fonc_ae                                   ! Les fonctions utilisees ici sont deja normalisees
-      prob_m=(1.-transm)*fctmol                                           ! Fonc_ae normalisee dans le MAIN, fctmol dans la routine (voir 
+      prob_a=(1.-tranaa)*exp(-1.*altit/2000.)*distd*secdif*fonc_ae        ! Les fonctions utilisees ici sont deja normalisees
+      prob_m=(1.-tranam)*exp(-1.*altit/8000.)*distd*fctmol               ! Fonc_ae normalisee dans le MAIN, fctmol dans la routine (voir 
 c                                                                         ! la division par 4 pi).
       pdif = prob_a+prob_m                                                ! Ce calcul est approximatif et bon seulement si 1-transa et
 c                                                                         ! 1-transm sont tres petits.

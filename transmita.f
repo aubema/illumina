@@ -35,16 +35,17 @@ c    Contact: martin.aube@cegepsherbrooke.qc.ca
 c
 c
       subroutine transmita(angle,anaz,x_i,y_i,z_i,x_f,y_f,z_f,
-     + dx,dy,taua,transa)
+     + dx,dy,transa,distd,tranaa)
       integer width,height                                                ! Matrix dimension in Length/width and height
       parameter (width=1024,height=1024)
-      real angle,deltam,e,transa,pi                                       ! Declaration des variables.
+      real angle,e,transa,pi                                              ! Declaration des variables.
       real dist1,dist2,dist1m,dist2m                                      ! angle is the zenith angle
-      real z_i,z_f,dx,dy,dist,taua
+      real tranaa                                                         ! vertical transmittance of the complete atmosphere (aerosols)
+      real z_i,z_f,dx,dy,distd
       integer x_i,y_i,x_f,y_f,k
       real cell_h(height),cell_th(height),anaz    
       integer zinf,zsup
-      call verticalscale(dx,cell_th,cell_h)                                  ! define vertical scale
+      call verticalscale(cell_th,cell_h)                                  ! define vertical scale
       pi=3.1415926                                                        ! Attribution d'une valeur a la constante pi.
       e=2.718281828     
        dist1m=3000000.      
@@ -69,17 +70,12 @@ c
            print*,'ERREUR zsup hors limite! (2)'
            stop
          endif    
-         dist=sqrt((real(x_f-x_i)*dx)**2.+(real(y_f-y_i)*dy)**2.)  
-         if (dist.lt.dx) dist=dx       
-         if (abs(angle-pi/2.).lt.abs(atan(cell_th(zsup)/dist)))           ! angle under which the cell is crossed horizontally
+         distd=sqrt((real(x_f-x_i)*dx)**2.+(real(y_f-y_i)*dy)**2.)  
+         if (distd.lt.dx) distd=dx       
+         if (abs(angle-pi/2.).lt.abs(atan(cell_th(zsup)/distd)))           ! angle under which the cell is crossed horizontally
      +   then 
             anaz=abs(anaz-real(nint(anaz/(pi/2.)))*(pi/2.))                   ! angle equivalent de projection sur l'axe x premier quadrant, nécessaire car on calcule toujours la transmittance avec deux cellules voisines sur l'axe des x
-            deltam=(exp(-1.*cell_h(zsup)/2000.)*dist)/2000./
-     +      sin(angle)/abs(cos(anaz))
-
-
-          print*,anaz*180./pi
-
+            distd=distd/sin(angle)/abs(cos(anaz))
              if (sin(angle).eq.0.) then
                print*,'ERREUR sin(angle)=0 (1b), angle=',angle
                print*,x_i,y_i,z_i,zinf,x_f,y_f,z_f,zsup
@@ -91,18 +87,17 @@ c
                stop
              endif 
           else                                                            ! usual case where the cell is crossed vertically
-            if (angle.ge.pi)  angle=pi               
-            deltam=abs((((exp(-1.*z_i/2000.))-(exp(-1.*z_f/2000.))))/
-     +      cos(angle))
+            if (angle.ge.pi)  angle=pi
+            distd=abs((z_i-z_f)/cos(angle))            
               if (cos(angle).eq.0.) then
                print*,'ERREUR cos(angle)=0 (1b), angle=',angle
                stop
               endif
-         endif         
-       transa=exp(-1.*deltam*taua)
-       if (transa.gt.1.) then 
-          print*,'ERREUR avec transa',transa,deltam,taua
-          stop
-       endif
+         endif
+         transa=tranaa*abs(exp(-1.*z_i/2000.)-exp(-1.*z_f/2000.))
+         if (transa.gt.1.) then 
+            print*,'ERREUR avec transa',transa,deltam,taua
+            stop
+         endif
       return
       end

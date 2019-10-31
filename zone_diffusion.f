@@ -37,7 +37,7 @@ c
        real x1,y1,z1,x2,y2,z2,x0,y0,z0,alt_sol(width,width)
        real dx,dy,effet,dmin,aire,a,b,c,s,delta,d,deltmx
        real cell_t(height),cell_h(height),d2
-       call verticalscale(dx,cell_t,cell_h)                                  ! define the vertical scale
+       call verticalscale(cell_t,cell_h)                                  ! define the vertical scale
  10    ncell=0
        neffet=nint(effet/(dx/2.+dy/2.))+2
 c calcul de position en metre

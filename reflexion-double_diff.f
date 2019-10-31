@@ -29,7 +29,7 @@ c
      +       ,pressi,taua,zcup,zcdown,secdif,fdifan,
      +       x_obs,y_obs,z_obs,epsilx,epsily,
      +       irefdi,drefl,hobst,ofill,
-     +       altsol,latitu,cloudt,cloudh,icloud)
+     +       altsol,latitu,cloudt,cloudh,icloud,tranam,tranaa)
 c
 c   declarations de variables
 c  
@@ -82,12 +82,13 @@ c
       real zero,anaz
       real ff,hh
       real zhoriz
+      real tranam,tranaa,distd
       iun=1
       ideux=2
       zero=0.
       hh=1.
       latitu=1*latitu
-      call verticalscale(dx,cell_t,cell_h)                                   ! define the vertical scale
+      call verticalscale(cell_t,cell_h)                                   ! define the vertical scale
       call zone_diffusion(x_sr,y_sr,z_sr,x_c,y_c,zcell_c,                 ! Determiner la zone de diffusion
      +dx,dy,effdif,nbx,nby,altsol,zondif,ndiff)
       z_c=cell_h(zcell_c)
@@ -147,10 +148,10 @@ c        Calcul de la transmittance entre la surface reflechissane et la cellule
 c=======================================================================
             anaz=zero
             call transmitm(angzen,anaz,x_sr,y_sr,z_sr,x_dif,y_dif,
-     +      z_dif,lambda,dx,dy,pressi,transm)
+     +      z_dif,dx,dy,transm,distd,tranam)
 c MA j'ai verifie que transm est > 0 et <=1
             call transmita(angzen,anaz,x_sr,y_sr,z_sr,x_dif,y_dif,
-     +      z_dif,dx,dy,taua,transa) 
+     +      z_dif,dx,dy,transa,distd,tranaa) 
 c MA j'ai verifie que transa est > 0 et <=1
 c=======================================================================
 c     Calcul de l'angle solide couvert par la cellule diffusante vue de la surface reflechissante
@@ -231,13 +232,13 @@ c=======================================================================
             endif 
             anaz=angazi
             call transmitm(angzen,anaz,iun,iun,zidif,ideux,iun,zfdif,     ! Transmittance moleculaire a l'interieur de la cellule diffusante
-     +      lambda,dx,dy,pressi,tran1m)
+     +      dx,dy,tran1m,distd,tranam)
             call transmita(angzen,anaz,iun,iun,zidif,ideux,iun,zfdif,     ! Transmittance aerosols a l'interieur de la cellule diffusante
-     +      dx,dy,taua,tran1a)
+     +      dx,dy,tran1a,distd,tranaa)
             call angle3points(x_sr,y_sr,z_sr,x_dif,y_dif,z_dif,x_c,       ! Angle de diffusion
      +      y_c,z_c,dx,dy,angdif)
-            call diffusion(omega,angdif,tran1a,tran1m,secdif,             ! Probabilite de diffusion de la lumiere directe      
-     +      fdifan,pdif_dif1)
+            call diffusion(omega,angdif,tranam,tranaa,distd,secdif,             ! Probabilite de diffusion de la lumiere directe      
+     +      fdifan,pdif_dif1,z_sr)
             if (flux_dif1.lt.0.) print*,'FLUX_DIF1=',flux_dif1,
      +      irefl,projap,omega,transm,transa
 c=======================================================================
@@ -283,9 +284,9 @@ c        Calcul de la transmittance entre la cellule diffusante et la cellule ci
 c=======================================================================
             anaz=zero
             call transmitm(angzen,anaz,x_dif,y_dif,z_dif,x_c,y_c,z_c,
-     +      lambda,dx,dy,pressi,transm)
+     +      dx,dy,transm,distd,tranam)
             call transmita(angzen,anaz,x_dif,y_dif,z_dif,x_c,y_c,z_c,
-     +      dx,dy,taua,transa) 
+     +      dx,dy,transa,distd,tranaa) 
 c=======================================================================
 c     Calcul de l'angle solide couvert par la cellule cible vue de la cellule diffusante
 c=======================================================================
@@ -370,13 +371,13 @@ c=======================================================================
             endif 
             anaz=angazi
             call transmitm(angzen,anaz,iun,iun,zidif,ideux,iun,zfdif,     ! Transmittance moleculaire a l'interieur de la cellule diffusante
-     +      lambda,dx,dy,pressi,tran1m)
+     +      dx,dy,tran1m,distd,tranam)
             call transmita(angzen,anaz,iun,iun,zidif,ideux,iun,zfdif,     ! Transmittance aerosols a l'interieur de la cellule diffusante
-     +      dx,dy,taua,tran1a)    
+     +      dx,dy,tran1a,distd,tranaa)    
             call angle3points (x_dif,y_dif,z_dif,x_c,y_c,z_c,x_obs,       ! Angle de diffusion
      +      y_obs,z_obs,dx,dy,angdif)
-            call diffusion(omega,angdif,tran1a,tran1m,secdif,             ! Probabilite de diffusion de la lumiere directe
-     +      fdifan,pdifd2)
+            call diffusion(omega,angdif,tranam,tranaa,distd,secdif,             ! Probabilite de diffusion de la lumiere directe
+     +      fdifan,pdifd2,z_dif)
 c=======================================================================
 c   Calcul de l'intensite diffusee dirigee vers l'observateur en provenance de la cellule cible
 c=======================================================================

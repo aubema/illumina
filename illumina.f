@@ -219,6 +219,7 @@ c      real zhoriz                                                         ! hor
       data cloudh /9300.,9300.,4000.,1200.,1100./                         ! 9300.,9300.,4000.,1200.,1100.
       real dist,distm                                                     ! distance and minimal distance to find observer level
       real scalef                                                         ! scale factor to calculate the line of sight
+      real distd                                                          ! distance to compute the scattering probability
       verbose=0
       zero=0.
       ff=0.
@@ -261,7 +262,7 @@ c=======================================================================
 c
 c determining the vertical scale
 c
-      call verticalscale(dx,cthick,cellh)
+      call verticalscale(cthick,cellh)
 c
 c computing the actual AOD at the wavelength lambda
 c
@@ -393,6 +394,11 @@ c=======================================================================
        ometif=0.
        omefov=0.
        hh=1.
+c
+c determination of the vertical atmospheric transmittance
+c
+       call transtoa(lambda,taua,pressi,tranam,tranaa)
+c
 c***********************************************************************
 c        reading of the environment variables                          *
 c***********************************************************************
@@ -779,11 +785,10 @@ c=======================================================================
 c computation of the transmittance between the source and the line of sight
 c=======================================================================
                   anaz=zero
-                  print*,'Source>LOS'
                   call transmitm(angzen,anaz,x_s,y_s,z_s,x_c,y_c,z_c,
-     +            lambda,dx,dy,pressi,transm)
+     +            dx,dy,transm,distd,tranam)
                   call transmita(angzen,anaz,x_s,y_s,z_s,x_c,y_c,z_c,
-     +            dx,dy,taua,transa)
+     +            dx,dy,transa,distd,tranaa)
 c=======================================================================
 c computation of the Solid angle of the line of sight voxel seen from the source
 c=======================================================================
@@ -893,15 +898,14 @@ c                                                                         ! scat
                    zfdif=zcdown
                   endif
                   anaz=angazi
-                  print*,'LOSCelldirect',omega,P_dir
-                  call transmitm (angzen,anaz,iun,iun,zidif,ideux,iun,    ! Transmittance molecular of the scattering voxel.
-     +            zfdif,lambda,dx,dy,pressi,tran1m)
-                  call transmita (angzen,anaz,iun,iun,zidif,ideux,iun,    ! Transmittance aerosols of the scattering voxel.
-     +            zfdif,dx,dy,taua,tran1a)
+                  call transmitm(angzen,anaz,iun,iun,zidif,ideux,iun,     ! Transmittance molecular of the scattering voxel.
+     +            zfdif,dx,dy,tran1m,distd,tranam)
+                  call transmita(angzen,anaz,iun,iun,zidif,ideux,iun,     ! Transmittance aerosols of the scattering voxel.
+     +            zfdif,dx,dy,tran1a,distd,tranaa)
                   call angle3points (x_s,y_s,z_s,x_c,y_c,z_c,x_obs,       ! scattering angle.
      +            y_obs,z_obs,dx,dy,angdif)
-                  call diffusion(omega,angdif,tran1a,tran1m,              ! scattering probability of the direct light.
-     +            secdif,fdifan,pdifdi)
+                  call diffusion(omega,angdif,tranam,tranaa,              ! scattering probability of the direct light.
+     +            secdif,distd,fdifan,pdifdi,z_c)
 c=======================================================================
 c   computation of the source contribution a the direct intensity toward the sensor by a line of sight voxel
 c=======================================================================
@@ -971,11 +975,10 @@ c=======================================================================
 c        computation of the transmittance between the source and the ground surface
 c=======================================================================
                       anaz=zero
-                      print*,'Source-ground'
                       call transmitm(angzen,anaz,x_s,y_s,z_s,x_sr,y_sr,
-     +                z_sr,lambda,dx,dy,pressi,transm)
+     +                z_sr,dx,dy,transm,distd,tranam)
                       call transmita(angzen,anaz,x_s,y_s,z_s,x_sr,y_sr,
-     +                z_sr,dx,dy,taua,transa)
+     +                z_sr,dx,dy,transa,distd,tranaa)
 c=======================================================================
 c     computation of the Solid angle of the reflecting cell seen from the source
 c=======================================================================
@@ -1076,7 +1079,8 @@ c=======================================================================
      +                 irefl1,lambda,pressi,taua,zcup,
      +                 zcdown,secdif,fdifan,x_obs,y_obs,z_obs,
      +                 epsilx,epsily,irefdi,drefle,obsH,ofill,
-     +                 altsol,latitu,cloudt,cloudh,icloud)
+     +                 altsol,latitu,cloudt,cloudh,icloud,tranam,
+     +                 tranaa)
                       endif
                       itotrd=itotrd+irefdi
 c
@@ -1137,11 +1141,10 @@ c=======================================================================
 c        computation of the transmittance between the  ground surface and the line of sight voxel
 c=======================================================================
                         anaz=zero
-                        print*,'Ground-LOS'
                         call transmitm(angzen,anaz,x_sr,y_sr,z_sr,x_c,
-     +                  y_c,z_c,lambda,dx,dy,pressi,transm)
+     +               y_c,z_c,dx,dy,transm,distd,tranam)
                         call transmita(angzen,anaz,x_sr,y_sr,z_sr,x_c,
-     +                  y_c,z_c,dx,dy,taua,transa)
+     +                  y_c,z_c,dx,dy,transa,distd,tranaa)
 c=======================================================================
 c     computation of the Solid angle of the line of sight voxel seen from the reflecting cell
 c=======================================================================
@@ -1226,15 +1229,14 @@ c                                                                         ! scat
                          zfdif=zcdown
                         endif
                         anaz=angazi
-                        print*,'reflectCellLOS'
                         call transmitm(angzen,anaz,iun,iun,zidif,         ! Transmittance molecular of the scattering voxel.
-     +                  ideux,iun,zfdif,lambda,dx,dy,pressi,tran1m)
+     +          ideux,iun,zfdif,dx,dy,tran1m,distd,tranam)
                         call transmita(angzen,anaz,iun,iun,zidif,         ! Transmittance aerosols of the scattering voxel.
-     +                  ideux,iun,zfdif,dx,dy,taua,tran1a)
+     +                  ideux,iun,zfdif,dx,dy,tran1a,distd,tranaa)
                         call angle3points (x_sr,y_sr,z_sr,x_c,y_c,z_c,    ! scattering angle.
      +                  x_obs,y_obs,z_obs,dx,dy,angdif)
-                        call diffusion(omega,angdif,tran1a,               ! scattering probability of the reflected light.
-     +                  tran1m,secdif,fdifan,pdifin)
+                        call diffusion(omega,angdif,tranam,               ! scattering probability of the reflected light.
+     +                  tranaa,distd,secdif,fdifan,pdifin,z_c)
 c=======================================================================
 c   computation of the reflected intensity toward the sensor by a reflecting cell
 c=======================================================================
@@ -1316,11 +1318,10 @@ c=======================================================================
 c        computation of the transmittance between the source and the scattering voxel
 c=======================================================================
                      anaz=zero
-                     print*,'source>LOS'
                      call transmitm(angzen,anaz,x_s,y_s,z_s,x_dif,
-     +               y_dif,z_dif,lambda,dx,dy,pressi,transm)
+     +            y_dif,z_dif,dx,dy,transm,distd,tranam)
                      call transmita(angzen,anaz,x_s,y_s,z_s,x_dif,
-     +               y_dif,z_dif,dx,dy,taua,transa)
+     +               y_dif,z_dif,dx,dy,transa,distd,tranaa)
 c=======================================================================
 c     computation of the Solid angle of the par the scattering voxel seen from the source
 c=======================================================================
@@ -1435,13 +1436,13 @@ c                                                                         ! scat
                      endif
                      anaz=angazi
                      call transmitm(angzen,anaz,iun,iun,zidif,ideux,      ! Molecular transmittance of the scattering voxel.
-     +               iun,zfdif,lambda,dx,dy,pressi,tran1m)
+     +               iun,zfdif,dx,dy,tran1m,distd,tranam)
                      call transmita(angzen,anaz,iun,iun,zidif,ideux,      ! Aerosol transmittance of the scattering voxel.
-     +               iun,zfdif,dx,dy,taua,tran1a)
+     +               iun,zfdif,dx,dy,tran1a,distd,tranaa)
                      call angle3points (x_s,y_s,z_s,x_dif,y_dif,z_dif,    ! scattering angle.
      +               x_c,y_c,z_c,dx,dy,angdif)
-                     call diffusion(omega,angdif,tran1a,tran1m,           ! scattering probability of the direct light.
-     +               secdif,fdifan,pdifd1)
+                     call diffusion(omega,angdif,tranam,tranaa,distd,           ! scattering probability of the direct light.
+     +               secdif,fdifan,pdifd1,z_dif)
 c=======================================================================
 c Computing scattered intensity toward the line of sight voxel from the scattering voxel
 c=======================================================================
@@ -1481,9 +1482,9 @@ c Computing transmittance between the scattering voxel and the line of sight vox
 c=======================================================================
                       anaz=zero
                       call transmitm(angzen,anaz,x_dif,y_dif,z_dif,x_c
-     +                ,y_c,z_c,lambda,dx,dy,pressi,transm)
+     +                ,y_c,z_c,dx,dy,transm,distd,tranam)
                       call transmita(angzen,anaz,x_dif,y_dif,z_dif,x_c
-     +                ,y_c,z_c,dx,dy,taua,transa)
+     +                ,y_c,z_c,dx,dy,transa,distd,tranaa)
 c=======================================================================
 c Computing the solid angle of the line of sight voxel as seen from the scattering voxel
 c=======================================================================
@@ -1568,13 +1569,13 @@ c                                                                         ! scat
                       endif
                       anaz=angazi
                       call transmitm(angzen,anaz,iun,iun,zidif,ideux,     ! Molecular transmittance of the scattering voxel.
-     +                iun,zfdif,lambda,dx,dy,pressi,tran1m)
+     +                iun,zfdif,dx,dy,tran1m,distd,tranam)
                       call transmita(angzen,anaz,iun,iun,zidif,ideux,     ! Aerosol transmittance of the scattering voxel.
-     +                iun,zfdif,dx,dy,taua,tran1a)
+     +                iun,zfdif,dx,dy,tran1a,distd,tranaa)
                       call angle3points (x_dif,y_dif,z_dif,x_c,y_c,       ! scattering angle.
      +                z_c,x_obs,y_obs,z_obs,dx,dy,angdif)
-                      call diffusion(omega,angdif,tran1a,tran1m,          ! scattering probability of the direct light.
-     +                secdif,fdifan,pdifd2)
+                      call diffusion(omega,angdif,tranam,tranaa,distd          ! scattering probability of the direct light.
+     +                secdif,fdifan,pdifd2,z_c)
 c=======================================================================
 c Computing scattered intensity toward the observer from the line of sight voxel
 c=======================================================================
@@ -1657,11 +1658,10 @@ c=======================================================================
 c        computation of the transmittance between the line of sight voxel and the observer
 c=======================================================================
            anaz=zero
-           print*,'transLOS-obs'
            call transmitm(angzen,anaz,x_c,y_c,z_c,x_obs,y_obs,z_obs,
-     +     lambda,dx,dy,pressi,transm)
+     +     dx,dy,transm,distd,tranam)
            call transmita(angzen,anaz,x_c,y_c,z_c,x_obs,y_obs,z_obs,
-     +     dx,dy,taua,transa)
+     +     dx,dy,transa,distd,tranaa)
 c=======================================================================
 c     computation of the Solid angle of the line of sight voxel seen fromthe observer
 c=======================================================================
