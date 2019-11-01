@@ -18,10 +18,9 @@ class MultiScaleData(_np.ndarray):
     def __new__(cls, params, data=None):
         if data is None:
             n_layers = params['nb_layers']
-            nb_pixels = 2*(params['nb_pixels'] + params['buffer'])
             data = [ _np.zeros((
-                nb_pixels + p['observer_size_y'],
-                nb_pixels + p['observer_size_x']
+                2*(params['nb_pixels'] + p['buffer']) + p['observer_size_y'],
+                2*(params['nb_pixels'] + p['buffer']) + p['observer_size_x']
             )) for p in params['layers'] ]
         obj = _np.asarray(data).view(cls)
         obj._attrs = _clone(params)
@@ -111,8 +110,8 @@ class MultiScaleData(_np.ndarray):
             ] = value
 
     def set_buffer(self,value=0):
-        buff = self._attrs['buffer']
         for i in xrange(len(self)):
+            buff = self._attrs['layers'][i]['buffer']
             ny,nx = self[i].shape
             self[i][:buff] = value
             self[i][ny-buff:] = value
@@ -125,7 +124,6 @@ class MultiScaleData(_np.ndarray):
 
     def extract_observer(self,obs_id):
         n = self._attrs['nb_pixels']
-        b = self._attrs['buffer']
 
         x = self._attrs['obs_x'][obs_id]
         y = self._attrs['obs_y'][obs_id]
@@ -134,6 +132,7 @@ class MultiScaleData(_np.ndarray):
 
         new = MultiScaleData(self._attrs)
         for l in xrange(len(new)):
+            b = self._attrs['layers'][l]['buffer']
             xc,yc = new._get_col_row((lat,lon),l)
             new[l] = self[l][yc-n-b:yc+n+b+1,xc-n-b:xc+n+b+1].copy()
 

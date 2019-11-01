@@ -82,8 +82,6 @@ exp_name = params['exp_name']
 
 ds = MSD.Open(glob("*.hdf5")[0])
 
-half_width = ds._attrs['nb_pixels'] + ds._attrs['buffer'] + 1
-
 # Pre process the obs extract
 print "Preprocessing..."
 shutil.rmtree("obs_data",True)
@@ -115,7 +113,7 @@ for i,fname in enumerate(glob("*.hdf5"),1):
             clipped.set_buffer(0)
             clipped.set_overlap(0)
         for i,dat in enumerate(clipped):
-            padded_dat = np.pad(dat,512-half_width,'constant')
+            padded_dat = np.pad(dat,(1024-dat.shape[0])//2,'constant')
             save_bin("obs_data/%6f_%6f/%i/%s" % \
                 (lat,lon,i,fname.rsplit('.',1)[0]+'.bin'), padded_dat)
         if "srtm" in fname:

@@ -102,7 +102,7 @@ for dirpath,dirnames,filenames in os.walk(p.exec_dir):
             pcl_data = load_bin(pcl_path)
             pcl_data *= val / pcl_data.sum()
             b = (pcl_data.shape[0] - contrib[key][n_layer].shape[0]) // 2
-            contrib[key][n_layer] = pcl_data[b:-b,b:-b]
+            contrib[key][n_layer] = pcl_data[b:-b,b:-b] if b else pcl_data
 
 for key,val in skyglow.iteritems():
     print key,val
