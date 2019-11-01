@@ -172,7 +172,7 @@ def Open(filename):
 
     Returns a MultiScaleData object."""
     ds = _HDFile(filename)
-    data = _np.array([ ds['layers'][n][:] for n in ds['layers'] ])
+    data = _np.array([ ds['layers'][n][:] for n in sorted(ds['layers'],key=int) ])
     params = dict(ds.attrs)
     params['layers'] = [ dict(ds['layers'][n].attrs) for n in ds['layers'] ]
     params.update( ('obs_'+k, ds['obs'][k][:]) for k in ds['obs'] )

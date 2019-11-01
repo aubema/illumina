@@ -33,11 +33,11 @@ c
       parameter (width=1024,height=1024)
        integer x_1,y_1,x_2,y_2,z_2,nbx,nby,i,j,k
        integer ncell,neffet,imin,imax,jmin,jmax,kmax
-       integer zondif(3000000,4)
+       integer zondif(30000000,4)
        real x1,y1,z1,x2,y2,z2,x0,y0,z0,alt_sol(width,width)
        real dx,dy,effet,dmin,aire,a,b,c,s,delta,d,deltmx
        real cell_t(height),cell_h(height),d2
-       call verticalscale(cell_t,cell_h)                                  ! define the vertical scale
+       call verticalscale(dx,cell_t,cell_h)                                  ! define the vertical scale
  10    ncell=0
        neffet=nint(effet/(dx/2.+dy/2.))+2
 c calcul de position en metre
@@ -52,21 +52,18 @@ c calcul de position en metre
          imin=x_2-neffet
        endif
        if (imin.lt.1) imin=1      
-c  
        if (y_1.lt.y_2) then
          jmin=y_1-neffet
        else
          jmin=y_2-neffet
        endif
        if (jmin.lt.1) jmin=1 
-c       
        if (x_1.gt.x_2) then
          imax=x_1+neffet
        else
          imax=x_2+neffet
        endif
        if (imax.gt.nbx) imax=nbx   
-c       
        if (y_1.gt.y_2) then
          jmax=y_1+neffet
        else
@@ -74,7 +71,6 @@ c
        endif
        if (jmax.gt.nby) jmax=nby
        kmax=z_2+neffet     
-c
        do i=imin,imax
         do j=jmin,jmax
          do k=1,kmax
@@ -102,7 +98,7 @@ c
              endif                                                             
              if (dmin.le.effet) then      
                ncell=ncell+1
-               if (ncell.gt.3000000) then
+               if (ncell.gt.30000000) then
                  effet=effet*0.9
                  print*,'Reducing 2nd order scat radius:',effet
                  goto 10
@@ -116,10 +112,5 @@ c
          enddo
         enddo
        enddo
-c       print*,x_1,y_1,z1,x_2,y_2,z_2
-c       print*,'Nb cell diffusantes=',ncell
-c       stop
-       
-       
        return
        end 
