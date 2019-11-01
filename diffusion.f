@@ -86,10 +86,16 @@ c----------------------------------------
 c  Calcul des probabilites de diffusion par unite d'angle solide 
 c----------------------------------------    
       prob_a=(1.-tranaa)*exp(-1.*altit/2000.)*distd*secdif*fonc_ae        ! Les fonctions utilisees ici sont deja normalisees
-      prob_m=(1.-tranam)*exp(-1.*altit/8000.)*distd*fctmol               ! Fonc_ae normalisee dans le MAIN, fctmol dans la routine (voir 
+     +/2000.
+      prob_m=(1.-tranam)*exp(-1.*altit/8000.)*distd*fctmol/8000.               ! Fonc_ae normalisee dans le MAIN, fctmol dans la routine (voir 
 c                                                                         ! la division par 4 pi).
       pdif = prob_a+prob_m                                                ! Ce calcul est approximatif et bon seulement si 1-transa et
-c                                                                         ! 1-transm sont tres petits.
+                                                                          ! 1-transm sont tres petits.
+      if (pdif.gt.0.1) then
+         print*,'prob>0.1',pdif,prob_a,prob_m,tranaa,tranam,altit,distd
+         stop
+      endif
+
       if (pdif.lt.0.) then
          print*,'Pdif=',pdif,prob_a,prob_m
          stop
