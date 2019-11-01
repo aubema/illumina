@@ -45,7 +45,7 @@ c
       integer x_i,y_i,x_f,y_f,k
       real cell_h(height),cell_th(height),anaz    
       integer zinf,zsup
-      call verticalscale(cell_th,cell_h)                                  ! define vertical scale
+      call verticalscale(dx,cell_th,cell_h)                                  ! define vertical scale
       pi=3.1415926                                                        ! Attribution d'une valeur a la constante pi.
       e=2.718281828     
        dist1m=3000000.      

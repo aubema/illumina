@@ -46,7 +46,7 @@ c
 c
 c determining the vertical scale
 c
-      call verticalscale(celthi,cell_height)
+      call verticalscale(dx,celthi,cell_height)
 c
       cz=1
       if (cloudz.ne.height) then

@@ -44,7 +44,7 @@ c
       integer x_i,y_i,x_f,y_f,k
       real cell_h(height),cell_t(height),anaz    
       integer zinf,zsup
-      call verticalscale(cell_t,cell_h)                                   ! defining vertical scale
+      call verticalscale(dx,cell_t,cell_h)                                   ! defining vertical scale
       pi=3.1415926                                                        ! Attribution d'une valeur a la constante pi.
       e=2.71828182844                                                     ! Attribution d'une valeur a la constante e.
       lamdm=lambda/1000.                                                  ! Les equations suivantes utilisent des lambdas en microns.
