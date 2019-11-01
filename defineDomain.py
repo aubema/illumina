@@ -71,16 +71,15 @@ obs_size_y = 2 * np.max( np.abs(obs_y - y0) )
 
 R = int(domain['nb_pixels']/2)
 r = int( ( domain['nb_pixels'] / float(domain.pop('scale_factor')) ) / 2 )
-buff = (512-R) // 2
 scale = (R+0.5) / (r+0.5)
 
 domain['nb_pixels'] = R
 domain['nb_core'] = r
-domain['buffer'] = buff
 domain["extents"] = list()
 
 for i in xrange(domain["nb_layers"]):
     psize = domain["scale_min"] * scale**i
+    buff = min( 511-R, domain['buffer']*1e3 // psize )
 
     print "Layer",i
     print "Pixel size:", eng_format(psize,'m')
@@ -101,11 +100,14 @@ for i in xrange(domain["nb_layers"]):
     extent = dict()
     extent["layer"] = i
     extent["pixel_size"] = psize
+    extent["buffer"] = int(buff)
     extent["observer_size_x"] = int(n_obs_x)
     extent["observer_size_y"] = int(n_obs_y)
     bbox = dict(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
     extent.update(bbox)
     domain["extents"].append(extent)
+
+domain.pop("buffer")
 
 with open("domain.ini",'w') as f:
     yaml.safe_dump(domain,f,default_flow_style=False)

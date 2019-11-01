@@ -5,7 +5,7 @@ c
 c  Determine the cell height and thickness for the illumina model
 c
 c-----------------------------------------------------------------------
-c   
+c
 c    Copyright (C) 2017  Martin Aube
 c
 c    This program is free software: you can redistribute it and/or modify
@@ -24,10 +24,10 @@ c
 c    Contact: martin.aube@cegepsherbrooke.qc.ca
 c
 c
-      subroutine verticalscale(dx,cthick,cellh) 
+      subroutine verticalscale(dx,cthick,cellh)
       integer width,height                                                ! Matrix dimension in Length/width and height
       parameter (width=1024,height=1024)
-      integer nz                                                            
+      integer nz
       real cthick(height)                                                 ! voxel thickness array (meter)
       real cellh(height)                                                  ! voxel height array (meter)
       real expo                                                           ! multiplicative factor to increase the cell thinkness Thick=thick_0*expo**(zcell_c-1)
@@ -41,4 +41,4 @@ c      cthick(1)=0.5                                                       ! thi
          cellh(nz)=cellh(nz-1)+cthick(nz-1)/2.+cthick(nz)/2.
       enddo
       return
-      end 
+      end
