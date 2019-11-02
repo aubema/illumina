@@ -28,10 +28,10 @@ c    Contact: martin.aube@cegepsherbrooke.qc.ca
 c
 c
        subroutine zone_diffusion(x_1,y_1,z1,x_2,y_2,z_2,dx,dy,effet,
-     +         alt_sol,zondif,ncell)
+     +         nbx,nby,alt_sol,zondif,ncell)
       integer width,height                                                ! Matrix dimension in Length/width and height
       parameter (width=1024,height=1024)
-       integer x_1,y_1,x_2,y_2,z_2,i,j,k
+       integer x_1,y_1,x_2,y_2,z_2,nbx,nby,i,j,k
        integer ncell,neffet,imin,imax,jmin,jmax,kmax
        integer zondif(1100000000,4)
        real x1,y1,z1,x2,y2,z2,x0,y0,z0,alt_sol(width,width)
@@ -63,13 +63,13 @@ c calcul de position en metre
        else
          imax=x_2+neffet
        endif
-       if (imax.gt.width) imax=width   
+       if (imax.gt.nbx) imax=nbx   
        if (y_1.gt.y_2) then
          jmax=y_1+neffet
        else
          jmax=y_2+neffet
        endif
-       if (jmax.gt.width) jmax=width
+       if (jmax.gt.nby) jmax=nby
        kmax=z_2+neffet     
        do i=imin,imax
         do j=jmin,jmax
