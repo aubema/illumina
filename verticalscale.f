@@ -32,7 +32,7 @@ c
       real cellh(height)                                                  ! voxel height array (meter)
       real expo                                                           ! multiplicative factor to increase the cell thinkness Thick=thick_0*expo**(zcell_c-1)
 c      expo=1.111                                                          ! the magic number of Mont-Megantic observatory ;-) Cheers Bernard Malenfant!
-      expo=1.025
+      expo=1.005
 c      cthick(1)=0.5                                                       ! thickness of the first level
       cthick(1)=30.
       cellh(1)=cthick(1)/2.

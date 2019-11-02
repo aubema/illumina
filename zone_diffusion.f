@@ -33,7 +33,7 @@ c
       parameter (width=1024,height=1024)
        integer x_1,y_1,x_2,y_2,z_2,nbx,nby,i,j,k
        integer ncell,neffet,imin,imax,jmin,jmax,kmax
-       integer zondif(30000000,4)
+       integer zondif(1100000000,4)
        real x1,y1,z1,x2,y2,z2,x0,y0,z0,alt_sol(width,width)
        real dx,dy,effet,dmin,aire,a,b,c,s,delta,d,deltmx
        real cell_t(height),cell_h(height),d2
