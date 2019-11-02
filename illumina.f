@@ -1279,7 +1279,7 @@ c                                                                         ! a li
                             if (effdif.gt.(dx+dy)/2.) then                ! radius of scattering is larger than the size of the voxels.
 
                               call zone_diffusion(x_s,y_s,z_s,x_c,y_c,
-     +                        zcellc,dx,dy,effdif,nbx,nby,altsol,zondif,
+     +                        zcellc,dx,dy,effdif,altsol,zondif,
      +                        ndiff)
                               do idi=1,ndiff,stepdi                       ! beginning of the loop over the scattering voxels.
                                 x_dif=zondif(idi,1)
