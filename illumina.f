@@ -160,7 +160,7 @@ c
       real flrefl                                                         ! flux reaching a reflecting surface (watts).
       real irefl,irefl1                                                   ! intensity leaving a reflecting surface toward the line of sight voxel.
       real effdif                                                         ! Distance around the source voxel and line of sight voxel considered to compute the 2nd order of scattering.
-      integer zondif(1100000000,4)                                           ! Array for the scattering voxels, the 4th column represents the nearest integer value of the distance (en metre) to the line of single scattering.
+      integer zondif(3000000,4)                                           ! Array for the scattering voxels, the 4th column represents the nearest integer value of the distance (en metre) to the line of single scattering.
       integer ndiff,idi                                                   ! Number of scattering voxels, counter of the loop over the scattering voxels
       integer stepdi                                                      ! scattering step to speedup the calculation e.g. if =2 one computation over two will be done
       integer nvis0                                                       ! starting value for the calculation along of the viewing line.
@@ -356,7 +356,7 @@ c=======================================================================
             lcible(i,j)=1
           enddo
         enddo
-        do i=1,110000000
+        do i=1,3000000
           do j=1,4
             zondif(i,j)=1
           enddo
@@ -1280,8 +1280,8 @@ c                                                                         ! a li
 
                               call zone_diffusion(x_s,y_s,z_s,x_c,y_c,
      +                        zcellc,dx,dy,effdif,nbx,nby,altsol,zondif,
-     +                        ndiff)
-                              do idi=1,ndiff,stepdi                       ! beginning of the loop over the scattering voxels.
+     +                        ndiff,stepdi)
+                              do idi=1,ndiff                              ! beginning of the loop over the scattering voxels.
                                 x_dif=zondif(idi,1)
                                 y_dif=zondif(idi,2)
                                 zceldi=zondif(idi,3)
