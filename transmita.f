@@ -41,7 +41,7 @@ c
       real angle,e,transa,pi                                              ! Declaration des variables.
       real dist1,dist2,dist1m,dist2m                                      ! angle is the zenith angle
       real tranaa                                                         ! vertical transmittance of the complete atmosphere (aerosols)
-      real z_i,z_f,dx,dy,distd
+      real z_i,z_f,dx,dy,distd,z1,z2
       integer x_i,y_i,x_f,y_f,k
       real cell_h(height),cell_th(height),anaz    
       integer zinf,zsup
@@ -94,7 +94,15 @@ c
                stop
               endif
          endif
-         transa=tranaa*abs(exp(-1.*z_i/2000.)-exp(-1.*z_f/2000.))
+         if (z_i.gt.z_f) then
+            z2=z_i
+            z1=z_f
+         else
+            z1=z_i
+            z2=z_f
+         endif           
+         transa=1.-((tranaa-1.)*(exp(-1.*z2/2000.)-exp(-1.*z1
+     +   /2000.)))
          if (transa.gt.1.) then 
             print*,'ERREUR avec transa',transa,z_i,z_f
             stop

@@ -117,6 +117,5 @@ c calcul de position en metre
          enddo
         enddo
        enddo
-       print*,'Number of 2nd scat voxels to compute:',ncell
        return
        end 

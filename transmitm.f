@@ -40,7 +40,7 @@ c
       real angle,e,transm                                                 ! Declaration des variables.
       real lamdm,dist1,dist2,dist1m,dist2m
       real tranae                                                         ! vertical transmittance of the complete atmosphere (molecules)
-      real z_i,z_f,dx,dy,distd,pi
+      real z_i,z_f,dx,dy,distd,pi,z1,z2
       integer x_i,y_i,x_f,y_f,k
       real cell_h(height),cell_t(height),anaz    
       integer zinf,zsup
@@ -94,7 +94,14 @@ c
                stop
               endif
          endif
-      transm=tranam*abs(exp(-1.*z_i/8000.)-exp(-1.*z_f/8000.))
+         if (z_i.gt.z_f) then
+            z2=z_i
+            z1=z_f
+         else
+            z1=z_i
+            z2=z_f
+         endif     
+      transm=1.-((tranam-1.)*(exp(-1.*z2/8000.)-exp(-1.*z1/8000.)))
       if ((tranam.lt.0.).or.(tranam.gt.1.)) then
          print*,'ERREUR avec transm',tranam,z_f,z_i,angle,
      +   lamdm,lambda

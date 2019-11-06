@@ -49,7 +49,7 @@ c
       call verticalscale(dx,celthi,cell_height)
 c
       cz=1
-      if (cloudz.ne.height) then
+      if ((cloudz.ne.height).and.(verbose.eq.1)) then
          print*,'Cloud base vertical level:',cloudz,'/',height
          print*,'Cloud base height (m):',cell_height(cloudz)
       endif
