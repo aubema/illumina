@@ -33,67 +33,11 @@ c
 c    Contact: martin.aube@cegepsherbrooke.qc.ca
 c
 c
-      subroutine transmitm(angle,anaz,x_i,y_i,z_i,x_f,y_f,z_f,
-     + dx,dy,transm,distd,tranam)
-      integer width,height                                                ! Matrix dimension in Length/width and height
-      parameter (width=1024,height=1024)
-      real angle,e,transm                                                 ! Declaration des variables.
-      real lamdm,dist1,dist2,dist1m,dist2m
-      real tranae                                                         ! vertical transmittance of the complete atmosphere (molecules)
-      real z_i,z_f,dx,dy,distd,pi,z1,z2
-      integer x_i,y_i,x_f,y_f,k
-      real cell_h(height),cell_t(height),anaz    
-      integer zinf,zsup
-      call verticalscale(dx,cell_t,cell_h)                                ! defining vertical scale
-      pi=3.1415926                                                        ! Attribution d'une valeur a la constante pi.
-      e=2.71828182844                                                     ! Attribution d'une valeur a la constante e.
-      lamdm=lambda/1000.                                                  ! Les equations suivantes utilisent des lambdas en microns.
-       dist1m=3000000.      
-       dist2m=3000000.
-       do k=1,height 
-         dist1=abs(z_i-cell_h(k))/cell_t(k)
-         if (dist1.lt.dist1m) then
-            dist1m=dist1
-            zinf=k
-         endif                                                            ! Trouver le niveau initial.
-         dist2=abs(z_f-cell_h(k))/cell_t(k)
-         if (dist2.lt.dist2m) then
-            dist2m=dist2
-            zsup=k
-         endif  
-      enddo
-         if ((zinf.lt.1).or.(zinf.gt.height)) then
-            print*,'ERREUR zinf hors limite! (1)',z_i,dist1,dist1m
-            stop
-         endif
-         if ((zsup.lt.1).or.(zsup.gt.height)) then
-            print*,'ERREUR zsup hors limite! (1)'
-            stop
-         endif   
-         distd=sqrt((real(x_f-x_i)*dx)**2.+(real(y_f-y_i)*dy)**2.)  
-         if (distd.lt.dx) distd=dx       
-         if (abs(angle-pi/2.).lt.abs(atan(cell_t(zsup)/distd)))            ! angle under which the cell is crossed horizontally
-     +   then 
-            anaz=abs(anaz-real(nint(anaz/(pi/2.)))*(pi/2.))                   ! angle equivalent de projection sur l'axe x premier quadrant, nécessaire car on calcule toujours la transmittance avec deux cellules voisines sur l'axe des x
-            distd=distd/sin(angle)/abs(cos(anaz))
-             if (sin(angle).eq.0.) then
-               print*,'ERREUR sin(angle)=0 (1a), angle=',angle
-               print*,x_i,y_i,z_i,zinf,x_f,y_f,z_f,zsup
-               stop
-             endif 
-             if (cos(anaz).eq.0.) then
-               print*,'ERREUR cos(anaz)=0 (1a), anaz=',anaz
-               print*,x_i,y_i,z_i,zinf,x_f,y_f,z_f,zsup
-               stop
-             endif 
-          else                                                            ! usual case where the cell is crossed vertically 
-            if (angle.ge.pi)  angle=pi               
-            distd=abs((z_i-z_f)/cos(angle))
-              if (cos(angle).eq.0.) then
-               print*,'ERREUR cos(angle)=0 (1a), angle=',angle
-               stop
-              endif
-         endif
+      subroutine transmitm(angz,z_i,z_f,transm,tranam)
+      real transm                                                         ! Declaration des variables.
+      real tranam                                                         ! vertical transmittance of the complete atmosphere (molecules)
+      real angz
+      real z_i,z_f,z1,z2
          if (z_i.gt.z_f) then
             z2=z_i
             z1=z_f

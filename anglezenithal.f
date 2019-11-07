@@ -36,7 +36,7 @@ c
      a    +(real(y2-y1)*(dy))**2.)
       if (z2-z1.ne.0.) then
          angzen=atan(hdist/abs(z2-z1))
-         if (z2-z1.lt.0.) angzen=pi-angzen 
+         if (z2-z1.lt.0.) angzen=pi-angzen
       else
          angzen=pi/2.
       endif

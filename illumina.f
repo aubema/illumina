@@ -84,11 +84,10 @@ c
       parameter (pix4=4.*pi)
       real cthick(height)                                                 ! voxel thickness array (meter)
       real cellh(height)                                                  ! voxel height array (meter)
-      real flcumu                                                         ! Cumulated flux along the line of sight
       character*72 mnaf                                                   ! Terrain elevation file
       character*72 diffil                                                 ! Aerosol file
       character*72 outfile                                                ! Results file
-      character*72 pclf,pclgp,pcwgp                                       ! Files containing contribution and sensitivity maps
+      character*72 pclf,pclgp                                             ! Files containing contribution and sensitivity maps
       character*72 pclimg,pcwimg
       character*72 basenm                                                 ! Base name of files
       integer lenbase                                                     ! Length of the Base name of the experiment
@@ -185,7 +184,6 @@ c                                                                         ! a li
       integer naz,na
       real ITT(width,width,120)                                           ! total intensity per type of lamp
       real ITC(width,width)                                               ! total intensity per line of sight voxel
-      real FC(width,width)                                                ! line of sight flux
       real FTC(width,width)                                               ! fraction of the total flux at the sensor level
       real FTCN(width,width)                                              ! fraction of the total flux at the sensor level normalized per unit of watt
       real FCA(width,width)                                               ! sensor flux array
@@ -200,6 +198,7 @@ c                                                                         ! a li
 c                                                                         ! 4=Cumulus/Cumulonimbus, 5=Stratocumulus
       integer cloudz                                                      ! cloud base layer relative to the lower elevation
       integer xsrmi,xsrma,ysrmi,ysrma                                     ! limits of the loop valeur for the reflecting surfaces
+      integer axe                                                         ! axis to cross a voxel (0=vertically, 1=horizontally)
       real rcloud                                                         ! cloud relfectance
       real azencl                                                         ! zenith angle from cloud to observer
       real icloud                                                         ! cloud reflected intensity
@@ -218,9 +217,10 @@ c                                                                         ! 4=Cu
       real dist,distm                                                     ! distance and minimal distance to find observer level
       real scalef                                                         ! scale factor to calculate the line of sight
       real distd                                                          ! distance to compute the scattering probability
-      verbose=2                                                           ! Very little printout=0, Many printout = 1, even more=2
+      verbose=1                                                           ! Very little printout=0, Many printout = 1, even more=2
       zero=0.
       ff=0.
+      axe=0
       if (verbose.ge.1) print*,'Starting ILLUMINA computations...'
 c
 c=======================================================================
@@ -277,7 +277,6 @@ c
       pclimg=basenm(1:lenbase)//'_pcl.bin'
       pcwimg=basenm(1:lenbase)//'_pcw.bin'
       pclgp=basenm(1:lenbase)//'_pcl.gplot'
-      pcwgp=basenm(1:lenbase)//'_pcw.gplot'
 c  conversion of the geographical viewing angles toward the cartesian
 c  angle we assume that the angle in the file illumina.in
 c  is consistent with the geographical definition
@@ -321,7 +320,6 @@ c=======================================================================
         prmaps=1
         iun=0
         ideux=1
-        flcumu=0.
         icloud=0.
         do i=1,width
           do j=1,width
@@ -331,7 +329,6 @@ c=======================================================================
             incliy(i,j)=0.
             lpluto(i,j)=0.
             ITC(i,j)=0.
-            FC(i,j)=0.
             FTC(i,j)=0.
             FTCN(i,j)=0.
             FCA(i,j)=0.
@@ -567,9 +564,10 @@ c                                                                         ! M. A
         close(1)
         secdif=scatte/extinc                                              ! Rapport (sigmadif/sigmatotal).
 c======================================================================
-c        Quelques operations preparatoires
+c        Some preliminary tasks
 c======================================================================
-        dy=dx                                                             ! we consider than the echelle is the same over the two axes
+        dy=dx
+        omefov=0.00000001                                                   ! solid angle of the spectrometer slit on the sky. Here we only need a small value
         z_obs=z_o+altsol(x_obs,y_obs)                                     ! z_obs = the local observer elevation plus the height of observation above ground (z_o)
         if (z_obs.eq.0.) z_obs=0.001
 c find nearest vertical grid
@@ -623,7 +621,7 @@ c=======================================================================
         if (verbose.ge.1) print*,'x   y   z'
         if (verbose.ge.1) print*,'------------'
         do i=1,ncible
-          if (cellh(lcible(i,3)).lt.32000.) then
+          if (cellh(lcible(i,3)).lt.100000.) then
             write(*,1110) lcible(i,1),lcible(i,2),lcible(i,3)
           endif
         enddo
@@ -637,7 +635,96 @@ c=======================================================================
         ftocap=0.                                                         ! Initialisation of the value of flux received by the sensor
         fcapt=1.
         do icible=1,ncible                                                ! beginning of the loop over the line of sight voxels
+          zcellc=lcible(icible,3)                                         ! Definition of the vertical position (voxel) of the line of sight
+          z_c=cellh(zcellc)                                               ! Definition of the vertical position (meter) of the line of sight
+          y_c=lcible(icible,2)                                            ! Definition of the position (voxel) of the line of sight
+          x_c=lcible(icible,1)                                            ! Definition of the position (voxel) of the line of sight
+        
+                                                                       
+
+
+
+
+
+
+
+
+
           if ((fcapt.ge.ftocap/stoplim).or.(cloudt.ne.0)) then            ! stop the calculation of the viewing line when the increment is lower than 1/stoplim
+c Calculate the real solid angle of the line of sight voxel given the 
+c fixet FOV of the observer. For line of sight voxel near the observer 
+c we need to calculate the scattering on a part of the voxel. For far 
+c voxels we may be needed to increase the solid angle since the FOV can
+c encompass more than the voxel size. This correction is done with the
+c portio parameter calculated as the ration of the solid angle of the 
+c observer FOV over the line of sight voxel solid angle as seen from the
+c observer.
+c=======================================================================
+c     computation of the Solid angle of the line of sight voxel seen from the observer
+c=======================================================================
+                xn=dble(x_obs)*dble(dx)                                   ! Position in meters of the observer voxel (longitude).
+                yn=dble(y_obs)*dble(dy)                                   ! Position in meters of the observer voxel (latitu).
+                zn=dble(z_obs)                                            ! Position in meters of the observer voxel (altitude).
+                xc=dble(x_c)*dble(dx)                                     ! Position in meters of the line of sight voxel (longitude).
+                yc=dble(y_c)*dble(dy)                                     ! Position in meters of the line of sight voxel (latitu).
+                zc=dble(z_c)                                              ! Position in meters of the line of sight voxel (altitude).
+c    ------------------------------------
+c    solid angle for the central plane xy
+c    ------------------------------------
+                axe=0
+                if (z_c .ne. z_obs) then
+                  call planxy(dx,dy,xc,xn,yc,yn,zc,zn,
+     +            r1x,r1y,r1z,r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z)
+                  call anglesolide(omega,r1x,r1y,r1z,                     ! Call of the routine anglesolide to compute the solid angle
+     +            r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z)                    ! along the surface xy.
+                  omega1 = omega
+                else
+                  omega1=0.
+                endif
+c     ------------------------------------
+c     solid angle for the central plane zx
+c     ------------------------------------
+                if (y_c .ne. y_obs) then                                  ! if the latitu of the observer voxel is the same as
+c                                                                         ! of the source voxel, we are not computing the angle solide
+c                                                                         ! for the surface zx car il is egal a 0.
+                  call planzx(dx,xc,xn,yc,yn,zc,zn,cthick,zcellc,
+     +            r1x,r1y,r1z,r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z)
+                  call anglesolide(omega,r1x,r1y,r1z,                     ! Call of the routine anglesolide to compute the solid angle
+     +            r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z)                    ! along the surface zx.
+                else
+                  omega=0.
+                endif
+                if (omega.gt.0.) then
+                  if (omega.gt.omega1) then
+                    omega1 = omega                                        ! We keep the largest solid angle.
+                    axe=1
+                  endif
+                endif
+c     ------------------------------------
+c     solid angle for the central plane yz
+c     ------------------------------------
+                if (x_c.ne.x_obs) then                                    ! if the longitude of the observer voxel is is the same as
+c                                                                         ! of the source voxel, we are not computing the angle solide
+c                                                                         ! for the surface yz car il is egal a 0
+                  call planyz(dy,xc,xn,yc,yn,zc,zn,cthick,zcellc,
+     +            r1x,r1y,r1z,r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z)
+                  call anglesolide(omega,r1x,r1y,r1z,                     ! Call of the routine anglesolide to compute the solid angle
+     +            r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z)                    ! along the surface yz.
+                else
+                  omega=0.
+                endif
+                if (omega.gt.0.) then
+                  if (omega.gt.omega1) then
+                    omega1=omega                                          ! We keep the largest solid angle
+                    axe=1
+                  endif
+                endif
+                omega=omega1
+                if (omega.eq.0.) then
+                  print*,'ERROR omega=0 (1)'
+                  stop
+                endif
+                portio=omefov/omega                            
             if (fcapt.eq.1.) fcapt=0.
             if (icible.ge.nvis0) then                                     ! beginning condition for continuing of a computation stopped
               itotci=0.                                                   ! Initialisation of the contribution of the line of sight at the sensor level
@@ -646,10 +733,6 @@ c=======================================================================
                   ITC(i,j)=0.
                 enddo
               enddo
-              zcellc=lcible(icible,3)                                     ! Definition of the vertical position (voxel) of the line of sight
-              z_c=cellh(zcellc)                                           ! Definition of the vertical position (meter) of the line of sight
-              y_c=lcible(icible,2)                                        ! Definition of the position (voxel) of the line of sight
-              x_c=lcible(icible,1)                                        ! Definition of the position (voxel) of the line of sight
               if (verbose.ge.1) print*,'================================
      +================'
               if (verbose.ge.1) print*,' Progression along the line of s
@@ -676,7 +759,6 @@ c=======================================================================
                   stop
                 endif
                 ometif=pi*(diamobj/2.)**2./dis_obs**2.
-                omefov=lfente*longfe/focal**2.                            ! computation of the solid angle of the spectrometer slit on the sky
                 zcdown=z_c-0.5*cthick(zcellc)                             ! lower limit of the line of sight voxel.
                 zcup=z_c+0.5*cthick(zcellc)                               ! upper limit of the line of sight voxel.
 c=======================================================================
@@ -709,7 +791,7 @@ c sont toujours considered au centre of the voxels.
      +                    z_c)**2.)
                           if (dsco.ge.dminlp) then                        ! beginning condition distance source-line of sight-observer >= dx/2
 c **********************************************************************************************************************
-c *     computation of the direct intensity toward the sensor by a line of sight voxel en provenance of the source         *
+c *     computation of the direct intensity toward the sensor by a line of sight voxel from the source         *
 c **********************************************************************************************************************
                             dirck=0                                       ! Initialisation of the verification of the position of the source.
                             if ( (x_s.eq.x_c).and.(y_s.eq.y_c).and.(abs   ! if the positions x and y of the source and the line of sight voxel are the
@@ -755,10 +837,10 @@ c=======================================================================
 c computation of the transmittance between the source and the line of sight
 c=======================================================================
                               anaz=zero
-                              call transmitm(angzen,anaz,x_s,y_s,z_s,
-     +                        x_c,y_c,z_c,dx,dy,transm,distd,tranam)
-                              call transmita(angzen,anaz,x_s,y_s,z_s,
-     +                        x_c,y_c,z_c,dx,dy,transa,distd,tranaa)
+                              call transmitm(angzen,z_s,z_c,transm,
+     +                        tranam)
+                              call transmita(angzen,z_s,z_c,transa
+     +                        ,tranaa)
 c=======================================================================
 c computation of the Solid angle of the line of sight voxel seen from the source
 c=======================================================================
@@ -771,6 +853,7 @@ c=======================================================================
 c    ------------------------------------
 c    solid angle for the central plane xy
 c    ------------------------------------
+                              axe=0
                               if (z_c .ne. z_s) then
                                 call planxy(dx,dy,xc,xn,yc,yn,zc,zn,
      +                          r1x,r1y,r1z,r2x,r2y,r2z,r3x,r3y,r3z,r4x,
@@ -796,7 +879,10 @@ c                                                                         ! for 
                                 omega=0.
                               endif
                               if (omega.gt.0.) then
-                                if (omega .gt. omega1) omega1 = omega     ! We keep the largest solid angle
+                                if (omega .gt. omega1) then
+                                  omega1 = omega                          ! We keep the largest solid angle
+                                  axe=1
+                                endif
                               endif
 c     ------------------------------------
 c     solid angle for the central plane yz
@@ -813,9 +899,13 @@ c                                                                         ! for 
                                 omega=0.
                               endif
                               if (omega.gt.0.) then
-                                if (omega .gt. omega1) omega1 = omega     ! We keep the largest solid angle
+                                if (omega .gt. omega1) then
+                                  omega1 = omega                          ! We keep the largest solid angle
+                                  axe=1
+                                endif
                               endif
                               omega=omega1
+                              omega=omega*portio
 c=======================================================================
 c    Estimation of the half of the underlying angle of the solid angle    ! this angle is used to get a better estimate (average) of
 c                                                                         ! P_dir for le cas of grans solid angles the ou pvalno
@@ -865,14 +955,20 @@ c=======================================================================
                                 zfdif=zcdown
                               endif
                               anaz=angazi
-                              call transmitm(angzen,anaz,iun,iun,zidif,   ! Transmittance molecular of the scattering voxel.
-     +                        ideux,iun,zfdif,dx,dy,tran1m,distd,tranam)
-                              call transmita(angzen,anaz,iun,iun,zidif,   ! Transmittance aerosols of the scattering voxel.
-     +                        ideux,iun,zfdif,dx,dy,tran1a,distd,tranaa)
+                              call transmitm(angzen,zidif,zfdif,
+     +                        transm,tranam)
+                              call transmita(angzen,zidif,zfdif,
+     +                        transa,tranaa)
+                              call distance(angzen,anaz,iun,iun,zidif,    ! Transmittance aerosols of the scattering voxel.
+     +                        ideux,iun,zfdif,dx,dy,distd,axe)
                               call angle3points (x_s,y_s,z_s,x_c,y_c,     ! scattering angle.
      +                        z_c,x_obs, y_obs,z_obs,dx,dy,angdif)
+                  if (omega.ne.0.) then
                               call diffusion(omega,angdif,tranam,tranaa,  ! scattering probability of the direct light.
      +                        secdif,distd,fdifan,pdifdi,z_c)
+                  else
+                      pdifdi=0.
+                  endif
 c=======================================================================
 c   computation of the source contribution a the direct intensity toward the sensor by a line of sight voxel
 c=======================================================================
@@ -939,12 +1035,10 @@ c=======================================================================
 c        computation of the transmittance between the source and the ground surface
 c=======================================================================
                                         anaz=zero
-                                        call transmitm(angzen,anaz,x_s,
-     +                                  y_s,z_s,x_sr,y_sr,z_sr,dx,dy,
-     +                                  transm,distd,tranam)
-                                        call transmita(angzen,anaz,x_s,
-     +                                  y_s,z_s,x_sr,y_sr,z_sr,dx,dy,
-     +                                  transa,distd,tranaa)
+                                        call transmitm(angzen,z_s,z_sr,
+     +                                  transm,tranam)
+                                        call transmita(angzen,z_s,z_sr,
+     +                                  transa,tranaa)
 c=======================================================================
 c     computation of the Solid angle of the reflecting cell seen from the source
 c=======================================================================
@@ -1008,7 +1102,7 @@ c=======================================================================  ! vari
                                         ouvang=ouvang*180./pi             ! Angle in degrees.
 c
 c=======================================================================
-c        computation of the photometric function of the lampadaire toward the  surface reflectance
+c        computation of the photometric function of the light fixture toward the reflection surface
 c=======================================================================
 c
                                         anglez=nint(180.*angzen/pi)
@@ -1036,12 +1130,12 @@ c
                                         P_indir=P_indir/nbang
 c
 c=======================================================================
-c        computation of the flux reaching the reflecting cell
+c        computation of the flux reaching the reflecting surface
 c=======================================================================
                                         flrefl=lamplu(x_s,y_s,stype)*
      +                                  P_indir*omega*transm*transa
 c=======================================================================
-c        computation of the intensity reflechie leaving the  surface reflectance
+c        computation of the reflected intensity leaving the ground surface
 c=======================================================================
                                         irefl1=flrefl*srefl/pi            ! The factor 1/pi comes from the normalisation of the fonction
                             if (effdif.gt.(dx+dy)/2.) then
@@ -1061,7 +1155,7 @@ c ******************************************************************************
 c
 c=======================================================================
 c    Determination of the scattering voxels, the reflection surface and the line of sight voxel
-c=======================================================================                                       
+c=======================================================================  
                               call zone_diffusion(x_s,y_s,z_s,x_c,y_c,
      +                        zcellc,dx,dy,effdif,nbx,nby,altsol,zondif,
      +                        ndiff,stepdi)
@@ -1115,12 +1209,10 @@ c=======================================================================
 c    computation of the transmittance between the reflection surface and the scattering voxel
 c=======================================================================
                                     anaz=zero
-                                    call transmitm(angzen,anaz,x_sr,
-     +                              y_sr,z_sr,x_dif,y_dif,z_dif,dx,dy,
-     +                              transm,distd,tranam)
-                                    call transmita(angzen,anaz,x_sr,
-     +                              y_sr,z_sr,x_dif,y_dif,z_dif,dx,dy,
-     +                              transa,distd,tranaa)
+                                    call transmitm(angzen,z_sr,z_dif,
+     +                              transm,tranam)
+                                    call transmita(angzen,z_sr,z_dif,
+     +                              transa,tranaa)
 c=======================================================================
 c     computation of the Solid angle of the par the scattering voxel seen from the source
 c=======================================================================
@@ -1133,6 +1225,7 @@ c=======================================================================
 c    ------------------------------------
 c    solid angle for the central plane xy
 c    ------------------------------------
+                                    axe=0
                                     if (z_dif .ne. z_sr) then
                                       call planxy(dx,dy,xc,xn,yc,yn,zc,
      +                                zn,r1x,r1y,r1z,r2x,r2y,r2z,
@@ -1160,7 +1253,10 @@ c                                                                         ! for 
                                       omega=0.
                                     endif
                                     if (omega.gt.0.) then
-                                      if (omega.gt.omega1) omega1=omega   ! We keep the largest solid angle
+                                      if (omega.gt.omega1) then
+                                        omega1=omega                      ! We keep the largest solid angle
+                                        axe=1
+                                      endif
                                     endif
 c     ------------------------------------
 c     solid angle for the central plane yz
@@ -1178,7 +1274,10 @@ c                                                                         ! for 
                                       omega=0.
                                     endif
                                     if (omega.gt.0.) then
-                                      if (omega.gt.omega1) omega1=omega   ! We keep the largest solid angle.
+                                      if (omega.gt.omega1) then
+                                        omega1=omega                      ! We keep the largest solid angle.
+                                        axe=1
+                                      endif
                                     endif
                                     omega=omega1
 c oups omega depasse pi et va meme jusqu a 6.26 ->ok c'est normal puisque on observe a peu pres la demi sphere
@@ -1211,18 +1310,23 @@ c=======================================================================
      +                                (zceldi)
                                     endif
                                     anaz=angazi
-                                    call transmitm(angzen,anaz,iun,iun,   ! Molecular transmittance of the scattering voxel.
-     +                              zidif,ideux,iun,zfdif,dx,dy,tran1m,
-     +                              distd,tranam)
-                                    call transmita(angzen,anaz,iun,iun,   ! Aerosol transmittance of the scattering voxel.
-     +                              zidif,ideux,iun,zfdif,dx,dy,tran1a,
-     +                              distd,tranaa)
+                                    call transmitm(angzen,zidif,zfdif,
+     +                              tran1m,tranam)
+                                    call transmita(angzen,zidif,zfdif,
+     +                              tran1a,tranaa)
+                                    call distance(angzen,anaz,iun,iun,   ! Aerosol transmittance of the scattering voxel.
+     +                              zidif,ideux,iun,zfdif,dx,dy,
+     +                              distd,axe)
                                     call angle3points (x_sr,y_sr,z_sr,       ! scattering angle.
      +                              x_dif,y_dif,z_dif,x_c,y_c,z_c,dx,
      +                              dy,angdif)
+                               if (omega.ne.0.) then 
                                     call diffusion(omega,angdif,tranam,   ! scattering probability of the direct light.
      +                              tranaa,distd,secdif,fdifan,pdifd1,
      +                              z_dif)
+                               else
+                                    pdifd1=0.
+                               endif
 c=======================================================================
 c Computing scattered intensity toward the line of sight voxel from the scattering voxel
 c=======================================================================
@@ -1251,12 +1355,10 @@ c=======================================================================
 c Computing transmittance between the scattering voxel and the line of sight voxel
 c=======================================================================
                                     anaz=zero
-                                    call transmitm(angzen,anaz,x_dif,
-     +                              y_dif,z_dif,x_c,y_c,z_c,dx,dy,
-     +                              transm,distd,tranam)
-                                    call transmita(angzen,anaz,x_dif,
-     +                              y_dif,z_dif,x_c,y_c,z_c,dx,dy,
-     +                              transa,distd,tranaa)
+                                    call transmitm(angzen,z_dif,z_c,
+     +                              transm,tranam)
+                                    call transmita(angzen,z_dif,z_c,
+     +                              transa,tranaa)
 c=======================================================================
 c Computing the solid angle of the line of sight voxel as seen from the scattering voxel
 c=======================================================================
@@ -1269,6 +1371,7 @@ c=======================================================================
 c    ------------------------------------
 c    solid angle for the central plane xy
 c    ------------------------------------
+                                    axe=0
                                     if (z_c .ne. z_dif) then
                                       call planxy(dx,dy,xc,xn,yc,yn,zc,
      +                                zn,r1x,r1y,r1z,r2x,r2y,r2z
@@ -1296,7 +1399,10 @@ c                                                                         ! for 
                                       omega=0.
                                     endif
                                     if (omega.gt.0.) then
-                                      if (omega.gt.omega1) omega1=omega   ! We keep the largest solid angle.
+                                      if (omega.gt.omega1) then
+                                        omega1=omega                      ! We keep the largest solid angle.
+                                        axe=1
+                                      endif
                                     endif
 c     ------------------------------------
 c     solid angle for the central plane yz
@@ -1314,9 +1420,13 @@ c                                                                         ! for 
                                       omega=0.
                                     endif
                                     if (omega.gt.0.) then
-                                      if (omega.gt.omega1) omega1=omega   ! We keep the largest solid angle.
+                                      if (omega.gt.omega1) then
+                                        omega1=omega                      ! We keep the largest solid angle
+                                        axe=1
+                                      endif
                                     endif
                                     omega=omega1
+                                    omega=omega*portio
 c=======================================================================
 c        computation of the scattered flux reaching the line of sight voxel
 c=======================================================================
@@ -1343,18 +1453,23 @@ c=======================================================================
                                       zfdif=zcdown
                                     endif
                                     anaz=angazi
-                                    call transmitm(angzen,anaz,iun,iun,   ! Molecular transmittance of the scattering voxel.
-     +                              zidif,ideux,iun,zfdif,dx,dy,tran1m,
-     +                              distd,tranam)
-                                    call transmita(angzen,anaz,iun,iun,   ! Aerosol transmittance of the scattering voxel.
-     +                              zidif,ideux,iun,zfdif,dx,dy,tran1a,
-     +                              distd,tranaa)
+                                    call transmitm(angzen,zidif,zfdif,
+     +                              tran1m,tranam)
+                                    call transmita(angzen,zidif,zfdif,
+     +                              tran1a,tranaa)
+                                    call distance(angzen,anaz,iun,iun,   ! Aerosol transmittance of the scattering voxel.
+     +                              zidif,ideux,iun,zfdif,dx,dy,distd,
+     +                              axe)
                                     call angle3points (x_dif,y_dif,       ! scattering angle.
      +                              z_dif,x_c,y_c,z_c,x_obs,y_obs,
      +                              z_obs,dx,dy,angdif)
+                     if (omega.ne.0.) then 
                                     call diffusion(omega,angdif,tranam,   ! scattering probability of the direct light.
      +                              tranaa,distd,secdif,fdifan,
      +                              pdifd2,z_c)
+                     else
+                        pdifd2=0.
+                     endif
 c=======================================================================
 c Computing scattered intensity toward the observer from the line of sight voxel
 c=======================================================================
@@ -1411,12 +1526,10 @@ c=======================================================================
 c  computation of the transmittance between the ground surface and the line of sight voxel
 c=======================================================================
                                           anaz=zero
-                                          call transmitm(angzen,anaz,
-     +                                    x_sr,y_sr,z_sr,x_c,y_c,z_c,dx
-     +                                    ,dy,transm,distd,tranam)
-                                          call transmita(angzen,anaz,
-     +                                    x_sr,y_sr,z_sr,x_c,y_c,z_c,dx
-     +                                    ,dy,transa,distd,tranaa)
+                                          call transmitm(angzen,z_sr,
+     +                                    z_c,transm,tranam)
+                                          call transmita(angzen,z_sr,
+     +                                    z_c,transa,tranaa)
 c=======================================================================
 c computation of the Solid angle of the line of sight voxel seen from the reflecting cell
 c=======================================================================
@@ -1429,6 +1542,7 @@ c=======================================================================
 c    ------------------------------------
 c    solid angle for the central plane xy
 c    ------------------------------------
+                                          axe=0
                                           if (z_c .ne. z_sr) then
                                             call planxy(dx,dy,xc,xn,yc,
      +                                      yn,zc,zn,r1x,r1y,r1z,r2x,
@@ -1458,8 +1572,10 @@ c                                                                         ! for 
                                             omega=0.
                                           endif
                                           if (omega.gt.0.) then
-                                            if (omega.gt.omega1) omega1=  ! On garof the solid angle le plus grand jusqu'a present.
-     +                                      omega
+                                            if (omega.gt.omega1) then
+                                              omega1=omega                ! we keep the largest solid angle
+                                              axe=1
+                                            endif
                                           endif
 c     ------------------------------------
 c     solid angle for the central plane yz
@@ -1478,11 +1594,13 @@ c                                                                         ! for 
                                             omega=0.
                                           endif
                                           if (omega.gt.0.) then
-                                            if (omega.gt.omega1) omega1=  ! we keep the largest solid
-     +                                      omega
+                                            if (omega.gt.omega1) then
+                                              omega1=omega                ! we keep the largest solid
+                                              axe=1
+                                            endif
                                           endif
                                           omega=omega1
-
+                                          omega=omega*portio
 c=======================================================================
 c        computation of the flux reflected reaching the line of sight voxel
 c=======================================================================
@@ -1511,18 +1629,23 @@ c=======================================================================
                                             zfdif=zcdown
                                           endif
                                           anaz=angazi
-                                          call transmitm(angzen,anaz,     ! Transmittance molecular of the scattering voxel.
+                                          call transmitm(angzen,zidif,
+     +                                    zfdif,tran1m,tranam)
+                                          call transmita(angzen,zidif,
+     +                                    zfdif,tran1a,tranaa)
+                                          call distance(angzen,anaz,     ! Transmittance aerosols of the scattering voxel.
      +                                    iun,iun,zidif,ideux,iun,zfdif
-     +                                    ,dx,dy,tran1m,distd,tranam)
-                                          call transmita(angzen,anaz,     ! Transmittance aerosols of the scattering voxel.
-     +                                    iun,iun,zidif,ideux,iun,zfdif
-     +                                    ,dx,dy,tran1a,distd,tranaa)
+     +                                    ,dx,dy,distd,axe)
                                           call angle3points (x_sr,y_sr,   ! scattering angle.
      +                                    z_sr,x_c,y_c,z_c,x_obs,y_obs,
      +                                    z_obs,dx,dy,angdif)
+                                     if (omega.ne.0.) then 
                                           call diffusion(omega,angdif,    ! scattering probability of the reflected light.
      +                                    tranam,tranaa,distd,secdif,
      +                                    fdifan,pdifin,z_c)
+                                     else
+                                         pdifin=0.
+                                     endif
 c=======================================================================
 c   computation of the reflected intensity toward the sensor by a reflecting cell
 c=======================================================================
@@ -1591,14 +1714,12 @@ c=======================================================================
 c    computation of the transmittance between the source and the scattering voxel
 c=======================================================================
                                     anaz=zero
-                                    call transmitm(angzen,anaz,x_s,y_s,
-     +                              z_s,x_dif,y_dif,z_dif,dx,dy,transm,
-     +                              distd,tranam)
-                                    call transmita(angzen,anaz,x_s,y_s,
-     +                              z_s,x_dif,y_dif,z_dif,dx,dy,transa,
-     +                              distd,tranaa)
+                                    call transmitm(angzen,z_s,z_dif,
+     +                              transm,tranam)
+                                    call transmita(angzen,z_s,z_dif,
+     +                              transa,tranaa)
 c=======================================================================
-c     computation of the Solid angle of the par the scattering voxel seen from the source
+c     computation of the Solid angle of the scattering voxel seen from the source
 c=======================================================================
                                     xc=dble(x_dif)*dble(dx)               ! Position in meters of the scattering voxel (longitude).
                                     yc=dble(y_dif)*dble(dy)               ! Position in meters of the scattering voxel (latitu).
@@ -1609,6 +1730,7 @@ c=======================================================================
 c    ------------------------------------
 c    solid angle for the central plane xy
 c    ------------------------------------
+                                    axe=0
                                     if (z_dif .ne. z_s) then
                                       call planxy(dx,dy,xc,xn,yc,yn,zc,
      +                                zn,r1x,r1y,r1z,r2x,r2y,r2z,
@@ -1636,7 +1758,10 @@ c                                                                         ! for 
                                       omega=0.
                                     endif
                                     if (omega.gt.0.) then
-                                      if (omega.gt.omega1) omega1=omega   ! We keep the largest solid angle
+                                      if (omega.gt.omega1) then
+                                        omega1=omega                      ! We keep the largest solid angle
+                                        axe=1
+                                      endif
                                     endif
 c     ------------------------------------
 c     solid angle for the central plane yz
@@ -1654,7 +1779,10 @@ c                                                                         ! for 
                                       omega=0.
                                     endif
                                     if (omega.gt.0.) then
-                                      if (omega.gt.omega1) omega1=omega   ! We keep the largest solid angle.
+                                      if (omega.gt.omega1) then
+                                        omega1=omega                      ! We keep the largest solid angle.
+                                        axe=1
+                                      endif
                                     endif
                                     omega=omega1
 c=======================================================================
@@ -1703,29 +1831,30 @@ c=======================================================================
      +                                (zceldi)
                                       zfdif=cellh(zceldi)+0.5*cthick
      +                                (zceldi)
-c                      zidif=z_c-0.5*cthick(zceldi)
-c                      zfdif=z_c+0.5*cthick(zceldi)
                                     else
                                       zidif=cellh(zceldi)+0.5*cthick
      +                                (zceldi)
                                       zfdif=cellh(zceldi)-0.5*cthick
      +                                (zceldi)
-c                      zidif=z_c+0.5*cthick(zceldi)
-c                      zfdif=z_c-0.5*cthick(zceldi)
                                     endif
                                     anaz=angazi
-                                    call transmitm(angzen,anaz,iun,iun,   ! Molecular transmittance of the scattering voxel.
-     +                              zidif,ideux,iun,zfdif,dx,dy,tran1m,
-     +                              distd,tranam)
-                                    call transmita(angzen,anaz,iun,iun,   ! Aerosol transmittance of the scattering voxel.
-     +                              zidif,ideux,iun,zfdif,dx,dy,tran1a,
-     +                              distd,tranaa)
+                                    call transmitm(angzen,zidif,zfdif,
+     +                              tran1m,tranam)
+                                    call transmita(angzen,zidif,zfdif,
+     +                              tran1a,tranaa)
+                                    call distance(angzen,anaz,iun,iun,   ! Aerosol transmittance of the scattering voxel.
+     +                              zidif,ideux,iun,zfdif,dx,dy,
+     +                              distd,axe)
                                     call angle3points (x_s,y_s,z_s,       ! scattering angle.
      +                              x_dif,y_dif,z_dif,x_c,y_c,z_c,dx,
      +                              dy,angdif)
+                           if (omega.ne.0.) then 
                                     call diffusion(omega,angdif,tranam,   ! scattering probability of the direct light.
      +                              tranaa,distd,secdif,fdifan,pdifd1,
      +                              z_dif)
+                           else
+                               pdifd1=0.
+                           endif
 c=======================================================================
 c Computing scattered intensity toward the line of sight voxel from the scattering voxel
 c=======================================================================
@@ -1753,12 +1882,10 @@ c=======================================================================
 c Computing transmittance between the scattering voxel and the line of sight voxel
 c=======================================================================
                                     anaz=zero
-                                    call transmitm(angzen,anaz,x_dif,
-     +                              y_dif,z_dif,x_c,y_c,z_c,dx,dy,
-     +                              transm,distd,tranam)
-                                    call transmita(angzen,anaz,x_dif,
-     +                              y_dif,z_dif,x_c,y_c,z_c,dx,dy,
-     +                              transa,distd,tranaa)
+                                    call transmitm(angzen,z_dif,z_c,
+     +                              transm,tranam)
+                                    call transmita(angzen,z_dif,z_c,
+     +                              transa,tranaa)
 c=======================================================================
 c Computing the solid angle of the line of sight voxel as seen from the scattering voxel
 c=======================================================================
@@ -1771,6 +1898,7 @@ c=======================================================================
 c    ------------------------------------
 c    solid angle for the central plane xy
 c    ------------------------------------
+                                    axe=0
                                     if (z_c .ne. z_dif) then
                                       call planxy(dx,dy,xc,xn,yc,yn,zc,
      +                                zn,r1x,r1y,r1z,r2x,r2y,r2z
@@ -1798,7 +1926,10 @@ c                                                                         ! for 
                                       omega=0.
                                     endif
                                     if (omega.gt.0.) then
-                                      if (omega.gt.omega1) omega1=omega   ! We keep the largest solid angle.
+                                      if (omega.gt.omega1) then
+                                        omega1=omega                      ! We keep the largest solid angle.
+                                        axe=1
+                                      endif
                                     endif
 c     ------------------------------------
 c     solid angle for the central plane yz
@@ -1816,9 +1947,13 @@ c                                                                         ! for 
                                       omega=0.
                                     endif
                                     if (omega.gt.0.) then
-                                      if (omega.gt.omega1) omega1=omega   ! We keep the largest solid angle.
+                                      if (omega.gt.omega1) then
+                                        omega1=omega                      ! We keep the largest solid angle.
+                                        axe=1
+                                      endif
                                     endif
                                     omega=omega1
+                                    omega=omega*portio
 c=======================================================================
 c        computation of the scattered flux reaching the line of sight voxel
 c=======================================================================
@@ -1845,18 +1980,23 @@ c=======================================================================
                                       zfdif=zcdown
                                     endif
                                     anaz=angazi
-                                    call transmitm(angzen,anaz,iun,iun,   ! Molecular transmittance of the scattering voxel.
-     +                              zidif,ideux,iun,zfdif,dx,dy,tran1m,
-     +                              distd,tranam)
-                                    call transmita(angzen,anaz,iun,iun,   ! Aerosol transmittance of the scattering voxel.
-     +                              zidif,ideux,iun,zfdif,dx,dy,tran1a,
-     +                              distd,tranaa)
+                                    call transmitm(angzen,zidif,zfdif,
+     +                              tran1m,tranam)
+                                    call transmita(angzen,zidif,zfdif,
+     +                              tran1a,tranaa)
+                                    call distance(angzen,anaz,iun,iun,   ! Aerosol transmittance of the scattering voxel.
+     +                              zidif,ideux,iun,zfdif,dx,dy,
+     +                              distd,axe)
                                     call angle3points (x_dif,y_dif,       ! scattering angle.
      +                              z_dif,x_c,y_c,z_c,x_obs,y_obs,
      +                              z_obs,dx,dy,angdif)
+                            if (omega.ne.0.) then 
                                     call diffusion(omega,angdif,tranam,   ! scattering probability of the direct light.
      +                              tranaa,distd,secdif,fdifan,
      +                              pdifd2,z_c)
+                            else
+                                  pdifd2=0.
+                            endif
 c=======================================================================
 c Computing scattered intensity toward the observer from the line of sight voxel
 c=======================================================================
@@ -1869,7 +2009,7 @@ c=======================================================================
                             endif                                         ! end of the condition ou effdif > dx.
 c End of 2nd scattered intensity calculations
 c**********************************************************************
-c        computation of the intensity coming from a source to the line of sight voxel toward the sensor
+c        computation of the total intensity coming from a source to the line of sight voxel toward the sensor
 c**********************************************************************
                             isourc=intdir+itotind+itodif+itotrd+icloud    ! Sum of the intensities of each type of source
 c                                                                         ! reaching the line of sight voxel.
@@ -1932,100 +2072,44 @@ c=======================================================================
 c        computation of the transmittance between the line of sight voxel and the observer
 c=======================================================================
                 anaz=zero
-                call transmitm(angzen,anaz,x_c,y_c,z_c,x_obs,y_obs,
-     +          z_obs,dx,dy,transm,distd,tranam)
-                call transmita(angzen,anaz,x_c,y_c,z_c,x_obs,y_obs,
-     +          z_obs,dx,dy,transa,distd,tranaa)
-c=======================================================================
-c     computation of the Solid angle of the line of sight voxel seen fromthe observer
-c=======================================================================
-                xn=dble(x_obs)*dble(dx)                                   ! Position in meters of the observer voxel (longitude).
-                yn=dble(y_obs)*dble(dy)                                   ! Position in meters of the observer voxel (latitu).
-                zn=dble(z_obs)                                            ! Position in meters of the observer voxel (altitude).
-                xc=dble(x_c)*dble(dx)                                     ! Position in meters of the line of sight voxel (longitude).
-                yc=dble(y_c)*dble(dy)                                     ! Position in meters of the line of sight voxel (latitu).
-                zc=dble(z_c)                                              ! Position in meters of the line of sight voxel (altitude).
-c    ------------------------------------
-c    solid angle for the central plane xy
-c    ------------------------------------
-                if (z_c .ne. z_obs) then
-                  call planxy(dx,dy,xc,xn,yc,yn,zc,zn,
-     +            r1x,r1y,r1z,r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z)
-                  call anglesolide(omega,r1x,r1y,r1z,                     ! Call of the routine anglesolide to compute the solid angle
-     +            r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z)                    ! along the surface xy.
-                  omega1 = omega
-                else
-                  omega1=0.
-                endif
-c     ------------------------------------
-c     solid angle for the central plane zx
-c     ------------------------------------
-                if (y_c .ne. y_obs) then                                  ! if the latitu of the observer voxel is the same as
-c                                                                         ! of the source voxel, we are not computing the angle solide
-c                                                                         ! for the surface zx car il is egal a 0.
-                  call planzx(dx,xc,xn,yc,yn,zc,zn,cthick,zcellc,
-     +            r1x,r1y,r1z,r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z)
-                  call anglesolide(omega,r1x,r1y,r1z,                     ! Call of the routine anglesolide to compute the solid angle
-     +            r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z)                    ! along the surface zx.
-                else
-                  omega=0.
-                endif
-                if (omega.gt.0.) then
-                  if (omega.gt.omega1) omega1 = omega                     ! We keep the largest solid angle.
-                endif
-c     ------------------------------------
-c     solid angle for the central plane yz
-c     ------------------------------------
-                if (x_c.ne.x_obs) then                                    ! if the longitude of the observer voxel is is the same as
-c                                                                         ! of the source voxel, we are not computing the angle solide
-c                                                                         ! for the surface yz car il is egal a 0
-                  call planyz(dy,xc,xn,yc,yn,zc,zn,cthick,zcellc,
-     +            r1x,r1y,r1z,r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z)
-                  call anglesolide(omega,r1x,r1y,r1z,                     ! Call of the routine anglesolide to compute the solid angle
-     +            r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z)                    ! along the surface yz.
-                else
-                  omega=0.
-                endif
-                if (omega.gt.0.) then
-                  if (omega.gt.omega1) omega1=omega                       ! On garof the solid angle le plus grand.
-                endif
-                omega=omega1
+                call transmitm(angzen,z_c,z_obs,transm,tranam)
+                call transmita(angzen,z_c,z_obs,transa,tranaa)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 c=======================================================================
 c        computation of the flux reaching the objective of the telescope from the line of sight voxel
 c=======================================================================
 
-                flcib=itotci*ometif*transa*transm                         ! computation of the flux reaching the intrument from the line of sight voxel
+                fcapt=itotci*ometif*transa*transm                         ! computation of the flux reaching the intrument from the line of sight voxel
                 do x_s=1,nbx
                   do y_s=1,nby
-                    FC(x_s,y_s)=ITC(x_s,y_s)*ometif*transa*transm
+                    FCA(x_s,y_s)=ITC(x_s,y_s)*ometif*transa*transm
                   enddo
                 enddo
                 if (cos(pi-angzen).eq.0.) then
                   print*,'ERROR perfectly horizontal sight is forbidden'
                   stop
-                else
-                  portio=omefov/omega                                     ! Fraction of the line of sight voxel covered by the fov (Fraction can be
-c                                                                         ! larger than 1). Le pi ici is du au fait
-c                                                                         ! que angzen is calcule sur le path from the line of sight voxel toward the observer
                 endif
-                if (omega.eq.0.) then
-                  print*,'ERROR omega=0 (1)'
-                  stop
-                endif
-                fcapt=flcib*portio                                        ! correction for the FOV to the flux reaching the intrument from the line of sight voxel
-                do x_s=1,nbx
-                  do y_s=1,nby
-                    FCA(x_s,y_s)=FC(x_s,y_s)*portio
-                  enddo
-                enddo
 c   end of the computation of the flux reaching the observer voxel from the line of sight voxel
                 ftocap=ftocap+fcapt
                 do x_s=1,nbx
                   do y_s=1,nby
-                    FTC(x_s,y_s)=FTC(x_s,y_s)+FCA(x_s,y_s)                ! FTC is the array of the flux total at the sensor level permettant d'identifier
-                                                                          ! the contribution of each voxel of the ground to the total flux at the observer level
-                                                                          ! Le % is simplement donne par FTC/ftocap
-                    flcumu=flcumu+FCA(x_s,y_s)
+                    FTC(x_s,y_s)=FTC(x_s,y_s)+FCA(x_s,y_s)                ! FTC is the array of the flux total at the sensor to identify
+                                                                          ! the contribution of each ground pixel to the total flux at the observer level
+                                                                          ! The % is simply given by the ratio FTC/ftocap
                   enddo
                 enddo
               endif                                                       ! end of the condition line of sight voxel inside the modelling domain
@@ -2059,15 +2143,24 @@ c computation of the flux reaching the intrument from the cloud voxel
                 fctcld=fctcld+fccld
               endif
             endif
-            if (verbose.ge.1) print*,'Flux @ sensor (total & cloud only)   
-     +          =',fcapt,fccld
-            print*,'Flux @ sensor accumulated (total & cloud only) =',
-     +      ftocap,fctcld
-            if (verbose.ge.1) write(2,*) 'Flux sensor (total & cloud onl 
-     +y)            =',fcapt,fccld
-            write(2,*) ' Flux sensor accumulated (total & cloud only) ='
-     +      ,ftocap,fctcld
+            if (verbose.ge.1) print*,'Added radiance =',  
+     +      (fcapt+fccld)/omefov/(pi*(diamobj/2.)**2.)
+            print*,'Radiance accumulated =',
+     +      (ftocap+fctcld)/omefov/(pi*(diamobj/2.)**2.)
+            if (verbose.ge.1) write(2,*) 'Added radiance =',
+     +      (fcapt+fccld)/omefov/(pi*(diamobj/2.)**2.)
+            write(2,*) 'Radiance accumulated =',
+     +      (ftocap+fctcld)/omefov/(pi*(diamobj/2.)**2.)
           endif                                                           ! end condition line of sight voxel 1/stoplim
+
+
+
+
+c          if (icible.eq.10) stop
+
+
+
+
         enddo                                                             ! end of the loop over the line of sight voxels.
 
         if (prmaps.eq.1) then
@@ -2093,8 +2186,8 @@ c computation of the flux reaching the intrument from the cloud voxel
             enddo
             call twodout(nbx,nby,pclimg,FTC)
           close(unit=9)
-c creation of files gnuplot for the visualiser il faut betweenr gnuplot
-c puis load 'fichier.gplot'
+c creation of gnuplot file. To visualize, type gnuplot and then 
+c load 'BASENAME_pcl.gplot' 
           open(unit=9,file=pclgp,status='unknown')
             write(9,*) 'sand dgrid3d',nbx,',',nby
             write(9,*) 'sand hidden3d'
@@ -2105,30 +2198,12 @@ c puis load 'fichier.gplot'
         endif                                                             ! end of condition for creating contrib and sensit maps
         if (verbose.ge.1) print*,'======================================
      +==============='
-        if (verbose.ge.1) print*,'          Total flux entering instrume
-     +nt (W)'
-        if (verbose.ge.1) write(*,2001) ftocap+fctcld
         print*,'              Sky radiance (W/str/m**2)'
-        write(*,2001) (ftocap+fctcld)/(lfente*
-     +  longfe/focal**2.)/(pi*(diamobj/2.)**2.)
-        if (verbose.ge.1) print*,'  '
-        if (verbose.ge.1) print*,' Interpolation flux error= ',
-     +  ftocap-flcumu
-        if (verbose.ge.1) print*,'======================================
-     +================='
+        write(*,2001) (ftocap+fctcld)/omefov/(pi*(diamobj/2.)**2.)
         if (verbose.ge.1) write(2,*) '==================================
      +================='
-        if (verbose.ge.1) write(2,*) '          Total flux entering inst
-     +rument (W)'
-        if (verbose.ge.1) write(2,2001) ftocap+fctcld
         write(2,*) '            Sky radiance (W/str/m**2)          '
-        write(2,2001) (ftocap+fctcld)/(lfente*
-     +  longfe/focal**2.)/(pi*(diamobj/2.)**2.)
-        if (verbose.ge.1) write(2,*) '  '
-        if (verbose.ge.1) write(2,*) 'Interpolation flux errror= ',
-     +          ftocap-flcumu
-        if (verbose.ge.1) write(2,*) '==================================
-     +================='
+        write(2,2001) (ftocap+fctcld)/omefov/(pi*(diamobj/2.)**2.)
       close(2)
  2001 format('                   ',E10.3E2)
       stop

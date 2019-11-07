@@ -34,66 +34,18 @@ c
 c    Contact: martin.aube@cegepsherbrooke.qc.ca
 c
 c
-      subroutine transmita(angle,anaz,x_i,y_i,z_i,x_f,y_f,z_f,
-     + dx,dy,transa,distd,tranaa)
-      integer width,height                                                ! Matrix dimension in Length/width and height
-      parameter (width=1024,height=1024)
-      real angle,e,transa,pi                                              ! Declaration des variables.
-      real dist1,dist2,dist1m,dist2m                                      ! angle is the zenith angle
+      subroutine transmita(angz,z_i,z_f,distd,transa,tranaa)
+      real angle,transa                                                   ! Declaration des variables.
       real tranaa                                                         ! vertical transmittance of the complete atmosphere (aerosols)
-      real z_i,z_f,dx,dy,distd,z1,z2
-      integer x_i,y_i,x_f,y_f,k
-      real cell_h(height),cell_th(height),anaz    
-      integer zinf,zsup
-      call verticalscale(dx,cell_th,cell_h)                                  ! define vertical scale
-      pi=3.1415926                                                        ! Attribution d'une valeur a la constante pi.
-      e=2.718281828     
-       dist1m=3000000.      
-       dist2m=3000000.                                                    ! Attribution d'une valeur a la constante e.
-       do k=1,height                                                          ! Trouver le niveau initial.
-         dist1=abs(z_i-cell_h(k))/cell_th(k)
-         if (dist1.lt.dist1m) then
-            dist1m=dist1
-            zinf=k
-         endif                                                            ! Trouver le niveau final.
-         dist2=abs(z_f-cell_h(k))/cell_th(k)
-         if (dist2.lt.dist2m) then
-            dist2m=dist2
-            zsup=k
-         endif  
-      enddo 
-         if ((zinf.lt.1).or.(zinf.gt.height)) then
-            print*,'ERREUR zinf hors limite! (2)'
-            stop
-         endif   
-         if ((zsup.lt.1).or.(zsup.gt.height)) then
-           print*,'ERREUR zsup hors limite! (2)'
+      real angz
+      real z_i,z_f,z1,z2
+      real airm
+      real distd
+         if (cos(angz).eq.0.) then
+           print*,'prob w airm',angz
            stop
-         endif    
-         distd=sqrt((real(x_f-x_i)*dx)**2.+(real(y_f-y_i)*dy)**2.)  
-         if (distd.lt.dx) distd=dx       
-         if (abs(angle-pi/2.).lt.abs(atan(cell_th(zsup)/distd)))           ! angle under which the cell is crossed horizontally
-     +   then 
-            anaz=abs(anaz-real(nint(anaz/(pi/2.)))*(pi/2.))                   ! angle equivalent de projection sur l'axe x premier quadrant, nécessaire car on calcule toujours la transmittance avec deux cellules voisines sur l'axe des x
-            distd=distd/sin(angle)/abs(cos(anaz))
-             if (sin(angle).eq.0.) then
-               print*,'ERREUR sin(angle)=0 (1b), angle=',angle
-               print*,x_i,y_i,z_i,zinf,x_f,y_f,z_f,zsup
-               stop
-             endif   
-             if (cos(anaz).eq.0.) then
-               print*,'ERREUR cos(anaz)=0 (1b), anaz=',anaz
-               print*,x_i,y_i,z_i,zinf,x_f,y_f,z_f,zsup
-               stop
-             endif 
-          else                                                            ! usual case where the cell is crossed vertically
-            if (angle.ge.pi)  angle=pi
-            distd=abs((z_i-z_f)/cos(angle))            
-              if (cos(angle).eq.0.) then
-               print*,'ERREUR cos(angle)=0 (1b), angle=',angle
-               stop
-              endif
          endif
+         airm=1./abs(cos(angz))
          if (z_i.gt.z_f) then
             z2=z_i
             z1=z_f
@@ -103,8 +55,14 @@ c
          endif           
          transa=1.-((tranaa-1.)*(exp(-1.*z2/2000.)-exp(-1.*z1
      +   /2000.)))
+         transa=transa**airm
+         if (transa.eq.0.) then
+            print*,'ERREUR transa - no transmission',z_i,z_f,airm
+     +      ,angz
+            stop
+         endif
          if (transa.gt.1.) then 
-            print*,'ERREUR avec transa',transa,z_i,z_f
+            print*,'ERREUR avec transa',transa,z_i,z_f,airm,angz
             stop
          endif
       return
