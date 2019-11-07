@@ -35,17 +35,18 @@ c    Contact: martin.aube@cegepsherbrooke.qc.ca
 c
 c
       subroutine transmita(angz,z_i,z_f,distd,transa,tranaa)
-      real angle,transa                                                   ! Declaration des variables.
+      real angle,transa,transa1,transa2                                   ! Declaration des variables.
       real tranaa                                                         ! vertical transmittance of the complete atmosphere (aerosols)
       real angz
       real z_i,z_f,z1,z2
       real airm
       real distd
+      airm=1.
          if (cos(angz).eq.0.) then
-           print*,'prob w airm',angz
+           print*,'prob w airm 2',angz
            stop
          endif
-         airm=1./abs(cos(angz))
+      if (abs(angz-1.5707963).gt.0.00001) airm=1./abs(cos(angz))
          if (z_i.gt.z_f) then
             z2=z_i
             z1=z_f
@@ -53,9 +54,17 @@ c
             z1=z_i
             z2=z_f
          endif           
-         transa=1.-((tranaa-1.)*(exp(-1.*z2/2000.)-exp(-1.*z1
+         transa1=1.-((tranaa-1.)*(exp(-1.*z2/2000.)-exp(-1.*z1
      +   /2000.)))
-         transa=transa**airm
+         transa1=transa1**airm
+         transa2=1.-((1.-tranaa)/2000.*distd*exp(-(z1+z2)/(2.*2000.)))
+      if (abs(distd-airm*abs(z1-z2)).le.0.1) then
+        transa=transa1
+c        print*,'verti',transa,distd,airm*abs(z1-z2),z1,z2
+      else
+        transa=transa2
+c        print*,'horiz',transa,distd,airm*abs(z1-z2),z1,z2
+      endif
          if (transa.eq.0.) then
             print*,'ERREUR transa - no transmission',z_i,z_f,airm
      +      ,angz

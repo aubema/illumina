@@ -33,23 +33,38 @@ c
 c    Contact: martin.aube@cegepsherbrooke.qc.ca
 c
 c
-      subroutine transmitm(angz,z_i,z_f,transm,tranam)
-      real transm                                                         ! Declaration des variables.
+      subroutine transmitm(angz,z_i,z_f,distd,transm,tranam)
+      real transm,transm1,transm2                                                         ! Declaration des variables.
       real tranam                                                         ! vertical transmittance of the complete atmosphere (molecules)
       real angz
+      real distd
+      real airm
       real z_i,z_f,z1,z2
-         if (z_i.gt.z_f) then
-            z2=z_i
-            z1=z_f
-         else
-            z1=z_i
-            z2=z_f
-         endif     
-      transm=1.-((tranam-1.)*(exp(-1.*z2/8000.)-exp(-1.*z1/8000.)))
-      if ((tranam.lt.0.).or.(tranam.gt.1.)) then
-         print*,'ERREUR avec transm',tranam,z_f,z_i,angle,
-     +   lamdm,lambda
-         stop
+      airm=1.
+      if (cos(angz).eq.0.) then
+        print*,'prob w airm 1',angz
+        stop
+      endif
+      if (abs(angz-1.5707963).gt.0.00001) airm=1./abs(cos(angz))
+      if (z_i.gt.z_f) then
+        z2=z_i
+        z1=z_f
+      else
+        z1=z_i
+        z2=z_f
+      endif     
+      transm1=1.-((tranam-1.)*(exp(-1.*z2/8000.)-exp(-1.*z1/8000.)))
+      transm1=transm1**airm
+      transm2=1.-((1.-tranam)/8000.*distd*exp(-(z1+z2)/(2.*8000.)))
+      if (abs(distd-airm*abs(z1-z2)).le.0.1) then
+        transm=transm1
+      else
+        transm=transm2
+      endif
+      if ((transm.lt.0.).or.(transm.gt.1.)) then
+        print*,'ERREUR avec transm',tranam,z_f,z_i,angle,
+     +  lamdm,lambda
+        stop
       endif
       return
       end
