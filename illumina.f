@@ -2107,7 +2107,7 @@ c**********************************************************************
 
 
 
-c !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+c !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  placer ceci aux bons endroits avant ligne 2099
 c                            isourc=isourc*cthick(zcellc)/sin(angvis*pi/
 c     +                      180.)
 c                                                                         ! reaching the line of sight voxel.
