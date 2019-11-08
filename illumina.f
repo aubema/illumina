@@ -218,6 +218,7 @@ c                                                                         ! 4=Cu
       real scalef                                                         ! scale factor to calculate the line of sight
       real distd                                                          ! distance to compute the scattering probability
       real volu                                                           ! volume of a voxel
+      real scal
       verbose=2                                                           ! Very little printout=0, Many printout = 1, even more=2
       zero=0.
       volu=0.
@@ -641,7 +642,7 @@ c=======================================================================
           z_c=cellh(zcellc)                                               ! Definition of the vertical position (meter) of the line of sight
           y_c=lcible(icible,2)                                            ! Definition of the position (voxel) of the line of sight
           x_c=lcible(icible,1)                                            ! Definition of the position (voxel) of the line of sight
-        
+          scal=cthick(zcellc)/sin(angvis*pi/180.)
                                                                        
 
 
@@ -998,9 +999,9 @@ c=======================================================================
                       pdifdi=0.
                   endif
 c=======================================================================
-c   computation of the source contribution a the direct intensity toward the sensor by a line of sight voxel
+c   computation of the source contribution to the direct intensity toward the sensor by a line of sight voxel
 c=======================================================================
-                              intdir=fldir*pdifdi
+                              intdir=fldir*pdifdi*scal
                               if (cloudt.ne.0) then                       ! line of sight voxel = cloud
                                 if (cloudh(cloudt).eq.zcellc) then
                                   call anglezenithal(x_c,y_c,z_c,x_obs,
@@ -1481,6 +1482,7 @@ c                                                                         ! for 
                 omega=1./distd**2.
 
 
+c
                                     omega=omega*portio
 c=======================================================================
 c        computation of the scattered flux reaching the line of sight voxel
@@ -1529,7 +1531,7 @@ c=======================================================================
 c=======================================================================
 c Computing scattered intensity toward the observer from the line of sight voxel
 c=======================================================================
-                                    idif2p=fdif2*pdifd2
+                                    idif2p=fdif2*pdifd2*scal
                                     idif2p=idif2p*real(stepdi)            ! Correct the result for the skipping of 2nd scattering voxels to accelerate the calculation
                                     itotrd=itotrd+idif2p
                                   endif                                   ! end of the case scattering = Source or line of sight voxel
@@ -1664,7 +1666,6 @@ c                                                                         ! for 
                 omega=1./distd**2.
 
 
-                                          omega=omega*portio
 c=======================================================================
 c        computation of the flux reflected reaching the line of sight voxel
 c=======================================================================
@@ -1715,7 +1716,7 @@ c=======================================================================
 c   computation of the reflected intensity toward the sensor by a reflecting cell
 c=======================================================================
                                           intind=flindi*pdifin*(1.-ff)
-     +                                    *hh
+     +                                    *hh*scal
                                         endif                             ! end of the case Posi reflecting cell =  line of sight voxel position
                                         itotind=itotind+intind            ! Sum of the intensities of each reflecting cell.
                                       endif                               ! end of the condition surface not lighted from the top.
@@ -2092,7 +2093,7 @@ c=======================================================================
 c Computing scattered intensity toward the observer from the line of sight voxel
 c=======================================================================
                                     idiff2=fldiff*pdifd2
-                                    idiff2=idiff2*real(stepdi)            ! Correct the result for the skipping of 2nd scattering voxels to accelerate the calculation
+                                    idiff2=idiff2*real(stepdi)*scal            ! Correct the result for the skipping of 2nd scattering voxels to accelerate the calculation
                                     itodif=itodif+idiff2
                                   endif                                   ! end of the case scattering = Source or line of sight voxel
                                 endif                                     ! end of the condition "voxel of the domain".
