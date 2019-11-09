@@ -1001,7 +1001,7 @@ c=======================================================================
 c=======================================================================
 c   computation of the source contribution to the direct intensity toward the sensor by a line of sight voxel
 c=======================================================================
-                              intdir=fldir*pdifdi*scal
+                              intdir=fldir*pdifdi
                               if (cloudt.ne.0) then                       ! line of sight voxel = cloud
                                 if (cloudh(cloudt).eq.zcellc) then
                                   call anglezenithal(x_c,y_c,z_c,x_obs,
@@ -1531,7 +1531,7 @@ c=======================================================================
 c=======================================================================
 c Computing scattered intensity toward the observer from the line of sight voxel
 c=======================================================================
-                                    idif2p=fdif2*pdifd2*scal
+                                    idif2p=fdif2*pdifd2
                                     idif2p=idif2p*real(stepdi)            ! Correct the result for the skipping of 2nd scattering voxels to accelerate the calculation
                                     itotrd=itotrd+idif2p
                                   endif                                   ! end of the case scattering = Source or line of sight voxel
@@ -1716,7 +1716,7 @@ c=======================================================================
 c   computation of the reflected intensity toward the sensor by a reflecting cell
 c=======================================================================
                                           intind=flindi*pdifin*(1.-ff)
-     +                                    *hh*scal
+     +                                    *hh
                                         endif                             ! end of the case Posi reflecting cell =  line of sight voxel position
                                         itotind=itotind+intind            ! Sum of the intensities of each reflecting cell.
                                       endif                               ! end of the condition surface not lighted from the top.
@@ -2093,7 +2093,7 @@ c=======================================================================
 c Computing scattered intensity toward the observer from the line of sight voxel
 c=======================================================================
                                     idiff2=fldiff*pdifd2
-                                    idiff2=idiff2*real(stepdi)*scal            ! Correct the result for the skipping of 2nd scattering voxels to accelerate the calculation
+                                    idiff2=idiff2*real(stepdi)            ! Correct the result for the skipping of 2nd scattering voxels to accelerate the calculation
                                     itodif=itodif+idiff2
                                   endif                                   ! end of the case scattering = Source or line of sight voxel
                                 endif                                     ! end of the condition "voxel of the domain".
@@ -2103,16 +2103,14 @@ c End of 2nd scattered intensity calculations
 c**********************************************************************
 c        computation of the total intensity coming from a source to the line of sight voxel toward the sensor
 c**********************************************************************
-                            isourc=intdir+itotind+itodif+itotrd+icloud    ! Sum of the intensities of each type of source
+                            isourc=intdir+itotind+itodif+itotrd           ! Sum of the intensities of each type of source reaching the line of sight voxel. In the order 1st scat; refl->1st scat; 1st scat->2nd scat, refl->1st scat->2nd scat
+                            isourc=isourc*scal                            ! scaling the values according to the path lenght in the light of sight voxel
+                            isourc=isourc+icloud 
 
 
 
 
-c !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  placer ceci aux bons endroits avant ligne 2099
-c                            isourc=isourc*cthick(zcellc)/sin(angvis*pi/
-c     +                      180.)
-c                                                                         ! reaching the line of sight voxel.
-c                                                                         ! in the order 1st scat; refl->1st scat; 1st scat->2nd scat, refl->1st scat->2nd scat
+
                             if (verbose.eq.2) then
                               print*,' Total intensity components:'
                               print*,' source->scattering=',intdir
@@ -2123,10 +2121,6 @@ c                                                                         ! in t
                               print*,' source->reflexion->scattering->sc
      +attering=',itotrd
                             endif
-
-c       print*,x_sr,y_sr,intdir,itotind,itodif,itotrd
-
-
 c
 c**********************************************************************
 c        computation of the total intensity coming from all the sources of a given type
