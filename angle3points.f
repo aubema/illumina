@@ -29,17 +29,17 @@ c
 c    Contact: martin.aube@cegepsherbrooke.qc.ca
 c
 c
-      subroutine angle3points(x1,y1,z1,x2,y2,z2,x3,y3,z3,dx,dy,
+      subroutine angle3points(x1,y1,z1,x2,y2,z2,x3,y3,z3,
      +                         an3pts)
-      integer x1,y1,x2,y2,x3,y3
+      real x1,y1,x2,y2,x3,y3
       real z1,z2,z3,an3pts,argume
       real xu,yu,zu,xv,yv,zv,dx,dy,pi,comp
       parameter (pi = 3.1415926)
-      xu=real(x2-x1)*dx                                                   ! Voici les composantes du vecteur u.
-      yu=real(y2-y1)*dy
+      xu=x2-x1                                                            ! Voici les composantes du vecteur u.
+      yu=y2-y1
       zu=z2-z1
-      xv=real(x3-x2)*dx                                                   ! Voici les composantes du vecteur v.
-      yv=real(y3-y2)*dy
+      xv=x3-x2                                                            ! Voici les composantes du vecteur v.
+      yv=y3-y2
       zv=z3-z2
       if ((xv.eq.0.).and.(yv.eq.0.).and.(zv.eq.0.)) then
          print*,'ERREUR vecteur sortie nul'

@@ -56,13 +56,13 @@ c
       transm1=1.-((tranam-1.)*(exp(-1.*z2/8000.)-exp(-1.*z1/8000.)))
       transm1=transm1**airm
       transm2=1.-((1.-tranam)/8000.*distd*exp(-(z1+z2)/(2.*8000.)))
-      if (abs(distd-airm*abs(z1-z2)).le.0.1) then
+      if (abs(distd-airm*abs(z1-z2)).le.0.1) then                            ! si la distance fournie et celle calculée avec la différence de z fois la masse d'air est faible. Donc longue distance
         transm=transm1
       else
         transm=transm2
       endif
       if ((transm.lt.0.).or.(transm.gt.1.)) then
-        print*,'ERREUR avec transm',tranam,z_f,z_i,angle,
+        print*,'ERREUR avec transm',tranam,z_f,z_i,distd,angle,
      +  lamdm,lambda
         stop
       endif

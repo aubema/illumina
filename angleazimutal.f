@@ -26,12 +26,12 @@ c
 c    Contact: martin.aube@cegepsherbrooke.qc.ca
 c
 c
-      subroutine angleazimutal(x1,y1,x2,y2,dx,dy,angazi) 
-      integer x1,y1,x2,y2
-      real dx,dy,pi,angazi                                                   
+      subroutine angleazimutal(x1,y1,x2,y2,angazi) 
+      real x1,y1,x2,y2
+      real pi,angazi                                                   
       parameter (pi=3.1415926)   
-      if (x2-x1.ne.0.) angazi=abs(atan(real(y2-y1)*dy/(real(x2-x1)*dx)))
-      if (((x2-x1).eq.0).and.((y2-y1).eq.0)) then
+      if (x2-x1.ne.0.) angazi=abs(atan((y2-y1)/(x2-x1)))
+      if (((x2-x1).eq.0.).and.((y2-y1).eq.0.)) then
          angazi=0.
       else
         if (x2-x1.gt.0.) then

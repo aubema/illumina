@@ -34,7 +34,7 @@ c
 c      expo=1.111                                                          ! the magic number of Mont-Megantic observatory ;-) Cheers Bernard Malenfant!
       expo=1.03
 c      cthick(1)=50                                                       ! thickness of the first level
-      cthick(1)=dx
+      cthick(1)=30.
       cellh(1)=cthick(1)/2.
       do nz=2,height
          cthick(nz)=cthick(nz-1)*expo

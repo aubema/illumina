@@ -28,12 +28,12 @@ c
 c    Contact: martin.aube@cegepsherbrooke.qc.ca
 c
 c
-      subroutine anglezenithal(x1,y1,z1,x2,y2,z2,dx,dy,angzen) 
-      integer x1,y1,x2,y2
-      real z1,z2,dx,dy,pi,angzen                                                    
+      subroutine anglezenithal(x1,y1,z1,x2,y2,z2,angzen) 
+      real x1,y1,x2,y2
+      real z1,z2,pi,angzen                                                    
       parameter (pi=3.1415926)   
-      hdist=sqrt((real(x2-x1)*(dx))**2.
-     a    +(real(y2-y1)*(dy))**2.)
+      hdist=sqrt((x2-x1)**2.
+     a    +(y2-y1)**2.)
       if (z2-z1.ne.0.) then
          angzen=atan(hdist/abs(z2-z1))
          if (z2-z1.lt.0.) angzen=pi-angzen
