@@ -9,7 +9,7 @@ c
 c  
 c------------------------------------------------------------------------
 c   
-c    Copyright (C) 2010  Martin Aube
+c    Copyright (C) 2019  Martin Aube
 c
 c    This program is free software: you can redistribute it and/or modify
 c    it under the terms of the GNU General Public License as published by
@@ -36,84 +36,56 @@ c
        integer zondif(3000000,4),keep,stepdi
        real x1,y1,z1,x2,y2,z2,x0,y0,z0,alt_sol(width,width)
        real dx,dy,effet,dmin,aire,a,b,c,s,delta,d,deltmx
-       real cell_t(height),cell_h(height),d2
+       real d1,d2
+       real cell_t(height),cell_h(height)
        call verticalscale(dx,cell_t,cell_h)                                  ! define the vertical scale
  10    ncell=0
-       neffet=nint(effet/(dx/2.+dy/2.))+2
-       keep=1
+       neffet=nint(effet/(dx/2.+dy/2.))+1
+       keep=0
 c calcul de position en metre
        x1=real(x_1)*dx
        y1=real(y_1)*dy
        x2=real(x_2)*dx
        y2=real(y_2)*dy
        z2=cell_h(z_2)
-       if (x_1.lt.x_2) then
+       if (x_1.le.x_2) then
          imin=x_1-neffet
+         imax=x_2+neffet
        else
          imin=x_2-neffet
+         imax=x_1+neffet
        endif
-       if (imin.lt.1) imin=1      
-       if (y_1.lt.y_2) then
+       if (imin.lt.1) imin=1 
+       if (imax.gt.nbx) imax=nbx
+       if (y_1.le.y_2) then
          jmin=y_1-neffet
+         jmax=y_2+neffet
        else
          jmin=y_2-neffet
-       endif
-       if (jmin.lt.1) jmin=1 
-       if (x_1.gt.x_2) then
-         imax=x_1+neffet
-       else
-         imax=x_2+neffet
-       endif
-       if (imax.gt.nbx) imax=nbx   
-       if (y_1.gt.y_2) then
          jmax=y_1+neffet
-       else
-         jmax=y_2+neffet
        endif
+       if (jmin.lt.1) jmin=1
        if (jmax.gt.nby) jmax=nby
-       kmax=z_2+neffet     
+       kmax=z_2+neffet 
        do i=imin,imax
         do j=jmin,jmax
          do k=1,kmax
           x0=real(i)*dx
           y0=real(j)*dy
           z0=cell_h(k)
-          if (z0.gt.alt_sol(i,j)) then
-           a=sqrt((x1-x0)**2.+(y1-y0)**2.+(z1-z0)**2.)                    ! see http://mathworld.wolfram.com/Point-LineDistance3-Dimensional.html
-           b=sqrt((x1-x2)**2.+(y1-y2)**2.+(z1-z2)**2.)                    ! and http://mathworld.wolfram.com/TriangleArea.html
-           c=sqrt((x2-x0)**2.+(y2-y0)**2.+(z2-z0)**2.)
-           delta=abs(a-c)
-           s=(a+b+c)/2.
-           d2=s*(s-a)*(s-b)*(s-c)
-           if (d2.ge.0.) then
-             aire=sqrt(d2)
-             dmin=2.*aire/b                                               ! dmin entre la droite definie par les points 1 et 2 et le point 0
-             if ((a.gt.c)) then                                           ! Cas ou le dmin pointe hors du segment 1-2 
-               d=sqrt(b**2.+a**2.)                                        ! alors l'un des angles touchant b est superieur a 90deg dans ce cas
-               deltmx=abs(a-d)
-               if (delta.gt.deltmx) dmin=c                                ! on prendra le plus petit cote entre c et a
-             else 
-               d=sqrt(b**2.+c**2.)
-               deltmx=abs(c-d)
-               if (delta.gt.deltmx) dmin=a                                           
-             endif                                                             
-             if (dmin.le.effet) then      
-               if (ncell.gt.3000000) then
-                 effet=effet*0.9
-                 print*,'Reducing 2nd order scat radius:',effet
-                 goto 10
-               endif
-               if (keep.eq.1) then
+             d1=sqrt((x1-x0)**2.+(y1-y0)**2.+(1.-z0)**2.)
+             d2=sqrt((x2-x0)**2.+(y2-y0)**2.+(z2-z0)**2.)
+             if ((d1.le.effet).or.(d2.le.effet)) then 
+               if (keep.eq.0) then
+                  ncell=ncell+1
                   zondif(ncell,1)=i                                   
                   zondif(ncell,2)=j 
                   zondif(ncell,3)=k
-                  ncell=ncell+1
                endif
                keep=keep+1
-               if (keep.eq.stepdi) keep=1
+               if (keep.eq.stepdi) keep=0
              endif
-           endif
-          endif                                                           ! fin condition au-dessus du sol
+
          enddo
         enddo
        enddo

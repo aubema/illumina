@@ -62,8 +62,8 @@ c
         transm=transm2
       endif
       if ((transm.lt.0.).or.(transm.gt.1.)) then
-        print*,'ERREUR avec transm',tranam,z_f,z_i,distd,angle,
-     +  lamdm,lambda
+        print*,'ERREUR avec transm',transm1,transm2,transm,tranam,
+     +  z_f,z_i,distd,angz,airm
         stop
       endif
       return
