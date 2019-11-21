@@ -227,7 +227,7 @@ c                                                                         ! 4=Cu
       ff=0.
       axe=0
       ncible=1024 
-      scal=30.
+
       if (verbose.ge.1) print*,'Starting ILLUMINA computations...'
 c
 c=======================================================================
@@ -621,6 +621,7 @@ c=======================================================================
           stop
         endif
  1110   format(I4,1x,I4,1x,I4)
+        scal=dx/4.
         fctcld=0.
         ftocap=0.                                                         ! Initialisation of the value of flux received by the sensor
         fcapt=1.
@@ -658,11 +659,6 @@ c     computation of the Solid angle of the line of sight voxel seen from the ob
 c=======================================================================
             omega=1./distd**2.
             portio=(omefov/omega)   
-
-
-          print*,'portio=',portio,distd
-
-                         
             if (fcapt.eq.1.) fcapt=0.
             if (icible.ge.nvis0) then                                     ! beginning condition for continuing of a computation stopped
               itotci=0.                                                   ! Initialisation of the contribution of the line of sight at the sensor level
@@ -675,16 +671,13 @@ c=======================================================================
      +================'
               if (verbose.ge.1) print*,' Progression along the line of s 
      +ight :',icible
-              if (verbose.ge.1) print*,' Voxel height =',z_c,' m'
-              if (verbose.ge.1) print*,' Voxel thickness =',
-     +        cthick(zcellc),' m'
+              if (verbose.ge.1) print*,' Dist. line of sight =',z_c,' m'
               if (verbose.ge.1) write(2,*) '========================
      +====================='
               if (verbose.ge.1) write(2,*) ' Progression along the l 
      +ine of sight :',icible
-              if (verbose.ge.1) write(2,*) ' Voxel height =',z_c,' m'
-              if (verbose.ge.1) write(2,*) ' Voxel thickness =',
-     +        cthick(zcellc),' m'
+              if (verbose.ge.1) write(2,*) ' Dist. line of sight =',
+     +        z_c,' m'
               if( (rx_c.gt.real(nbx*dx)).or.(rx_c.lt.dx).or.              ! Condition line of sight voxel inside the modelling domain
      +        (ry_c.gt.(nby*dy)).or.(ry_c.lt.dy).or.(z_c.gt. 
      +        (cellh(height))).or.(z_c.lt.cellh(1))) then
@@ -733,17 +726,9 @@ c ******************************************************************************
 c *     computation of the direct intensity toward the sensor by a line of sight voxel from the source         *
 c **********************************************************************************************************************
                             dirck=0                                       ! Initialisation of the verification of the position of the source
-
-
-
-
                             if ((x_s.eq.x_c).and.(y_s.eq.y_c).and.        ! if the positions x and y of the source and the line of sight voxel are the
      +                      (abs(z_s-z_c).lt.(cthick(zcellc)/2.)))         ! same then...
      +                      then
-
-
-
-
                               dirck=1
                               if (verbose.eq.2) then
                                 if (verbose.ge.1) print*,'Source inside
@@ -764,11 +749,6 @@ c computation of the horizon for the resolved shadows direct              ! hori
                                 call horizon(x_s,y_s,z_s,dx,dy,
      +                          nbx,nby,altsol,latitu,angzen,
      +                          angazi,zhoriz)
-
-
-c         print*,x_s,y_s,z_s,latitu,angzen,angazi,zhoriz
-
-
                                 if (angzen.lt.zhoriz) then               ! shadow the path line of sight-source is not below the horizon => we compute
                                   hh=1.
                                 else
@@ -776,17 +756,15 @@ c         print*,x_s,y_s,z_s,latitu,angzen,angazi,zhoriz
                                 endif
                               else
                                 hh=1.
-                              endif
-c                                                                         ! beginning condition above the horizon direct
+                              endif                                    
 c sub-grid obstacles
                               angmin=pi/2.-atan((altsol(x_s,y_s)+
      +                        obsH(x_s,y_s)-z_s)/drefle(x_s,y_s))
-                              if (angzen.lt.angmin) then                ! condition sub-grid obstacles direct.
+                              if (angzen.lt.angmin) then                 ! condition sub-grid obstacles direct.
                                 ff=0.
                               else
                                 ff=ofill(x_s,y_s)
                               endif
-c
 c=======================================================================
 c computation of the transmittance between the source and the line of sight
 c=======================================================================
@@ -794,7 +772,6 @@ c=======================================================================
                               distd=sqrt((rx_c-rx_s)**2.
      +                        +(ry_c-ry_s)**2.
      +                        +(z_c-z_s)**2.)
-c        print*,'toto1'
                               call transmitm(angzen,z_s,z_c,distd,
      +                        transm,tranam)
                               call transmita(angzen,z_s,z_c,distd,
@@ -802,17 +779,13 @@ c        print*,'toto1'
 c=======================================================================
 c computation of the solid angle of the line of sight voxel seen from the source
 c=======================================================================
-
                               omega=1./distd**2.
-
-
 c=======================================================================
 c    Estimation of the half of the underlying angle of the solid angle    ! this angle is used to get a better estimate (average) of
 c                                                                         ! P_dir for le cas of grans solid angles the ou pvalno
 c=======================================================================  ! varie significativement sur +- ouvang.
                               ouvang=sqrt(omega/pi)                       ! Angle in radian.
                               ouvang=ouvang*180./pi                       ! Angle in degrees.
-c
 c=======================================================================
 c computation of the photometric function of the source toward the line of sight voxel
 c=======================================================================
@@ -821,9 +794,7 @@ c
                               if (anglez.lt.0) anglez=-anglez
                               if (anglez.gt.180) anglez=360-anglez
                               anglez=anglez+1                             ! Transform the angle in integer degree into the position in the array.
-c
 c  moyenner sur +- ouvang
-c
                               naz=0
                               nbang=0.
                               P_dir=0.
@@ -838,7 +809,6 @@ c
      +                          real(naz)/180.))/2.
                               enddo
                               P_dir=P_dir/nbang
-c
 c=======================================================================
 c        computation of the flux direct reaching the line of sight voxel
 c=======================================================================
@@ -850,9 +820,6 @@ c   computation of the scattering probability of the direct light
 c=======================================================================
 c distance pour traverser la cellule unitaire parfaitement orientée
                               distd=1.
-
-
-
                               call angle3points (rx_s,ry_s,z_s,rx_c,      ! scattering angle.
      +                        ry_c,z_c,rx_obs,ry_obs,z_obs,
      +                        angdif)
@@ -877,16 +844,7 @@ c=======================================================================
      +                            fldir*rcloud*abs(cos(azencl))/pi
                                 endif
                               endif
-
-
-
-
-
                             endif                                         ! end of the case Position Source is not equal to the line of sight voxel position
-
-
-
-
 c  end of the computation of the direct intensity
 c
 c
@@ -949,7 +907,6 @@ c=======================================================================
                                         distd=sqrt((rx_s-rx_sr)**2.
      +                                  +(ry_s-ry_sr)**2.+
      +                                  (z_s-z_sr)**2.)
-c        print*,'toto3'
                                         call transmitm(angzen,z_s,
      +                                  z_sr,distd,transm,tranam)
                                         call transmita(angzen,z_s,
@@ -1008,14 +965,12 @@ c=======================================================================
                                         call anglesolide(omega,r1x,       ! Call of the routine anglesolide to compute the angle solide.
      +                                  r1y,r1z,r2x,r2y,r2z,r3x,r3y,
      +                                  r3z,r4x,r4y,r4z)
-c
 c=======================================================================
 c    Estimation of the half of the underlying angle of the solid angle    ! this angle servira a obtenir un meilleur isime (moyenne) of
 c                                                                         ! P_dir for le cas of grans solid angles the ou pvalno
 c=======================================================================  ! varie significativement sur +- ouvang.
                                         ouvang=sqrt(omega/pi)             ! Angle in radian.
                                         ouvang=ouvang*180./pi             ! Angle in degrees.
-c
 c=======================================================================
 c        computation of the photometric function of the light fixture toward the reflection surface
 c=======================================================================
@@ -1026,9 +981,7 @@ c
                                         if (anglez.gt.180) anglez=360
      +                                  -anglez
                                         anglez=anglez+1                   ! Transform the angle in integer degree into the position in the array.
-c
 c  moyenner sur +- ouvang
-c
                                         naz=0
                                         nbang=0.
                                         P_indir=0.
@@ -1044,7 +997,6 @@ c
      +                                    real(naz)/180.))/2.
                                         enddo
                                         P_indir=P_indir/nbang
-c
 c=======================================================================
 c        computation of the flux reaching the reflecting surface
 c=======================================================================
@@ -1244,8 +1196,6 @@ c verify if there is shadow between sr and line of sight voxel
                                           hh=1.
                                         endif
                                         irefl=irefl1
-c 
-c
 c=======================================================================
 c Case: line of sight position = Position of reflecting cell
 c=======================================================================
@@ -1262,7 +1212,6 @@ c obstacle
                                           else
                                             ff=ofill(x_sr,y_sr)
                                           endif
-c
 c=======================================================================
 c  computation of the transmittance between the ground surface and the line of sight voxel
 c=======================================================================
@@ -1270,8 +1219,6 @@ c=======================================================================
                                           distd=sqrt((rx_sr-rx_c)**2.
      +                                    +(ry_sr-ry_c)**2.
      +                                    +(z_sr-z_c)**2.)
-c         print*,'toto8'
-c         stop
                                           call transmitm(angzen,z_sr,
      +                                    z_c,distd,transm,tranam)
                                           call transmita(angzen,z_sr,
@@ -1279,11 +1226,7 @@ c         stop
 c=======================================================================
 c computation of the solid angle of the line of sight voxel seen from the reflecting cell
 c=======================================================================
-
-
                                           omega=1./distd**2.
-
-
 c=======================================================================
 c        computation of the flux reflected reaching the line of sight voxel
 c=======================================================================
@@ -1304,15 +1247,7 @@ c=======================================================================
 c=======================================================================
 c   computation of the scattering probability of the reflected light
 c=======================================================================
-
-
-
-
-
                                           distd=1.
-
-
-
                                           call angle3points(rx_sr,ry_sr,   ! scattering angle.
      +                                    z_sr,rx_c,ry_c,z_c,rx_obs,
      +                                    ry_obs,z_obs,angdif)
@@ -1336,21 +1271,6 @@ c=======================================================================
                                 endif                                     ! end of the condition surface of the domain.
                               enddo                                       ! end of the loop over the rows (latitu) reflecting.
                             enddo                                         ! end of the loop over the column (longitude) reflecting.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 c   end of the computation of the reflected intensity
 c
 c
@@ -1363,7 +1283,6 @@ c
 c=======================================================================
 c    Determination of the scattering voxels en fonction of the source voxel and the line of sight voxel
 c=======================================================================
-
                             itodif=0.                                     ! Initialisation of the scattered intensity by a source in
 c                                                                         ! a line of sight voxel. Compute the double scattering only if
                             if (effdif.gt.(dx+dy)/2.) then                ! radius of scattering is larger than the size of the voxels.
@@ -1437,9 +1356,7 @@ c
                                     if (anglez.lt.0) anglez=-anglez
                                     if (anglez.gt.180) anglez=360-anglez
                                     anglez=anglez+1                       ! Transform the angle in degree integer into position inside the array.
-c
 c  moyenner sur +- ouvang
-c
                                     naz=0
                                     nbang=0.
                                     P_dif1=0.
@@ -1454,7 +1371,6 @@ c
      +                                real(naz)/180.))/2.
                                     enddo
                                     P_dif1=P_dif1/nbang
-c
 c=======================================================================
 c Computing flux reaching the scattering voxel
 c=======================================================================
@@ -1486,7 +1402,6 @@ c=======================================================================
      +                              z_dif,rx_c,ry_c,z_c,angzen)           ! computation of the zenithal angle between the scattering voxel and the line of sight voxel.
                                     call angleazimutal(rx_dif,ry_dif,     ! computation of the azimutal angle surf refl-scattering voxel
      +                              rx_c,ry_c,angazi)
-c
 c subgrid obstacles
                                     angmin=pi/2.-atan((obsH(x_dif,y_dif)
      +                              +altsol(x_dif,y_dif)-z_dif)/drefle(
@@ -1552,6 +1467,7 @@ c=======================================================================
                               enddo                                       ! end of the loop over the scattering voxels.
                             endif                                         ! end of the condition ou effdif > dx.
 c End of 2nd scattered intensity calculations
+c
 c**********************************************************************
 c        computation of the total intensity coming from a source to the line of sight voxel toward the sensor
 c**********************************************************************
@@ -1559,11 +1475,6 @@ c**********************************************************************
                             isourc=isourc*scal                            ! scaling the values according to the path lenght in the light of sight voxel condidering that a 1m3 voxel was considered
                             isourc=isourc*portio                          ! correct for the field of view of the observer
                             isourc=isourc+icloud 
-
-
-
-
-
                             if (verbose.eq.2) then
                               print*,' Total intensity components:'
                               print*,' source->scattering=',intdir
@@ -1574,7 +1485,6 @@ c**********************************************************************
                               print*,' source->reflexion->scattering->sc
      +attering=',itotrd
                             endif
-c
 c**********************************************************************
 c        computation of the total intensity coming from all the sources of a given type
 c**********************************************************************
@@ -1584,7 +1494,6 @@ c**********************************************************************
                         endif                                             ! end of the condition "the luminosity of the ground pixel x_s,y_s in not null".
                       enddo                                               ! end the loop over the lines (latitude) of the domain (y_s).
                     enddo                                                 ! end the loop over the column (longitude) of the domain (x_s).
-c
 c   end of the computation of the intensity of one source type
                     itotci=itotci+itotty                                  ! Sum of the intensities of each type to the line of sight voxel.
                     do x_s=imin(stype),imax(stype)
@@ -1626,7 +1535,6 @@ c=======================================================================
 c=======================================================================
 c        computation of the flux reaching the objective of the telescope from the line of sight voxel
 c=======================================================================
-
                 fcapt=itotci*ometif*transa*transm                         ! computation of the flux reaching the intrument from the line of sight voxel
                 do x_s=1,nbx
                   do y_s=1,nby
@@ -1689,8 +1597,7 @@ c computation of the flux reaching the intrument from the cloud voxel
 
 
 
-
-c          if (icible.eq.5) stop
+c          if (icible.eq.15) stop
 
 
 

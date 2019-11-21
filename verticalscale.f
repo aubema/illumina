@@ -30,7 +30,7 @@ c
       integer nz
       real cthick(height)                                                 ! voxel thickness array (meter)
       real cellh(height)                                                  ! voxel height array (meter)
-      cthick(1)=50.                                                       ! thickness of the first level
+      cthick(1)=dx/4.                                                        ! thickness of the first level
       cellh(1)=cthick(1)/2. 
       do nz=2,height
          cthick(nz)=cthick(nz-1)
