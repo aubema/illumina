@@ -196,7 +196,7 @@ c                                                                         ! a li
       real latitu                                                         ! approximate latitude of the domain center
       integer prmaps                                                      ! flag to enable the tracking of contribution and sensitivity maps
       integer cloudt                                                      ! cloud type 0=clear, 1=Thin Cirrus/Cirrostratus, 2=Thick Cirrus/Cirrostratus, 3=Altostratus/Altocumulus, 
-c                                                                         ! 4=Cumulus/Cumulonimbus, 5=Stratocumulus
+c  suggested cloudbase per type: 9300.,9300.,4000.,1200.,1100.            ! 4=Cumulus/Cumulonimbus, 5=Stratocumulus
       integer cloudz                                                      ! cloud base layer relative to the lower elevation
       integer xsrmi,xsrma,ysrmi,ysrma                                     ! limits of the loop valeur for the reflecting surfaces
       integer axe                                                         ! axis to cross a voxel (0=vertically, 1=horizontally)
@@ -213,8 +213,7 @@ c                                                                         ! 4=Cu
       real zero
       real anaz
       real ff,hh                                                          ! temporary obstacle filling factor and horizon blocking factor
-      real cloudh(5)
-      data cloudh /9300.,9300.,4000.,1200.,1100./                         ! cloud base heights (meter)
+      real cloudbase                                                      ! cloud base altitude (m)
       real dist,distm                                                     ! distance and minimal distance to find observer level
       real distd                                                          ! distance to compute the scattering probability
       real volu                                                           ! volume of a voxel
@@ -261,7 +260,7 @@ c=======================================================================
         read(1,*)
         read(1,*)
         read(1,*) reflsiz
-        read(1,*) cloudt
+        read(1,*) cloudt, cloudbase
         read(1,*) dminlp
       close(1)
 c
@@ -317,9 +316,10 @@ c=======================================================================
         if (verbose.ge.1) print*,'Initializing variables...'
         if (cloudt.eq.0) then
           cloudz=height
-        else
+          cloudbase=1000000000.
+        else                                                              ! determine the layer of the cloudbase (cloudz)
           do nci=1,height
-            if (cellh(nci).gt.cloudh(cloudt)) then
+            if (cellh(nci).gt.cloudbase) then
               cloudz=nci-1
             endif
           enddo
@@ -615,13 +615,13 @@ c=======================================================================
 c=======================================================================
 c        beginning of the loop over the line of sight voxels
 c=======================================================================
-        if (zcello.ge.cloudz) then
+        if (z_obs.ge.cloudbase) then
           print*,'The observer is inside the cloud! Abort computing.',
-     +    zcello,cloudz
+     +    z_obs,cloudbase
           stop
         endif
  1110   format(I4,1x,I4,1x,I4)
-        scal=dx/4.
+        scal=dx/2.
         fctcld=0.
         ftocap=0.                                                         ! Initialisation of the value of flux received by the sensor
         fcapt=1.
@@ -642,7 +642,7 @@ c=======================================================================
           do nk=1,height
             if (z_c.ge.cellh(nk)) zcellc=nk
           enddo
-          if ((fcapt.ge.ftocap/stoplim).or.(cloudt.ne.0)) then            ! stop the calculation of the viewing line when the increment is lower than 1/stoplim
+          if ((fcapt.gt.ftocap/stoplim).and.(z_c.lt.cloudbase)) then         ! stop the calculation of the viewing line when the increment is lower than 1/stoplim
 c Calculate the solid angle of the line of sight voxel unit voxel 
 c (1 m^3) given the fixed FOV of the observer.
 c For line of sight voxel near the observer 
@@ -667,21 +667,27 @@ c=======================================================================
                   ITC(i,j)=0.
                 enddo
               enddo
+              if( (rx_c.gt.real(nbx*dx)).or.(rx_c.lt.dx).or.              ! Condition line of sight inside the modelling domain
+     +        (ry_c.gt.(nby*dy)).or.(ry_c.lt.dy).or.(z_c.gt. 
+     +        (cellh(height))).or.(z_c.lt.0.)) then
+              else
               if (verbose.ge.1) print*,'================================
      +================'
-              if (verbose.ge.1) print*,' Progression along the line of s 
-     +ight :',icible
-              if (verbose.ge.1) print*,' Dist. line of sight =',z_c,' m'
+      if (verbose.ge.1) print*,' Progression along the line of sight :'
+     +,icible
+      if (verbose.ge.1) print*,' Horizontal dist. line of sight =',
+     +sqrt((rx_c-rx_obs)**2.+(ry_c-ry_obs)**2.),' m'
+      if (verbose.ge.1) print*,' Vertical dist. line of sight =',
+     +z_c-z_obs,' m'
               if (verbose.ge.1) write(2,*) '========================
      +====================='
-              if (verbose.ge.1) write(2,*) ' Progression along the l 
-     +ine of sight :',icible
-              if (verbose.ge.1) write(2,*) ' Dist. line of sight =',
-     +        z_c,' m'
-              if( (rx_c.gt.real(nbx*dx)).or.(rx_c.lt.dx).or.              ! Condition line of sight voxel inside the modelling domain
-     +        (ry_c.gt.(nby*dy)).or.(ry_c.lt.dy).or.(z_c.gt. 
-     +        (cellh(height))).or.(z_c.lt.cellh(1))) then
-              else
+      if (verbose.ge.1) write(2,*) ' Progression along the line of sight 
+     + :',icible
+      if (verbose.ge.1) write(2,*) ' Horizontal dist. line of sight =',
+     +sqrt((rx_c-rx_obs)**2.+(ry_c-ry_obs)**2.),' m'
+      if (verbose.ge.1) write(2,*) ' Vertical dist. line of sight =',
+     +z_c-z_obs,' m'
+
                 dis_obs=sqrt((z_c-z_obs)**2.+(ry_c-ry_obs)**2.
      +          +(rx_c-rx_obs)**2.)
                 if (dis_obs.eq.0.) then
@@ -731,8 +737,9 @@ c ******************************************************************************
      +                      then
                               dirck=1
                               if (verbose.eq.2) then
-                                if (verbose.ge.1) print*,'Source inside
-     +of scat voxel'
+                                if (verbose.ge.1) then
+                                  print*,'Source inside of scat voxel'
+                                endif
                               endif
                             endif                                         ! end of the case positions x and y source and line of sight voxel identical.
                             if (dirck.ne.1) then                          ! the source is not at the line of sight voxel position
@@ -835,7 +842,7 @@ c   computation of the source contribution to the direct intensity toward the se
 c=======================================================================
                               intdir=fldir*pdifdi
                               if (cloudt.ne.0) then                       ! line of sight voxel = cloud
-                                if (cloudh(cloudt).eq.zcellc) then
+                                if (cloudbase.eq.zcellc) then
                                   call anglezenithal(rx_c,ry_c,z_c,
      +                            rx_obs,ry_obs,z_obs,azencl)             ! zenith angle from cloud to observer
                                   call cloudreflectance(angzen,           ! cloud intensity from direct illum
@@ -1021,7 +1028,7 @@ c=======================================================================
 c    Determination of the scattering voxels, the reflection surface and the line of sight voxel
 c=======================================================================  
       call zone_diffusion(x_sr,y_sr,z_sr,x_c,y_c,zcellc,dx,dy,
-     +effdif,nbx,nby,altsol,zondif,ndiff,stepdi)
+     +effdif,nbx,nby,altsol,cloudz,zondif,ndiff,stepdi)
       do idi=1,ndiff                                                      ! beginning of the loop over the scattering voxels.
         x_dif=zondif(idi,1)
         rx_dif=real(x_dif)*dx
@@ -1141,7 +1148,7 @@ c=======================================================================
             fdif2=idif2*omega*transm*transa*(1.-ff)*hh
 
                                     if (cloudt.ne.0) then                 ! target cell = cloud
-                                      if (cloudh(cloudt).eq.zcell_c) 
+                                      if (cloudbase.eq.zcell_c) 
      +                                then
                                         call anglezenithal(rx_c,ry_c,
      +                                  z_c,rx_obs,ry_obs,z_obs,azencl)   ! zenith angle from cloud to observer                     
@@ -1233,7 +1240,7 @@ c=======================================================================
                                           flindi=irefl*omega*transm*
      +                                    transa*(1.-ff)*hh               ! obstacles correction
                                           if (cloudt.ne.0) then           ! line of sight voxel = cloud
-                                            if (cloudh(cloudt).eq. 
+                                            if (cloudbase.eq. 
      +                                      zcellc) then
                                               call anglezenithal(rx_c,
      +                                        ry_c,z_c,rx_obs,ry_obs,     ! zenith angle from cloud to observer
@@ -1287,8 +1294,10 @@ c=======================================================================
 c                                                                         ! a line of sight voxel. Compute the double scattering only if
                             if (effdif.gt.(dx+dy)/2.) then                ! radius of scattering is larger than the size of the voxels.
                               call zone_diffusion(x_s,y_s,z_s,x_c,y_c,
-     +                        zcellc,dx,dy,effdif,nbx,nby,altsol,zondif,
-     +                        ndiff,stepdi)
+     +                        zcellc,dx,dy,effdif,nbx,nby,altsol,
+     +                        cloudz,zondif,ndiff,stepdi)
+                              if (verbose.ge.1) print*,' 2nd order cells
+     + =',ndiff
                               do idi=1,ndiff                              ! beginning of the loop over the scattering voxels.
                                 x_dif=zondif(idi,1)
                                 rx_dif=real(x_dif)*dx
@@ -1433,7 +1442,7 @@ c=======================================================================
                                     fldiff=idif1*omega*transm*transa*(1.
      +                              -ff)*hh
                                     if (cloudt.ne.0) then                 ! line of sight voxel = cloud
-                                      if (cloudh(cloudt).eq.zcellc) then
+                                      if (cloudbase.eq.zcellc) then
                                         call anglezenithal(rx_c,ry_c,
      +                                  z_c,rx_obs,ry_obs,z_obs,azencl)   ! zenith angle from cloud to observer
                                         call cloudreflectance(angzen,     ! cloud intensity from direct illum
@@ -1490,6 +1499,10 @@ c        computation of the total intensity coming from all the sources of a giv
 c**********************************************************************
                             itotty=itotty+isourc                          ! Sum of the intensities of each source.
                             ITT(x_s,y_s,stype)=ITT(x_s,y_s,stype)+isourc  ! ITT stores itotty in a matrix
+
+
+
+
                           endif                                           ! end condition distance source-line of sight-observer <= dx/2
                         endif                                             ! end of the condition "the luminosity of the ground pixel x_s,y_s in not null".
                       enddo                                               ! end the loop over the lines (latitude) of the domain (y_s).
@@ -1554,11 +1567,29 @@ c   end of the computation of the flux reaching the observer voxel from the line
                                                                           ! The % is simply given by the ratio FTC/ftocap
                   enddo
                 enddo
-              endif                                                       ! end of the condition line of sight voxel inside the modelling domain
-            endif                                                         ! end condition for continuing of a computation stopped.
 c correction for the FOV to the flux reaching the intrument from the cloud voxel
             if (cloudt.ne.0) then
-              if (cloudh(cloudt).eq.zcellc) then                          ! line of sight voxel = cloud
+              if (cloudbase.eq.zcellc) then                                ! line of sight voxel = cloud
+
+
+
+
+
+
+
+
+
+c changer ca car on observe la partie de nuage correspondant au fov
+
+
+
+
+
+
+
+
+
+
 c=======================================================================
 c  solid angle of the cloud pixel as seen from observer position
 c=======================================================================
@@ -1593,7 +1624,16 @@ c computation of the flux reaching the intrument from the cloud voxel
      +      (fcapt+fccld)/omefov/(pi*(diamobj/2.)**2.)
             write(2,*) 'Radiance accumulated =',
      +      (ftocap+fctcld)/omefov/(pi*(diamobj/2.)**2.)
+
+            print*,ftocap/fcapt
+
+
+              endif                                                       ! end of the condition line of sight voxel inside the modelling domain
+
+            endif                                                         ! end condition for continuing of a computation stopped.
+
           endif                                                           ! end condition line of sight voxel 1/stoplim
+
 
 
 
