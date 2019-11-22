@@ -207,7 +207,6 @@ c  suggested cloudbase per type: 9300.,9300.,4000.,1200.,1100.            ! 4=Cu
       real fcloud                                                         ! flux reaching the intrument from the cloud voxel
       real fccld                                                          ! correction for the FOV to the flux reaching the intrument from the cloud voxel
       real fctcld                                                         ! total flux from cloud at the sensor level
-      real dsco                                                           ! distancesource-line of sight-observer
       real dminlp                                                         ! minimum distance between the observer and a lamp (m)
       real totlu(120)                                                     ! total flux of a source type
       real stoplim                                                        ! Stop computation when the new voxel contribution is less than 1/stoplim of the cumulated flux
@@ -263,8 +262,9 @@ c=======================================================================
         read(1,*)
         read(1,*) reflsiz
         read(1,*) cloudt, cloudbase
-        read(1,*) dminlp
+        read(1,*) 
       close(1)
+c dminlp plus necessaire
       stepdi=1
       if (ssswit.eq.0) then
         effdif=0.
@@ -627,10 +627,10 @@ c=======================================================================
           stop
         endif
  1110   format(I4,1x,I4,1x,I4)
-        scal=dx/2.
+        scal=100.
         fctcld=0.
         ftocap=0.                                                         ! Initialisation of the value of flux received by the sensor
-        fcapt=1.
+        fcapt=0.
         angvi1 = (pi*angvis)/180.
         angaz1 = (pi*azim)/180.
         ix = ( sin((pi/2.)-angvi1) ) * (cos(angaz1))                        ! viewing vector components
@@ -648,7 +648,7 @@ c=======================================================================
           do nk=1,height
             if (z_c.ge.cellh(nk)) zcellc=nk
           enddo
-          if ((fcapt.gt.ftocap/stoplim).and.(z_c.lt.cloudbase)) then         ! stop the calculation of the viewing line when the increment is lower than 1/stoplim
+          if ((fcapt.ge.ftocap/stoplim).and.(z_c.lt.cloudbase)) then         ! stop the calculation of the viewing line when the increment is lower than 1/stoplim
 c Calculate the solid angle of the line of sight voxel unit voxel 
 c (1 m^3) given the fixed FOV of the observer.
 c For line of sight voxel near the observer 
@@ -724,16 +724,6 @@ c                                                                         ! the 
                         ry_s=real(y_s)*dy
                         if (lamplu(x_s,y_s,stype) .ne. 0.) then           ! if the luminosite of the case is null, the program ignore this case.
                           z_s=(altsol(x_s,y_s)+lampal(x_s,y_s))           ! Definition of the position (metre) vertical of the source.
-c computation of the distance source-line of sight-observer if this distance is lower than  dx/2, pas of computation effectue
-c the raison is que autrement on passe par of the voxels tres proches of the source and on is jamais dans of telles
-c conditions lorsqu'on observe le ciel. C is un probleme cree par le fait than the sources and l observateur
-c sont toujours considered au centre of the voxels.
-                          dsco=sqrt((rx_s-rx_c)**2.+
-     +                    (ry_s-ry_c)**2.+(z_s-z_c)**2.)+
-     +                    sqrt((rx_obs-rx_c)**2.+
-     +                    (ry_obs-ry_c)**2.
-     +                    +(z_obs-z_c)**2.)
-                          if (dsco.ge.dminlp) then                        ! beginning condition distance source-line of sight-observer >= dx/2
 c **********************************************************************************************************************
 c *     computation of the direct intensity toward the sensor by a line of sight voxel from the source         *
 c **********************************************************************************************************************
@@ -1553,7 +1543,11 @@ c
 c**********************************************************************
 c        computation of the total intensity coming from a source to the line of sight voxel toward the sensor
 c**********************************************************************
+
+
+
                             isourc=intdir+itotind+itodif+itotrd           ! Sum of the intensities of each type of source reaching the line of sight voxel. In the order 1st scat; refl->1st scat; 1st scat->2nd scat, refl->1st scat->2nd scat
+
                             isourc=isourc*scal                            ! scaling the values according to the path lenght in the light of sight voxel condidering that a 1m3 voxel was considered
                             isourc=isourc*portio                          ! correct for the field of view of the observer
                             isourc=isourc+icloud 
@@ -1572,11 +1566,6 @@ c        computation of the total intensity coming from all the sources of a giv
 c**********************************************************************
                             itotty=itotty+isourc                          ! Sum of the intensities of each source.
                             ITT(x_s,y_s,stype)=ITT(x_s,y_s,stype)+isourc  ! ITT stores itotty in a matrix
-
-
-
-
-                          endif                                           ! end condition distance source-line of sight-observer <= dx/2
                         endif                                             ! end of the condition "the luminosity of the ground pixel x_s,y_s in not null".
                       enddo                                               ! end the loop over the lines (latitude) of the domain (y_s).
                     enddo                                                 ! end the loop over the column (longitude) of the domain (x_s).
