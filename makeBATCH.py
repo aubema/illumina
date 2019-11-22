@@ -33,30 +33,6 @@ parser.add_argument("-N", "--batch_size", default=300, type=int,
 
 p = parser.parse_args()
 
-def updown(N=0):
-    for n in itcount():
-        yield N-n
-        yield N+n
-
-def isPrime(n) :
-    if (n < 1) :
-        return False
-    if (n <= 3) :
-        return True
-    if (n % 2 == 0 or n % 3 == 0) :
-        return False
-    i = 5
-    while(i * i <= n) :
-        if (n % i == 0 or n % (i + 2) == 0) :
-            return False
-        i = i + 6
-    return True
-
-def nearest_prime(N):
-    for n in updown(int(N)):
-        if isPrime(n):
-            return n
-
 def input_line(val,comment,n_space=30):
     value_str = ' '.join(str(v) for v in val)
     comment_str = ' ; '.join(comment)
@@ -237,10 +213,6 @@ for i,param_vals in enumerate(comb(*param_space),1):
                     ( exp_name, l )
             )
 
-    scattering_skip = nearest_prime(
-        P['scattering_skip'] / (ds.pixel_size(layer)/1000.)**2
-    )
-
     # Create illumina.in
     input_data = (
         (('', "Input file for ILLUMINA"),),
@@ -249,8 +221,7 @@ for i,param_vals in enumerate(comb(*param_space),1):
          (ds.pixel_size(layer), "Cell size along Y [m]")),
         (("aerosol.mie.out", "Aerosol optical cross section file"),),
         (('', ''),),
-        ((P['scattering_radius']*1000, "Double scattering radius [m]" ),
-         (scattering_skip, "Scattering step")),
+        ((P['double_scattering']*1, "Double scattering activated" ),),
         (('', ''),),
         ((wavelength, "Wavelength [nm]"),),
         ((reflectance, "Reflectance"),),
@@ -281,8 +252,9 @@ for i,param_vals in enumerate(comb(*param_space),1):
             "2=Thick Cirrus/Cirrostratus, "
             "3=Altostratus/Altocumulus, "
             "4=Cumulus/Cumulonimbus, "
-            "5=Stratocumulus"),),
-        ((P['nearest_source_distance'], "Minimal distance to nearest light source [m]"),)
+            "5=Stratocumulus"),
+         (P['cloud_base'], "Cloud base altitude [m]")),
+        (('', ''),)
     )
 
     with open(fold_name+unique_ID+".in",'w') as f:
@@ -320,7 +292,6 @@ for i,param_vals in enumerate(comb(*param_space),1):
         f.write("./illumina\n")
         f.write("mv %s.out %s_%s.out\n" % (exp_name,exp_name,unique_ID))
         f.write("mv %s_pcl.bin %s_pcl_%s.bin\n" % (exp_name,exp_name,unique_ID))
-        f.write("mv %s_pcw.bin %s_pcw_%s.bin\n" % (exp_name,exp_name,unique_ID))
 
 print "Final count:", count
 

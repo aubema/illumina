@@ -73,7 +73,7 @@ for dirpath,dirnames,filenames in os.walk(p.exec_dir):
         with open(os.sep.join([dirpath,oname])) as f:
             lines = f.readlines()
 
-        val = float(lines[-4])
+        val = float(lines[-1])
         skyglow[regex_layer.sub('',params)] += val
         if p.contrib:
             try:
