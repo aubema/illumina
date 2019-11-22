@@ -47,29 +47,23 @@ c calcul de position en metre
        x2=real(x_2)*dx
        y2=real(y_2)*dy
        z2=cell_h(z_2)
-       if (x_1.lt.x_2) then
+       if (x_1.le.x_2) then
          imin=x_1-neffet
+         imax=x_2+neffet
        else
          imin=x_2-neffet
+         imax=x_1+neffet
        endif
-       if (imin.lt.1) imin=1      
-       if (y_1.lt.y_2) then
+       if (imin.lt.1) imin=1 
+       if (imax.gt.nbx) imax=nbx
+       if (y_1.le.y_2) then
          jmin=y_1-neffet
+         jmax=y_2+neffet
        else
          jmin=y_2-neffet
-       endif
-       if (jmin.lt.1) jmin=1 
-       if (x_1.gt.x_2) then
-         imax=x_1+neffet
-       else
-         imax=x_2+neffet
-       endif
-       if (imax.gt.nbx) imax=nbx   
-       if (y_1.gt.y_2) then
          jmax=y_1+neffet
-       else
-         jmax=y_2+neffet
        endif
+       if (jmin.lt.1) jmin=1
        if (jmax.gt.nby) jmax=nby
        kmax=z_2+neffet 
        if (kmax.gt.cloudz) then
@@ -103,9 +97,9 @@ c calcul de position en metre
                if (delta.gt.deltmx) dmin=a                                           
              endif                                                             
              if (dmin.le.effet) then      
-               if (ncell.gt.3000000) then
-                 effet=effet*0.9
-                 print*,'Reducing 2nd order scat radius:',effet
+               if (ncell.gt.600) then
+                 stepdi=stepdi+1
+c                 print*,' Set step of scattering to:',stepdi,ncell
                  goto 10
                endif
                if (keep.eq.0) then
@@ -116,7 +110,6 @@ c calcul de position en metre
                endif
                keep=keep+1
                if (keep.eq.stepdi) keep=0
-
              endif
            endif
           endif                                                           ! fin condition au-dessus du sol

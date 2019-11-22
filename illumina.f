@@ -163,6 +163,7 @@ c
       integer zondif(3000000,4)                                           ! Array for the scattering voxels, the 4th column represents the nearest integer value of the distance (en metre) to the line of single scattering.
       integer ndiff,idi                                                   ! Number of scattering voxels, counter of the loop over the scattering voxels
       integer stepdi                                                      ! scattering step to speedup the calculation e.g. if =2 one computation over two will be done
+      integer ssswit                                                      ! activate double scattering (1=yes, 0=no)
       integer nvis0                                                       ! starting value for the calculation along of the viewing line.
 c                                                                         ! by default the value is 1 but it can be larger
 c                                                                         ! when we resume a previous interrupted calculation.
@@ -220,6 +221,8 @@ c  suggested cloudbase per type: 9300.,9300.,4000.,1200.,1100.            ! 4=Cu
       real scal                                                           ! stepping along the line of sight
       real angvi1,angaz1                                                  ! viewing angles in radian
       real ix,iy,iz                                                       ! base vector of the viewing (length=1)
+      real dsc2,doc2                                                      ! square of the path lengths for the cloud contribution
+      real azcl1,azcl2                                                    ! zenith angle from the (source, refl surface, or scattering voxel) to line of path and observer to line p.
       verbose=2                                                           ! Very little printout=0, Many printout = 1, even more=2
       zero=0.
       volu=0.
@@ -239,10 +242,9 @@ c=======================================================================
         read(1,*) dx,dy
         read(1,*) diffil
         read(1,*)
-        read(1,*) effdif,stepdi
+        read(1,*) ssswit
         if (verbose.eq.2) then
-          print*,'2nd order scattering radius=',effdif,'m   1 voxel ove
-     a    r',stepdi
+          print*,'2nd order scattering radius=',effdif,'m'
         endif
         read(1,*)
         read(1,*) lambda
@@ -263,6 +265,12 @@ c=======================================================================
         read(1,*) cloudt, cloudbase
         read(1,*) dminlp
       close(1)
+      stepdi=1
+      if (ssswit.eq.0) then
+        effdif=0.
+      else
+        effdif=8000.
+      endif
 c
 c determining the vertical scale
 c
@@ -302,8 +310,6 @@ c  opening output file
      +       ' Aerosol optical depth:',taua
         write(2,*) '2nd order scattering radius:',effdif,' m'
         print*,'2nd order scattering radius:',effdif,' m'
-        write(2,*) 'Scattering step:',stepdi
-        print*,'Scattering step:',stepdi
         write(2,*) 'Observer position (x,y,z)',x_obs,y_obs,z_o
         print*,'Observer position (x,y,z)',x_obs,y_obs,z_o
         write(2,*) 'Elevation angle:',angvis,' azim angle (clockwise fro
@@ -841,16 +847,33 @@ c=======================================================================
 c   computation of the source contribution to the direct intensity toward the sensor by a line of sight voxel
 c=======================================================================
                               intdir=fldir*pdifdi
+
+
+
                               if (cloudt.ne.0) then                       ! line of sight voxel = cloud
-                                if (cloudbase.eq.zcellc) then
+                                if ((z_c-cloudbase.ge.0.).and.
+     +                          (z_c-cloudbase.le.iz*scal)) then
                                   call anglezenithal(rx_c,ry_c,z_c,
-     +                            rx_obs,ry_obs,z_obs,azencl)             ! zenith angle from cloud to observer
+     +                            rx_obs,ry_obs,z_obs,azcl1)               ! zenith angle from cloud to observer
+                                  call anglezenithal(rx_c,ry_c,z_c,
+     +                            rx_s,ry_s,z_s,azcl2)                     ! zenith angle from source to cloud
+                                  doc2=(rx_c-rx_obs)**2.+
+     +                            (ry_c-ry_obs)**2.+(z_c-z_obs)**2.
+                                  dsc2=(rx_s-rx_c)**2.+
+     +                            (ry_s-ry_c)**2.+(z_s-z_c)**2.
                                   call cloudreflectance(angzen,           ! cloud intensity from direct illum
      +                            cloudt,rcloud)
                                   icloud=icloud+
-     +                            fldir*rcloud*abs(cos(azencl))/pi
+     +                            fldir/omega*rcloud*doc2*omefov*
+     +                            cos(azcl2)/cos(azcl1)/dsc2/pi
                                 endif
                               endif
+
+
+
+
+
+
                             endif                                         ! end of the case Position Source is not equal to the line of sight voxel position
 c  end of the computation of the direct intensity
 c
@@ -1147,17 +1170,32 @@ c        computation of the scattered flux reaching the line of sight voxel
 c=======================================================================
             fdif2=idif2*omega*transm*transa*(1.-ff)*hh
 
-                                    if (cloudt.ne.0) then                 ! target cell = cloud
-                                      if (cloudbase.eq.zcell_c) 
-     +                                then
-                                        call anglezenithal(rx_c,ry_c,
-     +                                  z_c,rx_obs,ry_obs,z_obs,azencl)   ! zenith angle from cloud to observer                     
-                                        call cloudreflectance(angzen,     ! cloud intensity from direct illum
-     +                                  cloudt,rcloud)
-                                        icloud=icloud+fdif2*rcloud
-     +                                  *abs(cos(azencl))/pi
-                                       endif
-                                    endif
+                              if (cloudt.ne.0) then                       ! line of sight voxel = cloud
+                                if ((z_c-cloudbase.ge.0.).and.
+     +                          (z_c-cloudbase.le.iz*scal)) then
+                                  call anglezenithal(rx_c,ry_c,z_c,
+     +                            rx_obs,ry_obs,z_obs,azcl1)               ! zenith angle from cloud to observer
+                                  call anglezenithal(rx_c,ry_c,z_c,
+     +                            rx_dif,ry_dif,z_dif,azcl2)                     ! zenith angle from source to cloud
+                                  doc2=(rx_c-rx_obs)**2.+
+     +                            (ry_c-ry_obs)**2.+(z_c-z_obs)**2.
+                                  dsc2=(rx_dif-rx_c)**2.+
+     +                            (ry_dif-ry_c)**2.+(z_dif-z_c)**2.
+                                  call cloudreflectance(angzen,           ! cloud intensity from direct illum
+     +                            cloudt,rcloud)
+                                  icloud=icloud+
+     +                            fldif2/omega*rcloud*doc2*omefov*
+     +                            cos(azcl2)/cos(azcl1)/dsc2/pi
+                                endif
+                              endif
+
+
+
+
+
+
+
+
 c=======================================================================
 c   computation of the scattering probability of the scattered light toward the observer voxel (exiting voxel_c)
 c=======================================================================
@@ -1239,18 +1277,32 @@ c        computation of the flux reflected reaching the line of sight voxel
 c=======================================================================
                                           flindi=irefl*omega*transm*
      +                                    transa*(1.-ff)*hh               ! obstacles correction
-                                          if (cloudt.ne.0) then           ! line of sight voxel = cloud
-                                            if (cloudbase.eq. 
-     +                                      zcellc) then
-                                              call anglezenithal(rx_c,
-     +                                        ry_c,z_c,rx_obs,ry_obs,     ! zenith angle from cloud to observer
-     +                                        z_obs,azencl)
-                                              call cloudreflectance(      ! cloud intensity from reflected illum
-     +                                        angzen,cloudt,rcloud)
-                                              icloud=icloud+flindi*
-     +                                        rcloud*abs(cos(azencl))/pi
-                                            endif
-                                          endif
+
+
+                              if (cloudt.ne.0) then                       ! line of sight voxel = cloud
+                                if ((z_c-cloudbase.ge.0.).and.
+     +                          (z_c-cloudbase.le.iz*scal)) then
+                                  call anglezenithal(rx_c,ry_c,z_c,
+     +                            rx_obs,ry_obs,z_obs,azcl1)               ! zenith angle from cloud to observer
+                                  call anglezenithal(rx_c,ry_c,z_c,
+     +                            rx_sr,ry_sr,z_sr,azcl2)                     ! zenith angle from source to cloud
+                                  doc2=(rx_c-rx_obs)**2.+
+     +                            (ry_c-ry_obs)**2.+(z_c-z_obs)**2.
+                                  dsc2=(rx_sr-rx_c)**2.+
+     +                            (ry_sr-ry_c)**2.+(z_sr-z_c)**2.
+                                  call cloudreflectance(angzen,           ! cloud intensity from direct illum
+     +                            cloudt,rcloud)
+                                  icloud=icloud+
+     +                            flindi/omega*rcloud*doc2*omefov*
+     +                            cos(azcl2)/cos(azcl1)/dsc2/pi
+                                endif
+                              endif
+
+
+
+
+
+
 c=======================================================================
 c   computation of the scattering probability of the reflected light
 c=======================================================================
@@ -1296,8 +1348,10 @@ c                                                                         ! a li
                               call zone_diffusion(x_s,y_s,z_s,x_c,y_c,
      +                        zcellc,dx,dy,effdif,nbx,nby,altsol,
      +                        cloudz,zondif,ndiff,stepdi)
-                              if (verbose.ge.1) print*,' 2nd order cells
-     + =',ndiff
+                              if (verbose.ge.1) then
+                                print*,' 2nd order cells =',ndiff
+                                print*,' 2nd order step  =',stepdi
+                              endif
                               do idi=1,ndiff                              ! beginning of the loop over the scattering voxels.
                                 x_dif=zondif(idi,1)
                                 rx_dif=real(x_dif)*dx
@@ -1441,16 +1495,35 @@ c        computation of the scattered flux reaching the line of sight voxel
 c=======================================================================
                                     fldiff=idif1*omega*transm*transa*(1.
      +                              -ff)*hh
-                                    if (cloudt.ne.0) then                 ! line of sight voxel = cloud
-                                      if (cloudbase.eq.zcellc) then
-                                        call anglezenithal(rx_c,ry_c,
-     +                                  z_c,rx_obs,ry_obs,z_obs,azencl)   ! zenith angle from cloud to observer
-                                        call cloudreflectance(angzen,     ! cloud intensity from direct illum
-     +                                  cloudt,rcloud)
-                                        icloud=icloud+fldiff
-     +                                  *rcloud*abs(cos(azencl))/pi
-                                      endif
-                                    endif
+
+
+
+                              if (cloudt.ne.0) then                       ! line of sight voxel = cloud
+                                if ((z_c-cloudbase.ge.0.).and.
+     +                          (z_c-cloudbase.le.iz*scal)) then
+                                  call anglezenithal(rx_c,ry_c,z_c,
+     +                            rx_obs,ry_obs,z_obs,azcl1)               ! zenith angle from cloud to observer
+                                  call anglezenithal(rx_c,ry_c,z_c,
+     +                            rx_dif,ry_dif,z_dif,azcl2)                     ! zenith angle from source to cloud
+                                  doc2=(rx_c-rx_obs)**2.+
+     +                            (ry_c-ry_obs)**2.+(z_c-z_obs)**2.
+                                  dsc2=(rx_dif-rx_c)**2.+
+     +                            (ry_dif-ry_c)**2.+(z_dif-z_c)**2.
+                                  call cloudreflectance(angzen,           ! cloud intensity from direct illum
+     +                            cloudt,rcloud)
+                                  icloud=icloud+
+     +                            fldiff/omega*rcloud*doc2*omefov*
+     +                            cos(azcl2)/cos(azcl1)/dsc2/pi
+                                endif
+                              endif
+
+
+
+
+
+
+
+
 c=======================================================================
 c   computation of the scattering probability of the scattered light toward the observer voxel (exiting voxel_c)
 c=======================================================================
@@ -1624,10 +1697,6 @@ c computation of the flux reaching the intrument from the cloud voxel
      +      (fcapt+fccld)/omefov/(pi*(diamobj/2.)**2.)
             write(2,*) 'Radiance accumulated =',
      +      (ftocap+fctcld)/omefov/(pi*(diamobj/2.)**2.)
-
-            print*,ftocap/fcapt
-
-
               endif                                                       ! end of the condition line of sight voxel inside the modelling domain
 
             endif                                                         ! end condition for continuing of a computation stopped.
