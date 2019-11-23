@@ -39,31 +39,21 @@ c
       real tranaa                                                         ! vertical transmittance of the complete atmosphere (aerosols)
       real angz
       real z_i,z_f,z1,z2
-      real airm
       real distd
-      airm=1.
-         if (cos(angz).eq.0.) then
-           print*,'prob w airm 2',angz
-           stop
-         endif
-      if (abs(angz-1.5707963).gt.0.00001) airm=1./abs(cos(angz))
-         if (z_i.gt.z_f) then
-            z2=z_i
-            z1=z_f
-         else
-            z1=z_i
-            z2=z_f
-         endif           
-         transa1=1.-((tranaa-1.)*(exp(-1.*z2/2000.)-exp(-1.*z1
-     +   /2000.)))
-         transa1=transa1**airm
-         transa2=1.-((1.-tranaa)/2000.*distd*exp(-(z1+z2)/(2.*2000.)))
-      if (abs(distd-airm*abs(z1-z2)).le.0.1) then
-        transa=transa1
-c        print*,'verti',transa,distd,airm*abs(z1-z2),z1,z2
+
+
+      if (z_i.gt.z_f) then
+        z2=z_i
+        z1=z_f
       else
-        transa=transa2
-c        print*,'horiz',transa,distd,airm*abs(z1-z2),z1,z2
+        z1=z_i
+        z2=z_f
+      endif
+      if (z1.ne.z2) then    
+        transa=exp((log(tranaa)/abs(cos(angz)))*(exp(-1.*z1/2000.)-
+     +  exp(-1.*z2/2000.)))
+      else
+        transa=exp((log(tranaa)/abs(cos(angz)))*exp(-1.*z1/2000.)*distd)  
       endif
          if (transa.eq.0.) then
             print*,'ERREUR transa - no transmission',z_i,z_f,airm

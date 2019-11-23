@@ -65,11 +65,9 @@ c calcul de position en metre
        endif
        if (jmin.lt.1) jmin=1
        if (jmax.gt.nby) jmax=nby
-       kmax=z_2+neffet 
+       kmax=z_2+neffet
        if (kmax.gt.cloudz) then
           kmax=cloudz
-          print*,cloudz,kmax
-          stop
        endif
        do i=imin,imax
         do j=jmin,jmax

@@ -38,31 +38,22 @@ c
       real tranam                                                         ! vertical transmittance of the complete atmosphere (molecules)
       real angz
       real distd
-      real airm
       real z_i,z_f,z1,z2
-      airm=1.
-      if (cos(angz).eq.0.) then
-        print*,'prob w airm 1',angz
-        stop
-      endif
-      if (abs(angz-1.5707963).gt.0.00001) airm=1./abs(cos(angz))
       if (z_i.gt.z_f) then
         z2=z_i
         z1=z_f
       else
         z1=z_i
         z2=z_f
-      endif     
-      transm1=1.-((tranam-1.)*(exp(-1.*z2/8000.)-exp(-1.*z1/8000.)))
-      transm1=transm1**airm
-      transm2=1.-((1.-tranam)/8000.*distd*exp(-(z1+z2)/(2.*8000.)))
-      if (abs(distd-airm*abs(z1-z2)).le.0.1) then                            ! si la distance fournie et celle calculée avec la différence de z fois la masse d'air est faible. Donc longue distance
-        transm=transm1
+      endif
+      if (z1.ne.z2) then    
+        transm=exp((log(tranam)/abs(cos(angz)))*(exp(-1.*z1/8000.)-
+     +  exp(-1.*z2/8000.)))
       else
-        transm=transm2
+        transm=exp((log(tranam)/abs(cos(angz)))*exp(-1.*z1/8000.)*distd)  
       endif
       if ((transm.lt.0.).or.(transm.gt.1.)) then
-        print*,'ERREUR avec transm',transm1,transm2,transm,tranam,
+        print*,'ERREUR avec transm',transm,tranam,
      +  z_f,z_i,distd,angz,airm
         stop
       endif
