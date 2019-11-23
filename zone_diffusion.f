@@ -33,14 +33,14 @@ c
       parameter (width=1024,height=1024)
        integer x_1,y_1,x_2,y_2,z_2,nbx,nby,i,j,k
        integer ncell,neffet,imin,imax,jmin,jmax,kmax
-       integer zondif(3000000,4),keep,stepdi,cloudz
+       integer zondif(3000,4),keep,stepdi,cloudz
        real x1,y1,z1,x2,y2,z2,x0,y0,z0,alt_sol(width,width)
        real dx,dy,effet,dmin,aire,a,b,c,s,delta,d,deltmx
        real cell_t(height),cell_h(height),d2
-       call verticalscale(dx,cell_t,cell_h)                                  ! define the vertical scale
- 10    ncell=0
+       call verticalscale(dx,cell_t,cell_h)                                ! define the vertical scale
        neffet=nint(effet/(dx/2.+dy/2.))+1
-       keep=0
+
+
 c calcul de position en metre
        x1=real(x_1)*dx
        y1=real(y_1)*dy
@@ -69,6 +69,8 @@ c calcul de position en metre
        if (kmax.gt.cloudz) then
           kmax=cloudz
        endif
+ 10    ncell=0
+       keep=0
        do i=imin,imax
         do j=jmin,jmax
          do k=1,kmax
@@ -114,5 +116,7 @@ c                 print*,' Set step of scattering to:',stepdi,ncell
          enddo
         enddo
        enddo
+c       print*,d,d2,dmin,a,b,c,s,deltmx,delta,aire,cloudz
+       print*,' 2nd order cells / step = ',ncell,stepdi
        return
        end 
