@@ -39,8 +39,8 @@ c
        real cell_t(height),cell_h(height),d2
        call verticalscale(dx,cell_t,cell_h)                                ! define the vertical scale
        neffet=nint(effet/(dx/2.+dy/2.))+1
-
-
+ 10    ncell=0
+       keep=0
 c calcul de position en metre
        x1=real(x_1)*dx
        y1=real(y_1)*dy
@@ -69,8 +69,6 @@ c calcul de position en metre
        if (kmax.gt.cloudz) then
           kmax=cloudz
        endif
- 10    ncell=0
-       keep=0
        do i=imin,imax
         do j=jmin,jmax
          do k=1,kmax
@@ -117,6 +115,6 @@ c                 print*,' Set step of scattering to:',stepdi,ncell
         enddo
        enddo
 c       print*,d,d2,dmin,a,b,c,s,deltmx,delta,aire,cloudz
-       print*,' 2nd order cells / step = ',ncell,stepdi
+       print*,'Ncell = ',ncell
        return
        end 

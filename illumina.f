@@ -160,7 +160,7 @@ c
       real flrefl                                                         ! flux reaching a reflecting surface (watts).
       real irefl,irefl1                                                   ! intensity leaving a reflecting surface toward the line of sight voxel.
       real effdif                                                         ! Distance around the source voxel and line of sight voxel considered to compute the 2nd order of scattering.
-      integer zondif(3000000,4)                                           ! Array for the scattering voxels, the 4th column represents the nearest integer value of the distance (en metre) to the line of single scattering.
+      integer zondif(3000,4)                                              ! Array for the scattering voxels, the 4th column represents the nearest integer value of the distance (en metre) to the line of single scattering.
       integer ndiff,idi                                                   ! Number of scattering voxels, counter of the loop over the scattering voxels
       integer stepdi                                                      ! scattering step to speedup the calculation e.g. if =2 one computation over two will be done
       integer ssswit                                                      ! activate double scattering (1=yes, 0=no)
@@ -265,7 +265,6 @@ c=======================================================================
         read(1,*) 
       close(1)
 c dminlp plus necessaire
-      stepdi=1
       if (ssswit.eq.0) then
         effdif=0.
       else
@@ -361,7 +360,7 @@ c=======================================================================
             pvalno(i,j)=0.
           enddo
         enddo
-        do i=1,3000000
+        do i=1,3000
           do j=1,4
             zondif(i,j)=1
           enddo
@@ -1027,6 +1026,9 @@ c        computation of the reflected intensity leaving the ground surface
 c=======================================================================
                                         irefl1=flrefl*srefl/pi            ! The factor 1/pi comes from the normalisation of the fonction
                                         if (effdif.gt.(dx+dy)/2.) then
+
+
+          print*,'toto0'
                                           irefdi=0.                       ! Initialize the flux reflected and 2nd scattered
 c
 c
@@ -1040,6 +1042,7 @@ c
 c=======================================================================
 c    Determination of the scattering voxels, the reflection surface and the line of sight voxel
 c=======================================================================  
+            stepdi=1
       call zone_diffusion(x_sr,y_sr,z_sr,x_c,y_c,zcellc,dx,dy,
      +effdif,nbx,nby,altsol,cloudz,zondif,ndiff,stepdi)
       do idi=1,ndiff                                                      ! beginning of the loop over the scattering voxels.
@@ -1109,6 +1112,14 @@ c oups omega depasse pi et va meme jusqu a 6.26 ->ok c'est normal puisque on obs
 c=======================================================================
 c Computing flux reaching the scattering voxel
 c=======================================================================
+
+c         print*,'fldif2',irefl1,omega,transm,transa,(1.-ff),hh,angzen
+
+
+
+
+
+
             fldif2=irefl1*omega*transm*transa*(1.-ff)*hh
 c=======================================================================
 c Computing the scattering probability toward the line of sight voxel
@@ -1335,6 +1346,7 @@ c=======================================================================
                             itodif=0.                                     ! Initialisation of the scattered intensity by a source in
 c                                                                         ! a line of sight voxel. Compute the double scattering only if
                             if (effdif.gt.(dx+dy)/2.) then                ! radius of scattering is larger than the size of the voxels.
+                                    stepdi=1
                               call zone_diffusion(x_s,y_s,z_s,x_c,y_c,
      +                        zcellc,dx,dy,effdif,nbx,nby,altsol,
      +                        cloudz,zondif,ndiff,stepdi)
