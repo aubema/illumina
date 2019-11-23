@@ -71,7 +71,7 @@ c calcul de position en metre
        endif
        do i=imin,imax
         do j=jmin,jmax
-         do k=1,kmax
+         do k=2,kmax                                                      ! forbid an artefact coming from source too close to the voxel (2 is the minimum)
           x0=real(i)*dx
           y0=real(j)*dy
           z0=cell_h(k)
@@ -115,6 +115,6 @@ c                 print*,' Set step of scattering to:',stepdi,ncell
         enddo
        enddo
 c       print*,d,d2,dmin,a,b,c,s,deltmx,delta,aire,cloudz
-       print*,'Ncell = ',ncell
+       print*,' 2nd order scat. cells and step = ',ncell,stepdi
        return
        end 
