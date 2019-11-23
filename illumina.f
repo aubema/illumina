@@ -1203,11 +1203,6 @@ c=======================================================================
                               call zone_diffusion(x_s,y_s,z_s,x_c,y_c,
      +                        zcellc,dx,dy,effdif,nbx,nby,altsol,
      +                        cloudz,zondif,ndiff,stepdi)
-c       print*,x_s,y_s,z_s,x_c,y_c,
-c     +                        zcellc,dx,dy,effdif,nbx,nby,
-c     +                        cloudz,ndiff,stepdi
-c           stop
-
                               do idi=1,ndiff                              ! beginning of the loop over the scattering voxels.
                                 x_dif=zondif(idi,1)
                                 rx_dif=real(x_dif)*dx
@@ -1388,7 +1383,7 @@ c Computing scattered intensity toward the observer from the line of sight voxel
 
 
 
-           if (icible.eq.20) stop
+c           if (icible.eq.20) stop
 
 
 
