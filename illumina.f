@@ -9,10 +9,10 @@ c   IIII    LLLLLLLLLL    LLLLLLLLLL    UUUUUuuUUUUU     MMM          MMM   iiii
 c  IIIIII   LLLLLLLLLLL   LLLLLLLLLLL     UUUUUUUU      mMMMm        mMMMm   iiiiiii   nNNNn    NNNn  aAAA          AAAa
 c
 c **********************************************************************************************************************
-c ** Illumina en Fortran 77                                                                                           **
+c ** Illumina VERSION 2 - in Fortran 77                                                                               **
 c ** Programmers in decreasing order of contribution  :                                                               **
 c **                            Martin Aube                                                                           **
-c **              Still having very few traces of the contributions from:                                             **
+c **              Still having very few traces of their contributions :                                               **
 c **                            Loic Franchomme-Fosse,  Mathieu Provencher, Andre Morin                               **
 c **                            Alex Neron, Etienne Rousseau                                                          **
 c **                            William Desroches, Maxime Girardin, Tom Neron                                         **
@@ -45,22 +45,22 @@ c **    - Do not consider earth curvature (i.e. local/regional model)           
 c **                                                                                                                  **
 c **********************************************************************************************************************
 c
-c    Copyright (C) 2019 Martin Aube
+c  Copyright (C) 2019 Martin Aube
 c
-c    This program is free software: you can redistribute it and/or modify
-c    it under the terms of the GNU General Public License as published by
-c    the Free Software Foundation, either version 3 of the License, or
-c    (at your option) any later version.
+c  This program is free software: you can redistribute it and/or modify
+c  it under the terms of the GNU General Public License as published by
+c  the Free Software Foundation, either version 3 of the License, or
+c  (at your option) any later version.
 c
-c    This program is distributed in the hope that it will be useful,
-c    but WITHOUT ANY WARRANTY; without even the implied warranty of
-c    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-c    GNU General Public License for more details.
+c  This program is distributed in the hope that it will be useful,
+c  but WITHOUT ANY WARRANTY; without even the implied warranty of
+c  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+c  GNU General Public License for more details.
 c
-c    You should have received a copy of the GNU General Public License
-c    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+c  You should have received a copy of the GNU General Public License
+c  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 c
-c    Contact: martin.aube@cegepsherbrooke.qc.ca
+c  Contact: martin.aube@cegepsherbrooke.qc.ca
 c
 c
 c
@@ -676,7 +676,7 @@ c ******************************************************************************
 
                             dirck=0                                       ! Initialisation of the verification of the position of the source
                             if ((x_s.eq.x_c).and.(y_s.eq.y_c).and.        ! if the positions x and y of the source and the line of sight voxel are the
-     +                      (abs(z_s-z_c).lt.(cthick(zcellc)/2.)))         ! same then...
+     +                      (abs(z_s-z_c).lt.(cthick(zcellc)/2.)))        ! same then...
      +                      then
                               dirck=1
                               if (verbose.eq.2) then
@@ -692,11 +692,11 @@ c computation of the horizon for the resolved shadows direct              ! hori
      +                        ,rx_c,ry_c,z_c,angzen)                      ! computation of the zenithal angle between the source and the line of sight voxel.
                               call angleazimutal(rx_s,ry_s,rx_c,          ! computation of the angle azimutal direct line of sight-source
      +                        ry_c,angazi)
-                              if (angzen.gt.pi/4.) then                  ! 45deg. it is unlikely to have a 1km high mountain less than 1
+                              if (angzen.gt.pi/4.) then                   ! 45deg. it is unlikely to have a 1km high mountain less than 1
                                 call horizon(x_s,y_s,z_s,dx,dy,
      +                          nbx,nby,altsol,latitu,angzen,
      +                          angazi,zhoriz)
-                                if (angzen.lt.zhoriz) then               ! shadow the path line of sight-source is not below the horizon => we compute
+                                if (angzen.lt.zhoriz) then                ! shadow the path line of sight-source is not below the horizon => we compute
                                   hh=1.
                                 else
                                   hh=0.
@@ -1034,7 +1034,7 @@ c computing transmittance between the scattering voxel and the line of sight vox
 c computing the solid angle of the line of sight voxel as seen from the scattering voxel
             omega=1./distd**2.
 c computation of the scattered flux reaching the line of sight voxel
-            if (distd.lt.dmin) then                                        ! forbid voxels too close to the line of sight
+            if (distd.lt.dmin) then                                       ! forbid voxels too close to the line of sight
                fdif2=0.
             else
             fdif2=idif2*omega*transm*transa*(1.-ff)*hh
@@ -1043,9 +1043,9 @@ c cloud contribution for double scat from a reflecting pixel
                               if (cloudt.ne.0) then                       ! line of sight voxel = cloud
                                 if (cloudbase-z_c.le.iz*scal) then
                                   call anglezenithal(rx_c,ry_c,z_c,
-     +                            rx_obs,ry_obs,z_obs,azcl1)               ! zenith angle from cloud to observer
+     +                            rx_obs,ry_obs,z_obs,azcl1)              ! zenith angle from cloud to observer
                                   call anglezenithal(rx_c,ry_c,z_c,
-     +                            rx_dif,ry_dif,z_dif,azcl2)                     ! zenith angle from source to cloud
+     +                            rx_dif,ry_dif,z_dif,azcl2)              ! zenith angle from source to cloud
                                   doc2=(rx_c-rx_obs)**2.+
      +                            (ry_c-ry_obs)**2.+(z_c-z_obs)**2.
                                   dsc2=(rx_dif-rx_c)**2.+
@@ -1059,10 +1059,10 @@ c cloud contribution for double scat from a reflecting pixel
                               endif
 c computation of the scattering probability of the scattered light toward the observer voxel (exiting voxel_c)
             distd=1.
-            call angle3points(rx_dif,ry_dif,z_dif,rx_c,ry_c,z_c,             ! scattering angle.
+            call angle3points(rx_dif,ry_dif,z_dif,rx_c,ry_c,z_c,          ! scattering angle.
      +      rx_obs,ry_obs,z_obs,angdif)
             if (omega.ne.0.) then 
-              call diffusion(angdif,tranam,tranaa,distd,secdif,                 ! scattering probability of the direct light.
+              call diffusion(angdif,tranam,tranaa,distd,secdif,           ! scattering probability of the direct light.
      +        fdifan,pdifd2,z_c)
             else
               pdifd2=0.
@@ -1127,7 +1127,7 @@ c  average over +- ouvang
                                     enddo
                                     P_dif1=P_dif1/nbang
 c computing flux reaching the scattering voxel
-                       if (distd.lt.dmin) then                             ! forbid voxels too close to the line of sight
+                       if (distd.lt.dmin) then                            ! forbid voxels too close to the line of sight
                            fldif1=0.
                        else
                                     fldif1=lamplu(x_s,y_s,stype)*P_dif1*
@@ -1135,7 +1135,7 @@ c computing flux reaching the scattering voxel
                        endif
 c computing the scattering probability toward the line of sight voxel
                                     distd=1.
-                                    call angle3points (rx_s,ry_s,z_s,       ! scattering angle.
+                                    call angle3points (rx_s,ry_s,z_s,     ! scattering angle.
      +                              rx_dif,ry_dif,z_dif,rx_c,ry_c,z_c,
      +                              angdif)
                                     if (omega.ne.0.) then 
@@ -1225,9 +1225,9 @@ c * section refected light with single scattering
 c **********************************************************************
 c verify if there is shadow between sr and line of sight voxel
 
-                                        call anglezenithal(rx_sr,ry_sr,     ! zenithal angle between the reflecting surface and the line of sight voxel.
+                                        call anglezenithal(rx_sr,ry_sr,   ! zenithal angle between the reflecting surface and the line of sight voxel.
      +                                  z_sr,rx_c,ry_c,z_c,angzen)
-                                        call angleazimutal(rx_sr,ry_sr,     ! computation of the azimutal angle reflect-line of sight
+                                        call angleazimutal(rx_sr,ry_sr,   ! computation of the azimutal angle reflect-line of sight
      +                                  rx_c,ry_c,angazi)
                                         if (angzen.gt.pi/4.) then         ! 45deg. it is unlikely to have a 1km high mountain less than 1
                                           call horizon(x_sr,y_sr,z_sr,dx
@@ -1288,11 +1288,11 @@ c cloud contribution to the reflected light from a ground pixel
                               endif
 c computation of the scattering probability of the reflected light
                                           distd=1.
-                                          call angle3points(rx_sr,ry_sr,   ! scattering angle.
+                                          call angle3points(rx_sr,ry_sr,  ! scattering angle.
      +                                    z_sr,rx_c,ry_c,z_c,rx_obs,
      +                                    ry_obs,z_obs,angdif)
                                           if (omega.ne.0.) then 
-                                            call diffusion(angdif,         ! scattering probability of the reflected light.
+                                            call diffusion(angdif,        ! scattering probability of the reflected light.
      +                                      tranam,tranaa,distd,secdif,
      +                                      fdifan,pdifin,z_c)
                                           else
