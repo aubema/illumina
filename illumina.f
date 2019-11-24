@@ -239,7 +239,7 @@ c reading of the fichier d'entree (illumina.in)
         read(1,*) ntype
         read(1,*) stoplim
         read(1,*)
-        read(1,*) x_obs,y_obs,z_o,nvis0
+        read(1,*) x_obs,y_obs,z_o
         read(1,*)
         read(1,*) angvis,azim
         read(1,*)
@@ -613,7 +613,6 @@ c computation of the Solid angle of the line of sight voxel seen from the observ
             omega=1./distd**2.
             portio=(omefov/omega)   
             if (fcapt.eq.1.) fcapt=0.
-            if (icible.ge.nvis0) then                                     ! beginning condition for continuing of a computation stopped
               itotci=0.                                                   ! Initialisation of the contribution of the line of sight at the sensor level
               do i=1,nbx
                 do j=1,nby
@@ -1404,7 +1403,6 @@ c computation of the flux reaching the intrument from the cloud voxel
             write(2,*) 'Radiance accumulated =',
      +      (ftocap+fctcld)/omefov/(pi*(diamobj/2.)**2.)
               endif                                                       ! end of the condition line of sight voxel inside the modelling domain
-            endif                                                         ! end condition for continuing of a computation stopped.
           endif                                                           ! end condition line of sight voxel 1/stoplim
         enddo                                                             ! end of the loop over the line of sight voxels.
         if (prmaps.eq.1) then
