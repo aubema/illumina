@@ -169,9 +169,6 @@ c                                                                         ! when
       real dis_obs                                                        ! Distance between the line of sight and the observer.
       real ometif                                                         ! Solid angle of the telescope objective as seen from the line of sight voxel
       real omefov                                                         ! Solid angle of the spectrometer slit.
-      real lfente                                                         ! Width of the slit (or of the sensor area)
-      real longfe                                                         ! Length of the slit (or of the sensor area)
-      real focal                                                          ! Focal distance of the spectrometer objective
       real angvis,azim                                                    ! viewing angles of the sensor.
 c                                                                         ! Useful for the calculation of the lambertian reflectance.
       real nbang                                                          ! for the averaging of the photometric function
@@ -245,7 +242,7 @@ c reading of the fichier d'entree (illumina.in)
         read(1,*)
         read(1,*) angvis,azim
         read(1,*)
-        read(1,*) lfente,longfe,focal,diamobj
+        read(1,*) diamobj
         read(1,*)
         read(1,*)
         read(1,*) reflsiz
