@@ -820,7 +820,6 @@ c etablissement of the conditions ands boucles
      +ll'
                                     endif
                                   else
-                                    if (srefl.ne.0.) then                 ! Condition: the surface reflectance is not null
                                       haut=-(rx_s-rx_sr)*tan(             ! if haut is negative, the ground cell is lighted from below
      +                                inclix(x_sr,y_sr))-(ry_s-
      +                                ry_sr)*tan(incliy(x_sr,
@@ -1301,7 +1300,6 @@ c computation of the reflected intensity toward the sensor by a reflecting cell
                                         endif                             ! end of the case Posi reflecting cell =  line of sight voxel position
                                         itotind=itotind+intind            ! Sum of the intensities of each reflecting cell.
                                       endif                               ! end of the condition surface not lighted from the top.
-                                    endif                                 ! end of the condition non-zero reflectancee.
                                   endif                                   ! end of the condition reflecting cell is not on the source.
                                 endif                                     ! end of the condition surface of the domain.
                               enddo                                       ! end of the loop over the rows (latitu) reflecting.
