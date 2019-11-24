@@ -212,6 +212,7 @@ c  suggested cloudbase per type: 9300.,9300.,4000.,1200.,1100.            ! 4=Cu
       real dsc2,doc2                                                      ! square of the path lengths for the cloud contribution
       real azcl1,azcl2                                                    ! zenith angle from the (source, refl surface, or scattering voxel) to line of path and observer to line p.
       verbose=2                                                           ! Very little printout=0, Many printout = 1, even more=2
+      diamobj=1.                                                          ! A dummy value for the diameter of the objective of the instrument used by the observer.
       volu=0.
       dmin=50.
       ff=0.
@@ -242,7 +243,7 @@ c reading of the fichier d'entree (illumina.in)
         read(1,*)
         read(1,*) angvis,azim
         read(1,*)
-        read(1,*) diamobj
+        read(1,*) 
         read(1,*)
         read(1,*)
         read(1,*) reflsiz
