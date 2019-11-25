@@ -146,7 +146,6 @@ c
       real itotty                                                         ! Total contribution of a source type to the intensity coming from a line of sight voxel toward the sensor.
       real itotci                                                         ! total intensity from a line of sight voxel toward the sensor.
       real itotrd                                                         ! total intensity a voxel toward the sensor after reflexion and double scattering.
-      real irefdi                                                         ! intensity from a voxel toward the sensor after reflexion and double scattering.
       real flcib                                                          ! Flux reaching the observer voxel from a line of sight voxel.
       real fcapt                                                          ! Flux reaching the observer voxel from all FOV voxels in a given model level
       real ftocap                                                         ! Total flux reaching the observer voxel
@@ -182,7 +181,6 @@ c                                                                         ! a li
       real FTCN(width,width)                                              ! fraction of the total flux at the sensor level normalized per unit of watt
       real FCA(width,width)                                               ! sensor flux array
       real lpluto(width,width)                                            ! total luminosity of the ground cell for all lamps
-      real fctnto,ftcmax                                                  ! FTCN total for all the domain for all lamps
       character*3 lampno                                                  ! lamp number string
       integer imin(120),imax(120),jmin(120),jmax(120)                     ! x and y limits of the zone containing a type of lamp
       real angazi                                                         ! azimuth angle between two points in rad, max dist for the horizon determination
@@ -257,6 +255,7 @@ c reading of the fichier d'entree (illumina.in)
       if (verbose.gt.1) then
           print*,'2nd order scattering radius=',effdif,'m'
           print*,'Pixel size = ',dx,' x ',dy
+          print*,'Maximum radius for reflexion = ',reflsiz
       endif
 c determining the vertical scale
       call verticalscale(dx,cthick,cellh)
@@ -347,7 +346,6 @@ c determine the layer of the cloudbase (cloudz)
             zondif(i,j)=1
           enddo
         enddo
-        irefdi=0.
         idif1=0.
         idif2=0.
         fdif2=0
@@ -374,8 +372,6 @@ c determine the layer of the cloudbase (cloudz)
         fldif1=0.
         fldif2=0.
         portio=0.
-        fctnto=0.
-        ftcmax=0.
         fccld=0.
         fctcld=0.
         ometif=0.
@@ -615,7 +611,7 @@ c observer.
 c computation of the Solid angle of the line of sight voxel seen from the observer
             omega=1./distd**2.
             portio=(omefov/omega)   
-            if (fcapt.eq.1.) fcapt=0.
+c            if (fcapt.eq.1.) fcapt=0.
               itotci=0.                                                   ! Initialisation of the contribution of the line of sight at the sensor level
               do i=1,nbx
                 do j=1,nby
@@ -665,6 +661,10 @@ c beginning of the loop over the types of light sources
                     enddo 
                     do x_s=imin(stype),imax(stype)                        ! beginning of the loop over the column (longitude the) of the domain.
                       do y_s=jmin(stype),jmax(stype)                      ! beginning of the loop over the rows (latitud) of the domain.
+                  intdir=0.
+                  itotind=0.
+                  itodif=0.
+                  itotrd=0.
                         rx_s=real(x_s)*dx
                         ry_s=real(y_s)*dy
                         if (lamplu(x_s,y_s,stype) .ne. 0.) then           ! if the luminosite of the case is null, the program ignore this case.
@@ -936,8 +936,8 @@ c ******************************************************************************
 c * computation of the 2nd scattering contributions (pure scattering and after reflexion
 c **************************************************************************************
                                         if (effdif.gt.0.) then
-                                          irefdi=0.                       ! Initialize the flux reflected and 2nd scattered
-                                          itodif=0.                       ! Initialisation of the scattered intensity by a source to line of sight 
+c                                          irefdi=0.                       ! Initialize the flux reflected and 2nd scattered
+c                                          itodif=0.                       ! Initialisation of the scattered intensity by a source to line of sight 
 c determination of the scattering voxels, the reflection surface and the line of sight voxel
       call zone_diffusion(x_sr,y_sr,z_sr,x_c,y_c,zcellc,dx,dy,
      +effdif,nbx,nby,altsol,cloudz,zondif,ndiff,stepdi,n2nd)
@@ -1209,11 +1209,13 @@ c computing scattered intensity toward the observer from the line of sight voxel
                                     idiff2=fldiff*pdifd2
                                     idiff2=idiff2*real(stepdi)            ! Correct the result for the skipping of 2nd scattering voxels to accelerate the calculation
                                     itodif=itodif+idiff2                  ! sum over the scattering voxels
+c             print*,'itodif',itodif,idiff2,stepdi,fldiff,pdifd2 
+
             endif                                                         ! end condition source = reflection for the computation of the source scat line of sight
           endif                                                           ! end of the case scattering = Source or line of sight voxel
         endif                                                             ! end of the condition "voxel of the domain".
       enddo                                                               ! end of the loop over the scattering voxels.
-                            endif                                         ! end of the condition ou effdif > dx.
+                                        endif                             ! end of the condition ou effdif > 0
 c End of 2nd scattered intensity calculations
 c===================================================================
 c
@@ -1314,36 +1316,34 @@ c computation of the total intensity coming from a source to the line of sight v
 c**********************************************************************
 c In the order 1st scat; refl->1st scat; 1st scat->2nd scat, 
 c refl->1st scat->2nd scat
-                            isourc=intdir+itotind+itodif+itotrd           ! Sum of the intensities of each type of source reaching the line of sight voxel. 
+                            isourc=intdir+itotind+itodif+itotrd           ! Sum of the intensities of a given type of source reaching the line of sight voxel. 
                             isourc=isourc*scal                            ! scaling the values according to the path length in the l. of sight voxel of 1m3 
                             isourc=isourc*portio                          ! correct for the field of view of the observer
-                            isourc=isourc+icloud 
+c                            isourc=isourc+icloud 
                             if (verbose.eq.2) then
-                              print*,' Total intensity components:'
-                              print*,' source->scattering=',intdir
-                              print*,' source->reflexion->scattering=',
-     +                        itotind
-                              print*,' source->scattering->scattering=',
-     +                        itodif
-                              print*,' source->reflexion->scattering->sc
-     +attering=',itotrd
+       print*,' Total intensity per component for type ',ntype,':'
+       print*,' source->scattering=',intdir
+       print*,' source->reflexion->scattering=',itotind
+       print*,' source->scattering->scattering=',itodif
+       print*,' source->reflexion->scattering->scattering=',itotrd
+
                             endif
 c**********************************************************************
 c computation of the total intensity coming from all the sources of a given type
 c**********************************************************************
-                            itotty=itotty+isourc                          ! Sum of the intensities of each source.
+                            itotty=itotty+isourc                          ! Sum of the intensities all sources of the same type and a given line of sight element
                             ITT(x_s,y_s,stype)=ITT(x_s,y_s,stype)+isourc  ! ITT stores itotty in a matrix
                         endif                                             ! end of the condition "the luminosity of the ground pixel x_s,y_s in not null".
                       enddo                                               ! end the loop over the lines (latitude) of the domain (y_s).
                     enddo                                                 ! end the loop over the column (longitude) of the domain (x_s).
 c end of the computation of the intensity of one source type
-                    itotci=itotci+itotty                                  ! Sum of the intensities of each type to the line of sight voxel.
+                    itotci=itotci+itotty                                  ! Sum of the intensities all source all type to a line of sight element
                     do x_s=imin(stype),imax(stype)
                       do y_s=jmin(stype),jmax(stype)
                         ITC(x_s,y_s)=ITC(x_s,y_s)+ITT(x_s,y_s,stype)
                       enddo
                     enddo
-c calculate lpluto
+c calculate total lamp flux matrix for all lamp types
                     do x_s=1,nbx
                       do y_s=1,nby
                         lpluto(x_s,y_s)=lpluto(x_s,y_s)+
@@ -1381,7 +1381,7 @@ c computation of the flux reaching the objective of the telescope from the line 
                   stop
                 endif
 c end of the computation of the flux reaching the observer voxel from the line of sight voxel
-                ftocap=ftocap+fcapt
+                ftocap=ftocap+fcapt                                       ! flux for all source all type all line of sight element
                 do x_s=1,nbx
                   do y_s=1,nby
                     FTC(x_s,y_s)=FTC(x_s,y_s)+FCA(x_s,y_s)                ! FTC is the array of the flux total at the sensor to identify
@@ -1393,7 +1393,7 @@ c correction for the FOV to the flux reaching the intrument from the cloud voxel
             if (cloudt.ne.0) then
 c computation of the flux reaching the intrument from the cloud voxel
                 fccld=icloud*ometif*transa*transm
-                fctcld=fctcld+fccld
+                fctcld=fctcld+fccld                                       ! cloud flux for all source all type all line of sight element
             endif
             if (verbose.ge.1) print*,'Added radiance =',  
      +      (fcapt+fccld)/omefov/(pi*(diamobj/2.)**2.)
@@ -1408,15 +1408,9 @@ c computation of the flux reaching the intrument from the cloud voxel
         enddo                                                             ! end of the loop over the line of sight voxels.
         if (prmaps.eq.1) then
           open(unit=9,file=pclf,status='unknown')
-            fctnto=0.
-            ftcmax=0.
             do x_s=1,nbx
               do y_s=1,nby
-                FTC(x_s,y_s)=FTC(x_s,y_s)/ftocap
-                if (FTC(x_s,y_s).gt.ftcmax) ftcmax=FTC(x_s,y_s)
-                if (lpluto(x_s,y_s).ne.0.) then
-                  fctnto=fctnto+FTC(x_s,y_s)/lpluto(x_s,y_s)
-                endif
+                FTC(x_s,y_s)=FTC(x_s,y_s)/ftocap                          ! Here FTC becomes the flux fraction of each pixel. The sum of FTC values over all pixels give the total flux
               enddo
             enddo
             if (verbose.eq.2) then
