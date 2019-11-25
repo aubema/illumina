@@ -941,6 +941,9 @@ c                                          itodif=0.                       ! Ini
 c determination of the scattering voxels, the reflection surface and the line of sight voxel
       call zone_diffusion(x_sr,y_sr,z_sr,x_c,y_c,zcellc,dx,dy,
      +effdif,nbx,nby,altsol,cloudz,zondif,ndiff,stepdi,n2nd)
+      if (verbose.gt.1) then
+             print*,' 2nd order scat. cells and step = ',ndiff,stepdi
+      endif
       do idi=1,ndiff                                                      ! beginning of the loop over the scattering voxels.
         x_dif=zondif(idi,1)
         rx_dif=real(x_dif)*dx

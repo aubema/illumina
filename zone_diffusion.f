@@ -112,6 +112,5 @@ c     +  ncell,neffet
         enddo
        enddo
        ncell=ncell-1
-       print*,' 2nd order scat. cells and step = ',ncell,stepdi
        return
        end 
