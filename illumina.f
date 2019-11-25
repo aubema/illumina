@@ -229,9 +229,6 @@ c reading of the fichier d'entree (illumina.in)
         read(1,*) diffil
         read(1,*)
         read(1,*) ssswit
-        if (verbose.eq.2) then
-          print*,'2nd order scattering radius=',effdif,'m'
-        endif
         read(1,*)
         read(1,*) lambda
         read(1,*) srefl
@@ -256,6 +253,9 @@ c reading of the fichier d'entree (illumina.in)
       else
         effdif=5000.
         n2nd=200
+      endif
+      if (verbose.eq.2) then
+          print*,'2nd order scattering radius=',effdif,'m'
       endif
 c determining the vertical scale
       call verticalscale(dx,cthick,cellh)
@@ -934,7 +934,7 @@ c
 c **************************************************************************************
 c * computation of the 2nd scattering contributions (pure scattering and after reflexion
 c **************************************************************************************
-                                        if (effdif.gt.(dx+dy)/2.) then
+                                        if (effdif.gt.0.) then
                                           irefdi=0.                       ! Initialize the flux reflected and 2nd scattered
                                           itodif=0.                       ! Initialisation of the scattered intensity by a source to line of sight 
 c determination of the scattering voxels, the reflection surface and the line of sight voxel
