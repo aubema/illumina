@@ -28,19 +28,19 @@ c    Contact: martin.aube@cegepsherbrooke.qc.ca
 c
 c
        subroutine zone_diffusion(x_1,y_1,z1,x_2,y_2,z_2,dx,dy,effet,
-     +         nbx,nby,alt_sol,cloudz,zondif,ncell,stepdi)
+     +         nbx,nby,alt_sol,cloudz,zondif,ncell,stepdi,n2nd)
       integer width,height                                                ! Matrix dimension in Length/width and height
       parameter (width=1024,height=1024)
        integer x_1,y_1,x_2,y_2,z_2,nbx,nby,i,j,k
        integer ncell,neffet,imin,imax,jmin,jmax,kmax
-       integer zondif(3000,4),keep,stepdi,cloudz
+       integer zondif(3000,4),keep,stepdi,cloudz,n2nd,dstep,nexp
        real x1,y1,z1,x2,y2,z2,x0,y0,z0,alt_sol(width,width)
-       real dx,dy,effet,dmin,aire,a,b,c,s,delta,d,deltmx
-       real cell_t(height),cell_h(height),d2
+       real dx,dy,effet,dmin,aire,a,b,c,s,delta,d,deltmx,d1,d2
+       real cell_t(height),cell_h(height)
        call verticalscale(dx,cell_t,cell_h)                                ! define the vertical scale
-       neffet=nint(effet/(dx/2.+dy/2.))+1
- 10    ncell=0
-       keep=0
+       neffet=nint(effet/(cell_t(1)))
+
+       
 c calcul de position en metre
        x1=real(x_1)*dx
        y1=real(y_1)*dy
@@ -69,35 +69,33 @@ c calcul de position en metre
        if (kmax.gt.cloudz) then
           kmax=cloudz
        endif
+       nexp=((imax-imin+1)*(jmax-jmin+1))*(kmax-1)      
+       dstep=1
+ 10    ncell=0
+       keep=0
+
        do i=imin,imax
         do j=jmin,jmax
          do k=2,kmax                                                      ! forbid an artefact coming from source too close to the voxel (2 is the minimum)
           x0=real(i)*dx
           y0=real(j)*dy
           z0=cell_h(k)
+          d1=sqrt((x1-x0)**2.+(y1-y0)**2.+(z1-z0)**2.)
+          d2=sqrt((x2-x0)**2.+(y2-y0)**2.+(z2-z0)**2.)
+          d=d1+d2
+          dmin=sqrt((x1-x2)**2.+(y1-y2)**2.+(z1-z2)**2.)
           if (z0.gt.alt_sol(i,j)) then
-           a=sqrt((x1-x0)**2.+(y1-y0)**2.+(z1-z0)**2.)                    ! see http://mathworld.wolfram.com/Point-LineDistance3-Dimensional.html
-           b=sqrt((x1-x2)**2.+(y1-y2)**2.+(z1-z2)**2.)                    ! and http://mathworld.wolfram.com/TriangleArea.html
-           c=sqrt((x2-x0)**2.+(y2-y0)**2.+(z2-z0)**2.)
-           delta=abs(a-c)
-           s=(a+b+c)/2.
-           d2=s*(s-a)*(s-b)*(s-c)
-           if (d2.ge.0.) then
-             aire=sqrt(d2)
-             dmin=2.*aire/b                                               ! dmin entre la droite definie par les points 1 et 2 et le point 0
-             if ((a.gt.c)) then                                           ! Cas ou le dmin pointe hors du segment 1-2 
-               d=sqrt(b**2.+a**2.)                                        ! alors l'un des angles touchant b est superieur a 90deg dans ce cas
-               deltmx=abs(a-d)
-               if (delta.gt.deltmx) dmin=c                                ! on prendra le plus petit cote entre c et a
-             else 
-               d=sqrt(b**2.+c**2.)
-               deltmx=abs(c-d)
-               if (delta.gt.deltmx) dmin=a                                           
-             endif                                                             
-             if (dmin.le.effet) then      
-               if (ncell.gt.600) then
-                 stepdi=stepdi+1
-c                 print*,' Set step of scattering to:',stepdi,ncell
+            if (d.le.dmin+effet) then
+               if (ncell.gt.n2nd) then
+                 if (nexp/(stepdi*2).gt.n2nd) then
+                   dstep=dstep*2
+                 else
+                   dstep=dstep-1
+                   if (dstep.lt.1) dstep=1
+                 endif
+                 stepdi=stepdi+dstep
+c        print*,' Set step of scattering to:',stepdi,ncell,nexp,dstep,
+c     +  ncell,neffet
                  goto 10
                endif
                if (keep.eq.0) then
@@ -108,13 +106,12 @@ c                 print*,' Set step of scattering to:',stepdi,ncell
                endif
                keep=keep+1
                if (keep.eq.stepdi) keep=0
-             endif
-           endif
+            endif
           endif                                                           ! fin condition au-dessus du sol
          enddo
         enddo
        enddo
-c       print*,d,d2,dmin,a,b,c,s,deltmx,delta,aire,cloudz
+       ncell=ncell-1
        print*,' 2nd order scat. cells and step = ',ncell,stepdi
        return
        end 

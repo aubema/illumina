@@ -211,6 +211,7 @@ c  suggested cloudbase per type: 9300.,9300.,4000.,1200.,1100.            ! 4=Cu
       real ix,iy,iz                                                       ! base vector of the viewing (length=1)
       real dsc2,doc2                                                      ! square of the path lengths for the cloud contribution
       real azcl1,azcl2                                                    ! zenith angle from the (source, refl surface, or scattering voxel) to line of path and observer to line p.
+      integer n2nd                                                        ! desired number of voxel in the calculation of the 2nd scattering
       verbose=2                                                           ! Very little printout=0, Many printout = 1, even more=2
       diamobj=1.                                                          ! A dummy value for the diameter of the objective of the instrument used by the observer.
       volu=0.
@@ -253,7 +254,8 @@ c reading of the fichier d'entree (illumina.in)
       if (ssswit.eq.0) then
         effdif=0.
       else
-        effdif=8000.
+        effdif=5000.
+        n2nd=200
       endif
 c determining the vertical scale
       call verticalscale(dx,cthick,cellh)
@@ -937,7 +939,7 @@ c ******************************************************************************
                                           itodif=0.                       ! Initialisation of the scattered intensity by a source to line of sight 
 c determination of the scattering voxels, the reflection surface and the line of sight voxel
       call zone_diffusion(x_sr,y_sr,z_sr,x_c,y_c,zcellc,dx,dy,
-     +effdif,nbx,nby,altsol,cloudz,zondif,ndiff,stepdi)
+     +effdif,nbx,nby,altsol,cloudz,zondif,ndiff,stepdi,n2nd)
       do idi=1,ndiff                                                      ! beginning of the loop over the scattering voxels.
         x_dif=zondif(idi,1)
         rx_dif=real(x_dif)*dx
