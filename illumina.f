@@ -254,8 +254,9 @@ c reading of the fichier d'entree (illumina.in)
         effdif=5000.
         n2nd=200
       endif
-      if (verbose.eq.2) then
+      if (verbose.gt.1) then
           print*,'2nd order scattering radius=',effdif,'m'
+          print*,'Pixel size = ',dx,' x ',dy
       endif
 c determining the vertical scale
       call verticalscale(dx,cthick,cellh)
