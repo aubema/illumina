@@ -70,8 +70,8 @@ c=======================================================================
 c     Variables declaration
 c=======================================================================
 c
-      integer width,height                                                ! Matrix dimension in Length/width and height
-      parameter (width=1024,height=1024)
+      integer width,height,nzon                                           ! Matrix dimension in Length/width and height
+      parameter (width=1024,height=1024,nzon=256)
       integer iun,ideux
       real pi,pix4
       integer verbose                                                     ! verbose = 1 to have more print out, 0 for silent
@@ -98,9 +98,9 @@ c
       real Hmin                                                           ! Minimum ground elevation of the modeling domain
       integer stype                                                       ! Source type or zone index
       character*72 pafile,lufile,alfile,ohfile,odfile,offile              ! Files related to light sources and obstacles (photometric function of the sources (sr-1), flux (W), height (m), obstacles c                                                               ! height (m), obstacle distance (m), obstacle filling factor (0-1).
-      real lamplu(width,width,120)                                        ! Source fluxes
+      real lamplu(width,width,nzon)                                       ! Source fluxes
       real lampal(width,width)                                            ! Height of the light sources relative to the ground (meter)
-      real pval(181,120),pvalto,pvalno(181,120)                           ! Values of the angular photometry functions (unnormalized, integral, normalized)
+      real pval(181,nzon),pvalto,pvalno(181,nzon)                         ! Values of the angular photometry functions (unnormalized, integral, normalized)
       real dtheta                                                         ! Angle increment of the photometric function of the sources
       real dx,dy,dxp,dyp                                                  ! Width of the voxel (meter)
       integer boxx,boxy                                                   ! reflection window size (pixels)
@@ -175,13 +175,13 @@ c                                                                         ! Usef
 c                                                                         ! a light ray cannot propagate because it is blocked by a sub-grid obstable
       real ofill(width,width)                                             ! fill factor giving the probability to hit an obstacle when pointing in its direction integer 0-100
       integer naz,na
-      real ITT(width,width,120)                                           ! total intensity per type of lamp
+      real ITT(width,width,nzon)                                          ! total intensity per type of lamp
       real ITC(width,width)                                               ! total intensity per line of sight voxel
       real FTC(width,width)                                               ! fraction of the total flux at the sensor level
       real FCA(width,width)                                               ! sensor flux array
       real lpluto(width,width)                                            ! total luminosity of the ground cell for all lamps
       character*3 lampno                                                  ! lamp number string
-      integer imin(120),imax(120),jmin(120),jmax(120)                     ! x and y limits of the zone containing a type of lamp
+      integer imin(nzon),imax(nzon),jmin(nzon),jmax(nzon)                 ! x and y limits of the zone containing a type of lamp
       real angazi                                                         ! azimuth angle between two points in rad, max dist for the horizon determination
       real latitu                                                         ! approximate latitude of the domain center
       integer prmaps                                                      ! flag to enable the tracking of contribution and sensitivity maps
@@ -196,7 +196,7 @@ c  suggested cloudbase per type: 9300.,9300.,4000.,1200.,1100.            ! 4=Cu
       real fccld                                                          ! correction for the FOV to the flux reaching the intrument from the cloud voxel
       real fctcld                                                         ! total flux from cloud at the sensor level
       real dmin                                                           ! minimum distance between a voxel and a line of sight
-      real totlu(120)                                                     ! total flux of a source type
+      real totlu(nzon)                                                    ! total flux of a source type
       real stoplim                                                        ! Stop computation when the new voxel contribution is less than 1/stoplim of the cumulated flux
       real ff,hh                                                          ! temporary obstacle filling factor and horizon blocking factor
       real cloudbase                                                      ! cloud base altitude (m)
@@ -325,7 +325,7 @@ c determine the layer of the cloudbase (cloudz)
             ITC(i,j)=0.
             FTC(i,j)=0.
             FCA(i,j)=0.
-            do k=1,120
+            do k=1,nzon
               lamplu(i,j,k)=0.
               lampal(i,j)=0.
               ITT(i,j,k)=0.
@@ -336,7 +336,7 @@ c determine the layer of the cloudbase (cloudz)
           fdifa(i)=0.
           fdifan(i)=0.
           anglea(i)=0.
-          do j=1,120
+          do j=1,nzon
             pval(i,j)=0.
             pvalno(i,j)=0.
           enddo
@@ -402,13 +402,13 @@ c of the sources, obstacle height and distance
         alfile=basenm(1:lenbase)//'_altlp.bin'                            ! setting the file name of height of the sources lumineuse.
         offile=basenm(1:lenbase)//'_obstf.bin'
         dtheta=.017453293                                                 ! one degree
-        do stype=1,ntype                                                  ! beginning of the loop 1 for the 120 types of sources.
+        do stype=1,ntype                                                  ! beginning of the loop 1 for the nzon types of sources.
           imin(stype)=nbx
           jmin(stype)=nby
           imax(stype)=1
           jmax(stype)=1
           pvalto=0.
-          write(lampno, '(I3.3)' ) stype                                  ! support of 120 different sources (3 digits)
+          write(lampno, '(I3.3)' ) stype                                  ! support of nzon different sources (3 digits)
           pafile=basenm(1:lenbase)//'_fctem_'//lampno//'.dat'             ! setting the file name of angular photometry.
           lufile=basenm(1:lenbase)//'_lumlp_'//lampno//'.bin'             ! setting the file name of the luminosite of the cases.
 c reading photometry files
@@ -479,7 +479,7 @@ c reading luminosity files
               totlu(stype)=totlu(stype)+lamplu(i,j,stype)                 ! the total lamp flux should be non-null to proceed to the calculations
             enddo                                                         ! end of the loop over all cells along y.
           enddo                                                           ! end of the loop over all cells along x.
-        enddo                                                             ! end of the loop 1 over the 120 types of sources.
+        enddo                                                             ! end of the loop 1 over the nzon types of sources.
 c reading lamp heights
         call twodin(nbx,nby,alfile,val2d)
         do i=1,nbx                                                        ! beginning of the loop over all cells along x.
