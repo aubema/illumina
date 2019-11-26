@@ -212,7 +212,7 @@ c  suggested cloudbase per type: 9300.,9300.,4000.,1200.,1100.            ! 4=Cu
       verbose=2                                                           ! Very little printout=0, Many printout = 1, even more=2
       diamobj=1.                                                          ! A dummy value for the diameter of the objective of the instrument used by the observer.
       volu=0.
-      dmin=50.
+      dmin=200.
       ff=0.
       ncible=1024 
       stepdi=1
