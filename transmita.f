@@ -53,7 +53,7 @@ c
         transa=exp((log(tranaa)/abs(cos(angz)))*(exp(-1.*z1/2000.)-
      +  exp(-1.*z2/2000.)))
       else
-        transa=exp((log(tranaa)/abs(cos(angz)))*exp(-1.*z1/2000.)*distd)  
+        transa=exp((log(tranaa))*exp(-1.*z1/2000.)*distd)  
       endif
          if (transa.eq.0.) then
             print*,'ERREUR transa - no transmission',z_i,z_f,airm

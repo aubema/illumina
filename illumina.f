@@ -178,7 +178,6 @@ c                                                                         ! a li
       real ITT(width,width,120)                                           ! total intensity per type of lamp
       real ITC(width,width)                                               ! total intensity per line of sight voxel
       real FTC(width,width)                                               ! fraction of the total flux at the sensor level
-      real FTCN(width,width)                                              ! fraction of the total flux at the sensor level normalized per unit of watt
       real FCA(width,width)                                               ! sensor flux array
       real lpluto(width,width)                                            ! total luminosity of the ground cell for all lamps
       character*3 lampno                                                  ! lamp number string
@@ -318,12 +317,13 @@ c determine the layer of the cloudbase (cloudz)
           do j=1,width
             val2d(i,j)=0.
             altsol(i,j)=0.
+            obsH(i,j)=0.
+            ofill(i,j)=0.
             inclix(i,j)=0.
             incliy(i,j)=0.
             lpluto(i,j)=0.
             ITC(i,j)=0.
             FTC(i,j)=0.
-            FTCN(i,j)=0.
             FCA(i,j)=0.
             do k=1,120
               lamplu(i,j,k)=0.
@@ -665,6 +665,7 @@ c beginning of the loop over the types of light sources
                   itotind=0.
                   itodif=0.
                   itotrd=0.
+                  isourc=0.
                         rx_s=real(x_s)*dx
                         ry_s=real(y_s)*dy
                         if (lamplu(x_s,y_s,stype) .ne. 0.) then           ! if the luminosite of the case is null, the program ignore this case.
@@ -779,7 +780,7 @@ c contribution of the cloud reflexion of the light coming directly from the sour
      +                            cloudt,rcloud)
                                   icloud=icloud+
      +                            fldir/omega*rcloud*doc2*omefov*
-     +                            cos(azcl2)/cos(azcl1)/dsc2/pi
+     +                            abs(cos(azcl2)/cos(azcl1))/dsc2/pi
                                 endif
                               endif
                             endif                                         ! end of the case Position Source is not equal to the line of sight voxel position
@@ -892,6 +893,10 @@ c computation of the solid angle of the reflecting cell seen from the source
                                         call anglesolide(omega,r1x,       ! Call of the routine anglesolide to compute the angle solide.
      +                                  r1y,r1z,r2x,r2y,r2z,r3x,r3y,
      +                                  r3z,r4x,r4y,r4z)
+         if (omega.lt.0.) then
+           print*,'ERROR: Solid angle of the reflecting surface < 0.'
+           stop
+         endif
 c estimation of the half of the underlying angle of the solid angle       ! this angle servira a obtenir un meilleur isime (moyenne) of
 c                                                                         ! P_dir for le cas of grans solid angles the , pvalno varie significativement sur +- ouvang.
                                         ouvang=sqrt(omega/pi)             ! Angle in radian.
@@ -1014,6 +1019,10 @@ c cell unitaire
               pdifd1=0.
             endif
             volu=cthick(zceldi)*dx*dy
+            if (volu.lt.0.) then
+              print*,'ERROR, volume 2 is negative!'
+              stop
+            endif
 c computing scattered intensity toward the line of sight voxel from the scattering voxel
             idif2=fldif2*pdifd1*volu
 c computing zenith angle between the scattering voxel and the line of sight voxel
@@ -1056,7 +1065,7 @@ c cloud contribution for double scat from a reflecting pixel
      +                            cloudt,rcloud)
                                   icloud=icloud+
      +                            fldif2/omega*rcloud*doc2*omefov*
-     +                            cos(azcl2)/cos(azcl1)/dsc2/pi
+     +                            abs(cos(azcl2)/cos(azcl1))/dsc2/pi
                                 endif
                               endif
 c computation of the scattering probability of the scattered light toward the observer voxel (exiting voxel_c)
@@ -1148,6 +1157,10 @@ c computing the scattering probability toward the line of sight voxel
                                       pdifd1=0.
                                     endif
                                     volu=cthick(zceldi)*dx*dy
+                                if (volu.lt.0.) then
+                                  print*,'ERROR, volume 1 is negative!'
+                                  stop
+                                endif
 c computing scattered intensity toward the line of sight voxel from the scattering voxel
                                     idif1=fldif1*pdifd1*volu
 c computing zenith angle between the scattering voxel and the line of sight voxel
@@ -1193,7 +1206,7 @@ c cloud contribution to the double scattering from a source
      +                            cloudt,rcloud)
                                   icloud=icloud+
      +                            fldiff/omega*rcloud*doc2*omefov*
-     +                            cos(azcl2)/cos(azcl1)/dsc2/pi
+     +                            abs(cos(azcl2)/cos(azcl1))/dsc2/pi
                                 endif
                               endif
 c computation of the scattering probability of the scattered light toward the observer voxel (exiting voxel_c)
@@ -1212,8 +1225,6 @@ c computing scattered intensity toward the observer from the line of sight voxel
                                     idiff2=fldiff*pdifd2
                                     idiff2=idiff2*real(stepdi)            ! Correct the result for the skipping of 2nd scattering voxels to accelerate the calculation
                                     itodif=itodif+idiff2                  ! sum over the scattering voxels
-c             print*,'itodif',itodif,idiff2,stepdi,fldiff,pdifd2 
-
             endif                                                         ! end condition source = reflection for the computation of the source scat line of sight
           endif                                                           ! end of the case scattering = Source or line of sight voxel
         endif                                                             ! end of the condition "voxel of the domain".
@@ -1287,7 +1298,7 @@ c cloud contribution to the reflected light from a ground pixel
      +                            cloudt,rcloud)
                                   icloud=icloud+
      +                            flindi/omega*rcloud*doc2*omefov*
-     +                            cos(azcl2)/cos(azcl1)/dsc2/pi
+     +                            abs(cos(azcl2)/cos(azcl1))/dsc2/pi
                                 endif
                               endif
 c computation of the scattering probability of the reflected light
@@ -1329,6 +1340,10 @@ c                            isourc=isourc+icloud
        print*,' source->reflexion->scattering=',itotind
        print*,' source->scattering->scattering=',itodif
        print*,' source->reflexion->scattering->scattering=',itotrd
+       if (intdir*itotind*itodif*itotrd.lt.0.) then
+         print*,'PROBLEM! Negative intensity.'
+         stop
+       endif
 
                             endif
 c**********************************************************************
@@ -1417,7 +1432,8 @@ c computation of the flux reaching the intrument from the cloud voxel
               enddo
             enddo
             if (verbose.eq.2) then
-              print*,'Writing normalized contribution matrix'
+              print*,'Writing normalized contribution array'
+              print*,'Warning Cloud contrib. excluded from that array.'
             endif
             do x_s=1,nbx
               do y_s=1,nby

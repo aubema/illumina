@@ -67,14 +67,29 @@ c                                                                         ! la d
 
       pdif = prob_a+prob_m                                                ! Ce calcul est approximatif et bon seulement si 1-transa et
                                                                           ! 1-transm sont tres petits.
+      if (prob_a.gt.1.) then
+         print*,'prob_a>1.'
+         stop
+      endif
+      if (prob_a.lt.0.) then
+         print*,'prob_a<0..'
+         stop
+      endif
+      if (prob_m.gt.1.) then
+         print*,'prob_m>1.'
+         stop
+      endif
+      if (prob_m.lt.0.) then
+         print*,'prob_m<0..'
+         stop
+      endif      
       if (pdif.gt.1.) then
          print*,'prob>1.',pdif,prob_a,prob_m,tranaa,tranam,altit,distd,
      +omega,omega*prob_a
-c         stop
+         stop
       endif
-
       if (pdif.lt.0.) then
-         print*,'Pdif=',pdif,prob_a,prob_m
+         print*,'prob<0.',pdif,prob_a,prob_m
          stop
       endif
        
