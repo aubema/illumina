@@ -74,6 +74,7 @@ c
       parameter (width=1024,height=1024,nzon=256)
       integer iun,ideux
       real pi,pix4
+      real un                                                             ! value of 1.
       integer verbose                                                     ! verbose = 1 to have more print out, 0 for silent
       parameter (pi=3.1415926)
       parameter (pix4=4.*pi)
@@ -212,7 +213,7 @@ c  suggested cloudbase per type: 9300.,9300.,4000.,1200.,1100.            ! 4=Cu
       verbose=2                                                           ! Very little printout=0, Many printout = 1, even more=2
       diamobj=1.                                                          ! A dummy value for the diameter of the objective of the instrument used by the observer.
       volu=0.
-      dmin=200.
+      un=1.
       ff=0.
       ncible=1024 
       stepdi=1
@@ -245,6 +246,7 @@ c reading of the fichier d'entree (illumina.in)
         read(1,*) cloudt, cloudbase
         read(1,*) 
       close(1)
+      dmin=20.                                                            ! minimal distance to the reflecting surface
       if (ssswit.eq.0) then
         effdif=0.
       else
@@ -610,6 +612,7 @@ c observer.
      +      (ry_c-ry_obs)**2.+(z_c-z_obs)**2.)
 c computation of the Solid angle of the line of sight voxel seen from the observer
             omega=1./distd**2.
+            if (omega.gt.1.) omega=0.
             portio=(omefov/omega)   
 c            if (fcapt.eq.1.) fcapt=0.
               itotci=0.                                                   ! Initialisation of the contribution of the line of sight at the sensor level
@@ -723,6 +726,7 @@ c computation of the transmittance between the source and the line of sight
      +                        transa,tranaa)
 c computation of the solid angle of the line of sight voxel seen from the source
                               omega=1./distd**2.
+                              if (omega.gt.1.) omega=0.
 c estimation of the half of the underlying angle of the solid angle       ! this angle is used to get a better estimate (average) of
 c                                                                         ! P_dir for le cas of grans solid angles the ou pvalno varie significativement sur +- ouvang.
                               ouvang=sqrt(omega/pi)                       ! Angle in radian.
@@ -752,13 +756,12 @@ c computation of the flux direct reaching the line of sight voxel
      +                        omega*transm*transa*(1.-ff)*hh              ! correction for obstacle filling factor
 c computation of the scattering probability of the direct light
 c distance pour traverser la cellule unitaire parfaitement orientée
-                              distd=1.
                               call angle3points (rx_s,ry_s,z_s,rx_c,      ! scattering angle.
      +                        ry_c,z_c,rx_obs,ry_obs,z_obs,
      +                        angdif)
                               if (omega.ne.0.) then
                                 call diffusion(angdif,                    ! scattering probability of the direct light.
-     +                          tranam,tranaa,secdif,distd,fdifan,
+     +                          tranam,tranaa,secdif,un,fdifan,
      +                          pdifdi,z_c)
                               else
                                 pdifdi=0.
@@ -997,6 +1000,7 @@ c computation of the transmittance between the reflection surface and the scatte
             call transmita(angzen,z_sr,z_dif,distd,transa,tranaa)
 c computation of the solid angle of the scattering voxel seen from the reflecting surface
             omega=1./distd**2.
+            if (omega.gt.1.) omega=0.
 c oups omega depasse pi et va meme jusqu a 6.26 ->ok c'est normal puisque on observe a peu pres la demi sphere
             if (omega.gt.2.*pi) then
               if (verbose.ge.1) print*,'omega=',omega
@@ -1009,11 +1013,10 @@ c computing flux reaching the scattering voxel
             fldif2=irefl1*omega*transm*transa*(1.-ff)*hh
 c computing the scattering probability toward the line of sight voxel
 c cell unitaire
-            distd=1.
             call angle3points (rx_sr,ry_sr,z_sr,rx_dif,ry_dif,z_dif,      ! scattering angle.
      +      rx_c,ry_c,z_c,angdif)
             if (omega.ne.0.) then 
-              call diffusion(angdif,tranam,tranaa,distd,secdif,           ! scattering probability of the direct light.
+              call diffusion(angdif,tranam,tranaa,un,secdif,              ! scattering probability of the direct light.
      +        fdifan,pdifd1,z_dif)
             else
               pdifd1=0.
@@ -1044,12 +1047,9 @@ c computing transmittance between the scattering voxel and the line of sight vox
             call transmita(angzen,z_dif,z_c,distd,transa,tranaa)
 c computing the solid angle of the line of sight voxel as seen from the scattering voxel
             omega=1./distd**2.
+            if (omega.gt.1.) omega=0.
 c computation of the scattered flux reaching the line of sight voxel
-            if (distd.lt.dmin) then                                       ! forbid voxels too close to the line of sight
-               fdif2=0.
-            else
             fdif2=idif2*omega*transm*transa*(1.-ff)*hh
-            endif
 c cloud contribution for double scat from a reflecting pixel
                               if (cloudt.ne.0) then                       ! line of sight voxel = cloud
                                 if (cloudbase-z_c.le.iz*scal) then
@@ -1069,11 +1069,10 @@ c cloud contribution for double scat from a reflecting pixel
                                 endif
                               endif
 c computation of the scattering probability of the scattered light toward the observer voxel (exiting voxel_c)
-            distd=1.
             call angle3points(rx_dif,ry_dif,z_dif,rx_c,ry_c,z_c,          ! scattering angle.
      +      rx_obs,ry_obs,z_obs,angdif)
             if (omega.ne.0.) then 
-              call diffusion(angdif,tranam,tranaa,distd,secdif,           ! scattering probability of the direct light.
+              call diffusion(angdif,tranam,tranaa,un,secdif,              ! scattering probability of the direct light.
      +        fdifan,pdifd2,z_c)
             else
               pdifd2=0.
@@ -1112,6 +1111,7 @@ c computation of the transmittance between the source and the scattering voxel
      +                              distd,transa,tranaa)
 c computation of the Solid angle of the scattering unit voxel seen from the source
                                     omega=1./distd**2.
+                                    if (omega.gt.1.) omega=0.
 c estimation of the subtended angle of the solid angle                    ! this angle will allow a better estimate (average) of
 c                                                                         ! P_dir for the case of large solid angles when pvalno
 c                                                                         ! vary significatively in +- ouvang.
@@ -1145,13 +1145,12 @@ c computing flux reaching the scattering voxel
      +                              omega*transm*transa*(1.-ff)*hh
                        endif
 c computing the scattering probability toward the line of sight voxel
-                                    distd=1.
                                     call angle3points (rx_s,ry_s,z_s,     ! scattering angle.
      +                              rx_dif,ry_dif,z_dif,rx_c,ry_c,z_c,
      +                              angdif)
                                     if (omega.ne.0.) then 
                                       call diffusion(angdif,              ! scattering probability of the direct light.
-     +                                tranam,tranaa,distd,secdif,
+     +                                tranam,tranaa,un,secdif,
      +                                fdifan,pdifd1,z_dif)
                                     else
                                       pdifd1=0.
@@ -1188,6 +1187,7 @@ c Computing transmittance between the scattering voxel and the line of sight vox
      +                              distd,transa,tranaa)
 c computing the solid angle of the line of sight voxel as seen from the scattering voxel
                                     omega=1./distd**2.
+                                    if (omega.gt.1.) omega=0.
 c computation of the scattered flux reaching the line of sight voxel
                                     fldiff=idif1*omega*transm*transa*(1.
      +                              -ff)*hh
@@ -1210,13 +1210,12 @@ c cloud contribution to the double scattering from a source
                                 endif
                               endif
 c computation of the scattering probability of the scattered light toward the observer voxel (exiting voxel_c)
-                                    distd=1.
                                     call angle3points(rx_dif,ry_dif,      ! scattering angle.
      +                              z_dif,rx_c,ry_c,z_c,rx_obs,ry_obs,
      +                              z_obs,angdif)
                                     if (omega.ne.0.) then 
                                       call diffusion(angdif,              ! scattering probability of the direct light.
-     +                                tranam,tranaa,distd,secdif,
+     +                                tranam,tranaa,un,secdif,
      +                                fdifan,pdifd2,z_c)
                                     else
                                       pdifd2=0.
@@ -1225,8 +1224,15 @@ c computing scattered intensity toward the observer from the line of sight voxel
                                     idiff2=fldiff*pdifd2
                                     idiff2=idiff2*real(stepdi)            ! Correct the result for the skipping of 2nd scattering voxels to accelerate the calculation
                                     itodif=itodif+idiff2                  ! sum over the scattering voxels
+                                    
+          if (itodif.gt.1.e-5) then                          
+            print*,'itodif=',itodif,idiff2,stepdi,fldiff,pdifd2
+            print*,idif1,omega,transm,transa,distd,'toto'
+            stop
+          endif
+                                    
             endif                                                         ! end condition source = reflection for the computation of the source scat line of sight
-          endif                                                           ! end of the case scattering = Source or line of sight voxel
+          endif                                                           ! end of the case scattering pos = Source pos or line of sight pos
         endif                                                             ! end of the condition "voxel of the domain".
       enddo                                                               ! end of the loop over the scattering voxels.
                                         endif                             ! end of the condition ou effdif > 0
@@ -1280,6 +1286,7 @@ c computation of the transmittance between the ground surface and the line of si
      +                                    z_c,distd,transa,tranaa)
 c computation of the solid angle of the line of sight voxel seen from the reflecting cell
                                           omega=1./distd**2.
+                                          if (omega.gt.1.) omega=0.
 c computation of the flux reflected reaching the line of sight voxel
                                           flindi=irefl*omega*transm*
      +                                    transa*(1.-ff)*hh               ! obstacles correction
@@ -1302,13 +1309,12 @@ c cloud contribution to the reflected light from a ground pixel
                                 endif
                               endif
 c computation of the scattering probability of the reflected light
-                                          distd=1.
                                           call angle3points(rx_sr,ry_sr,  ! scattering angle.
      +                                    z_sr,rx_c,ry_c,z_c,rx_obs,
      +                                    ry_obs,z_obs,angdif)
                                           if (omega.ne.0.) then 
                                             call diffusion(angdif,        ! scattering probability of the reflected light.
-     +                                      tranam,tranaa,distd,secdif,
+     +                                      tranam,tranaa,un,secdif,
      +                                      fdifan,pdifin,z_c)
                                           else
                                             pdifin=0.
@@ -1423,6 +1429,12 @@ c computation of the flux reaching the intrument from the cloud voxel
      +      (ftocap+fctcld)/omefov/(pi*(diamobj/2.)**2.)
               endif                                                       ! end of the condition line of sight voxel inside the modelling domain
           endif                                                           ! end condition line of sight voxel 1/stoplim
+          
+          
+c          if (icible.eq.7) stop
+
+          
+          
         enddo                                                             ! end of the loop over the line of sight voxels.
         if (prmaps.eq.1) then
           open(unit=9,file=pclf,status='unknown')

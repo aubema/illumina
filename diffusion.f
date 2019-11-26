@@ -31,12 +31,12 @@ c
 c    Contact: martin.aube@cegepsherbrooke.qc.ca
 c
 c
-      subroutine diffusion (angdif,tranam,tranaa,distd,secdif,
+      subroutine diffusion (angdif,tranam,tranaa,un,secdif,
      +   fonc_a,pdif,altit)
       real angdif,pdif,prob_a,prob_m,secdif 
       real fctmol,pi,fonc_a(181),fonc_ae
       real angdeg,tranam,tranaa
-      real altit,distd
+      real altit,un
       integer rang,na,naz
       parameter (pi=3.1415926)
 c--------------------------------------------------------
@@ -59,9 +59,9 @@ c     +/2000.
 c      prob_m=(1.-tranam)*exp(-1.*altit/8000.)*distd*fctmol/8000.               ! Fonc_ae normalisee dans le MAIN, fctmol dans la routine (voir 
 c                                                                         ! la division par 4 pi).
 
-      prob_a=(1.-exp(log(tranaa)*exp(-1.*altit/2000.)*distd/2000.))*        ! Les fonctions utilisees ici sont deja normalisees
+      prob_a=(1.-exp(log(tranaa)*exp(-1.*altit/2000.)*un/2000.))*        ! Les fonctions utilisees ici sont deja normalisees
      +secdif*fonc_ae
-      prob_m=(1.-exp(log(tranam)*exp(-1.*altit/8000.)*distd/8000.))*               ! Fonc_ae normalisee dans le MAIN, fctmol dans la routine (voir 
+      prob_m=(1.-exp(log(tranam)*exp(-1.*altit/8000.)*un/8000.))*               ! Fonc_ae normalisee dans le MAIN, fctmol dans la routine (voir 
      +fctmol                                                                    ! la division par 4 pi).
 
 
@@ -80,7 +80,7 @@ c                                                                         ! la d
          stop
       endif
       if (prob_m.lt.0.) then
-         print*,'prob_m<0..'
+         print*,'prob_m`¸^<0..'
          stop
       endif      
       if (pdif.gt.1.) then
