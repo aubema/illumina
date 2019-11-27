@@ -695,7 +695,7 @@ c ******************************************************************************
                           dirck=1
                           if (verbose.eq.2) then
                             if (verbose.ge.1) then
-                              print*,'Source inside of scat voxel'
+                              print*,'Source = scat voxel'
                             endif
                           endif
                         endif                                             ! end of the case positions x and y source and line of sight voxel identical.
