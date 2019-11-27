@@ -509,6 +509,17 @@ c reading subgrid obstacles filling factor
         do i=1,nbx                                                        ! beginning of the loop over all cells along x.
           do j=1,nby                                                      ! beginning of the loop over all cells along y.
             ofill(i,j)=val2d(i,j)                                         ! Filling of the array 0-1
+            
+            
+            
+            
+            
+            ofill(i,j)=0.
+            
+            
+            
+            
+            
           enddo                                                           ! end of the loop over all cells along y.
         enddo
 c reading of the scattering parameters
@@ -727,30 +738,8 @@ c computation of the transmittance between the source and the line of sight
 c computation of the solid angle of the line of sight voxel seen from the source
                               omega=1./distd**2.
                               if (omega.gt.1.) omega=0.
-c estimation of the half of the underlying angle of the solid angle       ! this angle is used to get a better estimate (average) of
-c                                                                         ! P_dir for le cas of grans solid angles the ou pvalno varie significativement sur +- ouvang.
-                              ouvang=sqrt(omega/pi)                       ! Angle in radian.
-                              ouvang=ouvang*180./pi                       ! Angle in degrees.
-c computation of the photometric function of the source toward the line of sight voxel
-                              anglez=nint(180.*angzen/pi)
-                              if (anglez.lt.0) anglez=-anglez
-                              if (anglez.gt.180) anglez=360-anglez
-                              anglez=anglez+1                             ! Transform the angle in integer degree into the position in the array.
-c average +- ouvang
-                              naz=0
-                              nbang=0.
-                              P_dir=0.
-                              do na=-nint(ouvang),nint(ouvang)
-                                naz=anglez+na+1
-                                if (naz.lt.0) naz=-naz
-                                if (naz.gt.181) naz=362-naz               ! symetric function
-                                if (naz.eq.0) naz=1
-                                P_dir=P_dir+pvalno(naz,stype)*abs(
-     +                          sin(pi*real(naz)/180.))/2.
-                                nbang=nbang+1.*abs(sin(pi*
-     +                          real(naz)/180.))/2.
-                              enddo
-                              P_dir=P_dir/nbang
+                              anglez=nint(180.*angzen/pi)+1
+                              P_dir=pvalno(anglez,stype)
 c computation of the flux direct reaching the line of sight voxel
                               fldir=lamplu(x_s,y_s,stype)*P_dir*
      +                        omega*transm*transa*(1.-ff)*hh              ! correction for obstacle filling factor
@@ -918,7 +907,7 @@ c average +- ouvang
                                         nbang=0.
                                         P_indir=0.
                                         do na=-nint(ouvang),nint(ouvang)
-                                          naz=anglez+na+1
+                                          naz=anglez+na
                                           if (naz.lt.0) naz=-naz
                                           if (naz.gt.181) naz=362-naz     ! symetric function
                                           if (naz.eq.0) naz=1
@@ -934,7 +923,6 @@ c computation of the flux reaching the reflecting surface
      +                                  P_indir*omega*transm*transa
 c computation of the reflected intensity leaving the ground surface
                                         irefl1=flrefl*srefl/pi            ! The factor 1/pi comes from the normalisation of the fonction
-
 c
 c
 c
@@ -1112,31 +1100,8 @@ c computation of the transmittance between the source and the scattering voxel
 c computation of the Solid angle of the scattering unit voxel seen from the source
                                     omega=1./distd**2.
                                     if (omega.gt.1.) omega=0.
-c estimation of the subtended angle of the solid angle                    ! this angle will allow a better estimate (average) of
-c                                                                         ! P_dir for the case of large solid angles when pvalno
-c                                                                         ! vary significatively in +- ouvang.
-                                    ouvang=sqrt(omega/pi)                 ! Angle in radian.
-                                    ouvang=ouvang*180./pi                 ! Angle in degrees.
-c computing emission function of the source toward the scattering voxel
-                                    anglez=nint(180.*angzen/pi)
-                                    if (anglez.lt.0) anglez=-anglez
-                                    if (anglez.gt.180) anglez=360-anglez
-                                    anglez=anglez+1                       ! Transform the angle in degree integer into position inside the array.
-c  average over +- ouvang
-                                    naz=0
-                                    nbang=0.
-                                    P_dif1=0.
-                                    do na=-nint(ouvang),nint(ouvang)
-                                      naz=anglez+na+1
-                                      if (naz.lt.0) naz=-naz
-                                      if (naz.gt.181) naz=362-naz         ! symetric function
-                                      if (naz.eq.0) naz=1
-                                      P_dif1=P_dif1+pvalno(naz,stype)*
-     +                                abs(sin(pi*real(naz)/180.))/2.
-                                      nbang=nbang+1.*abs(sin(pi*
-     +                                real(naz)/180.))/2.
-                                    enddo
-                                    P_dif1=P_dif1/nbang
+                                    anglez=nint(180.*angzen/pi)+1
+                                    P_dif1=pvalno(anglez,stype)
 c computing flux reaching the scattering voxel
                        if (distd.lt.dmin) then                            ! forbid voxels too close to the line of sight
                            fldif1=0.
@@ -1266,7 +1231,7 @@ c verify if there is shadow between sr and line of sight voxel
 c case: line of sight position = Position of reflecting cell
                                         if((x_c.eq.x_sr).and.(y_c.eq.
      +                                  y_sr).and.(z_c.eq.z_sr)) then
-                                          intind=irefl*(1.-ff)*hh
+                                          intind=0.
                                         else
 c obstacle
                                           angmin=pi/2.-atan(obsH(x_sr,
