@@ -625,17 +625,16 @@ c computation of the Solid angle of the line of sight voxel seen from the observ
             omega=1./distd**2.
             if (omega.gt.1.) omega=0.
             portio=(omefov/omega)   
-c            if (fcapt.eq.1.) fcapt=0.
-              itotci=0.                                                   ! Initialisation of the contribution of the line of sight at the sensor level
-              do i=1,nbx
-                do j=1,nby
-                  ITC(i,j)=0.
-                enddo
+            itotci=0.                                                     ! Initialisation of the contribution of the line of sight at the sensor level
+            do i=1,nbx
+              do j=1,nby
+                ITC(i,j)=0.
               enddo
-              if( (rx_c.gt.real(nbx*dx)).or.(rx_c.lt.dx).or.              ! Condition line of sight inside the modelling domain
-     +        (ry_c.gt.(nby*dy)).or.(ry_c.lt.dy).or.(z_c.gt. 
-     +        (cellh(height))).or.(z_c.lt.0.)) then
-              else
+            enddo
+            if( (rx_c.gt.real(nbx*dx)).or.(rx_c.lt.dx).or.                ! Condition line of sight inside the modelling domain
+     +      (ry_c.gt.(nby*dy)).or.(ry_c.lt.dy).or.(z_c.gt. 
+     +      (cellh(height))).or.(z_c.lt.0.)) then
+            else
               if (verbose.ge.1) print*,'================================
      +================'
       if (verbose.ge.1) print*,' Progression along the line of sight :'
@@ -653,54 +652,54 @@ c            if (fcapt.eq.1.) fcapt=0.
       if (verbose.ge.1) write(2,*) ' Vertical dist. line of sight =',
      +z_c-z_obs,' m'
 
-                dis_obs=sqrt((z_c-z_obs)**2.+(ry_c-ry_obs)**2.
+              dis_obs=sqrt((z_c-z_obs)**2.+(ry_c-ry_obs)**2.
      +          +(rx_c-rx_obs)**2.)
-                if (dis_obs.eq.0.) then
-                  print*,'ERROR problem with dis_obs',dis_obs
-                  print*,rx_c,x_obs,y_c,y_obs,z_c,z_obs
-                  stop
-                endif
-                ometif=pi*(diamobj/2.)**2./dis_obs**2.
+              if (dis_obs.eq.0.) then
+                print*,'ERROR problem with dis_obs',dis_obs
+                print*,rx_c,x_obs,y_c,y_obs,z_c,z_obs
+                stop
+              endif
+              ometif=pi*(diamobj/2.)**2./dis_obs**2.
 c beginning of the loop over the types of light sources
-                do stype=1,ntype                                          ! beginning of the loop over the source types.
-                  if (totlu(stype).ne.0.) then                            ! check if there are any flux in that source type otherwise skip this lamp
-                    if (verbose.ge.1) print*,' Turning on zone',stype
-                    if (verbose.ge.1) write(2,*) ' Turning on zone',
-     +              stype
-                    itotty=0.                                             ! Initialisation of the contribution of a source types to
-                    do x_s=1,nbx                                          ! the intensity toward the sensor by a line of sight voxel.
-                      do y_s=1,nby
-                        ITT(x_s,y_s,stype)=0.
-                      enddo
-                    enddo 
-                    do x_s=imin(stype),imax(stype)                        ! beginning of the loop over the column (longitude the) of the domain.
-                      do y_s=jmin(stype),jmax(stype)                      ! beginning of the loop over the rows (latitud) of the domain.
-                  intdir=0.
-                  itotind=0.
-                  itodif=0.
-                  itotrd=0.
-                  isourc=0.
-                        rx_s=real(x_s)*dx
-                        ry_s=real(y_s)*dy
-                        if (lamplu(x_s,y_s,stype) .ne. 0.) then           ! if the luminosite of the case is null, the program ignore this case.
-                          z_s=(altsol(x_s,y_s)+lampal(x_s,y_s))           ! Definition of the position (metre) vertical of the source.
+              do stype=1,ntype                                            ! beginning of the loop over the source types.
+                if (totlu(stype).ne.0.) then                              ! check if there are any flux in that source type otherwise skip this lamp
+                  if (verbose.ge.1) print*,' Turning on zone',stype
+                  if (verbose.ge.1) write(2,*) ' Turning on zone',
+     +            stype
+                  itotty=0.                                               ! Initialisation of the contribution of a source types to
+                  do x_s=1,nbx                                            ! the intensity toward the sensor by a line of sight voxel.
+                    do y_s=1,nby
+                      ITT(x_s,y_s,stype)=0.
+                    enddo
+                  enddo 
+                  do x_s=imin(stype),imax(stype)                          ! beginning of the loop over the column (longitude the) of the domain.
+                    do y_s=jmin(stype),jmax(stype)                        ! beginning of the loop over the rows (latitud) of the domain.
+                      intdir=0.
+                      itotind=0.
+                      itodif=0.
+                      itotrd=0.
+                      isourc=0.
+                      rx_s=real(x_s)*dx
+                      ry_s=real(y_s)*dy
+                      if (lamplu(x_s,y_s,stype) .ne. 0.) then             ! if the luminosite of the case is null, the program ignore this case.
+                        z_s=(altsol(x_s,y_s)+lampal(x_s,y_s))             ! Definition of the position (metre) vertical of the source.
 c
 c *********************************************************************************************************
 c * computation of the direct intensity toward the observer by a line of sight voxel from the source      *
 c *********************************************************************************************************
 
-                            dirck=0                                       ! Initialisation of the verification of the position of the source
-                            if ((x_s.eq.x_c).and.(y_s.eq.y_c).and.        ! if the positions x and y of the source and the line of sight voxel are the
-     +                      (abs(z_s-z_c).lt.(cthick(zcellc)/2.)))        ! same then...
-     +                      then
-                              dirck=1
-                              if (verbose.eq.2) then
-                                if (verbose.ge.1) then
-                                  print*,'Source inside of scat voxel'
-                                endif
-                              endif
-                            endif                                         ! end of the case positions x and y source and line of sight voxel identical.
-                            if (dirck.ne.1) then                          ! the source is not at the line of sight voxel position
+                        dirck=0                                           ! Initialisation of the verification of the position of the source
+                        if ((x_s.eq.x_c).and.(y_s.eq.y_c).and.            ! if the position of the source and the line of sight voxel are the
+     +                  (z_s.eq.z_c))                                     ! same then...
+     +                  then
+                          dirck=1
+                          if (verbose.eq.2) then
+                            if (verbose.ge.1) then
+                              print*,'Source inside of scat voxel'
+                            endif
+                          endif
+                        endif                                             ! end of the case positions x and y source and line of sight voxel identical.
+                        if (dirck.ne.1) then                              ! the source is not at the line of sight voxel position
 c computation of the zenithal angle between the source and the line of sight
 c computation of the horizon for the resolved shadows direct              ! horizon resolution is 1 degree
                               call anglezenithal(rx_s,ry_s,z_s
@@ -775,7 +774,9 @@ c contribution of the cloud reflexion of the light coming directly from the sour
      +                            abs(cos(azcl2)/cos(azcl1))/dsc2/pi
                                 endif
                               endif
-                            endif                                         ! end of the case Position Source is not equal to the line of sight voxel position
+                        else
+                          intdir=0.
+                        endif                                             ! end of the case Position Source is not equal to the line of sight voxel position
 c end of the computation of the direct intensity
 c
 c
@@ -989,14 +990,6 @@ c computation of the transmittance between the reflection surface and the scatte
 c computation of the solid angle of the scattering voxel seen from the reflecting surface
             omega=1./distd**2.
             if (omega.gt.1.) omega=0.
-c oups omega depasse pi et va meme jusqu a 6.26 ->ok c'est normal puisque on observe a peu pres la demi sphere
-            if (omega.gt.2.*pi) then
-              if (verbose.ge.1) print*,'omega=',omega
-              stop 
-            elseif (omega.lt.0.) then
-              if (verbose.ge.1) print*,'omega=',omega
-              stop 
-            endif
 c computing flux reaching the scattering voxel
             fldif2=irefl1*omega*transm*transa*(1.-ff)*hh
 c computing the scattering probability toward the line of sight voxel
@@ -1067,7 +1060,7 @@ c computation of the scattering probability of the scattered light toward the ob
             endif
 c computing scattered intensity toward the observer from the line of sight voxel
             idif2p=fdif2*pdifd2
-            idif2p=idif2p*real(stepdi)                                       ! Correct the result for the skipping of 2nd scattering voxels to accelerate the calculation
+            idif2p=idif2p*real(stepdi)                                    ! Correct the result for the skipping of 2nd scattering voxels to accelerate the calculation
             itotrd=itotrd+idif2p
 c ********************************************************************************
 c *  section for the calculation of the 2nd scat from the source without reflexion
@@ -1077,10 +1070,22 @@ c computation of the zenithal angle between the source and the scattering voxel
 c shadow source-scattering voxel
                                     call anglezenithal(rx_s,ry_s,z_s,
      +                              rx_dif,ry_dif,z_dif,angzen)           ! computation of the zenithal angle source-scattering voxel.
-                                    call angleazimutal(rx_s,ry_s,rx_dif,     ! computation of the angle azimutal line of sight-scattering voxel
+                                    call angleazimutal(rx_s,ry_s,rx_dif,  ! computation of the angle azimutal line of sight-scattering voxel
      +                              ry_dif,angazi)
-                                    hh=1.                                 ! we assume the horizon is not a matter for the 2nd scat
-c sub-grid obstacles
+c horizon blocking
+                                    if (angzen.gt.pi/4.) then             ! 45deg. it is unlikely to have a 1km high mountain less than 1 km away
+                                      call horizon(x_s,y_s,z_s,dx,dy,
+     +                                nbx,nby,altsol,latitu,angzen,
+     +                                angazi,zhoriz)
+                                      if (angzen.lt.zhoriz) then          ! debut condition ombrage surface refl - diffuse
+                                        hh=1.
+                                      else
+                                        hh=0.
+                                      endif
+                                    else
+                                      hh=1.
+                                    endif
+
                                     angmin=pi/2.-atan((obsH(x_s,y_s)+
      +                              altsol(x_s,y_s)-z_s)/drefle(x_s,
      +                              y_s))
@@ -1103,12 +1108,8 @@ c computation of the Solid angle of the scattering unit voxel seen from the sour
                                     anglez=nint(180.*angzen/pi)+1
                                     P_dif1=pvalno(anglez,stype)
 c computing flux reaching the scattering voxel
-                       if (distd.lt.dmin) then                            ! forbid voxels too close to the line of sight
-                           fldif1=0.
-                       else
                                     fldif1=lamplu(x_s,y_s,stype)*P_dif1*
      +                              omega*transm*transa*(1.-ff)*hh
-                       endif
 c computing the scattering probability toward the line of sight voxel
                                     call angle3points (rx_s,ry_s,z_s,     ! scattering angle.
      +                              rx_dif,ry_dif,z_dif,rx_c,ry_c,z_c,
