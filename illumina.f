@@ -785,11 +785,11 @@ c contribution of the cloud reflexion of the light coming directly from the sour
                         else
                           intdir=0.
                         endif                                             ! end of the case Position Source is not equal to the line of sight voxel position
-        if (intdir.eq.0.) then
-        print*,'intdir',fldir,pdifdi,lamplu(x_s,y_s,stype),P_dir,omega
-     +  ,transa,transm,hh,(1.-ff),secdif,z_c
-        stop
-        endif
+c        if (intdir.eq.0.) then
+c    print*,'intdir',fldir,pdifdi,lamplu(x_s,y_s,stype),P_dir,omega
+c     +  ,transa,transm,hh,(1.-ff),secdif,z_c
+c        stop
+c        endif
 
 c end of the computation of the direct intensity
 c
