@@ -74,7 +74,7 @@ c
       parameter (width=1024,height=1024,nzon=256)
       integer iun,ideux
       real pi,pix4
-      real un                                                             ! value of 1.
+      real zero,un                                                        ! value of 0. and 1.
       integer verbose                                                     ! verbose = 1 to have more print out, 0 for silent
       parameter (pi=3.1415926)
       parameter (pix4=4.*pi)
@@ -214,6 +214,7 @@ c  suggested cloudbase per type: 9300.,9300.,4000.,1200.,1100.            ! 4=Cu
       verbose=2                                                           ! Very little printout=0, Many printout = 1, even more=2
       diamobj=1.                                                          ! A dummy value for the diameter of the objective of the instrument used by the observer.
       volu=0.
+      zero=0.
       un=1.
       ff=0.
       ncible=1024 
@@ -284,6 +285,20 @@ c cartesian, azim=0 toward east, 90 toward north, 180 toward west etc
       if (azim.ge.360.) azim=azim-360.
 c opening output file
       open(unit=2,file=outfile,status='unknown')
+c check if the observation angle is above horizon
+        angzen=pi/2.-angvis*pi/180.
+        call horizon(x_obs,y_obs,z_obs,dx,dy,nbx,nby,altsol,latitu,
+     +  angzen,angazi,zhoriz,dh)
+        if (angzen.gt.zhoriz) then                                         ! the line of sight is not below the horizon => we compute
+          print*,'PROBLEM! You try to observe below horizon'
+          print*,'No calculation will be made'
+          write(2,*) '            Sky radiance (W/str/m**2)          '
+          write(2,2001) zero
+          print*,'            Sky radiance (W/str/m**2)          '
+          print*,'                 0.0000'
+          close(2)        
+          stop
+        endif
         write(2,*) 'FILE USED:'
         write(2,*) mnaf,diffil
         print*,'Wavelength (nm):',lambda,

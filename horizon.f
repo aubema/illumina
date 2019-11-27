@@ -43,7 +43,7 @@ c
       b=6356752.3                                                         ! earth polar radius
       rterre=a**2.*b**2./((a*cos(lat))**2.+(b*sin(lat))**2.)
      + **(1.5)
-      angvis=90.-angz
+      angvis=90.-angz*180./pi
       hormin=pi/2.
       if (angvis.gt.0.5) then
         call lignevisee(x,y,z,dx,dy,angvis,anga,nbx,nby,                    ! Determination of the viewing line (line of sight voxels).
