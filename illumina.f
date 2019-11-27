@@ -595,7 +595,6 @@ c beginning of the loop over the line of sight voxels
         scal=100.
         fctcld=0.
         ftocap=0.                                                         ! Initialisation of the value of flux received by the sensor
-
         angvi1 = (pi*angvis)/180.
         angaz1 = (pi*azim)/180.
         ix = ( sin((pi/2.)-angvi1) ) * (cos(angaz1))                      ! viewing vector components
@@ -607,12 +606,6 @@ c beginning of the loop over the line of sight voxels
         x_c=nint(rx_c/dx)
         y_c=nint(ry_c/dy)
         do icible=1,ncible                                                ! beginning of the loop over the line of sight voxels
-          fcapt=0.
-          do i=1,nbx
-            do j=1,nby
-              FCA(i,j)=0.
-            enddo
-          enddo
           rx_c=rx_c+ix*scal
           ry_c=ry_c+iy*scal
           z_c=z_c+iz*scal  
@@ -620,6 +613,12 @@ c beginning of the loop over the line of sight voxels
             if (z_c.ge.cellh(nk)) zcellc=nk
           enddo
           if ((fcapt.ge.ftocap/stoplim).and.(z_c.lt.cloudbase)) then      ! stop the calculation of the viewing line when the increment is lower than 1/stoplim
+            fcapt=0.
+            do i=1,nbx
+              do j=1,nby
+                FCA(i,j)=0.
+              enddo
+            enddo
 c Calculate the solid angle of the line of sight voxel unit voxel 
 c (1 m^3) given the fixed FOV of the observer.
 c For line of sight voxel near the observer 
