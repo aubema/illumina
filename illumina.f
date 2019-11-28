@@ -70,15 +70,14 @@ c=======================================================================
 c     Variables declaration
 c=======================================================================
 c
-      integer width,height,nzon                                           ! Matrix dimension in Length/width and height
-      parameter (width=1024,height=1024,nzon=256)
+      integer width,nzon                                                  ! Matrix dimension in Length/width and height
+      parameter (width=1024,nzon=256)
       integer iun,ideux
       real pi,pix4
       real zero,un                                                        ! value of 0. and 1.
       integer verbose                                                     ! verbose = 1 to have more print out, 0 for silent
       parameter (pi=3.1415926)
       parameter (pix4=4.*pi)
-      real cthick(height)                                                 ! voxel thickness array (meter)
       character*72 mnaf                                                   ! Terrain elevation file
       character*72 diffil                                                 ! Aerosol file
       character*72 outfile                                                ! Results file
