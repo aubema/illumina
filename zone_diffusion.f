@@ -27,26 +27,25 @@ c
 c    Contact: martin.aube@cegepsherbrooke.qc.ca
 c
 c
-       subroutine zone_diffusion(x_1,y_1,z1,x_2,y_2,z_2,dx,dy,effet,
-     +         nbx,nby,alt_sol,cloudz,zondif,ncell,stepdi,n2nd)
-      integer width,height                                                ! Matrix dimension in Length/width and height
-      parameter (width=1024,height=1024)
-       integer x_1,y_1,x_2,y_2,z_2,nbx,nby,i,j,k
+      subroutine zone_diffusion(x1,y1,z1,x2,y2,z2,
+     +effet,alts,cloudbase,zondif,ncell,stepdi,dstep,n2nd,siz)
+       integer height                                                      ! Matrix dimension in Length/width and height
+       parameter (height=1024)
+       integer x_1,y_1,z_1,x_2,y_2,z_2,nbx,nby,i,j,k
        integer ncell,neffet,imin,imax,jmin,jmax,kmax
-       integer zondif(3000,4),keep,stepdi,cloudz,n2nd,dstep,nexp
-       real x1,y1,z1,x2,y2,z2,x0,y0,z0,alt_sol(width,width)
+       integer keep,stepdi,cloudz,n2nd,dstep
+       real x1,y1,z1,x2,y2,z2,x0,y0,z0,alts
        real dx,dy,effet,dmin,aire,a,b,c,s,delta,d,deltmx,d1,d2
-       real cell_t(height),cell_h(height)
-       call verticalscale(dx,cell_t,cell_h)                                ! define the vertical scale
-       neffet=nint(effet/(cell_t(1)))
+       real zondif(3000,3),siz
+       neffet=nint(effet/siz)
 
        
-c calcul de position en metre
-       x1=real(x_1)*dx
-       y1=real(y_1)*dy
-       x2=real(x_2)*dx
-       y2=real(y_2)*dy
-       z2=cell_h(z_2)
+c limits of the calculations loops
+       x_1=nint(x1/siz)
+       y_1=nint(y1/siz)
+       x_2=nint(x2/siz)
+       y_2=nint(y2/siz)
+       z_2=nint(z2/siz)+1
        if (x_1.le.x_2) then
          imin=x_1-neffet
          imax=x_2+neffet
@@ -55,7 +54,6 @@ c calcul de position en metre
          imax=x_1+neffet
        endif
        if (imin.lt.1) imin=1 
-       if (imax.gt.nbx) imax=nbx
        if (y_1.le.y_2) then
          jmin=y_1-neffet
          jmax=y_2+neffet
@@ -64,44 +62,39 @@ c calcul de position en metre
          jmax=y_1+neffet
        endif
        if (jmin.lt.1) jmin=1
-       if (jmax.gt.nby) jmax=nby
        kmax=z_2+neffet
-       if (kmax.gt.cloudz) then
-          kmax=cloudz
+       if (z2.gt.cloudbase) then
+          kmax=nint(cloudbase/siz)
        endif
-       nexp=((imax-imin+1)*(jmax-jmin+1))*(kmax-1)      
-       dstep=1
+       if (stepdi.eq.1) stepdi=(kmax-2)*(imax-imin)*(jmax-jmin)/n2nd
+       if (dstep.ne.1) dstep=dstep-1
  10    ncell=0
        keep=0
-
+c       print*,imin,imax,jmin,jmax,kmax,x1,x2,y1,y2,x_1,x_2,y_1,y_2
+c       print*,neffet,effet
+c       stop
        do i=imin,imax
         do j=jmin,jmax
          do k=2,kmax                                                      ! forbid an artefact coming from source too close to the voxel (2 is the minimum)
-          x0=real(i)*dx
-          y0=real(j)*dy
-          z0=cell_h(k)
+          x0=real(i)*siz
+          y0=real(j)*siz
+          z0=real(k)*siz
           d1=sqrt((x1-x0)**2.+(y1-y0)**2.+(z1-z0)**2.)
           d2=sqrt((x2-x0)**2.+(y2-y0)**2.+(z2-z0)**2.)
           d=d1+d2
           dmin=sqrt((x1-x2)**2.+(y1-y2)**2.+(z1-z2)**2.)
-          if (z0.gt.alt_sol(i,j)) then
+          if (z0.gt.alts) then
             if (d.le.dmin+effet) then
                if (ncell.gt.n2nd) then
-                 if (nexp/(stepdi*2).gt.n2nd) then
-                   dstep=dstep*2
-                 else
-                   dstep=dstep-1
-                   if (dstep.lt.1) dstep=1
-                 endif
                  stepdi=stepdi+dstep
-c        print*,' Set step of scattering to:',stepdi,ncell,nexp,dstep,
-c     +  ncell,neffet
+                 dstep=dstep*2
+c        print*,' Set step of scattering to:',stepdi,dstep
                  goto 10
-               endif
+                endif
                if (keep.eq.0) then
-                  zondif(ncell,1)=i                                   
-                  zondif(ncell,2)=j 
-                  zondif(ncell,3)=k
+                  zondif(ncell,1)=x0                                   
+                  zondif(ncell,2)=y0 
+                  zondif(ncell,3)=z0
                   ncell=ncell+1
                endif
                keep=keep+1

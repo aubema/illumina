@@ -79,7 +79,6 @@ c
       parameter (pi=3.1415926)
       parameter (pix4=4.*pi)
       real cthick(height)                                                 ! voxel thickness array (meter)
-      real cellh(height)                                                  ! voxel height array (meter)
       character*72 mnaf                                                   ! Terrain elevation file
       character*72 diffil                                                 ! Aerosol file
       character*72 outfile                                                ! Results file
@@ -110,12 +109,12 @@ c
       real secdif                                                         ! Contribution of the scattering to the extinction
       real inclix(width,width)                                            ! tilt of the ground pixel along x (radian)
       real incliy(width,width)                                            ! tilt of the ground pixel along y (radian)
-      integer x_obs,y_obs,zcello                                          ! Position of the observer (INTEGER)
+      integer x_obs,y_obs                                                 ! Position of the observer (INTEGER)
       real rx_obs,ry_obs
       real z_o                                                            ! observer height relative to the ground (meter)
       real z_obs                                                          ! Height of the observer (meter) to the vertical grid scale
       integer ncible,icible                                               ! Number of line of sight voxels, number loops over the voxels
-      integer x_c,y_c,zcellc                                              ! Position of the line of sight voxel (INTEGER)
+      integer x_c,y_c                                                     ! Position of the line of sight voxel (INTEGER)
       real rx_c,ry_c
       real z_c                                                            ! Height of the line of sight voxel (meter)
       integer dirck                                                       ! Test for the position of the source (case source=line of sight voxel)
@@ -155,7 +154,7 @@ c
       real flrefl                                                         ! flux reaching a reflecting surface (watts).
       real irefl,irefl1                                                   ! intensity leaving a reflecting surface toward the line of sight voxel.
       real effdif                                                         ! Distance around the source voxel and line of sight voxel considered to compute the 2nd order of scattering.
-      integer zondif(3000,4)                                              ! Array for the scattering voxels, the 4th column represents the nearest integer value of the distance (en metre) to the line of single scattering.
+      real zondif(3000,3)                                                 ! Array for the scattering voxels positions
       integer ndiff,idi                                                   ! Number of scattering voxels, counter of the loop over the scattering voxels
       integer stepdi                                                      ! scattering step to speedup the calculation e.g. if =2 one computation over two will be done
       integer ssswit                                                      ! activate double scattering (1=yes, 0=no)
@@ -188,7 +187,6 @@ c                                                                         ! a li
       integer prmaps                                                      ! flag to enable the tracking of contribution and sensitivity maps
       integer cloudt                                                      ! cloud type 0=clear, 1=Thin Cirrus/Cirrostratus, 2=Thick Cirrus/Cirrostratus, 3=Altostratus/Altocumulus, 
 c  suggested cloudbase per type: 9300.,9300.,4000.,1200.,1100.            ! 4=Cumulus/Cumulonimbus, 5=Stratocumulus
-      integer cloudz                                                      ! cloud base layer relative to the lower elevation
       integer xsrmi,xsrma,ysrmi,ysrma                                     ! limits of the loop valeur for the reflecting surfaces
       real rcloud                                                         ! cloud relfectance
       real azencl                                                         ! zenith angle from cloud to observer
@@ -201,24 +199,27 @@ c  suggested cloudbase per type: 9300.,9300.,4000.,1200.,1100.            ! 4=Cu
       real stoplim                                                        ! Stop computation when the new voxel contribution is less than 1/stoplim of the cumulated flux
       real ff,hh                                                          ! temporary obstacle filling factor and horizon blocking factor
       real cloudbase                                                      ! cloud base altitude (m)
-      real dist,distm                                                     ! distance and minimal distance to find observer level
       real distd                                                          ! distance to compute the scattering probability
       real volu                                                           ! volume of a voxel
       real scal                                                           ! stepping along the line of sight
+      real siz                                                            ! resolution of the 2nd scat grid in meter
       real angvi1,angaz1                                                  ! viewing angles in radian
       real ix,iy,iz                                                       ! base vector of the viewing (length=1)
       real dsc2,doc2                                                      ! square of the path lengths for the cloud contribution
       real azcl1,azcl2                                                    ! zenith angle from the (source, refl surface, or scattering voxel) to line of path and observer to line p.
       real dh                                                             ! distance of the horizon limit
       integer n2nd                                                        ! desired number of voxel in the calculation of the 2nd scattering
+      integer dstep                                                       ! starting value for the increasing step when searching for the relevant stepdif
       verbose=2                                                           ! Very little printout=0, Many printout = 1, even more=2
       diamobj=1.                                                          ! A dummy value for the diameter of the objective of the instrument used by the observer.
       volu=0.
       zero=0.
       un=1.
       ff=0.
+      dstep=1
       ncible=1024 
       stepdi=1
+      siz=200.
       if (verbose.ge.1) print*,'Starting ILLUMINA computations...'
 c reading of the fichier d'entree (illumina.in)
       print*,'Reading illumina.in input file'
@@ -260,8 +261,6 @@ c reading of the fichier d'entree (illumina.in)
           print*,'Pixel size = ',dx,' x ',dy
           print*,'Maximum radius for reflexion = ',reflsiz
       endif
-c determining the vertical scale
-      call verticalscale(dx,cthick,cellh)
 c computing the actual AOD at the wavelength lambda
       if (verbose.ge.1) print*,'500nm AOD=',taua,'500nm angstrom coeff.=
      +',alpha
@@ -288,7 +287,7 @@ c opening output file
 c check if the observation angle is above horizon
         angzen=pi/2.-angvis*pi/180.
         call horizon(x_obs,y_obs,z_obs,dx,dy,nbx,nby,altsol,latitu,
-     +  angzen,angazi,zhoriz,dh)
+     +  angzen,angazi,zhoriz,dh,siz)
         if (angzen.gt.zhoriz) then                                         ! the line of sight is not below the horizon => we compute
           print*,'PROBLEM! You try to observe below horizon'
           print*,'No calculation will be made'
@@ -316,15 +315,7 @@ c check if the observation angle is above horizon
 c Initialisation of the arrays and variables
         if (verbose.ge.1) print*,'Initializing variables...'
         if (cloudt.eq.0) then
-          cloudz=height
           cloudbase=1000000000.
-        else  
-c determine the layer of the cloudbase (cloudz)
-          nci=0
-          do while (cellh(nci).gt.cloudbase)
-            nci=nci+1
-            cloudz=nci-1
-          enddo
         endif
         prmaps=1
         iun=0
@@ -359,8 +350,8 @@ c determine the layer of the cloudbase (cloudz)
           enddo
         enddo
         do i=1,3000
-          do j=1,4
-            zondif(i,j)=1
+          do j=1,3
+            zondif(i,j)=1.
           enddo
         enddo
         idif1=0.
@@ -549,15 +540,6 @@ c Some preliminary tasks
         rx_obs=real(x_obs)*dx
         ry_obs=real(y_obs)*dy
         if (z_obs.eq.0.) z_obs=0.001
-c find nearest vertical grid
-        distm=1000000000.
-        do i=1,height
-          dist=abs(cellh(i)-z_obs)
-          if (dist.le.distm) then
-            distm=dist
-            zcello=i
-          endif
-        enddo
         largx=dx*real(nbx)                                                ! computation of the Width along x of the case.
         largy=dy*real(nby)                                                ! computation of the Width along y of the case.
         write(2,*) 'Width of the domain [NS](m):',largx,'#cases:',nbx
@@ -592,7 +574,7 @@ c beginning of the loop over the line of sight voxels
           stop
         endif
  1110   format(I4,1x,I4,1x,I4)
-        scal=100.
+        scal=100.                                                         ! size of the step along line of sight and 2nd scat resolution
         fctcld=0.
         ftocap=0.                                                         ! Initialisation of the value of flux received by the sensor
         angvi1 = (pi*angvis)/180.
@@ -609,9 +591,6 @@ c beginning of the loop over the line of sight voxels
           rx_c=rx_c+ix*scal
           ry_c=ry_c+iy*scal
           z_c=z_c+iz*scal  
-          do nk=1,height
-            if (z_c.ge.cellh(nk)) zcellc=nk
-          enddo
           if ((fcapt.ge.ftocap/stoplim).and.(z_c.lt.cloudbase)) then      ! stop the calculation of the viewing line when the increment is lower than 1/stoplim
             fcapt=0.
             do i=1,nbx
@@ -641,8 +620,7 @@ c computation of the Solid angle of the line of sight voxel seen from the observ
               enddo
             enddo
             if( (rx_c.gt.real(nbx*dx)).or.(rx_c.lt.dx).or.                ! Condition line of sight inside the modelling domain
-     +      (ry_c.gt.(nby*dy)).or.(ry_c.lt.dy).or.(z_c.gt. 
-     +      (cellh(height))).or.(z_c.lt.0.)) then
+     +      (ry_c.gt.(nby*dy)).or.(ry_c.lt.dy)) then
             else
               if (verbose.ge.1) print*,'================================
      +================'
@@ -721,7 +699,7 @@ c computation of the horizon for the resolved shadows direct              ! hori
                               if (angzen.gt.pi/4.) then                   ! 45deg. it is unlikely to have a 1km high mountain less than 1
                                 call horizon(x_s,y_s,z_s,dx,dy,
      +                          nbx,nby,altsol,latitu,angzen,
-     +                          angazi,zhoriz,dh)
+     +                          angazi,zhoriz,dh,siz)
                                 if (dh.lt.distd) then
                                   if (angzen.lt.zhoriz) then                ! shadow the path line of sight-source is not below the horizon => we compute
                                     hh=1.
@@ -955,28 +933,27 @@ c ******************************************************************************
 c                                          irefdi=0.                       ! Initialize the flux reflected and 2nd scattered
 c                                          itodif=0.                       ! Initialisation of the scattered intensity by a source to line of sight 
 c determination of the scattering voxels, the reflection surface and the line of sight voxel
-      call zone_diffusion(x_sr,y_sr,z_sr,x_c,y_c,zcellc,dx,dy,
-     +effdif,nbx,nby,altsol,cloudz,zondif,ndiff,stepdi,n2nd)
+      call zone_diffusion(rx_sr,ry_sr,z_sr,rx_c,ry_c,z_c,effdif,
+     +altsol(x_sr,y_sr),cloudbase,zondif,ndiff,stepdi,dstep,n2nd,siz)
       if (verbose.gt.1) then
              print*,' 2nd order scat. cells and step = ',ndiff,stepdi
       endif
       do idi=1,ndiff                                                      ! beginning of the loop over the scattering voxels.
-        x_dif=zondif(idi,1)
-        rx_dif=real(x_dif)*dx
-        y_dif=zondif(idi,2)
-        ry_dif=real(y_dif)*dy
-        zceldi=zondif(idi,3)
-        z_dif=cellh(zceldi)
-        if((x_dif.gt.nbx).or.(x_dif.lt.1).or.(y_dif.gt.nby)               ! Condition scattering voxel of the domain.
-     +  .or.(y_dif.lt.1)) then
-        else
-          if ((x_sr.eq.x_dif).and.(y_sr.eq.
-     +    y_dif).and.(z_sr.eq.z_dif)) then
+        rx_dif=zondif(idi,1)
+        x_dif=nint(rx_dif/dx)
+        ry_dif=zondif(idi,2)
+        y_dif=nint(ry_dif/dy)
+        z_dif=zondif(idi,3)
+c        if((x_dif.gt.nbx).or.(x_dif.lt.1).or.(y_dif.gt.nby)               ! Condition scattering voxel of the domain.
+c     +  .or.(y_dif.lt.1)) then
+c        else
+          if ((rx_sr.eq.rx_dif).and.(ry_sr.eq.
+     +    ry_dif).and.(z_sr.eq.z_dif)) then
             if (verbose.eq.2) then
               print*,'Scat voxel = refl pos'
             endif
-          elseif ((x_c.eq.x_dif).and.(y_c.eq.
-     +    y_dif).and.(z_c.eq.z_dif)) then
+          elseif ((rx_c.eq.rx_dif).and.(ry_c.eq.
+     +    ry_dif).and.(z_c.eq.z_dif)) then
           else
 c computation of the zenithal angle between the reflection surface and the scattering voxel
 c shadow reflection surface-scattering voxel
@@ -1012,7 +989,7 @@ c cell unitaire
             else
               pdifd1=0.
             endif
-            volu=cthick(zceldi)*dx*dy
+            volu=siz**3.
             if (volu.lt.0.) then
               print*,'ERROR, volume 2 is negative!'
               stop
@@ -1120,7 +1097,7 @@ c computing the scattering probability toward the line of sight voxel
               else
                 pdifd1=0.
               endif
-              volu=cthick(zceldi)*dx*dy
+              volu=siz**3.
               if (volu.lt.0.) then
                 print*,'ERROR, volume 1 is negative!'
                 stop
@@ -1197,7 +1174,7 @@ c computing scattered intensity toward the observer from the line of sight voxel
               itodif=itodif+idiff2                  ! sum over the scattering voxels
             endif                                                         ! end condition source = reflection for the computation of the source scat line of sight
           endif                                                           ! end of the case scattering pos = Source pos or line of sight pos
-        endif                                                             ! end of the condition "voxel of the domain".
+c        endif                                                             ! end of the condition "voxel of the domain".
       enddo                                                               ! end of the loop over the scattering voxels.
                                         endif                             ! end of the condition ou effdif > 0
 c End of 2nd scattered intensity calculations
@@ -1220,7 +1197,7 @@ c verify if there is shadow between sr and line of sight voxel
                                         if (angzen.gt.pi/4.) then         ! 45deg. it is unlikely to have a 1km high mountain less than 1
                                           call horizon(x_sr,y_sr,z_sr,dx
      +                                    ,dy,nbx,nby,altsol,latitu,
-     +                                    angzen,angazi,zhoriz,dh)
+     +                                    angzen,angazi,zhoriz,dh,siz)
                                           if (dh.lt.distd) then
                                             if (angzen.lt.zhoriz) then    ! the path line of sight-reflec is not below the horizon => we compute
                                               hh=1.

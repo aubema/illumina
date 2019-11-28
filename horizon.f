@@ -26,14 +26,14 @@ c    Contact: martin.aube@cegepsherbrooke.qc.ca
 c
 c
       subroutine horizon(x,y,z,dx,dy,nbx,nby,altsol,
-     +latitu,angz,anga,zhoriz,d) 
+     +latitu,angz,anga,zhoriz,d,siz) 
       integer width,height                                                ! Matrix dimension in Length/width and height
       parameter (width=1024,height=1024)      
       integer i,x,y,nbx,nby,cloudz,lcib(width,3),ncib
       integer ii,jj
       real z,altsol(width,width),dx,dy,pi,zz
       real latitu,lat,a,b,rterre,angvis,anga,zhoriz,angz,hormin
-      real scalef,d
+      real scalef,d,siz
       pi=3.1415926 
       scalef=1.01  
       cloudz=height
@@ -47,7 +47,7 @@ c
       hormin=pi/2.
       if (angvis.gt.0.5) then
         call lignevisee(x,y,z,dx,dy,angvis,anga,nbx,nby,                    ! Determination of the viewing line (line of sight voxels).
-     +  cloudz,lcib,ncib,scalef) 
+     +  cloudz,lcib,ncib,scalef,siz) 
         do i=1,ncib                           
           ii=lcib(i,1)
           jj=lcib(i,2)
