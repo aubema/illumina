@@ -28,7 +28,7 @@ c
       subroutine horizon(x,y,z,dx,dy,nbx,nby,altsol,
      +latitu,angz,anga,zhoriz,d,siz) 
       integer width,height                                                ! Matrix dimension in Length/width and height
-      parameter (width=1024,height=1024)      
+      parameter (width=1024,height=2048)      
       integer i,x,y,nbx,nby,cloudz,lcib(width,3),ncib
       integer ii,jj
       real z,altsol(width,width),dx,dy,pi,zz

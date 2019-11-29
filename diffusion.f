@@ -64,7 +64,6 @@ c                                                                         ! la d
       prob_m=(1.-exp(log(tranam)*exp(-1.*altit/8000.)*un/8000.))*               ! Fonc_ae normalisee dans le MAIN, fctmol dans la routine (voir 
      +fctmol                                                                    ! la division par 4 pi).
 
-
       pdif = prob_a+prob_m                                                ! Ce calcul est approximatif et bon seulement si 1-transa et
                                                                           ! 1-transm sont tres petits.
       if (prob_a.gt.1.) then

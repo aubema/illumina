@@ -26,7 +26,7 @@ c
 c
       subroutine verticalscale(siz,cthick,cellh)
       integer width,height                                                ! Matrix dimension in Length/width and height
-      parameter (width=1024,height=1024)
+      parameter (width=1024,height=2048)
       integer nz
       real cthick(height)                                                 ! voxel thickness array (meter)
       real cellh(height)                                                  ! voxel height array (meter)

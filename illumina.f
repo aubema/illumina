@@ -153,7 +153,7 @@ c
       real flrefl                                                         ! flux reaching a reflecting surface (watts).
       real irefl,irefl1                                                   ! intensity leaving a reflecting surface toward the line of sight voxel.
       real effdif                                                         ! Distance around the source voxel and line of sight voxel considered to compute the 2nd order of scattering.
-      real zondif(3000,3)                                                 ! Array for the scattering voxels positions
+      real zondif(16384,3)                                                 ! Array for the scattering voxels positions
       integer ndiff,idi                                                   ! Number of scattering voxels, counter of the loop over the scattering voxels
       integer stepdi                                                      ! scattering step to speedup the calculation e.g. if =2 one computation over two will be done
       integer ssswit                                                      ! activate double scattering (1=yes, 0=no)
@@ -193,7 +193,6 @@ c  suggested cloudbase per type: 9300.,9300.,4000.,1200.,1100.            ! 4=Cu
       real fcloud                                                         ! flux reaching the intrument from the cloud voxel
       real fccld                                                          ! correction for the FOV to the flux reaching the intrument from the cloud voxel
       real fctcld                                                         ! total flux from cloud at the sensor level
-      real dmin                                                           ! minimum distance between a voxel and a line of sight
       real totlu(nzon)                                                    ! total flux of a source type
       real stoplim                                                        ! Stop computation when the new voxel contribution is less than 1/stoplim of the cumulated flux
       real ff,hh                                                          ! temporary obstacle filling factor and horizon blocking factor
@@ -219,7 +218,10 @@ c  suggested cloudbase per type: 9300.,9300.,4000.,1200.,1100.            ! 4=Cu
       ncible=1024 
       stepdi=1
       siz=200.
-      if (verbose.ge.1) print*,'Starting ILLUMINA computations...'
+
+      if (verbose.ge.1) then
+        print*,'Starting ILLUMINA computations...'
+      endif
 c reading of the fichier d'entree (illumina.in)
       print*,'Reading illumina.in input file'
       open(unit=1,file='illumina.in',status='old')
@@ -248,14 +250,15 @@ c reading of the fichier d'entree (illumina.in)
         read(1,*) cloudt, cloudbase
         read(1,*) 
       close(1)
-      dmin=20.                                                            ! minimal distance to the reflecting surface
       if (ssswit.eq.0) then
         effdif=0.
       else
-        effdif=5000.
-        n2nd=200
+        effdif=30000.
+        n2nd=10000
       endif
+      if (dx.lt.siz) siz=dx                                               ! chose the minimum between dx and 200m.
       if (verbose.gt.1) then
+          print*,'2nd scattering grid = ',siz
           print*,'2nd order scattering radius=',effdif,'m'
           print*,'Pixel size = ',dx,' x ',dy
           print*,'Maximum radius for reflexion = ',reflsiz
@@ -348,7 +351,7 @@ c Initialisation of the arrays and variables
             pvalno(i,j)=0.
           enddo
         enddo
-        do i=1,3000
+        do i=1,16384
           do j=1,3
             zondif(i,j)=1.
           enddo
@@ -573,7 +576,7 @@ c beginning of the loop over the line of sight voxels
           stop
         endif
  1110   format(I4,1x,I4,1x,I4)
-        scal=100.                                                         ! size of the step along line of sight and 2nd scat resolution
+        scal=25.                                                         ! size of the step along line of sight and 2nd scat resolution
         fctcld=0.
         ftocap=0.                                                         ! Initialisation of the value of flux received by the sensor
         angvi1 = (pi*angvis)/180.
@@ -590,7 +593,8 @@ c beginning of the loop over the line of sight voxels
           rx_c=rx_c+ix*scal
           ry_c=ry_c+iy*scal
           z_c=z_c+iz*scal  
-          if ((fcapt.ge.ftocap/stoplim).and.(z_c.lt.cloudbase)) then      ! stop the calculation of the viewing line when the increment is lower than 1/stoplim
+          if ((fcapt.ge.ftocap/stoplim).and.(z_c.lt.cloudbase).and.       ! stop the calculation of the viewing line when the increment is lower than 1/stoplim
+     +    (z_c.lt.40000.)) then                                           ! or when hitting a cloud or when z>40km (because the scattering probability is zero (given precision)
             fcapt=0.
             do i=1,nbx
               do j=1,nby
@@ -675,13 +679,13 @@ c * computation of the direct intensity toward the observer by a line of sight v
 c *********************************************************************************************************
 
                         dirck=0                                           ! Initialisation of the verification of the position of the source
-                        if ((x_s.eq.x_c).and.(y_s.eq.y_c).and.            ! if the position of the source and the line of sight voxel are the
+                        if ((rx_s.eq.rx_c).and.(ry_s.eq.ry_c).and.            ! if the position of the source and the line of sight voxel are the
      +                  (z_s.eq.z_c))                                     ! same then...
      +                  then
                           dirck=1
                           if (verbose.eq.2) then
                             if (verbose.ge.1) then
-                              print*,'Source = scat voxel'
+                              print*,'Source = line of sight' 
                             endif
                           endif
                         endif                                             ! end of the case positions x and y source and line of sight voxel identical.
@@ -768,7 +772,7 @@ c contribution of the cloud reflexion of the light coming directly from the sour
                           intdir=0.
                         endif                                             ! end of the case Position Source is not equal to the line of sight voxel position
 c        if (intdir.eq.0.) then
-c    print*,'intdir',fldir,pdifdi,lamplu(x_s,y_s,stype),P_dir,omega
+c        print*,'intdir',fldir,pdifdi,lamplu(x_s,y_s,stype),P_dir,omega
 c     +  ,transa,transm,hh,(1.-ff),secdif,z_c
 c        stop
 c        endif
@@ -1211,8 +1215,8 @@ c verify if there is shadow between sr and line of sight voxel
                                         endif
                                         irefl=irefl1
 c case: line of sight position = Position of reflecting cell
-                                        if((x_c.eq.x_sr).and.(y_c.eq.
-     +                                  y_sr).and.(z_c.eq.z_sr)) then
+                                        if((rx_c.eq.rx_sr).and.(ry_c.eq.
+     +                                  ry_sr).and.(z_c.eq.z_sr)) then
                                           intind=0.
                                         else
 c obstacle
@@ -1377,8 +1381,8 @@ c computation of the flux reaching the intrument from the cloud voxel
           
 c          if (icible.eq.7) stop
 
-          
-          
+c accelerate the computation as we get away from the sources          
+          scal=scal*1.05                     
         enddo                                                             ! end of the loop over the line of sight voxels.
         if (prmaps.eq.1) then
           open(unit=9,file=pclf,status='unknown')

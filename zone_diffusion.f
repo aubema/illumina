@@ -36,9 +36,8 @@ c
        integer keep,stepdi,cloudz,n2nd,dstep
        real x1,y1,z1,x2,y2,z2,x0,y0,z0,alts
        real dx,dy,effet,dmin,aire,a,b,c,s,delta,d,deltmx,d1,d2
-       real zondif(3000,3),siz
+       real zondif(16384,3),siz
        neffet=nint(effet/siz)
-
        
 c limits of the calculations loops
        x_1=nint(x1/siz)
@@ -66,8 +65,8 @@ c limits of the calculations loops
        if (z2.gt.cloudbase) then
           kmax=nint(cloudbase/siz)
        endif
-       if (stepdi.eq.1) stepdi=(kmax-2)*(imax-imin)*(jmax-jmin)/n2nd
-       if (dstep.ne.1) dstep=dstep-1
+       stepdi=(kmax-2)*(imax-imin)*(jmax-jmin)/n2nd/3
+c       if (stepdi.gt.100) stepdi=stepdi-100
  10    ncell=0
        keep=0
 c       print*,imin,imax,jmin,jmax,kmax,x1,x2,y1,y2,x_1,x_2,y_1,y_2
@@ -83,14 +82,8 @@ c       stop
           d2=sqrt((x2-x0)**2.+(y2-y0)**2.+(z2-z0)**2.)
           d=d1+d2
           dmin=sqrt((x1-x2)**2.+(y1-y2)**2.+(z1-z2)**2.)
-          if (z0.gt.alts) then
+          if ((z0.gt.alts).and.(z0.lt.40000.)) then
             if (d.le.dmin+effet) then
-               if (ncell.gt.n2nd) then
-                 stepdi=stepdi+dstep
-                 dstep=dstep*2
-c        print*,' Set step of scattering to:',stepdi,dstep
-                 goto 10
-                endif
                if (keep.eq.0) then
                   zondif(ncell,1)=x0                                   
                   zondif(ncell,2)=y0 
@@ -105,5 +98,10 @@ c        print*,' Set step of scattering to:',stepdi,dstep
         enddo
        enddo
        ncell=ncell-1
+       if (ncell.gt.n2nd) then
+          stepdi=stepdi*ncell/n2nd+1
+c          print*,'stepdi=',stepdi,n2nd,ncell
+          goto 10
+       endif
        return
        end 
