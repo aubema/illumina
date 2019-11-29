@@ -253,7 +253,7 @@ c reading of the fichier d'entree (illumina.in)
       if (ssswit.eq.0) then
         effdif=0.
       else
-        effdif=25000.
+        effdif=30000.
         n2nd=10000
       endif
       if (dx.lt.siz) siz=dx                                               ! chose the minimum between dx and 200m.

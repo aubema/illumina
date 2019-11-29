@@ -82,7 +82,7 @@ c       stop
           d2=sqrt((x2-x0)**2.+(y2-y0)**2.+(z2-z0)**2.)
           d=d1+d2
           dmin=sqrt((x1-x2)**2.+(y1-y2)**2.+(z1-z2)**2.)
-          if ((z0.gt.alts).and.(z0.lt.40000.)) then
+          if ((z0.gt.alts).and.(z0.lt.35000.)) then
             if (d.le.dmin+effet) then
                if (keep.eq.0) then
                   zondif(ncell,1)=x0                                   
