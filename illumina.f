@@ -253,7 +253,7 @@ c reading of the fichier d'entree (illumina.in)
       if (ssswit.eq.0) then
         effdif=0.
       else
-        effdif=30000.
+        effdif=20000.
         n2nd=10000
       endif
       if (dx.lt.siz) siz=dx                                               ! chose the minimum between dx and 200m.
@@ -594,7 +594,7 @@ c beginning of the loop over the line of sight voxels
           ry_c=ry_c+iy*scal
           z_c=z_c+iz*scal  
           if ((fcapt.ge.ftocap/stoplim).and.(z_c.lt.cloudbase).and.       ! stop the calculation of the viewing line when the increment is lower than 1/stoplim
-     +    (z_c.lt.40000.)) then                                           ! or when hitting a cloud or when z>40km (because the scattering probability is zero (given precision)
+     +    (z_c.lt.35000.)) then                                           ! or when hitting a cloud or when z>40km (because the scattering probability is zero (given precision)
             fcapt=0.
             do i=1,nbx
               do j=1,nby

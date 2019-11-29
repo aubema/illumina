@@ -65,7 +65,7 @@ c limits of the calculations loops
        if (z2.gt.cloudbase) then
           kmax=nint(cloudbase/siz)
        endif
-       stepdi=(kmax-2)*(imax-imin)*(jmax-jmin)/n2nd/3
+       stepdi=(kmax-2)*(imax-imin)*(jmax-jmin)/n2nd
 c       if (stepdi.gt.100) stepdi=stepdi-100
  10    ncell=0
        keep=0
@@ -98,7 +98,7 @@ c       stop
         enddo
        enddo
        ncell=ncell-1
-       if (ncell.gt.n2nd) then
+       if (ncell.lt.8*n2nd/10) then
           stepdi=stepdi*ncell/n2nd+1
 c          print*,'stepdi=',stepdi,n2nd,ncell
           goto 10
