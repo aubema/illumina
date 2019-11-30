@@ -34,11 +34,11 @@ c
        integer keep,stepdi,cloudz,n2nd,step
        real x1,y1,z1,x2,y2,z2,x0,y0,z0,alts
        real dx,dy,effet,dmin,aire,a,b,c,s,delta,d,deltmx,d1,d2
-       real zondif(16384,3),siz,longueur
+       real zondif(1000000,3),siz,longueur
        neffet=nint(effet/siz)
        longueur=sqrt((x1-x2)**2.+(y1-y2)**2.+(z1-z2)**2.)
 c find an approximate value to stepdi
-       stepdi=nint(2.*longueur*3.14159*effet**2./siz**3.)/n2nd
+       stepdi=nint(longueur*3.14159*effet**2./siz**3.)/n2nd
        step=nint(real(stepdi)**(1./3.))
 c limits of the calculations loops
        x_1=nint(x1/siz)
@@ -75,7 +75,7 @@ c       print*,neffet,effet
 c       stop
        do i=imin,imax,step
         do j=jmin,jmax,step
-         do k=2,kmax,step                                                      ! forbid an artefact coming from source too close to the voxel (2 is the minimum)
+         do k=1,kmax,step                                                      ! forbid an artefact coming from source too close to the voxel (2 is the minimum)
           x0=real(i)*siz
           y0=real(j)*siz
           z0=real(k)*siz

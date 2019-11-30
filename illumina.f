@@ -153,7 +153,7 @@ c
       real flrefl                                                         ! flux reaching a reflecting surface (watts).
       real irefl,irefl1                                                   ! intensity leaving a reflecting surface toward the line of sight voxel.
       real effdif                                                         ! Distance around the source voxel and line of sight voxel considered to compute the 2nd order of scattering.
-      real zondif(16384,3)                                                 ! Array for the scattering voxels positions
+      real zondif(1000000,3)                                                 ! Array for the scattering voxels positions
       integer ndiff,idi                                                   ! Number of scattering voxels, counter of the loop over the scattering voxels
       integer stepdi                                                      ! scattering step to speedup the calculation e.g. if =2 one computation over two will be done
       integer ssswit                                                      ! activate double scattering (1=yes, 0=no)
@@ -254,7 +254,7 @@ c reading of the fichier d'entree (illumina.in)
         effdif=0.
       else
         effdif=20000.
-        n2nd=10000
+        n2nd=50000
       endif
       if (dx.lt.siz) siz=dx                                               ! chose the minimum between dx and 200m.
       if (verbose.gt.1) then
@@ -351,7 +351,7 @@ c Initialisation of the arrays and variables
             pvalno(i,j)=0.
           enddo
         enddo
-        do i=1,16384
+        do i=1,1000000
           do j=1,3
             zondif(i,j)=1.
           enddo
