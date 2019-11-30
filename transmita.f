@@ -58,7 +58,6 @@ c
          if (transa.eq.0.) then
             print*,'ERREUR transa - no transmission',z_i,z_f,airm
      +      ,angz
-            stop
          endif
          if (transa.gt.1.) then 
             print*,'ERREUR avec transa',transa,z_i,z_f,airm,angz
