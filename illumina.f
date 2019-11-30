@@ -614,7 +614,7 @@ c observer.
      +      (ry_c-ry_obs)**2.+(z_c-z_obs)**2.)
 c computation of the Solid angle of the line of sight voxel seen from the observer
             omega=1./distd**2.
-            if (omega.gt.1.) omega=0.
+            if (omega.gt.0.025) omega=0.
             portio=(omefov/omega)   
             itotci=0.                                                     ! Initialisation of the contribution of the line of sight at the sensor level
             do i=1,nbx
@@ -730,7 +730,7 @@ c computation of the transmittance between the source and the line of sight
      +                        transa,tranaa)
 c computation of the solid angle of the line of sight voxel seen from the source
                               omega=1./distd**2.
-                              if (omega.gt.1.) omega=0.
+                              if (omega.gt.0.025) omega=0.
                               anglez=nint(180.*angzen/pi)+1
                               P_dir=pvalno(anglez,stype)
 c computation of the flux direct reaching the line of sight voxel
@@ -979,7 +979,7 @@ c computation of the transmittance between the reflection surface and the scatte
             call transmita(angzen,z_sr,z_dif,distd,transa,tranaa)
 c computation of the solid angle of the scattering voxel seen from the reflecting surface
             omega=1./distd**2.
-            if (omega.gt.1.) omega=0.
+            if (omega.gt.0.025) omega=0.
 c computing flux reaching the scattering voxel
             fldif2=irefl1*omega*transm*transa*(1.-ff)*hh
 c computing the scattering probability toward the line of sight voxel
@@ -1018,7 +1018,7 @@ c computing transmittance between the scattering voxel and the line of sight vox
             call transmita(angzen,z_dif,z_c,distd,transa,tranaa)
 c computing the solid angle of the line of sight voxel as seen from the scattering voxel
             omega=1./distd**2.
-            if (omega.gt.1.) omega=0.
+            if (omega.gt.0.025) omega=0.
 c computation of the scattered flux reaching the line of sight voxel
             fdif2=idif2*omega*transm*transa*(1.-ff)*hh
 c cloud contribution for double scat from a reflecting pixel
@@ -1083,7 +1083,7 @@ c computation of the transmittance between the source and the scattering voxel
      +        distd,transa,tranaa)
 c computation of the Solid angle of the scattering unit voxel seen from the source
               omega=1./distd**2.
-              if (omega.gt.1.) omega=0.
+              if (omega.gt.0.025) omega=0.
               anglez=nint(180.*angzen/pi)+1
               P_dif1=pvalno(anglez,stype)
 c computing flux reaching the scattering voxel
@@ -1139,7 +1139,7 @@ c Computing transmittance between the scattering voxel and the line of sight vox
      +        distd,transa,tranaa)
 c computing the solid angle of the line of sight voxel as seen from the scattering voxel
               omega=1./distd**2.
-              if (omega.gt.1.) omega=0.
+              if (omega.gt.0.025) omega=0.
 c computation of the scattered flux reaching the line of sight voxel
               fldiff=idif1*omega*transm*transa*(1.-ff)*hh
 c cloud contribution to the double scattering from a source
@@ -1234,7 +1234,7 @@ c computation of the transmittance between the ground surface and the line of si
      +                                    z_c,distd,transa,tranaa)
 c computation of the solid angle of the line of sight voxel seen from the reflecting cell
                                           omega=1./distd**2.
-                                          if (omega.gt.1.) omega=0.
+                                          if (omega.gt.0.025) omega=0.
 c computation of the flux reflected reaching the line of sight voxel
                                           flindi=irefl*omega*transm*
      +                                    transa*(1.-ff)*hh               ! obstacles correction
@@ -1379,7 +1379,7 @@ c computation of the flux reaching the intrument from the cloud voxel
           endif                                                           ! end condition line of sight voxel 1/stoplim
           
           
-c          if (icible.eq.7) stop
+c          if (icible.eq.6) stop
 
 c accelerate the computation as we get away from the sources          
           scal=scal*1.05                     

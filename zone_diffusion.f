@@ -29,16 +29,17 @@ c
 c
       subroutine zone_diffusion(x1,y1,z1,x2,y2,z2,
      +effet,alts,cloudbase,zondif,ncell,stepdi,dstep,n2nd,siz)
-       integer height                                                      ! Matrix dimension in Length/width and height
-       parameter (height=1024)
        integer x_1,y_1,z_1,x_2,y_2,z_2,nbx,nby,i,j,k
        integer ncell,neffet,imin,imax,jmin,jmax,kmax
-       integer keep,stepdi,cloudz,n2nd,dstep
+       integer keep,stepdi,cloudz,n2nd,step
        real x1,y1,z1,x2,y2,z2,x0,y0,z0,alts
        real dx,dy,effet,dmin,aire,a,b,c,s,delta,d,deltmx,d1,d2
-       real zondif(16384,3),siz
+       real zondif(16384,3),siz,longueur
        neffet=nint(effet/siz)
-       
+       longueur=sqrt((x1-x2)**2.+(y1-y2)**2.+(z1-z2)**2.)
+c find an approximate value to stepdi
+       stepdi=nint(2.*longueur*3.14159*effet**2./siz**3.)/n2nd
+       step=nint(real(stepdi)**(1./3.))
 c limits of the calculations loops
        x_1=nint(x1/siz)
        y_1=nint(y1/siz)
@@ -65,16 +66,16 @@ c limits of the calculations loops
        if (z2.gt.cloudbase) then
           kmax=nint(cloudbase/siz)
        endif
-       stepdi=(kmax-2)*(imax-imin)*(jmax-jmin)/n2nd
+c       stepdi=(kmax-2)*(imax-imin)*(jmax-jmin)/n2nd
 c       if (stepdi.gt.100) stepdi=stepdi-100
  10    ncell=0
        keep=0
 c       print*,imin,imax,jmin,jmax,kmax,x1,x2,y1,y2,x_1,x_2,y_1,y_2
 c       print*,neffet,effet
 c       stop
-       do i=imin,imax
-        do j=jmin,jmax
-         do k=2,kmax                                                      ! forbid an artefact coming from source too close to the voxel (2 is the minimum)
+       do i=imin,imax,step
+        do j=jmin,jmax,step
+         do k=2,kmax,step                                                      ! forbid an artefact coming from source too close to the voxel (2 is the minimum)
           x0=real(i)*siz
           y0=real(j)*siz
           z0=real(k)*siz
@@ -84,24 +85,20 @@ c       stop
           dmin=sqrt((x1-x2)**2.+(y1-y2)**2.+(z1-z2)**2.)
           if ((z0.gt.alts).and.(z0.lt.35000.)) then
             if (d.le.dmin+effet) then
-               if (keep.eq.0) then
+c               if (keep.eq.0) then
                   zondif(ncell,1)=x0                                   
                   zondif(ncell,2)=y0 
                   zondif(ncell,3)=z0
                   ncell=ncell+1
-               endif
-               keep=keep+1
-               if (keep.eq.stepdi) keep=0
+c               endif
+c               keep=keep+1
+c               if (keep.eq.stepdi) keep=0
             endif
           endif                                                           ! fin condition au-dessus du sol
          enddo
         enddo
        enddo
        ncell=ncell-1
-       if (ncell.lt.8*n2nd/10) then
-          stepdi=stepdi*ncell/n2nd+1
-c          print*,'stepdi=',stepdi,n2nd,ncell
-          goto 10
-       endif
+       stepdi=step**3
        return
        end 
