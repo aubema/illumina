@@ -40,6 +40,7 @@ c
 c find an approximate value to stepdi
        stepdi=nint(longueur*3.14159*effet**2./siz**3.)/n2nd
        step=nint(real(stepdi)**(1./3.))
+       if (step.lt.0) step=1
 c limits of the calculations loops
        x_1=nint(x1/siz)
        y_1=nint(y1/siz)
@@ -98,7 +99,7 @@ c               if (keep.eq.stepdi) keep=0
          enddo
         enddo
        enddo
-       ncell=ncell-1
+       ncell=ncell
        stepdi=step**3
        return
        end 
