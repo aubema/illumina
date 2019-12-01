@@ -49,8 +49,8 @@ c
 c
 c initialisation variables
 c
-      do i=1,1000
-        do j=1,1000
+      do i=1,width
+        do j=1,width
            datxy(i,j)=0.
         enddo
       enddo
