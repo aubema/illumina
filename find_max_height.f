@@ -1,6 +1,6 @@
 c     find the max height
       integer height
-      parameter (height=1024) 
+      parameter (height=2048) 
       real cthick(height)                                                 ! voxel thickness array (meter)
       real cellh(height)                                                  ! voxel height array (meter)
       call verticalscale(dx,cthick,cellh)

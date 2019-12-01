@@ -27,8 +27,8 @@ c
 c
       subroutine planyz(dy1,xc,xn,yc,yn,zc,zn,cell_thickness,zcell_c,
      +r1x,r1y,r1z,r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z)
-      integer width,height                                                ! Matrix dimension in Length/width and height
-      parameter (width=1024,height=1024)
+      integer height                                                      ! Matrix dimension in Length/width and height
+      parameter (height=2048)
       real*8 r1x,r1y,r1z,r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z              ! Composantes des vecteurs utilises dans la routine angle solide.     
       real*8 xc,yc,zc,xn,yn,zn                                            ! Position (metre) des elements (arrivee, depart) pour le calcul       
       real cell_thickness(height)         

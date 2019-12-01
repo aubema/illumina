@@ -25,13 +25,13 @@ c    Contact: martin.aube@cegepsherbrooke.qc.ca
 c
 c
       subroutine verticalscale(siz,cthick,cellh)
-      integer width,height                                                ! Matrix dimension in Length/width and height
-      parameter (width=1024,height=2048)
+      integer height                                                      ! Matrix dimension in height
+      parameter (height=2048)
       integer nz
       real cthick(height)                                                 ! voxel thickness array (meter)
       real cellh(height)                                                  ! voxel height array (meter)
       real siz
-      cthick(1)=siz                                                      ! thickness of the first level
+      cthick(1)=siz                                                       ! thickness of the first level
       cellh(1)=cthick(1)/2. 
       do nz=2,height
          cthick(nz)=cthick(nz-1)

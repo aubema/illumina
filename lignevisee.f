@@ -30,7 +30,7 @@ c
       subroutine lignevisee (x1,y1,z1,dx,dy,angvis,angazi,
      + nbx,nby,cloudz,visfin,ncfin,scalef)
       integer width,height                                                ! Matrix dimension in Length/width and height
-      parameter (width=1024,height=1024)
+      parameter (width=256,height=2048)
       integer x1,y1,cx,cy,visee(width,3)
       integer visfin(width,3)
       integer viseef(width,3),ncellf,cxm,cym,czm,cloudz

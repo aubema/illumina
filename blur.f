@@ -16,7 +16,7 @@ c
 c   declaration des variables
 c
       real npix
-      real tau(1024,1024),tauout(1024,1024)
+      real tau(256,256),tauout(256,256)
       character*72 nomo,nomi
       integer i,j,nx,ny,nbx,nby,side
 c

@@ -71,7 +71,7 @@ c     Variables declaration
 c=======================================================================
 c
       integer width,nzon                                                  ! Matrix dimension in Length/width and height
-      parameter (width=1024,nzon=256)
+      parameter (width=256,nzon=256)
       integer iun,ideux
       real pi,pix4
       real zero,un                                                        ! value of 0. and 1.
@@ -393,6 +393,12 @@ c reading of the environment variables
 c reading of the elevation file
 
         call twodin(nbx,nby,mnaf,altsol)
+        if ((nbx.gt.width).or.(nby.gt.width)) then
+          print*,'You try to use a domain larger than the maximum'
+          print*,'allowed. Please restrict it to no more that 256 x 256'
+          print*,'Computation aborted'
+          stop
+        endif
         Hmin=3000000.
         do i=1,nbx                                                        ! beginning of the loop over all cells along x.
           do j=1,nby                                                      ! beginning of the loop over all cells along y.

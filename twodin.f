@@ -1,7 +1,7 @@
        subroutine twodin(nbx,nby,filename,bindata)
 c read double precision array in binary
        integer nbx,nby,i,j
-       real bindata(1024,1024)
+       real bindata(256,256)
        character*72 filename
        open(unit=1,form='unformatted',file=filename,action='read')
          read(1) nbx,nby

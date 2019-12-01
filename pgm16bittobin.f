@@ -21,7 +21,7 @@ c    Contact: martin.aube@cegepsherbrooke.qc.ca
 c
 c
        integer width
-       parameter (width=1024)
+       parameter (width=256)
        real pixsiz,gain,offset,dat1(width,width)
        real xcell0,ycell0
        integer nbx,nby,i,j,valmax

@@ -23,7 +23,7 @@ c    Contact: martin.aube@cegepsherbrooke.qc.ca
 c
 c
        integer width
-       parameter (width=1024)
+       parameter (width=256)
        real data(width,width),total
        real pixsiz,r,x,y
        integer nbx,nby,i,j

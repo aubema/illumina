@@ -51,7 +51,7 @@ c
       subroutine interpmatrix(dat,x1,x2,y1,y2,intype,window,
      +autom,defval)
       integer width,height                                                ! Matrix dimension in Length/width and height
-      parameter (width=1024,height=1024)
+      parameter (width=256,height=2048)
 c
 c ----------
 c

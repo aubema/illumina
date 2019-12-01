@@ -31,8 +31,8 @@ c
 c   programme principal
 c
       program writeaod
-      integer width,height                                                ! Matrix dimension in Length/width and height
-      parameter (width=1024,height=1024)
+      integer width                                                       ! Matrix dimension in Length/width
+      parameter (width=256)
 c
 c ----------
 c
