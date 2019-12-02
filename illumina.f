@@ -254,7 +254,7 @@ c reading of the fichier d'entree (illumina.in)
         effdif=0.
       else
         effdif=20000.
-        n2nd=50000
+        n2nd=10000
       endif
       if (dx.lt.siz) siz=dx                                               ! chose the minimum between dx and 200m.
       if (verbose.gt.1) then
@@ -947,9 +947,6 @@ c determination of the scattering voxels, the reflection surface and the line of
         ry_dif=zondif(idi,2)
         y_dif=nint(ry_dif/dy)
         z_dif=zondif(idi,3)
-c        if((x_dif.gt.nbx).or.(x_dif.lt.1).or.(y_dif.gt.nby)               ! Condition scattering voxel of the domain.
-c     +  .or.(y_dif.lt.1)) then
-c        else
           if ((rx_sr.eq.rx_dif).and.(ry_sr.eq.
      +    ry_dif).and.(z_sr.eq.z_dif)) then
             if (verbose.eq.2) then
@@ -963,6 +960,8 @@ c shadow reflection surface-scattering voxel
             call anglezenithal(rx_sr,ry_sr,
      +      z_sr,rx_dif,ry_dif,z_dif,angzen)                              ! computation of the zenithal angle reflection surface - scattering voxel.
             call angleazimutal(rx_sr,ry_sr,rx_dif,ry_dif,angazi)          ! computation of the angle azimutal line of sight-scattering voxel
+c            print*,rx_dif,ry_dif,z_dif,rx_sr,ry_sr,z_sr
+c            print*,'toto1'
 c horizon blocking not a matte because dif are closeby and some downward
             hh=1.
 c sub-grid obstacles
@@ -977,6 +976,7 @@ c computation of the transmittance between the reflection surface and the scatte
      +      (z_dif-z_sr)**2.)
             call transmitm(angzen,z_sr,z_dif,distd,transm,tranam)
             call transmita(angzen,z_sr,z_dif,distd,transa,tranaa)
+c            print*,'toto2'
 c computation of the solid angle of the scattering voxel seen from the reflecting surface
             omega=1./distd**2.
             if (omega.gt.0.025) omega=0.
@@ -986,6 +986,7 @@ c computing the scattering probability toward the line of sight voxel
 c cell unitaire
             call angle3points (rx_sr,ry_sr,z_sr,rx_dif,ry_dif,z_dif,      ! scattering angle.
      +      rx_c,ry_c,z_c,angdif)
+c         print*,'toto3'
             if (omega.ne.0.) then 
               call diffusion(angdif,tranam,tranaa,un,secdif,              ! scattering probability of the direct light.
      +        fdifan,pdifd1,z_dif)
@@ -1003,12 +1004,17 @@ c computing zenith angle between the scattering voxel and the line of sight voxe
             call anglezenithal(rx_dif,ry_dif,z_dif,rx_c,ry_c,z_c,angzen)  ! computation of the zenithal angle between the scattering voxel and the line of sight voxel.
             call angleazimutal(rx_dif,ry_dif,rx_c,ry_c,angazi)            ! computation of the azimutal angle surf refl-scattering voxel
 c subgrid obstacles
-            angmin=pi/2.-atan((obsH(x_dif,y_dif)+altsol(x_dif,y_dif)-
-     +      z_dif)/drefle(x_dif,y_dif))
-            if (angzen.lt.angmin) then                                    ! condition subgrid obstacle scattering -> line of sight
+            if ((x_dif.ge.1).or.(x_dif.le.nbx).or.(y_dif.ge.1).or.
+     +      (y_dif.le.nbx)) then
+              angmin=pi/2.-atan((obsH(x_dif,y_dif)+altsol(x_dif,y_dif)-
+     +        z_dif)/drefle(x_dif,y_dif))
+              if (angzen.lt.angmin) then                                    ! condition subgrid obstacle scattering -> line of sight
+                ff=0.
+              else 
+                ff=ofill(x_dif,y_dif)
+              endif
+            else
               ff=0.
-            else 
-              ff=ofill(x_dif,y_dif)
             endif
             hh=1.
 c computing transmittance between the scattering voxel and the line of sight voxel
@@ -1113,14 +1119,19 @@ c computing zenith angle between the scattering voxel and the line of sight voxe
               call angleazimutal(rx_dif,ry_dif,                           ! computation of the azimutal angle surf refl-scattering voxel
      +        rx_c,ry_c,angazi)
 c subgrid obstacles
-              angmin=pi/2.-atan((obsH(x_dif,y_dif)
-     +        +altsol(x_dif,y_dif)-z_dif)/drefle(
-     +        x_dif,y_dif))
-              if (angzen.lt.angmin) then                                  ! condition obstacles scattering->line of sight
-                ff=0.
-              else
-                ff=ofill(x_dif,y_dif)
-              endif
+              if ((x_dif.ge.1).or.(x_dif.le.nbx).or.(y_dif.ge.1).or.
+     +        (y_dif.le.nbx)) then
+                 angmin=pi/2.-atan((obsH(x_dif,y_dif)
+     +           +altsol(x_dif,y_dif)-z_dif)/drefle(
+     +           x_dif,y_dif))
+                 if (angzen.lt.angmin) then                               ! condition obstacles scattering->line of sight
+                   ff=0.
+                 else
+                   ff=ofill(x_dif,y_dif)
+                 endif
+               else
+                 ff=0.
+               endif
               
               
               
@@ -1177,7 +1188,6 @@ c computing scattered intensity toward the observer from the line of sight voxel
               itodif=itodif+idiff2                  ! sum over the scattering voxels
             endif                                                         ! end condition source = reflection for the computation of the source scat line of sight
           endif                                                           ! end of the case scattering pos = Source pos or line of sight pos
-c        endif                                                             ! end of the condition "voxel of the domain".
       enddo                                                               ! end of the loop over the scattering voxels.
                                         endif                             ! end of the condition ou effdif > 0
 c End of 2nd scattered intensity calculations
@@ -1369,11 +1379,11 @@ c computation of the flux reaching the intrument from the cloud voxel
             endif
             if (verbose.ge.1) print*,'Added radiance =',  
      +      (fcapt+fccld)/omefov/(pi*(diamobj/2.)**2.)
-            print*,'Radiance accumulated =',
+            if (verbose.ge.1) print*,'Radiance accumulated =',
      +      (ftocap+fctcld)/omefov/(pi*(diamobj/2.)**2.)
             if (verbose.ge.1) write(2,*) 'Added radiance =',
      +      (fcapt+fccld)/omefov/(pi*(diamobj/2.)**2.)
-            write(2,*) 'Radiance accumulated =',
+            if (verbose.ge.1) write(2,*) 'Radiance accumulated =',
      +      (ftocap+fctcld)/omefov/(pi*(diamobj/2.)**2.)
               endif                                                       ! end of the condition line of sight voxel inside the modelling domain
           endif                                                           ! end condition line of sight voxel 1/stoplim
