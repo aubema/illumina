@@ -35,7 +35,7 @@ c
        integer keep,stepdi,cloudz,n2nd,step
        real x1,y1,z1,x2,y2,z2,x0,y0,z0,alts
        real effet,dmin,d,d1,d2
-       real zondif(10000000,3),siz
+       real zondif(3000000,3),siz
        if (siz.lt.40.) siz=40.
        neffet=nint(effet/siz)
        dmin=sqrt((x1-x2)**2.+(y1-y2)**2.+(z1-z2)**2.)
