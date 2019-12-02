@@ -218,7 +218,6 @@ c  suggested cloudbase per type: 9300.,9300.,4000.,1200.,1100.            ! 4=Cu
       dstep=1
       ncible=1024 
       stepdi=1
-      siz=50.
       if (verbose.ge.1) then
         print*,'Starting ILLUMINA computations...'
       endif
@@ -250,14 +249,15 @@ c reading of the fichier d'entree (illumina.in)
         read(1,*) cloudt, cloudbase
         read(1,*) 
       close(1)
+      siz=1000.
       if (ssswit.eq.0) then
         effdif=0.
       else
-        effdif=20000.
-        n2nd=20000
+        effdif=100000.
+        n2nd=50000
       endif
-      siz=siz+dx/1000.
-      omemax=1./((siz/2.)**2.)                                                 ! about two degree
+c      siz=siz+dx/1000.
+      omemax=1./((siz)**2.)                                                 ! about two degree
       if (verbose.gt.1) then
           print*,'2nd scattering grid = ',siz
           print*,'2nd order scattering radius=',effdif,'m'
