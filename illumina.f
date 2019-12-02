@@ -208,6 +208,7 @@ c  suggested cloudbase per type: 9300.,9300.,4000.,1200.,1100.            ! 4=Cu
       real dh                                                             ! distance of the horizon limit
       integer n2nd                                                        ! desired number of voxel in the calculation of the 2nd scattering
       integer dstep                                                       ! starting value for the increasing step when searching for the relevant stepdif
+      real omemax                                                         ! max solid angle allowed
       verbose=2                                                           ! Very little printout=0, Many printout = 1, even more=2
       diamobj=1.                                                          ! A dummy value for the diameter of the objective of the instrument used by the observer.
       volu=0.
@@ -218,7 +219,6 @@ c  suggested cloudbase per type: 9300.,9300.,4000.,1200.,1100.            ! 4=Cu
       ncible=1024 
       stepdi=1
       siz=50.
-
       if (verbose.ge.1) then
         print*,'Starting ILLUMINA computations...'
       endif
@@ -254,9 +254,10 @@ c reading of the fichier d'entree (illumina.in)
         effdif=0.
       else
         effdif=20000.
-        n2nd=10000
+        n2nd=20000
       endif
-      siz=siz+dx/1000.                                                    ! chose the minimum between dx and 200m.
+      siz=siz+dx/1000.
+      omemax=1./((siz/2.)**2.)                                                 ! about two degree
       if (verbose.gt.1) then
           print*,'2nd scattering grid = ',siz
           print*,'2nd order scattering radius=',effdif,'m'
@@ -614,8 +615,12 @@ c observer.
      +      (ry_c-ry_obs)**2.+(z_c-z_obs)**2.)
 c computation of the Solid angle of the line of sight voxel seen from the observer
             omega=1./distd**2.
-            if (omega.gt.0.025) omega=0.
-            portio=(omefov/omega)   
+            if (omega.gt.omemax) then
+              omega=0.
+              portio=0.
+            else
+              portio=(omefov/omega)             
+            endif
             itotci=0.                                                     ! Initialisation of the contribution of the line of sight at the sensor level
             do i=1,nbx
               do j=1,nby
@@ -730,7 +735,7 @@ c computation of the transmittance between the source and the line of sight
      +                        transa,tranaa)
 c computation of the solid angle of the line of sight voxel seen from the source
                               omega=1./distd**2.
-                              if (omega.gt.0.025) omega=0.
+                              if (omega.gt.omemax) omega=0.
                               anglez=nint(180.*angzen/pi)+1
                               P_dir=pvalno(anglez,stype)
 c computation of the flux direct reaching the line of sight voxel
@@ -976,7 +981,7 @@ c computation of the transmittance between the reflection surface and the scatte
             call transmita(angzen,z_sr,z_dif,distd,transa,tranaa)
 c computation of the solid angle of the scattering voxel seen from the reflecting surface
             omega=1./distd**2.
-            if (omega.gt.0.025) omega=0.
+            if (omega.gt.omemax) omega=0.
 c computing flux reaching the scattering voxel
             fldif2=irefl1*omega*transm*transa*(1.-ff)*hh
 c computing the scattering probability toward the line of sight voxel
@@ -1021,7 +1026,7 @@ c computing transmittance between the scattering voxel and the line of sight vox
             call transmita(angzen,z_dif,z_c,distd,transa,tranaa)
 c computing the solid angle of the line of sight voxel as seen from the scattering voxel
             omega=1./distd**2.
-            if (omega.gt.0.025) omega=0.
+            if (omega.gt.omemax) omega=0.
 c computation of the scattered flux reaching the line of sight voxel
             fdif2=idif2*omega*transm*transa*(1.-ff)*hh
 c cloud contribution for double scat from a reflecting pixel
@@ -1086,7 +1091,7 @@ c computation of the transmittance between the source and the scattering voxel
      +        distd,transa,tranaa)
 c computation of the Solid angle of the scattering unit voxel seen from the source
               omega=1./distd**2.
-              if (omega.gt.0.025) omega=0.
+              if (omega.gt.omemax) omega=0.
               anglez=nint(180.*angzen/pi)+1
               P_dif1=pvalno(anglez,stype)
 c computing flux reaching the scattering voxel
@@ -1148,7 +1153,7 @@ c Computing transmittance between the scattering voxel and the line of sight vox
      +        distd,transa,tranaa)
 c computing the solid angle of the line of sight voxel as seen from the scattering voxel
               omega=1./distd**2.
-              if (omega.gt.0.025) omega=0.
+              if (omega.gt.omemax) omega=0.
 c computation of the scattered flux reaching the line of sight voxel
               fldiff=idif1*omega*transm*transa*(1.-ff)*hh
 c cloud contribution to the double scattering from a source
@@ -1242,7 +1247,7 @@ c computation of the transmittance between the ground surface and the line of si
      +                                    z_c,distd,transa,tranaa)
 c computation of the solid angle of the line of sight voxel seen from the reflecting cell
                                           omega=1./distd**2.
-                                          if (omega.gt.0.025) omega=0.
+                                          if (omega.gt.omemax) omega=0.
 c computation of the flux reflected reaching the line of sight voxel
                                           flindi=irefl*omega*transm*
      +                                    transa*(1.-ff)*hh               ! obstacles correction
