@@ -30,18 +30,19 @@ c
       subroutine zone_diffusion(x1,y1,z1,x2,y2,z2,
      +effet,alts,cloudbase,zondif,ncell,stepdi,dstep,n2nd,siz)
 
-       integer x_1,y_1,z_1,x_2,y_2,z_2,nbx,nby,i,j,k
+       integer x_1,y_1,z_1,x_2,y_2,z_2,i,j,k
        integer ncell,neffet,imin,imax,jmin,jmax,kmax
        integer keep,stepdi,cloudz,n2nd,step
        real x1,y1,z1,x2,y2,z2,x0,y0,z0,alts
-       real dx,dy,effet,dmin,aire,a,b,c,s,delta,d,deltmx,d1,d2
-       real zondif(1000000,3),siz,longueur
+       real effet,dmin,d,d1,d2
+       real zondif(1000000,3),siz
+       if (siz.lt.40.) siz=40.
        neffet=nint(effet/siz)
-       longueur=sqrt((x1-x2)**2.+(y1-y2)**2.+(z1-z2)**2.)+effet
+       dmin=sqrt((x1-x2)**2.+(y1-y2)**2.+(z1-z2)**2.)
 c find an approximate value to stepdi
-       stepdi=nint(0.8*longueur*3.14159/siz)*(neffet**2)
-       stepdi=stepdi/n2nd
+       stepdi=nint((dmin+2.*effet)*3.14159/siz)*neffet*neffet/n2nd
        if (stepdi.eq.0) stepdi=1
+
        step=nint(real(stepdi)**(1./3.))
        if (step.le.0) step=1
 c limits of the calculations loops
@@ -79,10 +80,8 @@ c limits of the calculations loops
           d1=sqrt((x1-x0)**2.+(y1-y0)**2.+(z1-z0)**2.)
           d2=sqrt((x2-x0)**2.+(y2-y0)**2.+(z2-z0)**2.)
           d=d1+d2
-          dmin=sqrt((x1-x2)**2.+(y1-y2)**2.+(z1-z2)**2.)
           if ((z0.gt.alts).and.(z0.lt.35000.)) then
             if (d.le.dmin+2.*effet) then
-c               if (keep.eq.0) then
                   ncell=ncell+1
                   zondif(ncell,1)=x0                                   
                   zondif(ncell,2)=y0 

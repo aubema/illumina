@@ -217,7 +217,7 @@ c  suggested cloudbase per type: 9300.,9300.,4000.,1200.,1100.            ! 4=Cu
       dstep=1
       ncible=1024 
       stepdi=1
-      siz=200.
+      siz=50.
 
       if (verbose.ge.1) then
         print*,'Starting ILLUMINA computations...'
@@ -256,7 +256,7 @@ c reading of the fichier d'entree (illumina.in)
         effdif=20000.
         n2nd=10000
       endif
-      if (dx.lt.siz) siz=dx                                               ! chose the minimum between dx and 200m.
+      siz=siz+dx/1000.                                                    ! chose the minimum between dx and 200m.
       if (verbose.gt.1) then
           print*,'2nd scattering grid = ',siz
           print*,'2nd order scattering radius=',effdif,'m'
@@ -587,8 +587,8 @@ c beginning of the loop over the line of sight voxels
         rx_c=real(x_obs)*dx-ix*scal/2.
         ry_c=real(y_obs)*dx-iy*scal/2.
         z_c=z_obs-iz*scal/2.
-        x_c=nint(rx_c/dx)
-        y_c=nint(ry_c/dy)
+c        x_c=nint(rx_c/dx)
+c        y_c=nint(ry_c/dy)
         do icible=1,ncible                                                ! beginning of the loop over the line of sight voxels
           rx_c=rx_c+ix*scal
           ry_c=ry_c+iy*scal
@@ -960,8 +960,6 @@ c shadow reflection surface-scattering voxel
             call anglezenithal(rx_sr,ry_sr,
      +      z_sr,rx_dif,ry_dif,z_dif,angzen)                              ! computation of the zenithal angle reflection surface - scattering voxel.
             call angleazimutal(rx_sr,ry_sr,rx_dif,ry_dif,angazi)          ! computation of the angle azimutal line of sight-scattering voxel
-c            print*,rx_dif,ry_dif,z_dif,rx_sr,ry_sr,z_sr
-c            print*,'toto1'
 c horizon blocking not a matte because dif are closeby and some downward
             hh=1.
 c sub-grid obstacles
@@ -976,7 +974,6 @@ c computation of the transmittance between the reflection surface and the scatte
      +      (z_dif-z_sr)**2.)
             call transmitm(angzen,z_sr,z_dif,distd,transm,tranam)
             call transmita(angzen,z_sr,z_dif,distd,transa,tranaa)
-c            print*,'toto2'
 c computation of the solid angle of the scattering voxel seen from the reflecting surface
             omega=1./distd**2.
             if (omega.gt.0.025) omega=0.
@@ -986,7 +983,6 @@ c computing the scattering probability toward the line of sight voxel
 c cell unitaire
             call angle3points (rx_sr,ry_sr,z_sr,rx_dif,ry_dif,z_dif,      ! scattering angle.
      +      rx_c,ry_c,z_c,angdif)
-c         print*,'toto3'
             if (omega.ne.0.) then 
               call diffusion(angdif,tranam,tranaa,un,secdif,              ! scattering probability of the direct light.
      +        fdifan,pdifd1,z_dif)
@@ -1004,8 +1000,11 @@ c computing zenith angle between the scattering voxel and the line of sight voxe
             call anglezenithal(rx_dif,ry_dif,z_dif,rx_c,ry_c,z_c,angzen)  ! computation of the zenithal angle between the scattering voxel and the line of sight voxel.
             call angleazimutal(rx_dif,ry_dif,rx_c,ry_c,angazi)            ! computation of the azimutal angle surf refl-scattering voxel
 c subgrid obstacles
-            if ((x_dif.ge.1).or.(x_dif.le.nbx).or.(y_dif.ge.1).or.
-     +      (y_dif.le.nbx)) then
+            if ((x_dif.lt.1).or.(x_dif.gt.nbx).or.(y_dif.lt.1).or.
+     +      (y_dif.gt.nbx)) then
+                            ff=0.
+
+            else
               angmin=pi/2.-atan((obsH(x_dif,y_dif)+altsol(x_dif,y_dif)-
      +        z_dif)/drefle(x_dif,y_dif))
               if (angzen.lt.angmin) then                                    ! condition subgrid obstacle scattering -> line of sight
@@ -1013,8 +1012,6 @@ c subgrid obstacles
               else 
                 ff=ofill(x_dif,y_dif)
               endif
-            else
-              ff=0.
             endif
             hh=1.
 c computing transmittance between the scattering voxel and the line of sight voxel
@@ -1119,8 +1116,11 @@ c computing zenith angle between the scattering voxel and the line of sight voxe
               call angleazimutal(rx_dif,ry_dif,                           ! computation of the azimutal angle surf refl-scattering voxel
      +        rx_c,ry_c,angazi)
 c subgrid obstacles
-              if ((x_dif.ge.1).or.(x_dif.le.nbx).or.(y_dif.ge.1).or.
-     +        (y_dif.le.nbx)) then
+            if ((x_dif.lt.1).or.(x_dif.gt.nbx).or.(y_dif.lt.1).or.
+     +      (y_dif.gt.nbx)) then
+              ff=0.
+
+               else
                  angmin=pi/2.-atan((obsH(x_dif,y_dif)
      +           +altsol(x_dif,y_dif)-z_dif)/drefle(
      +           x_dif,y_dif))
@@ -1129,8 +1129,6 @@ c subgrid obstacles
                  else
                    ff=ofill(x_dif,y_dif)
                  endif
-               else
-                 ff=0.
                endif
               
               
@@ -1432,6 +1430,7 @@ c load 'BASENAME_pcl.gplot'
         write(2,2001) (ftocap+fctcld)/omefov/(pi*(diamobj/2.)**2.)
       close(2)
  2001 format('                   ',E10.3E2)
+      print*,siz
       stop
       end
 c***********************************************************************************************************************
