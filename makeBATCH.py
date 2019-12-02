@@ -264,7 +264,7 @@ for i,param_vals in enumerate(comb(*param_space),1):
             f.write("#SBATCH --job-name=Illumina\n")
             f.write("#SBATCH --time=%d:00:00\n" % \
                 params["estimated_computing_time"])
-            f.write("#SBATCH --mem-per-cpu=1920\n")
+            f.write("#SBATCH --mem=2G\n")
             f.write("cd %s\n" % os.path.abspath(fold_name))
             f.write("umask 0011\n")
         os.chmod(fold_name+"execute",0o777)
