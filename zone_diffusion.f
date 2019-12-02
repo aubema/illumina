@@ -40,10 +40,12 @@ c
        neffet=nint(effet/siz)
        dmin=sqrt((x1-x2)**2.+(y1-y2)**2.+(z1-z2)**2.)
 c find an approximate value to stepdi
-       stepdi=nint((dmin+2.*effet)*3.14159/siz)*neffet*neffet/n2nd
+       stepdi=nint((dmin+2.*effet)*3.14159/siz)*neffet/n2nd*neffet
        if (stepdi.eq.0) stepdi=1
 
        step=nint(real(stepdi)**(1./3.))
+c       print*,stepdi,neffet,step
+c       stop
        if (step.le.0) step=1
 c limits of the calculations loops
        x_1=nint(x1/siz)
