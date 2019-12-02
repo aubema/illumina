@@ -249,12 +249,12 @@ c reading of the fichier d'entree (illumina.in)
         read(1,*) cloudt, cloudbase
         read(1,*) 
       close(1)
-      siz=100.
+      siz=50.
       if (ssswit.eq.0) then
         effdif=0.
       else
         effdif=100000.
-        n2nd=100000
+        n2nd=1000000
       endif
 c      siz=siz+dx/1000.
       omemax=1./((siz)**2.)                                                 ! about two degree
