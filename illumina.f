@@ -1430,7 +1430,6 @@ c load 'BASENAME_pcl.gplot'
         write(2,2001) (ftocap+fctcld)/omefov/(pi*(diamobj/2.)**2.)
       close(2)
  2001 format('                   ',E10.3E2)
-      print*,siz
       stop
       end
 c***********************************************************************************************************************
