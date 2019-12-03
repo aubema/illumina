@@ -25,14 +25,15 @@ c
 c    Contact: martin.aube@cegepsherbrooke.qc.ca
 c
 c
-      subroutine horizon(x,y,z,dx,dy,altsol,anga,zhoriz) 
+      subroutine horizon(x,y,z,dx,dy,anga,zhoriz,d) 
       integer width                                                       ! Matrix dimension in Length/width and height
       parameter (width=256)      
       integer x,y,nx,ny
       real dx,dy,altsol(width,width),anga,zout,pi,angaz1,ix,iy,dist
-      real posx,posy,scalef,zhoriz,z
+      real posx,posy,scalef,zhoriz,z,d
       pi=3.1415926
-      angaz1 = (pi*anga)/180.
+c      angaz1 = (pi*anga)/180.
+       andaz1=anga
       ix = (cos(angaz1))                                                  ! viewing vector components
       iy = (sin(angaz1))
       dist=(real(width))*sqrt(1.+tan(angaz1)**2.)
@@ -40,8 +41,8 @@ c
       posx=real(x)*dx
       posy=real(y)*dy
       zhoriz=pi
-      do while (((posx.le.width*dx).and.(posx.gt.1.*dx)).and.
-     +((posy.le.width*dy).and.(posy.gt.1.*dy)))
+      do while (((posx.le.real(width)*dx).and.(posx.gt.1.*dx)).and.
+     +((posy.le.real(width)*dy).and.(posy.gt.1.*dy)))
         posx=posx+ix*scalef
         posy=posy+iy*scalef
         nx=nint(posx/dx)
@@ -50,11 +51,13 @@ c        print*,nx,ny,x,y
         if (altsol(nx,ny).gt.z) then        
           zout=pi/2.-atan((altsol(nx,ny)-z)/sqrt(dx**
      +    2.*real((nx-x))**2.+dy**2.*real((ny-y))**2.))
+          d=sqrt(dx**2.*real((nx-x))**2.+dy**2.*real((ny-y))**2.)
         else
-          zout=pi/2.-0.5*pi/180.                                         ! bug for zhoriz=pi, anyway in the real world pi is almost impossible 
+          zout=pi/2.-0.5*pi/180.                                          ! bug for zhoriz=pi, anyway in the real world pi is almost impossible 
+          d=real(width)*dx
         endif        
-        if (zhoriz.lt.zout) then
-           zout=zhoriz
+        if (zout.lt.zhoriz) then
+           zhoriz=zout
         endif
       enddo
       return
