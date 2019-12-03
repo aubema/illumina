@@ -254,7 +254,7 @@ c reading of the fichier d'entree (illumina.in)
         effdif=0.
       else
         effdif=100000.
-        n2nd=100000
+        n2nd=50000
       endif
 c      siz=siz+dx/1000.
       omemax=1./((siz)**2.)                                                 ! about two degree
