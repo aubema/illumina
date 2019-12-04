@@ -41,11 +41,11 @@ c       if (siz.lt.40.) siz=40.
        dmin=sqrt((x1-x2)**2.+(y1-y2)**2.+(z1-z2)**2.)
 c find an approximate value to stepdi
        stepdi=nint((dmin+effet)*3.14159/siz)*neffet/n2nd*neffet/2
-       stepdi=90000000
+       stepdi=100000000
        if (stepdi.eq.0) stepdi=1
 
        step=nint(real(stepdi)**(1./3.))
-       print*,stepdi,neffet,step
+c       print*,stepdi,neffet,step
 c       stop
        if (step.le.0) step=1
 c limits of the calculations loops

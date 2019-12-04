@@ -250,7 +250,7 @@ c reading of the fichier d'entree (illumina.in)
         read(1,*) cloudt, cloudbase
         read(1,*) 
       close(1)
-      siz=10.                                                             ! 20m will work from dx=20 to dx=196km at least
+      siz=5.                                                             ! 20m will work from dx=20 to dx=196km at least
       if (ssswit.eq.0) then
         effdif=0.
       else
