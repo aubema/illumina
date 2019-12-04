@@ -250,14 +250,24 @@ c reading of the fichier d'entree (illumina.in)
         read(1,*) cloudt, cloudbase
         read(1,*) 
       close(1)
-      siz=50.
+      siz=20.                                                             ! 20m will work from dx=20 to dx=196km at least
       if (ssswit.eq.0) then
         effdif=0.
       else
-        effdif=100000.
-        n2nd=50000
+        effdif=100000.                                                    ! This is apparently the minimum value to get some accuracy
+        n2nd=100000                                                       !
       endif
-      omemax=1./((siz)**2.)                                               ! about two degree
+      scal=23.5
+c      if (scal.gt.20.) scal=25
+      scalo=scal
+c omemax: exclude calculations too close (<57m) this is a sustended angle of 1 deg.
+c the calculated flux is highly sensitive to that number for a very high 
+c pixel resolution (a few 10th of meters). We assume anyway that somebody
+c observing the sky will never lies closer than that distance to a 
+c light fixture. This number is however somehow subjective and that means
+c that the value of sky brightness near sources will be affected by this
+c choice
+      omemax=1./((57.)**2.)
       if (verbose.gt.1) then
         print*,'2nd scattering grid = ',siz
         print*,'2nd order scattering radius=',effdif,'m'
@@ -577,8 +587,6 @@ c beginning of the loop over the line of sight voxels
           stop
         endif
  1110   format(I4,1x,I4,1x,I4)
-        scal=25.                                                         ! size of the step along line of sight and 2nd scat resolution
-        scalo=scal
         fctcld=0.
         ftocap=0.                                                         ! Initialisation of the value of flux received by the sensor
         angvi1 = (pi*angvis)/180.
