@@ -41,7 +41,7 @@ c       if (siz.lt.40.) siz=40.
        dmin=sqrt((x1-x2)**2.+(y1-y2)**2.+(z1-z2)**2.)
 c find an approximate value to stepdi
        step10=nint((dmin+effet)*3.14159/siz/10.)*neffet/n2nd*neffet/200
-       if (step10.gt.100000) then
+       if (step10.gt.200000) then
          stepdi=100000000
        else
          stepdi=nint((dmin+effet)*3.14159/siz)*neffet/n2nd*neffet/2
