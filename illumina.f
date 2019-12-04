@@ -250,14 +250,14 @@ c reading of the fichier d'entree (illumina.in)
         read(1,*) cloudt, cloudbase
         read(1,*) 
       close(1)
-      siz=20.                                                             ! 20m will work from dx=20 to dx=196km at least
+      siz=500.                                                             ! 20m will work from dx=20 to dx=196km at least
       if (ssswit.eq.0) then
         effdif=0.
       else
         effdif=100000.                                                    ! This is apparently the minimum value to get some accuracy
         n2nd=100000                                                       !
       endif
-      scal=23.5
+      scal=siz/4.
 c      if (scal.gt.20.) scal=25
       scalo=scal
 c omemax: exclude calculations too close (<57m) this is a sustended angle of 1 deg.
@@ -267,7 +267,7 @@ c observing the sky will never lies closer than that distance to a
 c light fixture. This number is however somehow subjective and that means
 c that the value of sky brightness near sources will be affected by this
 c choice
-      omemax=1./((57.)**2.)
+      omemax=1./((25.)**2.)
       if (verbose.gt.1) then
         print*,'2nd scattering grid = ',siz
         print*,'2nd order scattering radius=',effdif,'m'
