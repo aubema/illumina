@@ -257,7 +257,7 @@ c reading of the fichier d'entree (illumina.in)
         effdif=100000.                                                    ! This is apparently the minimum value to get some accuracy
         n2nd=100000                                                       !
       endif
-      scal=siz/4.
+      scal=25.
       scalo=scal
 c omemax: exclude calculations too close (<57m) this is a sustended angle of 1 deg.
 c the calculated flux is highly sensitive to that number for a very high 
