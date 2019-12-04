@@ -250,7 +250,7 @@ c reading of the fichier d'entree (illumina.in)
         read(1,*) cloudt, cloudbase
         read(1,*) 
       close(1)
-      siz=500.                                                             ! 20m will work from dx=20 to dx=196km at least
+      siz=100.                                                             ! 20m will work from dx=20 to dx=196km at least
       if (ssswit.eq.0) then
         effdif=0.
       else
@@ -258,7 +258,6 @@ c reading of the fichier d'entree (illumina.in)
         n2nd=100000                                                       !
       endif
       scal=siz/4.
-c      if (scal.gt.20.) scal=25
       scalo=scal
 c omemax: exclude calculations too close (<57m) this is a sustended angle of 1 deg.
 c the calculated flux is highly sensitive to that number for a very high 
