@@ -200,6 +200,7 @@ c  suggested cloudbase per type: 9300.,9300.,4000.,1200.,1100.            ! 4=Cu
       real distd                                                          ! distance to compute the scattering probability
       real volu                                                           ! volume of a voxel
       real scal                                                           ! stepping along the line of sight
+      real scalo                                                          ! previous value of scal
       real siz                                                            ! resolution of the 2nd scat grid in meter
       real angvi1,angaz1                                                  ! viewing angles in radian
       real ix,iy,iz                                                       ! base vector of the viewing (length=1)
@@ -256,13 +257,12 @@ c reading of the fichier d'entree (illumina.in)
         effdif=100000.
         n2nd=50000
       endif
-c      siz=siz+dx/1000.
-      omemax=1./((siz)**2.)                                                 ! about two degree
+      omemax=1./((siz)**2.)                                               ! about two degree
       if (verbose.gt.1) then
-          print*,'2nd scattering grid = ',siz
-          print*,'2nd order scattering radius=',effdif,'m'
-          print*,'Pixel size = ',dx,' x ',dy
-          print*,'Maximum radius for reflexion = ',reflsiz
+        print*,'2nd scattering grid = ',siz
+        print*,'2nd order scattering radius=',effdif,'m'
+        print*,'Pixel size = ',dx,' x ',dy
+        print*,'Maximum radius for reflexion = ',reflsiz
       endif
 c computing the actual AOD at the wavelength lambda
       if (verbose.ge.1) print*,'500nm AOD=',taua,'500nm angstrom coeff.=
@@ -289,9 +289,7 @@ c opening output file
       open(unit=2,file=outfile,status='unknown')
 c check if the observation angle is above horizon
         angzen=pi/2.-angvis*pi/180.
-c        call horizon(x_obs,y_obs,z_obs,dx,dy,nbx,nby,altsol,latitu,
-c     +  angzen,angazi,zhoriz,dh)
-     
+
         call horizon(x_obs,y_obs,z_obs,dx,dy,altsol,angazi,zhoriz,dh)
         if (angzen.gt.zhoriz) then                                         ! the line of sight is not below the horizon => we compute
           print*,'PROBLEM! You try to observe below horizon'
@@ -580,6 +578,7 @@ c beginning of the loop over the line of sight voxels
         endif
  1110   format(I4,1x,I4,1x,I4)
         scal=25.                                                         ! size of the step along line of sight and 2nd scat resolution
+        scalo=scal
         fctcld=0.
         ftocap=0.                                                         ! Initialisation of the value of flux received by the sensor
         angvi1 = (pi*angvis)/180.
@@ -593,9 +592,9 @@ c beginning of the loop over the line of sight voxels
 c        x_c=nint(rx_c/dx)
 c        y_c=nint(ry_c/dy)
         do icible=1,ncible                                                ! beginning of the loop over the line of sight voxels
-          rx_c=rx_c+ix*scal
-          ry_c=ry_c+iy*scal
-          z_c=z_c+iz*scal  
+          rx_c=rx_c+ix*(scalo/2.+scal/2.)
+          ry_c=ry_c+iy*(scalo/2.+scal/2.)
+          z_c=z_c+iz*(scalo/2.+scal/2.)  
           if ((fcapt.ge.ftocap/stoplim).and.(z_c.lt.cloudbase).and.       ! stop the calculation of the viewing line when the increment is lower than 1/stoplim
      +    (z_c.lt.35000.)) then                                           ! or when hitting a cloud or when z>40km (because the scattering probability is zero (given precision)
             fcapt=0.
@@ -1402,6 +1401,7 @@ c computation of the flux reaching the intrument from the cloud voxel
 c          if (icible.eq.6) stop
 
 c accelerate the computation as we get away from the sources          
+          scalo=scal
           scal=scal*1.05                     
         enddo                                                             ! end of the loop over the line of sight voxels.
         if (prmaps.eq.1) then
