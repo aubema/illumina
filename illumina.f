@@ -250,7 +250,7 @@ c reading of the fichier d'entree (illumina.in)
         read(1,*) cloudt, cloudbase
         read(1,*) 
       close(1)
-      siz=20.                                                             ! 20m will work from dx=20 to dx=196km at least
+      siz=100.                                                             ! 20m will work from dx=20 to dx=196km at least
       if (ssswit.eq.0) then
         effdif=0.
       else
@@ -298,7 +298,6 @@ c opening output file
       open(unit=2,file=outfile,status='unknown')
 c check if the observation angle is above horizon
         angzen=pi/2.-angvis*pi/180.
-
         call horizon(x_obs,y_obs,z_obs,dx,dy,altsol,angazi,zhoriz,dh)
         if (angzen.gt.zhoriz) then                                         ! the line of sight is not below the horizon => we compute
           print*,'PROBLEM! You try to observe below horizon'
@@ -401,7 +400,6 @@ c determination of the vertical atmospheric transmittance
         call transtoa(lambda,taua,pressi,tranam,tranaa)                   ! tranam and tranaa are the top of atmosphere transmittance (molecules and aerosols)
 c reading of the environment variables                         
 c reading of the elevation file
-
         call twodin(nbx,nby,mnaf,altsol)
         Hmin=3000000.
         do i=1,nbx                                                        ! beginning of the loop over all cells along x.
@@ -442,7 +440,6 @@ c reading photometry files
           do i=1,181
             if (pvalto.ne.0.) pvalno(i,stype)=pval(i,stype)/pvalto        ! Normalisation of the photometric function.
           enddo
-
 c reading luminosity files
           call twodin(nbx,nby,lufile,val2d)
           do i=1,nbx                                                      ! beginning of the loop over all cells along x.
@@ -596,8 +593,6 @@ c beginning of the loop over the line of sight voxels
         rx_c=real(x_obs)*dx-ix*scal/2.
         ry_c=real(y_obs)*dx-iy*scal/2.
         z_c=z_obs-iz*scal/2.
-c        x_c=nint(rx_c/dx)
-c        y_c=nint(ry_c/dy)
         do icible=1,ncible                                                ! beginning of the loop over the line of sight voxels
           rx_c=rx_c+ix*(scalo/2.+scal/2.)
           ry_c=ry_c+iy*(scalo/2.+scal/2.)
@@ -654,7 +649,6 @@ c computation of the Solid angle of the line of sight voxel seen from the observ
      +sqrt((rx_c-rx_obs)**2.+(ry_c-ry_obs)**2.),' m'
       if (verbose.ge.1) write(2,*) ' Vertical dist. line of sight =',
      +z_c-z_obs,' m'
-
               dis_obs=sqrt((z_c-z_obs)**2.+(ry_c-ry_obs)**2.
      +          +(rx_c-rx_obs)**2.)
               if (dis_obs.eq.0.) then
@@ -717,10 +711,6 @@ c computation of the horizon for the resolved shadows direct              ! hori
                               if (angzen.gt.pi/4.) then                   ! 45deg. it is unlikely to have a 1km high mountain less than 1
                                 call horizon(x_s,y_s,z_s,dx,dy,altsol,
      +                          angazi,zhoriz,dh)
-                              
-c                                call horizon(x_s,y_s,z_s,dx,dy,
-c     +                          nbx,nby,altsol,latitu,angzen,
-c     +                          angazi,zhoriz,dh)
                                 if (dh.le.dho) then
                                   if (angzen.lt.zhoriz) then                ! shadow the path line of sight-source is not below the horizon => we compute
                                     hh=1.
@@ -1015,8 +1005,7 @@ c computing zenith angle between the scattering voxel and the line of sight voxe
 c subgrid obstacles
             if ((x_dif.lt.1).or.(x_dif.gt.nbx).or.(y_dif.lt.1).or.
      +      (y_dif.gt.nbx)) then
-                            ff=0.
-
+              ff=0.
             else
               angmin=pi/2.-atan((obsH(x_dif,y_dif)+altsol(x_dif,y_dif)-
      +        z_dif)/drefle(x_dif,y_dif))
@@ -1080,7 +1069,6 @@ c shadow source-scattering voxel
      +        ry_dif,angazi)
 c horizon blocking not a matter because some path are downward and most of them closeby
               hh=1.
-
               angmin=pi/2.-atan((obsH(x_s,y_s)+
      +        altsol(x_s,y_s)-z_s)/drefle(x_s,
      +        y_s))
@@ -1132,7 +1120,6 @@ c subgrid obstacles
             if ((x_dif.lt.1).or.(x_dif.gt.nbx).or.(y_dif.lt.1).or.
      +      (y_dif.gt.nbx)) then
               ff=0.
-
                else
                  angmin=pi/2.-atan((obsH(x_dif,y_dif)
      +           +altsol(x_dif,y_dif)-z_dif)/drefle(
@@ -1143,14 +1130,7 @@ c subgrid obstacles
                    ff=ofill(x_dif,y_dif)
                  endif
                endif
-             
-              
-              
-              hh=1.
-              
-              
-              
-              
+               hh=1.
 c Computing transmittance between the scattering voxel and the line of sight voxel
               distd=sqrt((rx_c-rx_dif)**2.
      +        +(ry_c-ry_dif)**2.
@@ -1182,7 +1162,6 @@ c cloud contribution to the double scattering from a source
      +            abs(cos(azcl2)/cos(azcl1))/dsc2/pi
                 endif
               endif
-
 c computation of the scattering probability of the scattered light toward the observer voxel (exiting voxel_c)
               call angle3points(rx_dif,ry_dif,                            ! scattering angle.
      +        z_dif,rx_c,ry_c,z_c,rx_obs,ry_obs,
@@ -1211,7 +1190,6 @@ c **********************************************************************
 c * section refected light with single scattering
 c **********************************************************************
 c verify if there is shadow between sr and line of sight voxel
-
                                         call anglezenithal(rx_sr,ry_sr,   ! zenithal angle between the reflecting surface and the line of sight voxel.
      +                                  z_sr,rx_c,ry_c,z_c,angzen)
                                         call angleazimutal(rx_sr,ry_sr,   ! computation of the azimutal angle reflect-line of sight
@@ -1222,10 +1200,6 @@ c verify if there is shadow between sr and line of sight voxel
                                         dho=sqrt((rx_sr-rx_c)**2.
      +                                  +(ry_sr-ry_c)**2.)
                                         if (angzen.gt.pi/4.) then         ! 45deg. it is unlikely to have a 1km high mountain less than 1
-c                                          call horizon(x_sr,y_sr,z_sr,dx
-c    +                                    ,dy,nbx,nby,altsol,latitu,
-c     +                                    angzen,angazi,zhoriz,dh)
-    
         call horizon(x_sr,y_sr,altsol(x_sr,y_sr),dx,dy,angazi,zhoriz,dh)
                                           if (dh.le.dho) then
                                             if (angzen.lt.zhoriz) then    ! the path line of sight-reflec is not below the horizon => we compute
@@ -1324,7 +1298,6 @@ c                            isourc=isourc+icloud
          print*,'PROBLEM! Negative intensity.'
          stop
        endif
-
                             endif
 c**********************************************************************
 c computation of the total intensity coming from all the sources of a given type
