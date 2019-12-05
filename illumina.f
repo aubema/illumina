@@ -71,7 +71,7 @@ c     Variables declaration
 c=======================================================================
 c
       integer width,nzon                                                  ! Matrix dimension in Length/width and height
-      parameter (width=256,nzon=256)
+      parameter (width=512,nzon=256)
       integer iun,ideux
       real pi,pix4
       real zero,un                                                        ! value of 0. and 1.
@@ -257,7 +257,7 @@ c reading of the fichier d'entree (illumina.in)
         effdif=100000.                                                    ! This is apparently the minimum value to get some accuracy
         n2nd=100000                                                       !
       endif
-      scal=25.
+      scal=20.
       scalo=scal
 c omemax: exclude calculations too close (<57m) this is a sustended angle of 1 deg.
 c the calculated flux is highly sensitive to that number for a very high 

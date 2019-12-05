@@ -10,7 +10,7 @@ c ----------
 c
 c   declare variables
 c
-      real dat(256,256)
+      real dat(512,512)
       character*72 nomi
       integer nx,ny,nbx,nby
 c

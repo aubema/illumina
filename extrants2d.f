@@ -23,7 +23,7 @@ c
          subroutine extrants2d(outfile,valeur,nom,xcell0,ycell0,pixsiz,
      +   gain,offset,nbx,nby,valmax)
          integer width
-         parameter (width=1024)
+         parameter (width=512)
          real valeur(width,width),xcell0,ycell0,gain,offset
          integer i,j,nbx,nby,valmax
          character*12 nom

@@ -32,7 +32,7 @@ c   programme principal
 c
       program writeaod
       integer width                                                       ! Matrix dimension in Length/width
-      parameter (width=256)
+      parameter (width=512)
 c
 c ----------
 c

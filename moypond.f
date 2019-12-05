@@ -21,7 +21,7 @@ c    Contact: martin.aube@cegepsherbrooke.qc.ca
 c
 c
        integer width
-       parameter (width=256)
+       parameter (width=512)
        real total
        real dat1(width,width),weight1,weight2
        real dat2(width,width),dat3(width,width)

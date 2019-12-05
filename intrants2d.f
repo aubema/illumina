@@ -23,7 +23,7 @@ c
          subroutine intrants2d (infile,valeur,xcell0,ycell0,
      +   pixsiz,nbx,nby)
          integer width
-         parameter (width=1024)
+         parameter (width=512)
          real valeur(width,width),val,xcell0,ycell0,gain,offset
          real pixsiz
          integer hcnt,i,j,nbx,nby,valmax
