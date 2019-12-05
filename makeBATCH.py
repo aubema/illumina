@@ -89,7 +89,7 @@ for i,fname in enumerate(glob("*.hdf5"),1):
             clipped.set_buffer(0)
             clipped.set_overlap(0)
         for i,dat in enumerate(clipped):
-            padded_dat = np.pad(dat,(256-dat.shape[0])//2,'constant')
+            padded_dat = np.pad(dat,(512-dat.shape[0])//2,'constant')
             save_bin("obs_data/%6f_%6f/%i/%s" % \
                 (lat,lon,i,fname.rsplit('.',1)[0]+'.bin'), padded_dat)
         if "srtm" in fname:
@@ -231,8 +231,8 @@ for i,param_vals in enumerate(comb(*param_space),1):
         ((len(lamps), "Number of source types"),),
         ((P['stop_limit'], "Contribution threshold"),),
         (('', ''),),
-        ((128, "Observer X position"),
-         (128, "Observer Y position"),
+        ((256, "Observer X position"),
+         (256, "Observer Y position"),
          (P['observer_elevation'], "Observer elevation above ground [m]")),
         (('', ''),),
         ((P['elevation_angle'], "Elevation viewing angle"),
