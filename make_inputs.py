@@ -68,7 +68,7 @@ print "Loading photometry files."
 lop_files = glob("Lights/*.lop")
 angles = np.arange(181,dtype=float)
 lop = {
-	os.path.basename(s).split('.',1)[0].split('_',1)[0] : \
+	os.path.basename(s).rsplit('.',1)[0].split('_',1)[0] : \
 	pt.load_lop(angles,s) for s in lop_files
 }
 
@@ -87,7 +87,7 @@ norm_spectrum /= np.max(norm_spectrum)
 
 spct_files = glob("Lights/*.spct")
 spct = {
-	os.path.basename(s).split('.',1)[0].split('_',1)[0] : \
+	os.path.basename(s).rsplit('.',1)[0].split('_',1)[0] : \
 	pt.load_spct(wav,norm_spectrum,s) \
 	for s in spct_files
 }
