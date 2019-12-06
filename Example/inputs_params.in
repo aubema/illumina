@@ -16,11 +16,11 @@ batch_file_name: batch
 # parameters after here can be lists
 observer_elevation: 10         # elevation above ground level (m)
 air_pressure: 101.3            # lowest domain level atmospheric pressure in KPa
+reflection_radius: 9.99        # radius around light sources whre reflections can occur (m)
 cloud_model: 0                 # cloud model selection 0=clear, 1=Thin Cirrus/Cirrostratus, 2=Thick Cirrus/Cirrostratus, 3=Altostratus/Altocumulus,  4=Cumulus/Cumulonimbus, 5=Stratocumulus
-nearest_source_distance: 150   # minimal distance allowed to the nearest light source (m)
+coud_base: 0                   # height of the cloud base (m)
 stop_limit: 5000.              # Stop computation when the new voxel contribution is less than 1/stoplim of the cumulated flux (suggested value = 5000.)
-scattering_skip: 71            # 2nd scattering acceleration factor (must me a prime number)
-scattering_radius: 0           # maximum 2nd scattering radius (km)
+double_scattering: False       # Activate double scattering (True/False)
 elevation_angle: [90,45]
 azimuth_angle: [0,60,120,180,240,300]
 aerosol_optical_depth: 0.11    # AOD value at 500 nm
