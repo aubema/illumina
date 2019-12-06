@@ -83,7 +83,7 @@ print "\nLoading data..."
 lop_files = glob("Lights/*.lop")
 angles = np.arange(181,dtype=float)
 lop = {
-    os.path.basename(s).split('_',1)[0] : \
+    os.path.basename(s).rsplit('_',1)[0] : \
     pt.load_lop(angles,s) \
 for s in lop_files }
 
@@ -99,7 +99,7 @@ norm_spectrum = ratio_ps*photopic + (1-ratio_ps)*scotopic
 
 spct_files = glob("Lights/*.spct")
 spct = {
-    os.path.basename(s).split('_',1)[0] : \
+    os.path.basename(s).rsplit('_',1)[0] : \
     pt.load_spct(wav,norm_spectrum,s) \
 for s in spct_files }
 
