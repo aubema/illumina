@@ -40,9 +40,6 @@ for n,name in izip(xrange(3,7),['obsth','obstd','obstf','altlp']):
 
 print "Inverting lamp intensity."
 
-# Calculate zones lamps
-zones = pt.make_zones(angles, lop, wav, spct, zonData, sources )
-
 viirs_dat = MSD.Open("stable_lights.hdf5") * 1e-5 #nW/cm^2/sr -> W/m^2/sr
 for i in xrange(len(viirs_dat)):
 	viirs_dat[i][viirs_dat[i]<0] = 0.
@@ -54,7 +51,7 @@ for i,wm in enumerate(water_mask):
 circles = MSD.Open(dir_name+out_name+"_zone.hdf5")
 zon_mask = np.empty(len(circles),dtype=object)
 for i in xrange(len(zon_mask)):
-	zon_mask[i] = np.arange(1,len(zones)+1)[:,None,None] == circles[i]
+	zon_mask[i] = np.arange(1,len(zonfile)+1)[:,None,None] == circles[i]
 
 a = np.deg2rad(angles)
 mids = np.concatenate([[a[0]],np.mean([a[1:],a[:-1]],0),[a[-1]]])
@@ -64,6 +61,9 @@ sinx = 2*np.pi*(np.cos(mids[:-1])-np.cos(mids[1:]))
 S = np.array([
 	viirs_dat.pixel_size(i)**2 \
 	for i in xrange(len(viirs_dat)) ])
+
+# Calculate zones lamps
+zones = pt.make_zones(angles, lop, wav, spct, zonData, sources )
 
 # phie = DNB * S / int( R ( rho/pi Gdown + Gup ) ) dlambda
 Gdown = np.tensordot(zones[:,:,angles>90],sinx[angles>90],axes=([2],[0]))
@@ -80,10 +80,10 @@ phie = [
 ]
 
 ratio = [
-	fctem_bin.mean(-1) \
-	for fctem_bin in np.array_split(
-		(zones*sinx[:,None]).sum(2)[:,:,bool_array],
-		n_bins,-1
+	np.tensordot(zones[...,ind],sinx,axes=([2],[0])).mean(-1) \
+	for ind in np.array_split(
+		np.where(bool_array)[0],
+		n_bins
 	)
 ]
 

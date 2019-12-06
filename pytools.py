@@ -79,18 +79,16 @@ def make_zones(theta, lop, wl, spct, ivtr, sources):
       ivtr : Parsed inventory
       lops : List of LOPs in the inventory"""
 
-    zones = _np.asarray([
-        [
-            _np.ones((len(theta),len(wl))) * \
+
+    zones = _np.ones((len(ivtr),len(sources),len(theta),len(wl)))
+    for i,zone in enumerate(ivtr):
+        for j,s in enumerate(sources):
+            zones[i,j] *= \
             sum(
                 c*spct[t]*lop[l][:,None] \
                 for c,t,l in zone \
                 if l == s
-            ) \
-            for s in sources
-        ] \
-        for zone in ivtr
-    ])
+            )
 
     for i,zone in enumerate(zones):
         zon = zone.sum(0)
