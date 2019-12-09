@@ -180,7 +180,7 @@ c                                                                         ! a li
       real FCA(width,width)                                               ! sensor flux array
       real lpluto(width,width)                                            ! total luminosity of the ground cell for all lamps
       character*3 lampno                                                  ! lamp number string
-      integer imin(nzon),imax(nzon),jmin(nzon),jmax(nzon)                 ! x and y limits of the zone containing a type of lamp
+      integer imin(nzon),imax(nzon),jmin(nzon),jmax(nzon)                 ! x and y limits containing a type of lamp
       real angazi                                                         ! azimuth angle between two points in rad, max dist for the horizon determination
       real latitu                                                         ! approximate latitude of the domain center
       integer prmaps                                                      ! flag to enable the tracking of contribution and sensitivity maps
@@ -518,7 +518,6 @@ c reading subgrid obstacles average distance
         call twodin(nbx,nby,odfile,val2d)
         do i=1,nbx                                                        ! beginning of the loop over all cells along x.
           do j=1,nby                                                      ! beginning of the loop over all cells along y.
-            drefle(i,j)=val2d(i,j)/2.                                     ! Filling of the array
             if (drefle(i,j).eq.0.) drefle(i,j)=dx                         ! when outside a zone, block to the size of the cell (typically 1km)
           enddo                                                           ! end of the loop over all cells along y.
         enddo
@@ -536,7 +535,7 @@ c reading of the scattering parameters
           read(1,*)
           do i=1,181
             read(1,*) anglea(i), fdifa(i)                                 ! reading of the scattering functions
-            fdifan(i)=fdifa(i)/pix4                                       ! Normalisation of the fonction a 4 pi (the integral of the fonction over all solid angles equal 4 pi)
+            fdifan(i)=fdifa(i)/pix4                                       ! Normalisation of the fonction a 4 pi (integral of the fonction over sphere = 4 pi)
           enddo
           do i = 1,7
             read(1,*)
@@ -601,7 +600,7 @@ c beginning of the loop over the line of sight voxels
           ry_c=ry_c+iy*(scalo/2.+scal/2.)
           z_c=z_c+iz*(scalo/2.+scal/2.)  
           if ((fcapt.ge.ftocap/stoplim).and.(z_c.lt.cloudbase).and.       ! stop the calculation of the viewing line when the increment is lower than 1/stoplim
-     +    (z_c.lt.35000.)) then                                           ! or when hitting a cloud or when z>40km (because the scattering probability is zero (given precision)
+     +    (z_c.lt.35000.)) then                                           ! or when hitting a cloud or when z>40km (scattering probability =0 (given precision)
             fcapt=0.
             do i=1,nbx
               do j=1,nby
@@ -663,8 +662,8 @@ c computation of the Solid angle of the line of sight voxel seen from the observ
 c beginning of the loop over the types of light sources
               do stype=1,ntype                                            ! beginning of the loop over the source types.
                 if (totlu(stype).ne.0.) then                              ! check if there are any flux in that source type otherwise skip this lamp
-                  if (verbose.ge.1) print*,' Turning on zone',stype
-                  if (verbose.ge.1) write(2,*) ' Turning on zone',
+                  if (verbose.ge.1) print*,' Turning on lamps',stype
+                  if (verbose.ge.1) write(2,*) ' Turning on lamps',
      +            stype
                   itotty=0.                                               ! Initialisation of the contribution of a source types to
                   do x_s=1,nbx                                            ! the intensity toward the sensor by a line of sight voxel.
