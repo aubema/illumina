@@ -404,15 +404,16 @@ c reading of the elevation file
         Hmin=3000000.
         do i=1,nbx                                                        ! beginning of the loop over all cells along x.
           do j=1,nby                                                      ! beginning of the loop over all cells along y.
-c                                                                         ! searching of the Height minimale.
-            if (Hmin.gt.altsol(i,j)) Hmin=altsol(i,j)
+                                                                         ! searching of the Height minimale.
+c            if (Hmin.gt.altsol(i,j)) Hmin=altsol(i,j)
+            if (altsol(i,j).lt.0.) altsol(i,j)=0.
           enddo                                                           ! end of the loop over all cells along y.
         enddo
-        do i=1,nbx                                                        ! beginning of the loop over all cells along x.
-          do j=1,nby                                                      ! beginning of the loop over all cells along y.
-            altsol(i,j)=altsol(i,j)-Hmin                                  ! subtraction of the Minimum ground elevation
-          enddo                                                           ! end of the loop over all cells along y.
-        enddo
+c        do i=1,nbx                                                        ! beginning of the loop over all cells along x.
+c          do j=1,nby                                                      ! beginning of the loop over all cells along y.
+c            altsol(i,j)=altsol(i,j)-Hmin                                  ! subtraction of the Minimum ground elevation
+c          enddo                                                           ! end of the loop over all cells along y.
+c        enddo
 c reading of the values of P(theta), height, luminosities and positions
 c of the sources, obstacle height and distance
         ohfile=basenm(1:lenbase)//'_obsth.bin'
