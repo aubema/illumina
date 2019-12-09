@@ -401,14 +401,16 @@ c determination of the vertical atmospheric transmittance
 c reading of the environment variables                         
 c reading of the elevation file
         call twodin(nbx,nby,mnaf,altsol)
-        Hmin=3000000.
-        do i=1,nbx                                                        ! beginning of the loop over all cells along x.
-          do j=1,nby                                                      ! beginning of the loop over all cells along y.
-                                                                         ! searching of the Height minimale.
+c        Hmin=3000000.
+c        do i=1,nbx                                                        ! beginning of the loop over all cells along x.
+c          do j=1,nby                                                      ! beginning of the loop over all cells along y.
+                                                                          ! searching of the Height minimale.
 c            if (Hmin.gt.altsol(i,j)) Hmin=altsol(i,j)
-            if (altsol(i,j).lt.0.) altsol(i,j)=0.
-          enddo                                                           ! end of the loop over all cells along y.
-        enddo
+c            if (altsol(i,j).lt.0.) then 
+c              if (altsol(i,j).gt.-25.)  altsol(i,j)=0.                    ! we assume that it is typical of errors over the see.
+c            endif
+c          enddo                                                           ! end of the loop over all cells along y.
+c        enddo
 c        do i=1,nbx                                                        ! beginning of the loop over all cells along x.
 c          do j=1,nby                                                      ! beginning of the loop over all cells along y.
 c            altsol(i,j)=altsol(i,j)-Hmin                                  ! subtraction of the Minimum ground elevation
