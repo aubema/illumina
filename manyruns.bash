@@ -17,7 +17,7 @@ do  bash $i
     ntot=$((nnew+njob))
     echo $njob "initial"
     echo $nnew "new"
-    while  [ $ntot -ge 900 ]
+    while  [ $ntot -ge 800 ]
     do 
         njob=`squeue -u $user -h | grep -c ""`
         ntot=$((nnew+njob))
