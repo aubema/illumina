@@ -177,7 +177,7 @@ wl2mie = np.asarray([min(mie_wl, key=lambda i: abs(i-j)) for j in x])
 for i in xrange(len(wl2mie)):
 	name = dir_name+mie_pre.strip('_')+"_0.%03d0um.mie.out"%x[i]
 	try:
-		os.symlink(os.path.abspath(mie_files[wl2mie[i]]),name)
+		shutil.copy2(os.path.abspath(mie_files[wl2mie[i]]),name)
 	except OSError as e:
 		if e[0] != 17:
 			raise
