@@ -27,10 +27,9 @@ if p.format == 'raster':
     srs = osr.SpatialReference()
     srs.ImportFromEPSG(int(hdf._attrs['srs'].split(':')[1]))
 
-    b = hdf._attrs['buffer']
-
     for l,data in enumerate(hdf):
         pix_size = hdf._attrs['layers'][l]['pixel_size']
+        b = hdf._attrs['layers'][l]['buffer']
         xmin = hdf._attrs['layers'][l]['xmin'] + b*pix_size
         ymax = hdf._attrs['layers'][l]['ymax'] - b*pix_size
         data = data[b:-b,b:-b]
