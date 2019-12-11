@@ -189,6 +189,8 @@ with open(dir_name+"/wav.lst",'w') as zfile:
 
 if params['zones_inventory'] is not None:
 	dir_name = ".Inputs_zones/"
+	inv_name = params['zones_inventory']
+	n_inv = 7
 	shutil.rmtree(dir_name,True)
 	os.makedirs(dir_name)
 	execfile(os.path.join(illumpath,"make_zones.py"))

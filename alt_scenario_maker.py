@@ -106,6 +106,7 @@ for s in spct_files }
 # Make bins
 x = np.loadtxt("Inputs/wav.lst",ndmin=1).tolist()
 n_bins = len(x)
+shutil.copy("Inputs/integration_limits.dat",dirname)
 ilims = np.genfromtxt("Inputs/integration_limits.dat",skip_header=1)
 dl = ilims[1:]-ilims[:-1]
 bool_array = (ilims[0]<=wav)*(wav<ilims[-1])
@@ -155,14 +156,49 @@ reflect = [ np.mean(a) for a in \
     )
 ]
 
+with open(dirname+"/refl.lst",'w') as zfile:
+	zfile.write('\n'.join( map(lambda n:"%.06g"%n, reflect ))+'\n')
+
 # Photopic/scotopic spectrum
 #   ratio_ps = float(raw_input("    photopic/scotopic ratio for lamp power ? (0 <= p/(s+p) <= 1) : "))
 nspct = ratio_ps*photopic + (1-ratio_ps)*scotopic
 nspct = nspct/np.sum(nspct)
 nspct = np.array(map(np.mean,np.array_split(nspct[bool_array],n_bins)))
 
-if params['zones_inventory'] is not None:
+print "Linking mie files."
+
+aero_profile = params['aerosol_profile']
+RH = params['relative_humidity']
+mie_pre = aero_profile+"_RH%02d" % RH
+
+ppath = os.environ['PATH'].split(os.pathsep)
+illumpath = filter(
+	lambda s: "illumina" in s and "bin" not in s,
+	ppath )[0]
+
+mie_path = illumpath + "/Aerosol_optical_prop/"
+mie_files = glob(mie_path+mie_pre+"*.mie.out")
+mie_files = { int(s.split('.')[-3][:3]):s for s in mie_files }
+mie_wl = np.asarray(sorted(mie_files.keys()))
+wl2mie = np.asarray([min(mie_wl, key=lambda i: abs(i-j)) for j in x])
+
+for i in xrange(len(wl2mie)):
+	name = dirname+mie_pre.strip('_')+"_0.%03d0um.mie.out"%x[i]
+	try:
+		os.symlink(os.path.abspath(mie_files[wl2mie[i]]),name)
+	except OSError as e:
+		if e[0] != 17:
+			raise
+
+shutil.copy("srtm.hdf5",dirname)
+
+with open(dirname+"/wav.lst",'w') as zfile:
+	zfile.write('\n'.join( map(lambda n:"%03d"%n, x ))+'\n')
+
+if p.zones is not None:
     dir_name = ".Inputs_zones/"
+    inv_name = p.zones
+    n_inv = 0
     shutil.rmtree(dir_name,True)
     os.makedirs(dir_name)
     execfile(os.path.join(illumpath,"make_zones.py"))
@@ -190,11 +226,12 @@ if params['zones_inventory'] is not None:
             ds[i] *= dat
         ds.save(fname)
 
-if params['lamps_inventory'] is not None:
-	dir_name = ".Inputs_lamps/"
-	shutil.rmtree(dir_name,True)
-	os.makedirs(dir_name)
-	execfile(os.path.join(illumpath,"make_lamps.py"))
+if p.lights is not None:
+    params['lamps_inventory'] = p.lights
+    dir_name = ".Inputs_lamps/"
+    shutil.rmtree(dir_name,True)
+    os.makedirs(dir_name)
+    execfile(os.path.join(illumpath,"make_lamps.py"))
 
 print "Unifying inputs."
 

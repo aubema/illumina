@@ -9,8 +9,7 @@
 print "Building inputs from zones inventory."
 
 # lamps distribution
-inv_name = params['zones_inventory']
-zonData = pt.parse_inventory(inv_name,7)
+zonData = pt.parse_inventory(inv_name,n_inv)
 
 sources = np.unique([ lamp[2] for zd in zonData for lamp in zd ])
 
@@ -26,7 +25,7 @@ with open(dir_name+"lamps.lst",'w') as zfile:
 print "Making zone properties files."
 
 circles = hdf.from_domain("domain.ini") # Same geolocalisation
-zonfile = np.loadtxt(inv_name,usecols=range(7),ndmin=2)
+zonfile = np.loadtxt(params['zones_inventory'],usecols=range(7),ndmin=2)
 
 # zone number
 for i,dat in enumerate(zonfile,1):
