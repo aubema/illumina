@@ -247,7 +247,8 @@ c reading of the fichier d'entree (illumina.in)
         read(1,*)
         read(1,*)
         read(1,*) reflsiz
-        read(1,*) cloudt, cloudbase, cloudtop
+c        read(1,*) cloudt, cloudbase, cloudtop
+        read(1,*) cloudt, cloudbase
         read(1,*) 
       close(1)
       siz=10.                                                             ! 20m will work from dx=20 to dx=196km at least
