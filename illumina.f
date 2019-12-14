@@ -196,7 +196,7 @@ c  suggested cloudbase per type: 9300.,9300.,4000.,1200.,1100.            ! 4=Cu
       real totlu(nzon)                                                    ! total flux of a source type
       real stoplim                                                        ! Stop computation when the new voxel contribution is less than 1/stoplim of the cumulated flux
       real ff,hh                                                          ! temporary obstacle filling factor and horizon blocking factor
-      real cloudbase                                                      ! cloud base altitude (m)
+      real cloudbase,cloudtop,cloudhei                                    ! cloud base and top altitude (m), cloud layer avg height (m)
       real distd                                                          ! distance to compute the scattering probability
       real volu                                                           ! volume of a voxel
       real scal                                                           ! stepping along the line of sight
@@ -247,7 +247,7 @@ c reading of the fichier d'entree (illumina.in)
         read(1,*)
         read(1,*)
         read(1,*) reflsiz
-        read(1,*) cloudt, cloudbase
+        read(1,*) cloudt, cloudbase, cloudtop
         read(1,*) 
       close(1)
       siz=10.                                                             ! 20m will work from dx=20 to dx=196km at least
@@ -579,11 +579,73 @@ c computation of the tilt of the cases along x and along y
           enddo                                                           ! end of the loop over the rows (latitu) of the domain
         enddo                                                             ! end of the loop over the column (longitude) of the domain
 c beginning of the loop over the line of sight voxels
-        if (z_obs.ge.cloudbase) then
+
+
+
+c temporaire !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        cloudtop=100000.
+
+
+
+        if ((z_obs.ge.cloudbase).and.(z_obs.le.cloudtop)) then
           print*,'The observer is inside the cloud! Abort computing.',
      +    z_obs,cloudbase
           stop
         endif
+c
+c replace ground based source by cloud lambertian source for souces under
+c cloud central layer and keep sources for source above cloud central layer
+c
+c  On cree ici un nouveau sourcetype qui sera le nuage. donc aux valeurs x et y concernees tous lamplu des autres types deviennent 0.
+c  et on calcule le lumlp du nouveau type nuage le numero du type sera ntype+1
+c
+c        cloudhei=(cloudtop-cloudbase)/2.
+c        if (z_obs.gt.cloudtop) then
+c          do i=1,nbx
+c            do j=1,nby
+c              z_s=(altsol(i,j)+lampali,j))
+c              if (z_s.lt.cloudhei) then
+c                do nt=1,ntype
+c                  call calculecloudlum(ntype+1)  ici on determiner la lamplu(i,j,ntype+1)
+
+c                enddo                                                     fin ntype
+c              endif
+c            enddo
+c          enddo
+
+c          do i=1,nbx
+c            do j=1,nby
+c              z_s=(altsol(i,j)+lampali,j))
+c              if (z_s.lt.cloudhei) then
+c                lampal(i,j)=cloudhei-altsol(i,j)
+
+c                do nt=1,ntype
+c                  pvalto=0.
+c                  do na=1,181
+c                    pval(na,ntype+1)=pi
+c                    pvalto=pvalto+pval(na,ntype+1)*2.*pi*                          ! Sum of the values of the  photometric function
+c     a              sin(real(na-1)*dtheta)*dtheta
+c                  enddo
+c                  do na=1,181
+c                    if (pvalto.ne.0.) pvalno(na,ntype+1)=
+c     +              pval(na,ntype+1)/pvalto                                     ! Normalisation of the photometric function.
+c                  enddo
+c                enddo                                                    fin ntype
+c                do nt=1,ntype
+c                  lamplu(i,j,nt)=0.
+c                enddo
+c                ntype=ntype+1
+                 
+c              endif
+c            enddo
+c          enddo
+c        endif
+        
+        
+
+        
+        
+        
  1110   format(I4,1x,I4,1x,I4)
         fctcld=0.
         ftocap=0.                                                         ! Initialisation of the value of flux received by the sensor
