@@ -94,7 +94,6 @@ c
       real val2d(width,width)                                             ! Temporary input array 2d
       real altsol(width,width)                                            ! Ground elevation (meter)
       real srefl                                                          ! Ground reflectance
-      real Hmin                                                           ! Minimum ground elevation of the modeling domain
       integer stype                                                       ! Source type or zone index
       character*72 pafile,lufile,alfile,ohfile,odfile,offile              ! Files related to light sources and obstacles (photometric function of the sources (sr-1), flux (W), height (m), obstacles c                                                               ! height (m), obstacle distance (m), obstacle filling factor (0-1).
       real lamplu(width,width,nzon)                                       ! Source fluxes
@@ -402,21 +401,6 @@ c determination of the vertical atmospheric transmittance
 c reading of the environment variables                         
 c reading of the elevation file
         call twodin(nbx,nby,mnaf,altsol)
-c        Hmin=3000000.
-c        do i=1,nbx                                                        ! beginning of the loop over all cells along x.
-c          do j=1,nby                                                      ! beginning of the loop over all cells along y.
-                                                                          ! searching of the Height minimale.
-c            if (Hmin.gt.altsol(i,j)) Hmin=altsol(i,j)
-c            if (altsol(i,j).lt.0.) then 
-c              if (altsol(i,j).gt.-25.)  altsol(i,j)=0.                    ! we assume that it is typical of errors over the see.
-c            endif
-c          enddo                                                           ! end of the loop over all cells along y.
-c        enddo
-c        do i=1,nbx                                                        ! beginning of the loop over all cells along x.
-c          do j=1,nby                                                      ! beginning of the loop over all cells along y.
-c            altsol(i,j)=altsol(i,j)-Hmin                                  ! subtraction of the Minimum ground elevation
-c          enddo                                                           ! end of the loop over all cells along y.
-c        enddo
 c reading of the values of P(theta), height, luminosities and positions
 c of the sources, obstacle height and distance
         ohfile=basenm(1:lenbase)//'_obsth.bin'
