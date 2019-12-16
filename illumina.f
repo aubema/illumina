@@ -1352,7 +1352,8 @@ c refl->1st scat->2nd scat
                             isourc=intdir+itotind+itodif+itotrd           ! Sum of the intensities of a given type of source reaching the line of sight voxel. 
                             isourc=isourc*scal                            ! scaling the values according to the path length in the l. of sight voxel of 1m3 
                             isourc=isourc*portio                          ! correct for the field of view of the observer
-c                            isourc=isourc+icloud 
+c include clouds in the total intensity
+                            isourc=isourc+icloud 
                             if (verbose.eq.2) then
        print*,' Total intensity per component for type ',ntype,':'
        print*,' source->scattering=',intdir
@@ -1432,13 +1433,13 @@ c computation of the flux reaching the intrument from the cloud voxel
                 fctcld=fctcld+fccld                                       ! cloud flux for all source all type all line of sight element
             endif
             if (verbose.ge.1) print*,'Added radiance =',  
-     +      (fcapt+fccld)/omefov/(pi*(diamobj/2.)**2.)
+     +      fcapt/omefov/(pi*(diamobj/2.)**2.)
             if (verbose.ge.1) print*,'Radiance accumulated =',
-     +      (ftocap+fctcld)/omefov/(pi*(diamobj/2.)**2.)
+     +      ftocap+/omefov/(pi*(diamobj/2.)**2.)
             if (verbose.ge.1) write(2,*) 'Added radiance =',
-     +      (fcapt+fccld)/omefov/(pi*(diamobj/2.)**2.)
+     +      fccld/omefov/(pi*(diamobj/2.)**2.)
             if (verbose.ge.1) write(2,*) 'Radiance accumulated =',
-     +      (ftocap+fctcld)/omefov/(pi*(diamobj/2.)**2.)
+     +      ftocap/omefov/(pi*(diamobj/2.)**2.)
               endif                                                       ! end of the condition line of sight voxel inside the modelling domain
           endif                                                           ! end condition line of sight voxel 1/stoplim
           
