@@ -31,9 +31,9 @@ def plot(ds,n_layer=None,log=False,**options):
         X,Y = _np.meshgrid(ind,ind)
 
         if not options.has_key('vmin'):
-            options['vmin'] = ds.min()
+            options['vmin'] = min(map(_np.min,ds))
         if not options.has_key('vmax'):
-            options['vmax'] = ds.max()
+            options['vmax'] = max(map(_np.max,ds))
 
         if log:
             options['norm'] = _colors.LogNorm(
