@@ -209,6 +209,9 @@ c  suggested cloudbase per type: 9300.,9300.,4000.,1200.,1100.            ! 4=Cu
       integer n2nd                                                        ! desired number of voxel in the calculation of the 2nd scattering
       integer dstep                                                       ! starting value for the increasing step when searching for the relevant stepdif
       real omemax                                                         ! max solid angle allowed
+      real tcloud                                                         ! low cloud transmission
+      real rx_sp,ry_sp                                                    ! position of a low cloud pixel
+      real flcld(width,width)                                             ! flux crossing a low cloud 
       verbose=2                                                           ! Very little printout=0, Many printout = 1, even more=2
       diamobj=1.                                                          ! A dummy value for the diameter of the objective of the instrument used by the observer.
       volu=0.
@@ -344,6 +347,7 @@ c Initialisation of the arrays and variables
             ITC(i,j)=0.
             FTC(i,j)=0.
             FCA(i,j)=0.
+            flcld(i,j)=0.
             do k=1,nzon
               lamplu(i,j,k)=0.
               lampal(i,j)=0.
@@ -401,6 +405,27 @@ c determination of the vertical atmospheric transmittance
 c reading of the environment variables                         
 c reading of the elevation file
         call twodin(nbx,nby,mnaf,altsol)
+c computation of the tilt of the cases along x and along y
+        do i=1,nbx                                                        ! beginning of the loop over the column (longitude) of the domain.
+          do j=1,nby                                                      ! beginning of the loop over the rows (latitu) of the domain.
+            if (i.eq.1) then                                              ! specific case close to the border of the domain (vertical side left).
+              inclix(i,j)=atan((altsol(i+1,j)-altsol(i,j))/real(dx))      ! computation of the tilt along x of the surface.
+            elseif (i.eq.nbx) then                                        ! specific case close to the border of the domain (vertical side right).
+              inclix(i,j)=atan((altsol(i-1,j)-altsol(i,j))/(real(dx)))    ! computation of the tilt along x of the surface.
+            else
+              inclix(i,j)=atan((altsol(i+1,j)-altsol(i-1,j))/(2.          ! computation of the tilt along x of the surface.
+     1        *real(dx)))
+            endif
+            if (j.eq.1) then                                              ! specific case close to the border of the domain (horizontal side down).
+              incliy(i,j)=atan((altsol(i,j+1)-altsol(i,j))/(real(dy)))    ! computation of the tilt along y of the surface.
+            elseif (j.eq.nby) then                                        ! specific case close to the border of the domain (horizontal side up).
+              incliy(i,j)=atan((altsol(i,j-1)-altsol(i,j))/(real(dy)))    ! computation of the tilt along y of the surface.
+            else
+              incliy(i,j)=atan((altsol(i,j+1)-altsol(i,j-1))/(2.          ! computation of the tilt along y of the surface
+     1        *real(dy)))
+            endif
+          enddo                                                           ! end of the loop over the rows (latitu) of the domain
+        enddo                                                             ! end of the loop over the column (longitude) of the domain
 c reading of the values of P(theta), height, luminosities and positions
 c of the sources, obstacle height and distance
         ohfile=basenm(1:lenbase)//'_obsth.bin'
@@ -408,6 +433,195 @@ c of the sources, obstacle height and distance
         alfile=basenm(1:lenbase)//'_altlp.bin'                            ! setting the file name of height of the sources lumineuse.
         offile=basenm(1:lenbase)//'_obstf.bin'
         dtheta=.017453293                                                 ! one degree
+        
+c reading lamp heights
+        call twodin(nbx,nby,alfile,val2d)
+        do i=1,nbx                                                        ! beginning of the loop over all cells along x.
+          do j=1,nby                                                      ! beginning of the loop over all cells along y.
+            lampal(i,j)=val2d(i,j)                                        ! filling of the array for the lamp stype
+          enddo                                                           ! end of the loop over all cells along y.
+        enddo                                                             ! end of the loop over all cells along x.
+c reading subgrid obstacles average height
+        call twodin(nbx,nby,ohfile,val2d)
+        do i=1,nbx                                                        ! beginning of the loop over all cells along x.
+          do j=1,nby                                                      ! beginning of the loop over all cells along y.
+            obsH(i,j)=val2d(i,j)                                          ! filling of the array
+          enddo                                                           ! end of the loop over all cells along y.
+        enddo
+c reading subgrid obstacles average distance
+        call twodin(nbx,nby,odfile,val2d)
+        do i=1,nbx                                                        ! beginning of the loop over all cells along x.
+          do j=1,nby                                                      ! beginning of the loop over all cells along y.
+            if (drefle(i,j).eq.0.) drefle(i,j)=dx                         ! when outside a zone, block to the size of the cell (typically 1km)
+          enddo                                                           ! end of the loop over all cells along y.
+        enddo
+c reading subgrid obstacles filling factor
+        call twodin(nbx,nby,offile,val2d)
+        do i=1,nbx                                                        ! beginning of the loop over all cells along x.
+          do j=1,nby                                                      ! beginning of the loop over all cells along y.
+            ofill(i,j)=val2d(i,j)                                         ! Filling of the array 0-1
+          enddo                                                           ! end of the loop over all cells along y.
+        enddo
+c reading of the scattering parameters
+        open(unit = 1, file = diffil,status= 'old')                       ! opening file containing the parameters of scattering.
+          read(1,*)                                                       ! the scattering file is generated by the program imies of AODSEM (Martin Aube).
+          read(1,*)
+          read(1,*)
+          do i=1,181
+            read(1,*) anglea(i), fdifa(i)                                 ! reading of the scattering functions
+            fdifan(i)=fdifa(i)/pix4                                       ! Normalisation of the fonction a 4 pi (integral of the fonction over sphere = 4 pi)
+          enddo
+          do i = 1,7
+            read(1,*)
+          enddo
+          read(1,*) extinc                                                ! reading of the cross section extinction of the aerosols.
+          read(1,*) scatte                                                ! reading of the cross section of scattering of the aerosols.
+        close(1)
+        secdif=scatte/extinc                                              ! Rapport (sigmadif/sigmatotal).
+        
+        
+c
+c replace ground based source by cloud lambertian source for souces under
+c cloud central layer and keep sources for source above cloud central layer
+c
+c  On cree ici un nouveau sourcetype qui sera le nuage. donc aux valeurs x et y concernees tous lamplu des autres types deviennent 0.
+c  et on calcule le lumlp du nouveau type nuage le numero du type sera ntype+1
+c
+c        cloudhei=(cloudtop-cloudbase)/2.
+c        if (z_obs.gt.cloudtop) then                                       ! only calculate the filter effect of low clouds for observer above cloud
+
+
+
+
+
+c !!!!!!!!!!!!!!!!!!!!!!!!!!!! faudrait ici determiner le lumlp et fctem du nuage
+c et laisser les lumlp a zero hors nuage et par la suite au moment de prendre
+c le lumlp pour le calcul on verifier si il y a une valeurs de nuage et si oui on prends cette valeur a la place
+c
+c 
+c        do stype=1,ntype                                                  ! beginning of the loop 1 for the nzon types of sources.
+c          pvalto=0.
+c          write(lampno, '(I3.3)' ) stype                                  ! support of nzon different sources (3 digits)
+c          pafile=basenm(1:lenbase)//'_fctem_'//lampno//'.dat'             ! setting the file name of angular photometry.
+c          lufile=basenm(1:lenbase)//'_lumlp_'//lampno//'.bin'             ! setting the file name of the luminosite of the cases.
+c reading photometry files
+c          open(UNIT=1, FILE=pafile,status='OLD')                          ! opening file pa#.dat, angular photometry.
+c            do i=1,181                                                    ! beginning of the loop for the 181 data points
+c              read(1,*) pval(i,stype)                                     ! reading of the data in the array pval.
+c              pvalto=pvalto+pval(i,stype)*2.*pi*                          ! Sum of the values of the  photometric function
+c     a        sin(real(i-1)*dtheta)*dtheta                                ! (pvaleur x 2pi x sin theta x dtheta) (ou theta egale (i-1) x 1 degrees).
+c            enddo                                                         ! end of the loop over the 181 donnees of the fichier pa#.dat.
+c          close(1)                                                        ! closing file pa#.dat, angular photometry.
+c          do i=1,181
+c            if (pvalto.ne.0.) pvalno(i,stype)=pval(i,stype)/pvalto        ! Normalisation of the photometric function.
+c          enddo
+c reading luminosity files
+c          call twodin(nbx,nby,lufile,val2d)
+c          do i=1,nbx                                                      ! beginning of the loop over all cells along x.
+c            do j=1,nby                                                    ! beginning of the loop over all cells along y.
+c              if (val2d(i,j).lt.0.) then                                  ! searching of negative fluxes
+c                print*,'***Negative lamp flux!, stopping execution'
+c                stop
+c              endif
+c            enddo                                                         ! end of the loop over all cells along y.
+c          enddo
+c          do i=1,nbx                                                      ! loop over sources
+c            do j=1,nby
+c              z_s=(altsol(i,j)+lampal(i,j))
+c              if (z_s.lt.cloudhei) then                                   ! condition source under cloud
+c                rx_s=real(i)*dx
+c                ry_s=real(i)*dy
+c                  do ii=1,nbx                                             ! loop over cloud pixel
+c                    do jj=1,nby
+c                      if (altsol(ii,jj).lt.cloudhei) then                  ! cond cloud above ground
+c                        rx_sp=real(ii)*dx
+c                        ry_sp=real(jj)*dy
+c                        z_sp=cloudhei
+c computation of the zenithal angle between the source and the cloud
+c computation of the horizon for the resolved shadows direct              ! horizon resolution is 1 degree
+c                        distd=sqrt((rx_s-rx_sp)**2.+(ry_s-ry_sp)**2.
+c     +                  +(z_s-z_sp)**2.)
+c                        dho=sqrt((rx_s-rx_sp)**2.+(ry_s-ry_sp)**2.)
+c                        call anglezenithal(rx_s,ry_s,z_s
+c     +                  ,rx_sp,ry_sp,z_sp,angzen)                        ! computation of the zenithal angle between the source and the line of sight voxel.
+c                        call angleazimutal(rx_s,ry_s,rx_sp,               ! computation of the angle azimutal direct line of sight-source
+c     +                  ry_sp,angazi)
+c                        if (angzen.gt.pi/4.) then                        ! 45deg. it is unlikely to have a 1km high mountain less than 1
+c                          call horizon(i,j,z_s,dx,dy,altsol,
+c     +                    angazi,zhoriz,dh)
+c                          if (dh.le.dho) then
+c                            if (angzen.lt.zhoriz) then                    ! shadow the path line of sight-source is not below the horizon => we compute
+c                              hh=1.
+c                            else
+c                              hh=0.
+c                            endif
+c                          else
+c                            hh=1.
+c                          endif
+c                        else
+c                          hh=1.
+c                        endif                                    
+c sub-grid obstacles
+c                        angmin=pi/2.-atan((altsol(i,j)+
+c     +                  obsH(i,j)-z_s)/drefle(i,j))
+c                        if (angzen.lt.angmin) then                       ! condition sub-grid obstacles direct.
+c                          ff=0.
+c                        else
+c                          ff=ofill(i,j)
+c                        endif
+c computation of the transmittance between the source and the line of sight
+c                        call transmitm(angzen,z_s,z_sp,distd,
+c     +                  transm,tranam)
+c                        call transmita(angzen,z_s,z_sp,distd,
+c     +                  transa,tranaa)
+c computation of the solid angle of the line of sight voxel seen from the source
+c                        omega=1./distd**2.
+c                        if (omega.gt.omemax) omega=0.
+c                        anglez=nint(180.*angzen/pi)+1
+c                        P_dir=pvalno(anglez,stype)
+c                        call cloudtransmitance(angzen,cloudt,tcloud)
+c computation of the flux direct reaching the line of sight voxel
+c                        flcld(ii,jj)=flcld(ii,jj)+                        ! flux crossing a cloud pixel
+c     +                  lamplu(i,j,stype)*P_dir*omega*
+c     +                  transm*transa*(1.-ff)*hh*dx*dy                       ! correction for obstacle filling factor
+c     +                  *cos(angzen)*tcloud
+c                      endif                                               ! end cond cloud above ground
+c                    enddo
+c                  enddo                                                   ! end loop over cloud pixel
+c              endif                                                        ! end cond source under cloud
+c            enddo
+c          enddo                                                            ! end loop over sources
+c         enddo                                                            ! end loop over source type
+c          do i=1,nbx
+c            do j=1,nby
+c              z_s=(altsol(i,j)+lampali,j))
+c              if (z_s.lt.cloudhei) then
+c                lampal(i,j)=cloudhei-altsol(i,j)
+c                do nt=1,ntype
+c                  pvalto=0.
+c                enddo
+c                do na=1,181
+c                  pval(na,ntype+1)=pi
+c                  pvalto=pvalto+pval(na,ntype+1)*2.*pi*                          ! Sum of the values of the  photometric function
+c     a            sin(real(na-1)*dtheta)*dtheta
+c                enddo
+c                do na=1,181
+c                  if (pvalto.ne.0.) pvalno(na,ntype+1)=
+c     +            pval(na,ntype+1)/pvalto                                     ! Normalisation of the photometric function.
+c                enddo
+c              do nt=1,ntype
+c                lamplu(i,j,nt)=0.
+c              enddo
+c              ntype=ntype+1
+c            endif
+c          enddo
+c        enddo
+c        endif                                                              ! end observer over cloud
+
+        
+        
+        
+
         do stype=1,ntype                                                  ! beginning of the loop 1 for the nzon types of sources.
           imin(stype)=nbx
           jmin(stype)=nby
@@ -485,50 +699,6 @@ c reading luminosity files
             enddo                                                         ! end of the loop over all cells along y.
           enddo                                                           ! end of the loop over all cells along x.
         enddo                                                             ! end of the loop 1 over the nzon types of sources.
-c reading lamp heights
-        call twodin(nbx,nby,alfile,val2d)
-        do i=1,nbx                                                        ! beginning of the loop over all cells along x.
-          do j=1,nby                                                      ! beginning of the loop over all cells along y.
-            lampal(i,j)=val2d(i,j)                                        ! filling of the array for the lamp stype
-          enddo                                                           ! end of the loop over all cells along y.
-        enddo                                                             ! end of the loop over all cells along x.
-c reading subgrid obstacles average height
-        call twodin(nbx,nby,ohfile,val2d)
-        do i=1,nbx                                                        ! beginning of the loop over all cells along x.
-          do j=1,nby                                                      ! beginning of the loop over all cells along y.
-            obsH(i,j)=val2d(i,j)                                          ! filling of the array
-          enddo                                                           ! end of the loop over all cells along y.
-        enddo
-c reading subgrid obstacles average distance
-        call twodin(nbx,nby,odfile,val2d)
-        do i=1,nbx                                                        ! beginning of the loop over all cells along x.
-          do j=1,nby                                                      ! beginning of the loop over all cells along y.
-            if (drefle(i,j).eq.0.) drefle(i,j)=dx                         ! when outside a zone, block to the size of the cell (typically 1km)
-          enddo                                                           ! end of the loop over all cells along y.
-        enddo
-c reading subgrid obstacles filling factor
-        call twodin(nbx,nby,offile,val2d)
-        do i=1,nbx                                                        ! beginning of the loop over all cells along x.
-          do j=1,nby                                                      ! beginning of the loop over all cells along y.
-            ofill(i,j)=val2d(i,j)                                         ! Filling of the array 0-1
-          enddo                                                           ! end of the loop over all cells along y.
-        enddo
-c reading of the scattering parameters
-        open(unit = 1, file = diffil,status= 'old')                       ! opening file containing the parameters of scattering.
-          read(1,*)                                                       ! the scattering file is generated by the program imies of AODSEM (Martin Aube).
-          read(1,*)
-          read(1,*)
-          do i=1,181
-            read(1,*) anglea(i), fdifa(i)                                 ! reading of the scattering functions
-            fdifan(i)=fdifa(i)/pix4                                       ! Normalisation of the fonction a 4 pi (integral of the fonction over sphere = 4 pi)
-          enddo
-          do i = 1,7
-            read(1,*)
-          enddo
-          read(1,*) extinc                                                ! reading of the cross section extinction of the aerosols.
-          read(1,*) scatte                                                ! reading of the cross section of scattering of the aerosols.
-        close(1)
-        secdif=scatte/extinc                                              ! Rapport (sigmadif/sigmatotal).
 c Some preliminary tasks
         dy=dx
         omefov=0.00000001                                                 ! solid angle of the spectrometer slit on the sky. Here we only need a small value
@@ -542,27 +712,6 @@ c Some preliminary tasks
         write(2,*) 'Width of the domain [EO](m):',largy,'#cases:',nby
         write(2,*) 'Size of a cell (m):',dx,' X ',dy
         write(2,*) 'latitu center:',latitu
-c computation of the tilt of the cases along x and along y
-        do i=1,nbx                                                        ! beginning of the loop over the column (longitude) of the domain.
-          do j=1,nby                                                      ! beginning of the loop over the rows (latitu) of the domain.
-            if (i.eq.1) then                                              ! specific case close to the border of the domain (vertical side left).
-              inclix(i,j)=atan((altsol(i+1,j)-altsol(i,j))/real(dx))      ! computation of the tilt along x of the surface.
-            elseif (i.eq.nbx) then                                        ! specific case close to the border of the domain (vertical side right).
-              inclix(i,j)=atan((altsol(i-1,j)-altsol(i,j))/(real(dx)))    ! computation of the tilt along x of the surface.
-            else
-              inclix(i,j)=atan((altsol(i+1,j)-altsol(i-1,j))/(2.          ! computation of the tilt along x of the surface.
-     1        *real(dx)))
-            endif
-            if (j.eq.1) then                                              ! specific case close to the border of the domain (horizontal side down).
-              incliy(i,j)=atan((altsol(i,j+1)-altsol(i,j))/(real(dy)))    ! computation of the tilt along y of the surface.
-            elseif (j.eq.nby) then                                        ! specific case close to the border of the domain (horizontal side up).
-              incliy(i,j)=atan((altsol(i,j-1)-altsol(i,j))/(real(dy)))    ! computation of the tilt along y of the surface.
-            else
-              incliy(i,j)=atan((altsol(i,j+1)-altsol(i,j-1))/(2.          ! computation of the tilt along y of the surface
-     1        *real(dy)))
-            endif
-          enddo                                                           ! end of the loop over the rows (latitu) of the domain
-        enddo                                                             ! end of the loop over the column (longitude) of the domain
 c beginning of the loop over the line of sight voxels
 
 
@@ -577,60 +726,6 @@ c temporaire !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      +    z_obs,cloudbase
           stop
         endif
-c
-c replace ground based source by cloud lambertian source for souces under
-c cloud central layer and keep sources for source above cloud central layer
-c
-c  On cree ici un nouveau sourcetype qui sera le nuage. donc aux valeurs x et y concernees tous lamplu des autres types deviennent 0.
-c  et on calcule le lumlp du nouveau type nuage le numero du type sera ntype+1
-c
-c        cloudhei=(cloudtop-cloudbase)/2.
-c        if (z_obs.gt.cloudtop) then
-c          do i=1,nbx
-c            do j=1,nby
-c              z_s=(altsol(i,j)+lampali,j))
-c              if (z_s.lt.cloudhei) then
-c                do nt=1,ntype
-c                  call calculecloudlum(ntype+1)  ici on determiner la lamplu(i,j,ntype+1)
-
-c                enddo                                                     fin ntype
-c              endif
-c            enddo
-c          enddo
-
-c          do i=1,nbx
-c            do j=1,nby
-c              z_s=(altsol(i,j)+lampali,j))
-c              if (z_s.lt.cloudhei) then
-c                lampal(i,j)=cloudhei-altsol(i,j)
-
-c                do nt=1,ntype
-c                  pvalto=0.
-c                  do na=1,181
-c                    pval(na,ntype+1)=pi
-c                    pvalto=pvalto+pval(na,ntype+1)*2.*pi*                          ! Sum of the values of the  photometric function
-c     a              sin(real(na-1)*dtheta)*dtheta
-c                  enddo
-c                  do na=1,181
-c                    if (pvalto.ne.0.) pvalno(na,ntype+1)=
-c     +              pval(na,ntype+1)/pvalto                                     ! Normalisation of the photometric function.
-c                  enddo
-c                enddo                                                    fin ntype
-c                do nt=1,ntype
-c                  lamplu(i,j,nt)=0.
-c                enddo
-c                ntype=ntype+1
-                 
-c              endif
-c            enddo
-c          enddo
-c        endif
-        
-        
-
-        
-        
-        
  1110   format(I4,1x,I4,1x,I4)
         fctcld=0.
         ftocap=0.                                                         ! Initialisation of the value of flux received by the sensor
@@ -1419,7 +1514,7 @@ c computation of the flux reaching the intrument from the cloud voxel
             if (verbose.ge.1) print*,'Added radiance =',  
      +      fcapt/omefov/(pi*(diamobj/2.)**2.)
             if (verbose.ge.1) print*,'Radiance accumulated =',
-     +      ftocap+/omefov/(pi*(diamobj/2.)**2.)
+     +      ftocap/omefov/(pi*(diamobj/2.)**2.)
             if (verbose.ge.1) write(2,*) 'Added radiance =',
      +      fccld/omefov/(pi*(diamobj/2.)**2.)
             if (verbose.ge.1) write(2,*) 'Radiance accumulated =',
