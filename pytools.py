@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 #
 # Library of usefull function related to Illumina and PGM and FITS handling
 #
@@ -54,18 +54,18 @@ def parse_inventory(filename, n=0):
     """Parse an inventory type file.
     Skips the first 'n' columns."""
     def lamp_norm(lampsData):
-        trans = map(list, zip(*lampsData))
+        trans = list(map(list, list(zip(*lampsData))))
         norm = sum(trans[0])
         if norm != 0.:
             trans[0] = [n/norm for n in trans[0]]
-        return map(list, zip(*trans))
+        return list(map(list, list(zip(*trans))))
 
     with open(filename) as inv_file:
         zonData = strip_comments(inv_file.readlines())
-    zonData = map(lambda s: s.split()[n:], zonData)
-    zonData = [ map(lambda s: s.split('_'),i) for i in zonData ]
-    zonData = [ map(lambda s: [float(s[0]),s[1],s[2]],i) for i in zonData ]
-    zonData = map(lamp_norm, zonData)
+    zonData = [s.split()[n:] for s in zonData]
+    zonData = [ [s.split('_') for s in i] for i in zonData ]
+    zonData = [ [[float(s[0]),s[1],s[2]] for s in i] for i in zonData ]
+    zonData = list(map(lamp_norm, zonData))
 
     return zonData
 
@@ -115,7 +115,7 @@ def load_pgm(filename):
     data = _np.loadtxt(filename,skiprows=len(head)+2,ndmin=2)
     data = data*gain+offset
 
-    p = map(int,header[-1].split())
+    p = list(map(int,header[-1].split()))
 
     return head,p,data.reshape(p[1::-1])
 
@@ -139,7 +139,7 @@ def save_pgm(filename,head,p,data,offset=0.):
 
     headstring = \
         "P2\n" + \
-        '\n'.join( map(lambda s: '# %s %s' % s, head.iteritems() ) ) + \
+        '\n'.join( ['# %s %s' % s for s in iter(list(head.items()))] ) + \
         '\n' + \
         ' '.join(map(str,p))
     _np.savetxt(filename,data,fmt="%d",header=headstring,comments='')
@@ -157,7 +157,7 @@ def load_fits(filename):
         hdu.header['CRVAL%d'%(i+1)] + hdu.header['CDELT%d'%(i+1)] *
             ( hdu.header['NAXIS%d'%(i+1)]-1 ),
         hdu.header['NAXIS%d'%(i+1)] )
-        for i in xrange(hdu.header['NAXIS']) ]
+        for i in range(hdu.header['NAXIS']) ]
 
     return ax,hdu.data.T[:,::-1].T
 
@@ -170,7 +170,7 @@ def save_fits(axis,data,filename):
     """
     hdu = _fits.PrimaryHDU()
     hdu.data = data.T[:,::-1].T
-    for i in xrange(len(axis)):
+    for i in range(len(axis)):
         hdu.header['CRPIX%d'%(i+1)] = 1
         hdu.header['CRVAL%d'%(i+1)] = axis[i][0]
         hdu.header['CDELT%d'%(i+1)] = axis[i][1]
@@ -272,9 +272,9 @@ def plot_allsky(phi,r,data,n=100,**kwargs):
       vmax     : Maximal value of the colorscale (2D data only).
       showpts  : If set to True, will show datapoints.
     """
-    if kwargs.has_key("showpts") and kwargs["showpts"]:
+    if "showpts" in kwargs and kwargs["showpts"]:
         xv,yv = _np.meshgrid(_np.deg2rad(phi),90-_np.array(r))
-    if kwargs.has_key("interp") and kwargs["interp"] != "None":
+    if "interp" in kwargs and kwargs["interp"] != "None":
         ndata = _np.concatenate([data,data[:,0,...][:,None]],axis=1)
         nphi = _np.linspace(phi[0],phi[0]+360,n*len(phi),endpoint=False)
         nr = _np.linspace(r[0],r[-1],n*(len(r)-1)+1)
@@ -304,7 +304,7 @@ def plot_allsky(phi,r,data,n=100,**kwargs):
     theta = _np.linspace(0,2*_np.pi,n*len(phi)+1)-_np.mean(_np.radians(phi[:2]))
 
     Theta,R = _np.meshgrid(theta,r)
-    if kwargs.has_key("autogain") and kwargs["autogain"]:
+    if "autogain" in kwargs and kwargs["autogain"]:
         gain = _np.max(data)
         data /= gain
     if data.ndim == 3:
@@ -320,36 +320,36 @@ def plot_allsky(phi,r,data,n=100,**kwargs):
         m.set_array(None)
     else:
         args = dict()
-        if kwargs.has_key("cmap"):
+        if "cmap" in kwargs:
             args["cmap"] = kwargs["cmap"]
-        if kwargs.has_key("vmin"):
+        if "vmin" in kwargs:
             args["vmin"] = kwargs["vmin"]
-        if kwargs.has_key("vmax"):
+        if "vmax" in kwargs:
             args["vmax"] = kwargs["vmax"]
-        if kwargs.has_key("log") and kwargs["log"]:
+        if "log" in kwargs and kwargs["log"]:
             args['norm'] = _colors.LogNorm(
                 vmin=kwargs['vmin'],
                 vmax=kwargs['vmax']
             )
         m = _plt.pcolormesh(Theta,R,data,linewidth=0,**args)
 
-    if kwargs.has_key("showpts") and kwargs["showpts"]:
+    if "showpts" in kwargs and kwargs["showpts"]:
         _plt.plot(xv,yv,"r.")
     title_str = ""
-    if kwargs.has_key("title"):
+    if "title" in kwargs:
         title_str += kwargs["title"]
-    if kwargs.has_key("autogain") and kwargs["autogain"]:
+    if "autogain" in kwargs and kwargs["autogain"]:
         if title_str != "":
             title_str += '\n'
         title_str += "gain = %.4g" % gain
     if title_str != "":
         _plt.title(title_str)
 
-    if kwargs.has_key("clabel"):
+    if "clabel" in kwargs:
         _plt.colorbar(label=kwargs["clabel"],pad=0.11)
 
-    if kwargs.has_key("labels"):
-        for name,pos in kwargs["labels"].iteritems():
+    if "labels" in kwargs:
+        for name,pos in list(kwargs["labels"].items()):
             _plt.annotate(name,
                 xy=[_np.radians(pos),_np.max(r)],
                 xytext=[_np.radians(pos),_np.max(r)+7],
@@ -360,6 +360,6 @@ def plot_allsky(phi,r,data,n=100,**kwargs):
 
     _plt.tight_layout()
 
-    if kwargs.has_key("fname"):
+    if "fname" in kwargs:
         _plt.savefig(kwargs["fname"])
         _plt.close()

@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 from glob import glob
 import ogr, osr, gdal
@@ -38,8 +38,8 @@ def prep_shp(infile, projection, extent):
         cmd += ['-t_srs','+init='+projection]
         cmd += ['tmp_select.shp']
         cmd += ['/vsizip/'+os.path.abspath(infile)]
-        cmd = map(str,cmd)
-        print "EXECUTING :", ' '.join(cmd)
+        cmd = list(map(str,cmd))
+        print("EXECUTING :", ' '.join(cmd))
         call(cmd)
 
         cmd  = ['ogr2ogr']
@@ -47,7 +47,7 @@ def prep_shp(infile, projection, extent):
         cmd += ['tmp_select.shp']
         cmd += ['-dialect','sqlite']
         cmd += ['-sql','SELECT ST_Union(geometry) AS geometry FROM tmp_select']
-        print "EXECUTING :", ' '.join(cmd)
+        print("EXECUTING :", ' '.join(cmd))
         call(cmd)
 
 def rasterize(shpfile, projection, extent):
@@ -83,33 +83,33 @@ with open(glob("*.ini")[0]) as f:
     params = yaml.safe_load(f)
 
 if os.path.isfile("GHSL.zip"):
-    print "Found GHSL.zip file, processing."
+    print("Found GHSL.zip file, processing.")
     data = [ warp(["/vsizip/GHSL.zip/GHSL.tif"], params['srs'], extent) \
         for extent in params['extents'] ]
     save(params, data, "obstf")
 else:
-    print "WARNING: Could not find GHSL.zip file."
-    print "If you don't indent to use it, you can safely ignore this."
+    print("WARNING: Could not find GHSL.zip file.")
+    print("If you don't indent to use it, you can safely ignore this.")
 
 files = sorted(glob("SRTM/*.hgt"))
 if not len(files):
-    print "ERROR: Could not find SRTM file(s), aborting."
+    print("ERROR: Could not find SRTM file(s), aborting.")
     raise SystemExit
-print "    ".join(map(str,files))
+print("    ".join(map(str,files)))
 data = [ warp(files, params['srs'], extent) \
     for extent in params['extents'] ]
 save(params, data, "srtm")
 
 files = sorted(glob("VIIRS-DNB/*.tif"))
 if not len(files):
-    print "WARNING: Did not find VIIRS file(s)."
-    print "If you don't intend to use zones inventory, you can safely ignore this."
+    print("WARNING: Did not find VIIRS file(s).")
+    print("If you don't intend to use zones inventory, you can safely ignore this.")
 else:
     if not os.path.isfile("hydropolys.zip"):
-        print "ERROR: Could not find hydropolys.zip file, aborting."
+        print("ERROR: Could not find hydropolys.zip file, aborting.")
         raise SystemExit
 
-    print "    ".join(map(str,files))
+    print("    ".join(map(str,files)))
     data = [ warp(files, params['srs'], extent) \
         for extent in params['extents'] ]
     save(params, data, "stable_lights")
@@ -126,4 +126,4 @@ else:
     for fname in glob("tmp*"):
         os.remove(fname)
 
-    print "Done."
+    print("Done.")

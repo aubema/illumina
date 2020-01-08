@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 #
 # batch processing
 #
@@ -11,10 +11,9 @@ import MultiScaleData as MSD
 import sys, yaml, os, shutil
 from pytools import save_bin
 from glob import glob
-from itertools import product as comb, izip, count as itcount
+from itertools import product as comb, count as itcount
 import numpy as np
-from chainmap import ChainMap
-from collections import OrderedDict
+from collections import ChainMap, OrderedDict
 import argparse
 from math import sqrt
 
@@ -59,11 +58,11 @@ exp_name = params['exp_name']
 ds = MSD.Open(glob("*.hdf5")[0])
 
 # Pre process the obs extract
-print "Preprocessing..."
+print("Preprocessing...")
 shutil.rmtree("obs_data",True)
 lats, lons = ds.get_obs_pos()
 xs, ys = ds.get_obs_pos(proj=True)
-for lat,lon in izip(lats,lons):
+for lat,lon in zip(lats,lons):
     for i in range(len(ds)):
         os.makedirs("obs_data/%6f_%6f/%d" % (lat,lon,i))
 
@@ -72,13 +71,13 @@ ms = 0
 for i,fname in enumerate(glob("*.hdf5"),1):
     if 100.*i/N >= ms:
         if ms%10 == 0:
-            print ms,
+            print(ms, end=' ')
         else:
-            print '..',
+            print('..', end=' ')
         sys.stdout.flush()
         ms += 5
     if i == N:
-        print ''
+        print('')
 
     dataset = MSD.Open(fname)
     for clipped in dataset.split_observers():
@@ -93,14 +92,14 @@ for i,fname in enumerate(glob("*.hdf5"),1):
             save_bin("obs_data/%6f_%6f/%i/%s" % \
                 (lat,lon,i,fname.rsplit('.',1)[0]+'.bin'), padded_dat)
         if "srtm" in fname:
-            for l in xrange(len(clipped)):
+            for l in range(len(clipped)):
                 clipped[l][:] = 0
             clipped.save("obs_data/%6f_%6f/blank" % (lat,lon))
 
 # Add wavelength and multiscale
 params['wavelength'] = np.loadtxt("wav.lst",ndmin=1).tolist()
-params['layer'] = range(len(ds))
-params['observer_coordinates'] = zip(*ds.get_obs_pos())
+params['layer'] = list(range(len(ds)))
+params['observer_coordinates'] = list(zip(*ds.get_obs_pos()))
 
 wls = params['wavelength']
 refls = np.loadtxt("refl.lst",ndmin=1).tolist()
@@ -118,25 +117,25 @@ shutil.rmtree(dir_name,True)
 os.makedirs(dir_name)
 
 count = 0
-multival = filter( lambda k: isinstance(params[k],list),params )
+multival = [k for k in params if isinstance(params[k],list)]
 multival = sorted( multival, key=len, reverse=True ) # Semi-arbitrary sort
 param_space = [ params[k] for k in multival ]
-N = np.prod(map(len,param_space))
-print "Number of executions:", N
+N = np.prod(list(map(len,param_space)))
+print("Number of executions:", N)
 
 ms = 0
 for i,param_vals in enumerate(comb(*param_space),1):
     if 100.*i/N >= ms:
         if ms%10 == 0:
-            print ms,
+            print(ms, end=' ')
         else:
-            print '..',
+            print('..', end=' ')
         sys.stdout.flush()
         ms += 5
     if i == N:
-        print ''
+        print('')
 
-    local_params = OrderedDict(izip(multival,param_vals))
+    local_params = OrderedDict(zip(multival,param_vals))
     P = ChainMap(local_params,params)
     if "azimuth_angle" in multival \
         and P['elevation_angle'] == 90 \
@@ -149,15 +148,15 @@ for i,param_vals in enumerate(comb(*param_space),1):
 
     if p.compact:
         fold_name = dir_name + os.sep.join(
-            "%s_%s" % (k,v) for k,v in local_params.iteritems() \
+            "%s_%s" % (k,v) for k,v in local_params.items() \
             if k in ["observer_coordinates", "wavelength", "layer"]
         ) + os.sep
     else:
         fold_name = dir_name + os.sep.join(
-            "%s_%s" % (k,v) for k,v in local_params.iteritems()
+            "%s_%s" % (k,v) for k,v in local_params.items()
         ) + os.sep
 
-    unique_ID = '-'.join( "%s_%s" % item for item in local_params.iteritems() )
+    unique_ID = '-'.join( "%s_%s" % item for item in local_params.items() )
     wavelength = "%03d" % P["wavelength"]
     layer = P["layer"]
     reflectance = refls[wls.index(P["wavelength"])]
@@ -180,7 +179,7 @@ for i,param_vals in enumerate(comb(*param_space),1):
                 fold_name+exp_name+"_fctem_%03d.dat" % l )
 
         ppath = os.environ['PATH'].split(os.pathsep)
-        illumpath = filter(lambda s: "/illumina" in s and "/bin" in s, ppath)[0]
+        illumpath = [s for s in ppath if "/illumina" in s and "/bin" in s][0]
         os.symlink(
             os.path.abspath(illumpath+"/illumina"),
             fold_name+"illumina" )
@@ -254,7 +253,7 @@ for i,param_vals in enumerate(comb(*param_space),1):
     )
 
     with open(fold_name+unique_ID+".in",'w') as f:
-        lines = ( input_line(*izip(*line_data)) for line_data in input_data )
+        lines = ( input_line(*zip(*line_data)) for line_data in input_data )
         f.write( '\n'.join(lines) )
 
     # Write execute script
@@ -289,6 +288,6 @@ for i,param_vals in enumerate(comb(*param_space),1):
         f.write("mv %s.out %s_%s.out\n" % (exp_name,exp_name,unique_ID))
         f.write("mv %s_pcl.bin %s_pcl_%s.bin\n" % (exp_name,exp_name,unique_ID))
 
-print "Final count:", count
+print("Final count:", count)
 
-print "Done."
+print("Done.")

@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 import numpy as np
 import pytools as pt, hdftools as hdf
@@ -7,7 +7,7 @@ import os, sys
 import shutil
 import MultiScaleData as MSD
 import argparse, yaml
-from itertools import izip
+
 from scipy.interpolate import interp1d as interp
 from collections import defaultdict as ddict
 
@@ -28,7 +28,7 @@ parser.add_argument("-l", "--lights",
 p = parser.parse_args()
 
 if p.zones == None and p.lights == None:
-    print "ERROR: At least one of 'zones' and 'lights' must be provided."
+    print("ERROR: At least one of 'zones' and 'lights' must be provided.")
     raise SystemExit
 
 dirname = "Inputs_%s/" % p.name
@@ -43,7 +43,7 @@ with open("inputs_params.in") as f:
 if p.zones is not None and \
 	p.lights is not None:
 
-	print "Validating the inventories."
+	print("Validating the inventories.")
 
 	lamps = np.loadtxt(p.lights,usecols=[0,1])
 	zones = np.loadtxt(p.zones,usecols=[0,1,2])
@@ -52,7 +52,7 @@ if p.zones is not None and \
 	hasLights = [ sum( x[0] for x in z ) != 0 for z in zonData ]
 
 	circles = hdf.from_domain("domain.ini")
-	for dat,b in izip(zones,hasLights):
+	for dat,b in zip(zones,hasLights):
 		circles.set_circle((dat[0],dat[1]),dat[2]*1000,b)
 
 	zones_ind = hdf.from_domain("domain.ini")
@@ -61,7 +61,7 @@ if p.zones is not None and \
 
 	failed = set()
 	for l,coords in enumerate(lamps,1):
-		for i in xrange(len(circles)):
+		for i in range(len(circles)):
 			try:
 				col,row = circles._get_col_row(coords,i)
 				if circles[i][row,col] and col >= 0 and row >= 0:
@@ -72,12 +72,12 @@ if p.zones is not None and \
 
 	if len(failed):
 		for l,lat,lon,zon_ind in sorted(failed):
-			print "WARNING: Lamp #%d (%.06g,%.06g) falls within non-null zone #%d" \
-				% (l,lat,lon,zon_ind)
+			print("WARNING: Lamp #%d (%.06g,%.06g) falls within non-null zone #%d" \
+				% (l,lat,lon,zon_ind))
 		raise SystemExit()
 
 
-print "\nLoading data..."
+print("\nLoading data...")
 
 # Angular distribution (normalised to 1)
 lop_files = glob("Lights/*.lop")
@@ -112,9 +112,7 @@ dl = ilims[1:]-ilims[:-1]
 bool_array = (ilims[0]<=wav)*(wav<ilims[-1])
 
 ppath = os.environ['PATH'].split(os.pathsep)
-illumpath = filter(
-	lambda s: "illumina" in s and "bin" not in s,
-	ppath )[0]
+illumpath = [s for s in ppath if "illumina" in s and "bin" not in s][0]
 
 out_name = params['exp_name']
 
@@ -145,7 +143,7 @@ if sum_coeffs == 0:
 refl = sum(
 	asper[type]*coeff/sum_coeffs \
 	for type,coeff \
-	in params['reflectance'].iteritems()
+	in params['reflectance'].items()
 )
 
 reflect = [ np.mean(a) for a in \
@@ -157,24 +155,22 @@ reflect = [ np.mean(a) for a in \
 ]
 
 with open(dirname+"/refl.lst",'w') as zfile:
-	zfile.write('\n'.join( map(lambda n:"%.06g"%n, reflect ))+'\n')
+	zfile.write('\n'.join( ["%.06g"%n for n in reflect])+'\n')
 
 # Photopic/scotopic spectrum
 #   ratio_ps = float(raw_input("    photopic/scotopic ratio for lamp power ? (0 <= p/(s+p) <= 1) : "))
 nspct = ratio_ps*photopic + (1-ratio_ps)*scotopic
 nspct = nspct/np.sum(nspct)
-nspct = np.array(map(np.mean,np.array_split(nspct[bool_array],n_bins)))
+nspct = np.array(list(map(np.mean,np.array_split(nspct[bool_array],n_bins))))
 
-print "Linking mie files."
+print("Linking mie files.")
 
 aero_profile = params['aerosol_profile']
 RH = params['relative_humidity']
 mie_pre = aero_profile+"_RH%02d" % RH
 
 ppath = os.environ['PATH'].split(os.pathsep)
-illumpath = filter(
-	lambda s: "illumina" in s and "bin" not in s,
-	ppath )[0]
+illumpath = [s for s in ppath if "illumina" in s and "bin" not in s][0]
 
 mie_path = illumpath + "/Aerosol_optical_prop/"
 mie_files = glob(mie_path+mie_pre+"*.mie.out")
@@ -182,7 +178,7 @@ mie_files = { int(s.split('.')[-3][:3]):s for s in mie_files }
 mie_wl = np.asarray(sorted(mie_files.keys()))
 wl2mie = np.asarray([min(mie_wl, key=lambda i: abs(i-j)) for j in x])
 
-for i in xrange(len(wl2mie)):
+for i in range(len(wl2mie)):
 	name = dirname+mie_pre.strip('_')+"_0.%03d0um.mie.out"%x[i]
 	try:
 		shutil.copy2(os.path.abspath(mie_files[wl2mie[i]]),name)
@@ -193,7 +189,7 @@ for i in xrange(len(wl2mie)):
 shutil.copy("srtm.hdf5",dirname)
 
 with open(dirname+"/wav.lst",'w') as zfile:
-	zfile.write('\n'.join( map(lambda n:"%03d"%n, x ))+'\n')
+	zfile.write('\n'.join( ["%03d"%n for n in x])+'\n')
 
 if p.zones is not None:
     dir_name = ".Inputs_zones/"
@@ -201,7 +197,7 @@ if p.zones is not None:
     n_inv = 0
     shutil.rmtree(dir_name,True)
     os.makedirs(dir_name)
-    execfile(os.path.join(illumpath,"make_zones.py"))
+    exec(compile(open(os.path.join(illumpath,"make_zones.py"), "rb").read(), os.path.join(illumpath,"make_zones.py"), 'exec'))
 
     oldlumlp = hdf.from_domain("domain.ini")
     for fname in glob("Inputs/*lumlp*"):
@@ -217,7 +213,7 @@ if p.zones is not None:
             newlumlp[i] += dat * nspct[x.index(wl)] * dl[x.index(wl)]
 
     ratio = hdf.from_domain("domain.ini")
-    for i in xrange(len(ratio)):
+    for i in range(len(ratio)):
         ratio[i] = pt.safe_divide(oldlumlp[i],newlumlp[i])
 
     for fname in glob(os.path.join(dir_name,"*lumlp*")):
@@ -231,9 +227,9 @@ if p.lights is not None:
     dir_name = ".Inputs_lamps/"
     shutil.rmtree(dir_name,True)
     os.makedirs(dir_name)
-    execfile(os.path.join(illumpath,"make_lamps.py"))
+    exec(compile(open(os.path.join(illumpath,"make_lamps.py"), "rb").read(), os.path.join(illumpath,"make_lamps.py"), 'exec'))
 
-print "Unifying inputs."
+print("Unifying inputs.")
 
 lfiles = { fname.split(os.sep)[-1] for fname in glob(".Inputs_lamps/*") }
 zfiles = { fname.split(os.sep)[-1] for fname in glob(".Inputs_zones/*") }
@@ -258,8 +254,8 @@ for fname in zfiles&lfiles:
 			zdat[i][dat != 0] = dat[dat != 0]
 		zdat.save(os.path.join(dirname,fname))
 	else:
-		print "WARNING: File %s not merged properly." % fname
+		print("WARNING: File %s not merged properly." % fname)
 shutil.rmtree(".Inputs_lamps",True)
 shutil.rmtree(".Inputs_zones",True)
 
-print "Done."
+print("Done.")

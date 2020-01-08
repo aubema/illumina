@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!/usr/bin/python3
 # cedi est un commentaire
 import numpy as np
 import sys
@@ -8,7 +8,7 @@ aV,aH = [],[]
 data = []
 dump = []
 
-filename = raw_input("input filename : ")
+filename = input("input filename : ")
 
 with open(filename) as f:
     for line in f.readlines():
@@ -34,7 +34,7 @@ aV = np.array(aV)
 aH = np.array(aH)
 data = np.array(data).reshape((nH,nV))
 
-outname = raw_input("out filename : ")
+outname = input("out filename : ")
 with open(outname,'w') as f:
 	f.write("%d %d\n" % (nV,nH))
 	f.write(' '.join(map(str,aV))+'\n')

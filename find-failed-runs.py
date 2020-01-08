@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 
 import os, re, errno
 import fnmatch
@@ -18,12 +18,12 @@ p = parser.parse_args()
 
 if p.batch:
     def failed(dirname):
-        print "cd " + os.path.abspath(dirname)
-        print "sbatch ./execute"
-        print "sleep 0.05"
+        print("cd " + os.path.abspath(dirname))
+        print("sbatch ./execute")
+        print("sleep 0.05")
 else:
     def failed(dirname):
-        print dirname
+        print(dirname)
 
 for dirname in recursive_glob(pattern='illumina'):
     dirname = os.path.dirname(dirname)

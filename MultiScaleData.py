@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 #
 # Multi-scale data handling
 #
@@ -12,7 +12,7 @@ import pyproj as _pyproj
 from h5py import File as _HDFile
 from numbers import Integral as _Integral
 from copy import deepcopy as _clone
-from itertools import izip as _izip
+
 
 class MultiScaleData(_np.ndarray):
     def __new__(cls, params, data=None):
@@ -33,9 +33,9 @@ class MultiScaleData(_np.ndarray):
 
     def _project(self,coords):
         lat,lon = coords
-        wgs84 = _pyproj.Proj(init="epsg:4326")
-        proj  = _pyproj.Proj(init=self._attrs['srs'])
-        x,y   = _pyproj.transform(wgs84,proj,lon,lat)
+        wgs84 = _pyproj.Proj("epsg:4326")
+        proj  = _pyproj.Proj(self._attrs['srs'])
+        x,y   = _pyproj.transform(wgs84,proj,lon,lat,always_xy=True)
         return x,y
 
     def _get_layer(self,coords):
@@ -90,7 +90,7 @@ class MultiScaleData(_np.ndarray):
         center: (lat,lon) tuple
         radii: Radius in meters
         value: Value to set the circle to"""
-        for i in xrange(len(self)):
+        for i in range(len(self)):
             ny,nx = self[i].shape
             X0, Y0 = self._get_col_row(center,i,asfloat=True)
             R = float(radii) / self.pixel_size(i)
@@ -100,17 +100,17 @@ class MultiScaleData(_np.ndarray):
 
     def set_overlap(self,value=0):
         nb_core = self._attrs['nb_core']
-        for i in xrange(1,len(self)):
+        for i in range(1,len(self)):
             ny,nx = self[i].shape
             obs_x = self._attrs['layers'][i]['observer_size_x']
             obs_y = self._attrs['layers'][i]['observer_size_y']
             self[i][
-                (ny-obs_y)/2 - nb_core : (ny+obs_y)/2 + nb_core,
-                (nx-obs_x)/2 - nb_core : (nx+obs_x)/2 + nb_core
+                (ny-obs_y)//2 - nb_core : (ny+obs_y)//2 + nb_core,
+                (nx-obs_x)//2 - nb_core : (nx+obs_x)//2 + nb_core
             ] = value
 
     def set_buffer(self,value=0):
-        for i in xrange(len(self)):
+        for i in range(len(self)):
             buff = self._attrs['layers'][i]['buffer']
             ny,nx = self[i].shape
             self[i][:buff] = value
@@ -119,7 +119,7 @@ class MultiScaleData(_np.ndarray):
             self[i][:,nx-buff:] = value
 
     def split_observers(self):
-        for obs_id in xrange(len(self.get_obs_pos()[0])):
+        for obs_id in range(len(self.get_obs_pos()[0])):
             yield self.extract_observer(obs_id)
 
     def extract_observer(self,obs_id):
@@ -131,7 +131,7 @@ class MultiScaleData(_np.ndarray):
         lon = self._attrs['obs_lon'][obs_id]
 
         new = MultiScaleData(self._attrs)
-        for l in xrange(len(new)):
+        for l in range(len(new)):
             b = self._attrs['layers'][l]['buffer']
             xc,yc = new._get_col_row((lat,lon),l)
             new[l] = self[l][yc-n-b:yc+n+b+1,xc-n-b:xc+n+b+1].copy()
@@ -156,15 +156,15 @@ class MultiScaleData(_np.ndarray):
             'hdf' not in filename.rsplit('.',1)[-1]:
             filename += ".hdf5"
         with _HDFile(filename,'w') as File:
-            for key,val in self._attrs.iteritems():
+            for key,val in list(self._attrs.items()):
                 if key != "layers":
                     if "obs" not in key:
                         File.attrs[key] = val
                     else:
                         ds = File.create_dataset(key.replace('_','/'), data=val)
-            for i in xrange(len(self)):
+            for i in range(len(self)):
                 ds = File.create_dataset("layers/%d" % i, data=self[i])
-                for key,val in self._attrs['layers'][i].iteritems():
+                for key,val in list(self._attrs['layers'][i].items()):
                     ds.attrs[key] = val
 
 def Open(filename):
