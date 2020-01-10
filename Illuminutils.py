@@ -89,7 +89,7 @@ if os.path.isfile("GHSL.zip"):
     save(params, data, "obstf")
 else:
     print("WARNING: Could not find GHSL.zip file.")
-    print("If you don't indent to use it, you can safely ignore this.")
+    print("If you don't intend to use it, you can safely ignore this.")
 
 files = sorted(glob("SRTM/*.hgt"))
 if not len(files):

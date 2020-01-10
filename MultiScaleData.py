@@ -171,7 +171,7 @@ def Open(filename):
     """Open a multiscale HDF5 data fileself.
 
     Returns a MultiScaleData object."""
-    ds = _HDFile(filename)
+    ds = _HDFile(filename,'r')
     data = _np.array([ ds['layers'][n][:] for n in sorted(ds['layers'],key=int) ])
     params = dict(ds.attrs)
     params['layers'] = [ dict(ds['layers'][n].attrs) for n in sorted(ds['layers'],key=int) ]
