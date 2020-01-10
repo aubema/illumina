@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 #
 # Illumina output extract
 #
@@ -46,8 +46,8 @@ for dirpath,dirnames,filenames in os.walk(p.exec_dir):
     with open(os.path.join(dirpath,'illumina.in')) as f:
         basename = f.readlines()[1].split()[0]
 
-    out_names = filter(lambda fname: fname.endswith(".out") and \
-        fname.startswith(basename+'_'), filenames)
+    out_names = [fname for fname in filenames if fname.endswith(".out") and \
+        fname.startswith(basename+'_')]
     if not out_names:
         out_names = [ basename + '.out' ]
 
@@ -60,7 +60,7 @@ for dirpath,dirnames,filenames in os.walk(p.exec_dir):
         try:
             for pname,pvals in p.param:
                 if pname not in params:
-                    print "ERROR: Parameter '%s' not found." % pname
+                    print("ERROR: Parameter '%s' not found." % pname)
                     exit()
                 for pval in pvals.split(','):
                     if "%s_%s" % (pname,pval) in params:
@@ -83,7 +83,7 @@ for dirpath,dirnames,filenames in os.walk(p.exec_dir):
                 n_layer = 0
 
             key = regex_layer.sub('',params)
-            if not contrib.has_key(key):
+            if key not in contrib:
                 try:
                     coords = re.match(regex_coords,params).group(1)
                     blank = dirpath.split('exec')[0]+"/obs_data/%s/blank.hdf5" % coords
@@ -95,7 +95,7 @@ for dirpath,dirnames,filenames in os.walk(p.exec_dir):
 
             pix_size = ( contrib[key].pixel_size(n_layer) / 1000. ) ** 2 # in km^2
             if oname == basename + ".out":
-                pcl_name = filter(lambda s: "pcl.bin" in s, filenames)[0]
+                pcl_name = [s for s in filenames if "pcl.bin" in s][0]
             else:
                 pcl_name = '_'.join([ basename,'pcl',params+".bin" ])
             pcl_path = os.path.join(dirpath,pcl_name)
@@ -104,7 +104,7 @@ for dirpath,dirnames,filenames in os.walk(p.exec_dir):
             b = (pcl_data.shape[0] - contrib[key][n_layer].shape[0]) // 2
             contrib[key][n_layer] = pcl_data[b:-b,b:-b] if b else pcl_data
 
-for key,val in skyglow.iteritems():
-    print key,val
+for key,val in skyglow.items():
+    print(key,val)
     if p.contrib:
         contrib[key].save(key)

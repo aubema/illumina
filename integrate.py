@@ -38,15 +38,15 @@ with open(p.domain) as f:
     domain = yaml.load(f)
 
 domain['xmin'], domain['ymin'], domain['xmax'], domain['ymax'] = \
-    map(float,domain['bbox'].split())
+    list(map(float,domain['bbox'].split()))
 
-p1 = pyproj.Proj(init="epsg:4326") # WGS84
-p2 = pyproj.Proj(init=domain['srs'])
+p1 = pyproj.Proj("epsg:4326") # WGS84
+p2 = pyproj.Proj(domain['srs'])
 
-for zone,data in zones.viewitems():
+for zone,data in zones.items():
     lat, lon = data.T
 
-    x, y = pyproj.transform(p1, p2, lon, lat)
+    x, y = pyproj.transform(p1, p2, lon, lat, always_xy=True)
 
     data[:,0] = (x-domain['xmin'])/domain['pixsize'] + 1
     data[:,1] = (y-domain['ymin'])/domain['pixsize'] + 1
@@ -56,8 +56,8 @@ nr, nc = bin.shape
 ygrid, xgrid = np.mgrid[:nr, :nc]
 xypix = np.vstack((xgrid.ravel(), ygrid.ravel())).T
 
-for zone,data in zones.iteritems():
+for zone,data in zones.items():
     pth = Path(data, closed=False)
     mask = pth.contains_points(xypix)
     mask = mask.reshape(bin.shape)
-    print zone, np.sum(bin[mask])
+    print(zone, np.sum(bin[mask]))
