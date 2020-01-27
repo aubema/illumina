@@ -1,30 +1,42 @@
 #!/usr/bin/env python3
 
 from glob import glob
-import ogr, osr, gdal
 import yaml, h5py
 import hdftools
 from subprocess import call
 import os
+import numpy as np
+from PIL import Image
+
+def OpenTIFF(path):
+    return np.array(Image.open(path))
 
 def warp(srcfiles, projection, extent):
-    bounding_box = [
+    tmpfile = "tmp_warp.tiff"
+    if os.path.isfile(tmpfile):
+        os.remove(tmpfile)
+
+    cmd  = ['gdalwarp']
+    cmd += ['-t_srs',projection]
+    cmd += ['-te',
         extent["xmin"],
         extent["ymin"],
         extent["xmax"],
-        extent["ymax"] ]
+        extent["ymax"]
+    ]
+    cmd += ['-tr',
+        extent["pixel_size"],
+        extent["pixel_size"]
+    ]
+    cmd += ['-r','cubicspline']
+    cmd += ['-dstnodata','0.']
+    cmd += srcfiles
+    cmd += [tmpfile]
+    cmd = list(map(str,cmd))
+    print("EXECUTING :", ' '.join(cmd))
+    call(cmd)
 
-    vrt = gdal.BuildVRT('',srcfiles)
-    ds = gdal.Warp( '', vrt,
-        format="VRT",
-        dstSRS=projection,
-        dstNodata=0.,
-        outputBounds=bounding_box,
-        xRes=extent["pixel_size"],
-        yRes=extent["pixel_size"],
-        resampleAlg="cubicspline" )
-
-    return ds.GetRasterBand(1).ReadAsArray()
+    return OpenTIFF(tmpfile)
 
 def prep_shp(infile, projection, extent):
         cmd  = ['ogr2ogr']
@@ -51,28 +63,32 @@ def prep_shp(infile, projection, extent):
         call(cmd)
 
 def rasterize(shpfile, projection, extent):
-    width = int(round((extent['xmax'] - extent['xmin']) / extent['pixel_size']))
-    height = int(round((extent['ymax'] - extent['ymin']) / extent['pixel_size']))
+    tmpfile = "tmp_rasterize.tiff"
+    if os.path.isfile(tmpfile):
+        os.remove(tmpfile)
 
-    geo_transform = (
-        extent['xmin'],extent['pixel_size'],0,
-        extent['ymax'],0,-extent['pixel_size']
-    )
-    srs = osr.SpatialReference()
-    srs.ImportFromEPSG(int(projection.split(':')[1]))
-    proj = srs.ExportToWkt()
+    cmd  = ['gdal_rasterize']
+    cmd += ['-i','-at'] # inverted, all touched
+    cmd += ['-burn','1']
+    cmd += ['-ot','Byte']
+    cmd += ['-a_srs',projection]
+    cmd += ['-te',
+        extent["xmin"],
+        extent["ymin"],
+        extent["xmax"],
+        extent["ymax"]
+    ]
+    cmd += ['-tr',
+        extent["pixel_size"],
+        extent["pixel_size"]
+    ]
+    cmd += [shpfile]
+    cmd += [tmpfile]
+    cmd = list(map(str,cmd))
+    print("EXECUTING :", ' '.join(cmd))
+    call(cmd)
 
-    data_source = gdal.OpenEx(shpfile, gdal.OF_VECTOR)
-    driver = gdal.GetDriverByName('MEM')  # In memory dataset
-    target_ds = driver.Create('', width, height, 1, gdal.GDT_Byte)
-    target_ds.SetGeoTransform(geo_transform)
-    target_ds.SetProjection(proj)
-    gdal.Rasterize(target_ds, data_source,
-        bands=[1],
-        burnValues=[1],
-        inverse=True,
-        allTouched=True)
-    return target_ds.GetRasterBand(1).ReadAsArray()
+    return OpenTIFF(tmpfile)
 
 def save(params, data, dstname, scale_factor=1.):
     scaled_data = [ d*scale_factor for d in data ]

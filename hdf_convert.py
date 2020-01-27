@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import MultiScaleData as MSD
-import gdal, osr
 import argparse
 import geopandas as gpd
 import numpy as np
@@ -23,6 +22,7 @@ hdf.set_buffer(-1)
 hdf.set_overlap(-1)
 
 if p.format == 'raster':
+    import gdal, osr
     driver = gdal.GetDriverByName("GTiff")
     srs = osr.SpatialReference()
     srs.ImportFromEPSG(int(hdf._attrs['srs'].split(':')[1]))
