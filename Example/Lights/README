@@ -6,5 +6,7 @@ basically 3 types of files:
 
 2-Lamp spectal power distributions obtained experimentally by using a stellarnet spectrometer. Most of them extracted from the Light spectral power distribution database (LSPDD.org - .spct extensions).
 
-3-Spectral sensitivity curves that represents the response of a given phenomenon to different wavelength. You will find some satellite or instrument sensitivities (like VIIRS-DNB - .dat extensions) as well of filter transmittance (like Johnson-Cousin filters), spectral sensitivities of biological phenomenon (like the scotopic or photopic vision - .dat extensions) and ground reflectance files (like asphalt and snow reflectances - .asper extensions). 
+3-Spectral sensitivity curves that represents the response of a given phenomenon to different wavelength. You will find some satellite or instrument sensitivities (like VIIRS-DNB - .dat extensions) as well of filter transmittance (like Johnson-Cousin filters), spectral sensitivities of biological phenomenon (like the scotopic or photopic vision - .dat extensions) and ground reflectance files (like asphalt and snow reflectances - .asper extensions).
+
+Wavelengt units are nanometers
 
