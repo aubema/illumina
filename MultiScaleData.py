@@ -34,7 +34,10 @@ class MultiScaleData(_np.ndarray):
     def _project(self,coords):
         lat,lon = coords
         wgs84 = _pyproj.Proj("epsg:4326")
-        proj  = _pyproj.Proj(self._attrs['srs'])
+        try:
+            proj = _pyproj.Proj(self._attrs['srs'].decode("utf-8"))
+        except AttributeError:
+            proj = _pyproj.Proj(self._attrs['srs'])
         x,y   = _pyproj.transform(wgs84,proj,lon,lat,always_xy=True)
         return x,y
 
