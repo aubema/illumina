@@ -2,7 +2,9 @@ The content of this directory refer to typical files
 than can be used to model most situations. There are
 basically 3 types of files:
 
-1-Lamp fixture angular emission functions most of them obtained by horizontal averaging of real IESNA files (.lop extensions.
+1-Lamp fixture angular emission functions most of them
+obtained by horizontal averaging of real IESNA files 
+(.lop extensions.
 
 2-Lamp spectal power distributions obtained
 experimentally by using a stellarnet spectrometer. Most
