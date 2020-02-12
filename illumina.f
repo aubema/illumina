@@ -1344,7 +1344,7 @@ c verify if there is shadow between sr and line of sight voxel
                                         dho=sqrt((rx_sr-rx_c)**2.
      +                                  +(ry_sr-ry_c)**2.)
                                         if (angzen.gt.pi/4.) then         ! 45deg. it is unlikely to have a 1km high mountain less than 1
-        call horizon(x_sr,y_sr,altsol,dx,dy,angazi,zhoriz,dh)
+        call horizon(x_sr,y_sr,dx,dy,altsol,angazi,zhoriz,dh)
                                           if (dh.le.dho) then
                                             if (angzen.lt.zhoriz) then    ! the path line of sight-reflec is not below the horizon => we compute
                                               hh=1.
