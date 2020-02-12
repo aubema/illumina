@@ -25,7 +25,7 @@ c
 c    Contact: martin.aube@cegepsherbrooke.qc.ca
 c
 c
-      subroutine horizon(x,y,z,dx,dy,anga,zhoriz,d) 
+      subroutine horizon(x,y,z,dx,dy,altsol,anga,zhoriz,d) 
       integer width                                                       ! Matrix dimension in Length/width and height
       parameter (width=512)      
       integer x,y,nx,ny
@@ -33,7 +33,7 @@ c
       real posx,posy,scalef,zhoriz,z,d
       pi=3.1415926
 c      angaz1 = (pi*anga)/180.
-       andaz1=anga
+      angaz1=anga
       ix = (cos(angaz1))                                                  ! viewing vector components
       iy = (sin(angaz1))
       dist=(real(width))*sqrt(1.+tan(angaz1)**2.)
