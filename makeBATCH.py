@@ -121,7 +121,7 @@ multival = [k for k in params if isinstance(params[k],list)]
 multival = sorted( multival, key=len, reverse=True ) # Semi-arbitrary sort
 param_space = [ params[k] for k in multival ]
 N = np.prod(list(map(len,param_space)))
-print("Number of executions:", N)
+print("Number of parameter combinations:", N)
 
 ms = 0
 for i,param_vals in enumerate(comb(*param_space),1):
