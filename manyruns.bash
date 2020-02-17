@@ -22,7 +22,7 @@ do  bash $i
         njob=`squeue -u $user -h | grep -c ""`
         ntot=$((nnew+njob))
         echo $ntot
-        sleep 30 
+        sleep 300 
     done
 done
 echo "End of multiple experiments"
