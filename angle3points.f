@@ -29,8 +29,7 @@ c
 c    Contact: martin.aube@cegepsherbrooke.qc.ca
 c
 c
-      subroutine angle3points(x1,y1,z1,x2,y2,z2,x3,y3,z3,
-     +                         an3pts)
+      subroutine angle3points(x1,y1,z1,x2,y2,z2,x3,y3,z3,an3pts)
       real x1,y1,x2,y2,x3,y3
       real z1,z2,z3,an3pts,argume
       real xu,yu,zu,xv,yv,zv,dx,dy,pi,comp
