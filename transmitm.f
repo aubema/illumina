@@ -34,7 +34,7 @@ c    Contact: martin.aube@cegepsherbrooke.qc.ca
 c
 c
       subroutine transmitm(angz,z_i,z_f,distd,transm,tranam)
-      real transm,transm1,transm2                                                         ! Declaration des variables.
+      real transm                                                         ! Declaration des variables.
       real tranam                                                         ! vertical transmittance of the complete atmosphere (molecules)
       real angz
       real distd
@@ -54,7 +54,7 @@ c
       endif
       if ((transm.lt.0.).or.(transm.gt.1.)) then
         print*,'ERREUR avec transm',transm,tranam,
-     +  z_f,z_i,distd,angz,airm
+     +  z_f,z_i,distd,angz
         stop
       endif
       return
