@@ -54,13 +54,12 @@ c
       argume=(xu*xv+yu*yv+zu*zv)/(sqrt(xu**2.+yu**2.+zu**2.)*
      a        sqrt(xv**2.+yv**2.+zv**2.))
       if (argume.ge.1.) then
-         comp=0.
+         an3pts=0.
       elseif (argume.le.-1.) then
-         comp=pi
+         an3pts=pi
       else
-         comp=acos(argume)
+         an3pts=acos(argume)
       endif 
-      an3pts=comp
       if (an3pts.lt.0.) then
          print*,'ERREUR an3pts < 0'
          stop
