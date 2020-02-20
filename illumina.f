@@ -171,7 +171,7 @@ c                                                                         ! Usef
       real nbang                                                          ! for the averaging of the photometric function
       real obsH(width,width),angmin                                       ! averaged height of the sub-grid obstacles, minimum angle under wich
 c                                                                         ! a light ray cannot propagate because it is blocked by a sub-grid obstable
-      real ofill(width,width)                                             ! fill factor giving the probability to hit an obstacle when pointing in its direction integer 0-100
+      real ofill(width,width)                                             ! fill factor giving the probability to hit an obstacle when pointing in its direction real 0-1
       integer naz,na
       real ITT(width,width,nzon)                                          ! total intensity per type of lamp
       real ITC(width,width)                                               ! total intensity per line of sight voxel
