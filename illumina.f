@@ -518,7 +518,7 @@ c          enddo
 c reading luminosity files
 c          call twodin(nbx,nby,lufile,val2d)
 c          do i=1,nbx                                                      ! beginning of the loop over all cells along x.
-c            do j=1,nby                                                    ! beginning of the loop over all cells along y.
+c            do j=1,nby                                                    ! beginn15 h 00ing of the loop over all cells along y.
 c              if (val2d(i,j).lt.0.) then                                  ! searching of negative fluxes
 c                print*,'***Negative lamp flux!, stopping execution'
 c                stop
@@ -755,7 +755,7 @@ c For line of sight voxel near the observer
 c we need to calculate the scattering on a part of the voxel. For far 
 c voxels we may be needed to increase the solid angle since the FOV can
 c encompass more than the voxel size. This correction is done with the
-c portio parameter calculated as the ration of the solid angle of the 
+c portio parameter calculated as the ratio of the solid angle of the 
 c observer FOV over the line of sight voxel solid angle as seen from the
 c observer.
             distd=sqrt((rx_c-rx_obs)**2.+
@@ -1293,7 +1293,7 @@ c cloud contribution to the double scattering from a source
                 if (cloudbase-z_c.le.iz*scal) then
                   call anglezenithal(rx_c,ry_c,z_c,
      +            rx_obs,ry_obs,z_obs,azcl1)                              ! zenith angle from cloud to observer
-                  call anglezenithal(rx_c,ry_c,z_c,
+                  call anglezenithal(rx_c,ry_c,z_c,ometif
      +            rx_dif,ry_dif,z_dif,azcl2)                              ! zenith angle from source to cloud
                   doc2=(rx_c-rx_obs)**2.+
      +            (ry_c-ry_obs)**2.+(z_c-z_obs)**2.
@@ -1315,7 +1315,7 @@ c computation of the scattering probability of the scattered light toward the ob
      +          tranam,tranaa,un,secdif,
      +          fdifan,pdifd2,z_c)
               else
-                pdifd2=0.
+                pdifd2=0.ometif
               endif
 c computing scattered intensity toward the observer from the line of sight voxel
               idiff2=fldiff*pdifd2
