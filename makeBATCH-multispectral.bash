@@ -154,7 +154,7 @@ echo "Combining lumlp files..."
              for nlp in $listlp
              do echo $nlp >> comblp.in
              done
-             cp -f $HOME/hg/illumina/bin/combine .
+             cp -f $HOME/git/illumina/bin/combine .
              ./combine < comblp.in
 echo "Making variable resolution grid lumlp files..."
              nl=0
@@ -166,7 +166,7 @@ echo "Making variable resolution grid lumlp files..."
                 echo ${x_sites[$ns]} >> varres.in
                 echo ${y_sites[$ns]} >> varres.in
                 echo $l1 $l3 >> varres.in
-                cp -f $HOME/hg/illumina/bin/varres .
+                cp -f $HOME/git/illumina/bin/varres .
                 ./varres
                 let nl=nl+1
              done
@@ -180,7 +180,7 @@ echo "Making variable resolution grid lumlp files..."
                 echo ${x_sites[$ns]} >> varres.in
                 echo ${y_sites[$ns]} >> varres.in
                 echo $l1 $l3 >> varres.in
-                cp -f $HOME/hg/illumina/bin/varres .
+                cp -f $HOME/git/illumina/bin/varres .
                 ./varres
 
              listbin=`ls -1 *_new.bin`
@@ -288,7 +288,7 @@ echo "Starting from "$folder
                                       echo $cloud "                 ! Cloud model selection 0=clear, 1=Thin Cirrus/Cirrostratus, 2=Thick Cirrus/Cirrostratus, 3=Altostratus/Altocumulus, 4=Cumulus/Cumulonimbus, 5=Stratocumulus">> illumina.in
                                       echo $dmin "          ! Minimal distance to the nearest light source (m)">> illumina.in
 # copie de illumina dans ./
-                                      ln -s $HOME/hg/illumina/bin/illumina .
+                                      ln -s $HOME/git/illumina/bin/illumina .
 #
 # creation du script pour qsub dans $folder
                                       ici=`pwd`

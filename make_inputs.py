@@ -91,10 +91,6 @@ for i in xrange(len(zones)):
     np.savetxt("Lamps/zone%i_lamp.dat"%(i+1), bin_zon[1:])
     bin_zon.astype(np.float32).tofile("Lamps/zone%i_lamp.bin"%(i+1))
 
-print "Plotting..."
-
-sub.call(["zones_plot.sh","%d"%len(zones)])
-
 print "Splitting in a few wavelengths..."
 n = int(raw_input("    Number of wavelengths to use : "))
 lmin = float(raw_input("    lambda min : "))

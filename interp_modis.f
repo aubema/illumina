@@ -21,7 +21,7 @@ c
       subroutine interp_modis()
       integer width
       parameter (width=1024)
-      real modband(4),refl(width,width,4),avgwav
+      real modband(99),refl(width,width,99),avgwav
       real dist,dat(width,width)
       real dist1,dist2,wav1,wav2,m,b
       integer n_modis,i,n_bands,nb,ii,jj,n1,n2
