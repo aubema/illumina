@@ -31,7 +31,7 @@ c
 c    Contact: martin.aube@cegepsherbrooke.qc.ca
 c
 c
-      subroutine diffusion (angdif,tranam,tranaa,un,secdif,
+      subroutine diffusion(angdif,tranam,tranaa,un,secdif,
      +   fonc_a,pdif,altit)
       real angdif,pdif,prob_a,prob_m,secdif 
       real fctmol,pi,fonc_a(181),fonc_ae
@@ -39,8 +39,6 @@ c
       real altit,un
       integer rang,na,naz
       parameter (pi=3.1415926)
-c--------------------------------------------------------
-c   Calcul et normalisation des fonctions de diffusion
 c--------------------------------------------------------      
       if (angdif.lt.0.) angdif=-angdif      
       if (angdif-pi.gt.0.00001) angdif=pi

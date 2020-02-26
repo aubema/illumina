@@ -30,13 +30,18 @@ c=======================================================================
       integer cloudt
 c  fitted parameters for the cloud reflectance as a function of the incident zenith angle
 c  rho(z)=a0+a1*cos z + a2 * cos^2 z + a3 * cos^3 z according to Shapiro 1982 Table 10
+c cloud no 1 are thin cirrus & cirrostratus
+c cloud no 2 are thick cirrus & cirrostratus
+c cloud no 3 are altostratus & altocumulus
+c cloud no 4 are stratocumulus & stratus
+c cloud no 5 are cumulus & cumulonimbus
       real rhocld(5,4)
       real angzen,rcloud                                               
 
       rhocld(1,1)=0.25674
       rhocld(1,2)=-0.18077
       rhocld(1,3)=-0.21961
-      rhocld(1,4)=-0.25272
+      rhocld(1,4)=0.25272
       rhocld(2,1)=0.60540
       rhocld(2,2)=-0.55142
       rhocld(2,3)=-0.23389
