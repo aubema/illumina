@@ -212,7 +212,7 @@ c                                                                         ! a li
       real tcloud                                                         ! low cloud transmission
       real rx_sp,ry_sp                                                    ! position of a low cloud pixel
       real flcld(width,width)                                             ! flux crossing a low cloud 
-      verbose=2                                                           ! Very little printout=0, Many printout = 1, even more=2
+      verbose=1                                                           ! Very little printout=0, Many printout = 1, even more=2
       diamobj=1.                                                          ! A dummy value for the diameter of the objective of the instrument used by the observer.
       volu=0.
       zero=0.
@@ -253,12 +253,12 @@ c        read(1,*) cloudt, cloudbase, cloudtop
         read(1,*) cloudt, cloudbase
         read(1,*) 
       close(1)
-      siz=10.                                                             ! 20m will work from dx=20 to dx=196km at least
+      siz=20.                                                              ! 20m will work from dx=20 to dx=196km at least
       if (ssswit.eq.0) then
         effdif=0.
       else
-        effdif=100000.                                                    ! This is apparently the minimum value to get some accuracy
-        n2nd=100000                                                       !
+        effdif=100000.                                                        ! This is apparently the minimum value to get some accuracy
+        n2nd=50000                                                        !
       endif
       scal=20.
       scalo=scal
@@ -433,7 +433,6 @@ c of the sources, obstacle height and distance
         alfile=basenm(1:lenbase)//'_altlp.bin'                            ! setting the file name of height of the sources lumineuse.
         offile=basenm(1:lenbase)//'_obstf.bin'
         dtheta=.017453293                                                 ! one degree
-        
 c reading lamp heights
         call twodin(nbx,nby,alfile,val2d)
         do i=1,nbx                                                        ! beginning of the loop over all cells along x.
@@ -478,8 +477,6 @@ c reading of the scattering parameters
           read(1,*) scatte                                                ! reading of the cross section of scattering of the aerosols.
         close(1)
         secdif=scatte/extinc                                              ! Rapport (sigmadif/sigmatotal).
-        
-        
 c
 c replace ground based source by cloud lambertian source for souces under
 c cloud central layer and keep sources for source above cloud central layer
@@ -890,10 +887,10 @@ c computation of the flux direct reaching the line of sight voxel
      +                        omega*transm*transa*(1.-ff)*hh              ! correction for obstacle filling factor
 c computation of the scattering probability of the direct light
 c distance pour traverser la cellule unitaire parfaitement orientée
-                              call angle3points (rx_s,ry_s,z_s,rx_c,      ! scattering angle.
-     +                        ry_c,z_c,rx_obs,ry_obs,z_obs,
-     +                        angdif)
                               if (omega.ne.0.) then
+                                call angle3points (rx_s,ry_s,z_s,rx_c,    ! scattering angle.
+     +                          ry_c,z_c,rx_obs,ry_obs,z_obs,
+     +                          angdif)                              
                                 call diffusion(angdif,                    ! scattering probability of the direct light.
      +                          tranam,tranaa,secdif,un,fdifan,
      +                          pdifdi,z_c)
@@ -959,8 +956,7 @@ c etablissement of the conditions ands boucles
                                   if((x_s.eq.x_sr).and.(y_s.eq.y_sr)
      +                            .and.(z_s.eq.z_sr)) then
                                     if (verbose.eq.2) then
-                                      print*,'Source pos = Ground ce
-     +ll'
+                                      print*,'Source pos = Ground cell'
                                     endif
                                   else
                                       haut=-(rx_s-rx_sr)*tan(             ! if haut is negative, the ground cell is lighted from below
@@ -1029,7 +1025,7 @@ c computation of the solid angle of the reflecting cell seen from the source
                                         r4z=zc+tan(dble(epsilx))*
      +                                  dble(dxp)/2.-tan(dble(epsily))    ! computation of the composante en z of the fourth vector.
      +                                  *dble(dyp)/2.-zn
-                                        call anglesolide(omega,r1x,       ! Call of the routine anglesolide to compute the angle solide.
+                                        call anglesolide(omidiega,r1x,       ! Call of the routine anglesolide to compute the angle solide.
      +                                  r1y,r1z,r2x,r2y,r2z,r3x,r3y,
      +                                  r3z,r4x,r4y,r4z)
          if (omega.lt.0.) then
@@ -1076,7 +1072,7 @@ c
 c
 c
 c **************************************************************************************
-c * computation of the 2nd scattering contributions (pure scattering and after reflexion
+c * computation of the 2nd scattering contributions (2 order scattering and after reflexion)
 c **************************************************************************************
                                         if (effdif.gt.0.) then
 c                                          irefdi=0.                       ! Initialize the flux reflected and 2nd scattered
@@ -1127,9 +1123,9 @@ c computing flux reaching the scattering voxel
             fldif2=irefl1*omega*transm*transa*(1.-ff)*hh
 c computing the scattering probability toward the line of sight voxel
 c cell unitaire
-            call angle3points (rx_sr,ry_sr,z_sr,rx_dif,ry_dif,z_dif,      ! scattering angle.
-     +      rx_c,ry_c,z_c,angdif)
-            if (omega.ne.0.) then 
+            if (omega.ne.0.) then
+              call angle3points (rx_sr,ry_sr,z_sr,rx_dif,ry_dif,z_dif,    ! scattering angle.
+     +        rx_c,ry_c,z_c,angdif)
               call diffusion(angdif,tranam,tranaa,un,secdif,              ! scattering probability of the direct light.
      +        fdifan,pdifd1,z_dif)
             else
@@ -1140,7 +1136,6 @@ c cell unitaire
               print*,'ERROR, volume 2 is negative!'
               stop
             endif
-            
 c computing scattered intensity toward the line of sight voxel from the scattering voxel
             idif2=fldif2*pdifd1*volu
 c computing zenith angle between the scattering voxel and the line of sight voxel
@@ -1189,9 +1184,9 @@ c cloud contribution for double scat from a reflecting pixel
               endif
             endif
 c computation of the scattering probability of the scattered light toward the observer voxel (exiting voxel_c)
-            call angle3points(rx_dif,ry_dif,z_dif,rx_c,ry_c,z_c,          ! scattering angle.
-     +      rx_obs,ry_obs,z_obs,angdif)
-            if (omega.ne.0.) then 
+            if (omega.ne.0.) then
+              call angle3points(rx_dif,ry_dif,z_dif,rx_c,ry_c,z_c,        ! scattering angle.
+     +        rx_obs,ry_obs,z_obs,angdif)            
               call diffusion(angdif,tranam,tranaa,un,secdif,              ! scattering probability of the direct light.
      +        fdifan,pdifd2,z_c)
             else
@@ -1238,10 +1233,10 @@ c computing flux reaching the scattering voxel
               fldif1=lamplu(x_s,y_s,stype)*P_dif1*
      +        omega*transm*transa*(1.-ff)*hh
 c computing the scattering probability toward the line of sight voxel
-              call angle3points (rx_s,ry_s,z_s,                           ! scattering angle.
-     +        rx_dif,ry_dif,z_dif,rx_c,ry_c,z_c,
-     +        angdif)
               if (omega.ne.0.) then 
+                call angle3points (rx_s,ry_s,z_s,                           ! scattering angle.
+     +          rx_dif,ry_dif,z_dif,rx_c,ry_c,z_c,
+     +          angdif)
                 call diffusion(angdif,                                    ! scattering probability of the direct light.
      +          tranam,tranaa,un,secdif,
      +          fdifan,pdifd1,z_dif)
@@ -1307,10 +1302,10 @@ c cloud contribution to the double scattering from a source
                 endif
               endif
 c computation of the scattering probability of the scattered light toward the observer voxel (exiting voxel_c)
-              call angle3points(rx_dif,ry_dif,                            ! scattering angle.
-     +        z_dif,rx_c,ry_c,z_c,rx_obs,ry_obs,
-     +        z_obs,angdif)
-              if (omega.ne.0.) then 
+              if (omega.ne.0.) then
+                call angle3points(rx_dif,ry_dif,                          ! scattering angle.
+     +          z_dif,rx_c,ry_c,z_c,rx_obs,ry_obs,
+     +          z_obs,angdif)
                 call diffusion(angdif,                                    ! scattering probability of the direct light.
      +          tranam,tranaa,un,secdif,
      +          fdifan,pdifd2,z_c)
@@ -1401,10 +1396,10 @@ c cloud contribution to the reflected light from a ground pixel
                                 endif
                               endif
 c computation of the scattering probability of the reflected light
-                                          call angle3points(rx_sr,ry_sr,  ! scattering angle.
-     +                                    z_sr,rx_c,ry_c,z_c,rx_obs,
-     +                                    ry_obs,z_obs,angdif)
-                                          if (omega.ne.0.) then 
+                                          if (omega.ne.0.) then
+                                            call angle3points(rx_sr,      ! scattering angle.
+     +                                      ry_sr,z_sr,rx_c,ry_c,z_c,
+     +                                      rx_obs,ry_obs,z_obs,angdif)
                                             call diffusion(angdif,        ! scattering probability of the reflected light.
      +                                      tranam,tranaa,un,secdif,
      +                                      fdifan,pdifin,z_c)
@@ -1419,6 +1414,7 @@ c computation of the reflected intensity toward the sensor by a reflecting cell
                                       endif                               ! end of the condition surface not lighted from the top.
                                   endif                                   ! end of the condition reflecting cell is not on the source.
                                 endif                                     ! end of the condition surface of the domain.
+    
                               enddo                                       ! end of the loop over the rows (latitu) reflecting.
                             enddo                                         ! end of the loop over the column (longitude) reflecting.
 c   end of the computation of the reflected intensity
@@ -1444,6 +1440,7 @@ c include clouds in the total intensity
          stop
        endif
                             endif
+                                                        
 c**********************************************************************
 c computation of the total intensity coming from all the sources of a given type
 c**********************************************************************
@@ -1467,7 +1464,7 @@ c calculate total lamp flux matrix for all lamp types
                       enddo
                     enddo
                   endif                                                   ! end of condition if there are any flux in that source type
-                enddo                                                     ! end of the loop over the types of sources (stype).
+              enddo                                                       ! end of the loop over the types of sources (stype).
 c end of the computation of the intensity coming from a line of sight voxel toward the sensor
 c
 c
@@ -1516,7 +1513,7 @@ c computation of the flux reaching the intrument from the cloud voxel
             if (verbose.ge.1) print*,'Radiance accumulated =',
      +      ftocap/omefov/(pi*(diamobj/2.)**2.)
             if (verbose.ge.1) write(2,*) 'Added radiance =',
-     +      fccld/omefov/(pi*(diamobj/2.)**2.)
+     +      fcapt/omefov/(pi*(diamobj/2.)**2.)
             if (verbose.ge.1) write(2,*) 'Radiance accumulated =',
      +      ftocap/omefov/(pi*(diamobj/2.)**2.)
               endif                                                       ! end of the condition line of sight voxel inside the modelling domain

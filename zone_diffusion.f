@@ -36,16 +36,22 @@ c
        real x1,y1,z1,x2,y2,z2,x0,y0,z0,alts
        real effet,dmin,d,d1,d2
        real zondif(3000000,3),siz
+       real pi
+       pi=3.1415926
 c       if (siz.lt.40.) siz=40.
        neffet=nint(effet/siz)
        dmin=sqrt((x1-x2)**2.+(y1-y2)**2.+(z1-z2)**2.)
 c find an approximate value to stepdi
 c       stepdi=nint((dmin+effet)*3.14159/siz)*neffet/n2nd*neffet/2
-       stepdi=90000000
+       
+c       stepdi=90000000
+       stepdi=nint(((dmin/siz)*pi*(effet/siz)**2.+(4./3.)*pi*
+     + (effet/siz)**3.)/real(n2nd))
+c      print*,'Stepdi=',stepdi,n2nd,dmin
        if (stepdi.eq.0) stepdi=1
-
        step=nint(real(stepdi)**(1./3.))
        if (step.le.0) step=1
+c       print*,'Step=',step
 c limits of the calculations loops
        x_1=nint(x1/siz)
        y_1=nint(y1/siz)
@@ -93,5 +99,6 @@ c limits of the calculations loops
         enddo
        enddo
        stepdi=step**3
+c       print*,'Stepdi final1=',stepdi,step,ncell
        return
        end 
