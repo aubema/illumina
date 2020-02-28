@@ -260,7 +260,7 @@ c        read(1,*) cloudt, cloudbase, cloudtop
         effdif=10000.                                                        ! This is apparently the minimum value to get some accuracy
         n2nd=5000                                                        !
       endif
-      scal=20.
+      scal=19.
       scalo=scal
 c omemax: exclude calculations too close (<57m) this is a sustended angle of 1 deg.
 c the calculated flux is highly sensitive to that number for a very high 
