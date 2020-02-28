@@ -257,8 +257,8 @@ c        read(1,*) cloudt, cloudbase, cloudtop
       if (ssswit.eq.0) then
         effdif=0.
       else
-        effdif=100000.                                                        ! This is apparently the minimum value to get some accuracy
-        n2nd=50000                                                        !
+        effdif=10000.                                                        ! This is apparently the minimum value to get some accuracy
+        n2nd=5000                                                        !
       endif
       scal=20.
       scalo=scal
