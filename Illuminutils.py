@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import click
 from glob import glob
 import yaml, h5py
 import hdftools
@@ -11,7 +12,7 @@ from PIL import Image
 def OpenTIFF(path):
     return np.array(Image.open(path))
 
-def warp(srcfiles, projection, extent):
+def warp_files(srcfiles, projection, extent):
     tmpfile = "tmp_warp.tiff"
     if os.path.isfile(tmpfile):
         os.remove(tmpfile)
@@ -95,51 +96,64 @@ def save(params, data, dstname, scale_factor=1.):
     ds = hdftools.from_domain(params,scaled_data)
     ds.save(dstname)
 
-with open(glob("*.ini")[0]) as f:
-    params = yaml.safe_load(f)
+@click.command()
+def warp():
+    """Warps the satellite imagery.
 
-if os.path.isfile("GHSL.zip"):
-    print("Found GHSL.zip file, processing.")
-    data = [ warp(["/vsizip/GHSL.zip/GHSL.tif"], params['srs'], extent) \
-        for extent in params['extents'] ]
-    save(params, data, "obstf")
-else:
-    print("WARNING: Could not find GHSL.zip file.")
-    print("If you don't intend to use it, you can safely ignore this.")
+    Warps the satellite imagery based on the domain defined in
+    'domain.ini'.
 
-files = sorted(glob("SRTM/*.hgt"))
-if not len(files):
-    print("ERROR: Could not find SRTM file(s), aborting.")
-    raise SystemExit
-print("    ".join(map(str,files)))
-data = [ warp(files, params['srs'], extent) \
-    for extent in params['extents'] ]
-save(params, data, "srtm")
+    \b
+    Requires the folowing data:
+        Unzipped SRTM data in a folder named 'SRTM'.
+        If used, VIIRS data in a volder named 'VIIRS-DNB'.
+        If VIIRS data is used, the 'hydropolys.zip' file.
+    """
+    with open(glob("*.ini")[0]) as f:
+        params = yaml.safe_load(f)
 
-files = sorted(glob("VIIRS-DNB/*.tif"))
-if not len(files):
-    print("WARNING: Did not find VIIRS file(s).")
-    print("If you don't intend to use zones inventory, you can safely ignore this.")
-else:
-    if not os.path.isfile("hydropolys.zip"):
-        print("ERROR: Could not find hydropolys.zip file, aborting.")
+    if os.path.isfile("GHSL.zip"):
+        print("Found GHSL.zip file, processing.")
+        data = [ warp_files(["/vsizip/GHSL.zip/GHSL.tif"], params['srs'], extent) \
+            for extent in params['extents'] ]
+        save(params, data, "obstf")
+    else:
+        print("WARNING: Could not find GHSL.zip file.")
+        print("If you don't intend to use it, you can safely ignore this.")
+
+    files = sorted(glob("SRTM/*.hgt"))
+    if not len(files):
+        print("ERROR: Could not find SRTM file(s), aborting.")
         raise SystemExit
-
     print("    ".join(map(str,files)))
-    data = [ warp(files, params['srs'], extent) \
+    data = [ warp_files(files, params['srs'], extent) \
         for extent in params['extents'] ]
-    save(params, data, "stable_lights")
+    save(params, data, "srtm")
 
-    prep_shp(
-        "hydropolys.zip/hydropolys.shp",
-        params['srs'],
-        params['extents'][-1]
-    )
-    data = [ rasterize("tmp_merge.shp", params['srs'], extent) \
-        for extent in params['extents'] ]
-    save(params, data, "water_mask")
+    files = sorted(glob("VIIRS-DNB/*.tif"))
+    if not len(files):
+        print("WARNING: Did not find VIIRS file(s).")
+        print("If you don't intend to use zones inventory, you can safely ignore this.")
+    else:
+        if not os.path.isfile("hydropolys.zip"):
+            print("ERROR: Could not find hydropolys.zip file, aborting.")
+            raise SystemExit
 
-    for fname in glob("tmp*"):
-        os.remove(fname)
+        print("    ".join(map(str,files)))
+        data = [ warp_files(files, params['srs'], extent) \
+            for extent in params['extents'] ]
+        save(params, data, "stable_lights")
 
-    print("Done.")
+        prep_shp(
+            "hydropolys.zip/hydropolys.shp",
+            params['srs'],
+            params['extents'][-1]
+        )
+        data = [ rasterize("tmp_merge.shp", params['srs'], extent) \
+            for extent in params['extents'] ]
+        save(params, data, "water_mask")
+
+        for fname in glob("tmp*"):
+            os.remove(fname)
+
+        print("Done.")
