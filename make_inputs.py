@@ -15,12 +15,14 @@ import MultiScaleData as MSD
 from scipy.interpolate import interp1d as interp
 
 from collections import defaultdict as ddict
+from make_zones import make_zones
+from make_lamps import make_lamps
 
 @click.command()
 def inputs():
 	"""Prepares the executions inputs.
 	"""
-	
+
 	print("Preparing the inputs for the experiment.")
 
 	dir_name = "Inputs/"
@@ -197,13 +199,15 @@ def inputs():
 		n_inv = 7
 		shutil.rmtree(dir_name,True)
 		os.makedirs(dir_name)
-		exec(compile(open(os.path.join(illumpath,"make_zones.py"), "rb").read(), os.path.join(illumpath,"make_zones.py"), 'exec'))
+		make_zones(dir_name,inv_name,n_inv,n_bins,params,out_name,
+			x,lop,angles,wav,spct,viirs,refl,bool_array)
 
 	if params['lamps_inventory'] is not None:
 		dir_name = ".Inputs_lamps/"
 		shutil.rmtree(dir_name,True)
 		os.makedirs(dir_name)
-		exec(compile(open(os.path.join(illumpath,"make_lamps.py"), "rb").read(), os.path.join(illumpath,"make_lamps.py"), 'exec'))
+		make_lamps(dir_name,inv_name,n_inv,n_bins,params,out_name,
+			x,lop,angles,wav,spct,viirs,refl,bool_array)
 
 	print("Unifying inputs.")
 
