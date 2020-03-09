@@ -27,78 +27,55 @@ c
 c    Contact: martin.aube@cegepsherbrooke.qc.ca
 c
 c
-      subroutine zone_diffusion(x1,y1,z1,x2,y2,z2,
-     +effet,alts,cloudbase,zondif,ncell,stepdi,dstep,n2nd,siz)
-
-       integer x_1,y_1,z_1,x_2,y_2,z_2,i,j,k
+      subroutine zone_diffusion(
+     +effet,cloudbase,zondif,ncell,nvol,stepdi,n2nd,siz)
+       integer width                                                      ! Matrix dimension in Length/width and height
+       parameter (width=512)       
+       integer i,j,k
        integer ncell,neffet,imin,imax,jmin,jmax,kmax
-       integer keep,stepdi,cloudz,n2nd,step
-       real x1,y1,z1,x2,y2,z2,x0,y0,z0,alts
-       real effet,dmin,d,d1,d2
+       integer keep,stepdi,cloudz,n2nd
+       real x1,y1,z1,x0,y0,z0
+       real effet,dmin,d
        real zondif(3000000,3),siz
        real pi
        pi=3.1415926
-c       if (siz.lt.40.) siz=40.
-       neffet=nint(effet/siz)
-       dmin=sqrt((x1-x2)**2.+(y1-y2)**2.+(z1-z2)**2.)
-c find an approximate value to stepdi
-c       stepdi=nint((dmin+effet)*3.14159/siz)*neffet/n2nd*neffet/2
-       
-c       stepdi=90000000
-       stepdi=nint(((dmin/siz)*pi*(effet/siz)**2.+(4./3.)*pi*
-     + (effet/siz)**3.)/real(n2nd))
-c      print*,'Stepdi=',stepdi,n2nd,dmin
-       if (stepdi.eq.0) stepdi=1
-       step=nint(real(stepdi)**(1./3.))
-       if (step.le.0) step=1
-c       print*,'Step=',step
-c limits of the calculations loops
-       x_1=nint(x1/siz)
-       y_1=nint(y1/siz)
-       x_2=nint(x2/siz)
-       y_2=nint(y2/siz)
-       z_2=nint(z2/siz)+1
-       if (x_1.le.x_2) then
-         imin=x_1-neffet
-         imax=x_2+neffet
-       else
-         imin=x_2-neffet
-         imax=x_1+neffet
-       endif
-       if (y_1.le.y_2) then
-         jmin=y_1-neffet
-         jmax=y_2+neffet
-       else
-         jmin=y_2-neffet
-         jmax=y_1+neffet
-       endif
-       kmax=z_2+neffet
-       if (z2.gt.cloudbase) then
-          kmax=nint(cloudbase/siz)
-       endif
- 10    ncell=0
        keep=0
-       do i=imin,imax,step
-        do j=jmin,jmax,step
-         do k=1,kmax,step                                                      ! forbid an artefact coming from source too close to the voxel (2 is the minimum)
-          x0=real(i)*siz
-          y0=real(j)*siz
-          z0=real(k)*siz
-          d1=sqrt((x1-x0)**2.+(y1-y0)**2.+(z1-z0)**2.)
-          d2=sqrt((x2-x0)**2.+(y2-y0)**2.+(z2-z0)**2.)
-          d=d1+d2
-          if ((z0.gt.alts).and.(z0.lt.35000.)) then
-            if (d.le.dmin+2.*effet) then
-                  ncell=ncell+1
-                  zondif(ncell,1)=x0                                   
-                  zondif(ncell,2)=y0 
-                  zondif(ncell,3)=z0
-            endif
-          endif                                                           ! fin condition au-dessus du sol
+       x1=0.
+       y1=0.
+       z1=0.
+       neffet=nint(effet/siz)
+       dmin=effet
+       stepdi=1
+c limits of the calculations loops
+       imin=-neffet
+       imax=+neffet
+       jmin=-neffet
+       jmax=+neffet
+       kmax=neffet
+       ncell=0
+       nvol=0
+       do i=imin,imax
+         x0=real(i)*siz
+         do j=jmin,jmax
+           y0=real(j)*siz
+           do k=1,kmax                                                     
+             z0=real(k)*siz
+             d=sqrt((x1-x0)**2.+(y1-y0)**2.+(z1-z0)**2.)
+             if ((z0.lt.35000.).and.(z0.lt.cloudbase)) then
+               if (d.le.dmin) then
+                 keep=keep+1
+                 nvol=nvol+1
+                 if (keep.eq.stepdi) then
+                   keep=0
+                   ncell=ncell+1
+                   zondif(ncell,1)=x0                                   
+                   zondif(ncell,2)=y0 
+                   zondif(ncell,3)=z0
+                 endif
+               endif
+             endif                                                           ! fin condition au-dessus du sol
+           enddo
          enddo
-        enddo
        enddo
-       stepdi=step**3
-c       print*,'Stepdi final1=',stepdi,step,ncell
        return
        end 

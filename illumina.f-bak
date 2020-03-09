@@ -207,21 +207,18 @@ c                                                                         ! a li
       real azcl1,azcl2                                                    ! zenith angle from the (source, refl surface, or scattering voxel) to line of path and observer to line p.
       real dh,dho                                                         ! distance of the horizon limit
       integer n2nd                                                        ! desired number of voxel in the calculation of the 2nd scattering
-      integer step                                                        ! skiping 2nd scat on 1 dim
+      integer dstep                                                       ! starting value for the increasing step when searching for the relevant stepdif
       real omemax                                                         ! max solid angle allowed
       real tcloud                                                         ! low cloud transmission
       real rx_sp,ry_sp                                                    ! position of a low cloud pixel
       real flcld(width,width)                                             ! flux crossing a low cloud 
-      real ds1,ds2,dss                                                        ! double scattering distances
-      integer nss                                                         ! number of skipped 2nd scat elements
-      integer nvol                                                        ! number of cell for second scat calc un full resolution
       verbose=1                                                           ! Very little printout=0, Many printout = 1, even more=2
       diamobj=1.                                                          ! A dummy value for the diameter of the objective of the instrument used by the observer.
       volu=0.
       zero=0.
       un=1.
       ff=0.
-      step=1
+      dstep=1
       ncible=1024 
       stepdi=1
       if (verbose.ge.1) then
@@ -256,11 +253,12 @@ c        read(1,*) cloudt, cloudbase, cloudtop
         read(1,*) cloudt, cloudbase
         read(1,*) 
       close(1)
-      siz=2309.
+      siz=dx                                                              ! 20m will work from dx=20 to dx=196km at least
       if (ssswit.eq.0) then
         effdif=0.
       else
-        effdif=40000.
+        effdif=10000.                                                        ! This is apparently the minimum value to get some accuracy
+        n2nd=499                                                        !
       endif
       scal=19.
       scalo=scal
@@ -272,8 +270,8 @@ c light fixture. This number is however somehow subjective and that means
 c that the value of sky brightness near sources will be affected by this
 c choice
       omemax=1./((25.)**2.)
-      if (verbose.gt.0) then
-        print*,'2nd order scattering grid = ',siz,'m'
+      if (verbose.gt.1) then
+        print*,'2nd scattering grid = ',siz
         print*,'2nd order scattering radius=',effdif,'m'
         print*,'Pixel size = ',dx,' x ',dy
         print*,'Maximum radius for reflexion = ',reflsiz
@@ -402,22 +400,12 @@ c Initialisation of the arrays and variables
         ometif=0.
         omefov=0.
         hh=1.
-c determine the 2nd scattering zone
-        if (ssswit.ne.0) then
-          call zone_diffusion(effdif,
-     +    cloudbase,zondif,ndiff,nvol,stepdi,n2nd,siz)
-          dss=siz*1.2
-          if (verbose.gt.0) then
-            print*,'2nd order scattering grid points =',n2nd
-            print*,'2nd order scattering smoothing radius =',dss,'m'
-          endif
-        endif
 c determination of the vertical atmospheric transmittance
         call transtoa(lambda,taua,pressi,tranam,tranaa)                   ! tranam and tranaa are the top of atmosphere transmittance (molecules and aerosols)
 c reading of the environment variables                         
 c reading of the elevation file
         call twodin(nbx,nby,mnaf,altsol)
-c computation of the tilt of the pixels along x and along y
+c computation of the tilt of the cases along x and along y
         do i=1,nbx                                                        ! beginning of the loop over the column (longitude) of the domain.
           do j=1,nby                                                      ! beginning of the loop over the rows (latitu) of the domain.
             if (i.eq.1) then                                              ! specific case close to the border of the domain (vertical side left).
@@ -717,9 +705,6 @@ c Some preliminary tasks
         if (z_obs.eq.0.) z_obs=0.001
         largx=dx*real(nbx)                                                ! computation of the Width along x of the case.
         largy=dy*real(nby)                                                ! computation of the Width along y of the case.
-
-        
-        
         write(2,*) 'Width of the domain [NS](m):',largx,'#cases:',nbx
         write(2,*) 'Width of the domain [EO](m):',largy,'#cases:',nby
         write(2,*) 'Size of a cell (m):',dx,' X ',dy
@@ -855,11 +840,6 @@ c ******************************************************************************
                         if (dirck.ne.1) then                              ! the source is not at the line of sight voxel position
 c computation of the zenithal angle between the source and the line of sight
 c computation of the horizon for the resolved shadows direct              ! horizon resolution is 1 degree
-
-
-        
-        
-        
                               distd=sqrt((rx_c-rx_s)**2.
      +                        +(ry_c-ry_s)**2.
      +                        +(z_c-z_s)**2.)
@@ -1098,30 +1078,24 @@ c ******************************************************************************
 c                                          irefdi=0.                       ! Initialize the flux reflected and 2nd scattered
 c                                          itodif=0.                       ! Initialisation of the scattered intensity by a source to line of sight 
 c determination of the scattering voxels, the reflection surface and the line of sight voxel
-c      call zone_diffusion(rx_sr,ry_sr,z_sr,rx_c,ry_c,z_c,effdif,
-c     +altsol(x_sr,y_sr),cloudbase,zondif,ndiff,stepdi,dstep,n2nd,siz)
-
-
-
+      call zone_diffusion(rx_sr,ry_sr,z_sr,rx_c,ry_c,z_c,effdif,
+     +altsol(x_sr,y_sr),cloudbase,zondif,ndiff,stepdi,dstep,n2nd,siz)
       if (verbose.gt.1) then
              print*,' 2nd order scat. cells and step = ',ndiff,stepdi
       endif
-      nss=0
       do idi=1,ndiff                                                      ! beginning of the loop over the scattering voxels.
-        rx_dif=zondif(idi,1)+(rx_s+rx_c)/2.
+        rx_dif=zondif(idi,1)
         x_dif=nint(rx_dif/dx)
-        ry_dif=zondif(idi,2)+(ry_s+ry_c)/2.
+        ry_dif=zondif(idi,2)
         y_dif=nint(ry_dif/dy)
         z_dif=zondif(idi,3)
-        if (z_dif.lt.z_sr) then                                           ! beginning diffusing cell underground
-          nss=nss+1
-        else
-          ds1=sqrt((rx_sr-rx_dif)**2.+(ry_sr-ry_dif)**2.+
-     +    (z_sr-z_dif)**2.)
-          ds2=sqrt((rx_c-rx_dif)**2.+(ry_c-ry_dif)**2.+
-     +    (z_c-z_dif)**2.)
-          if ((ds1.lt.dss).or.(ds2.lt.dss)) then
-            nss=nss+1
+          if ((rx_sr.eq.rx_dif).and.(ry_sr.eq.
+     +    ry_dif).and.(z_sr.eq.z_dif)) then
+            if (verbose.eq.2) then
+              print*,'Scat voxel = refl pos'
+            endif
+          elseif ((rx_c.eq.rx_dif).and.(ry_c.eq.
+     +    ry_dif).and.(z_c.eq.z_dif)) then
           else
 c computation of the zenithal angle between the reflection surface and the scattering voxel
 c shadow reflection surface-scattering voxel
@@ -1220,7 +1194,7 @@ c computation of the scattering probability of the scattered light toward the ob
             endif
 c computing scattered intensity toward the observer from the line of sight voxel
             idif2p=fdif2*pdifd2
-            idif2p=idif2p*real((stepdi*ndiff)/(ndiff-nss))                                    ! Correct the result for the skipping of 2nd scattering voxels to accelerate the calculation
+            idif2p=idif2p*real(stepdi)                                    ! Correct the result for the skipping of 2nd scattering voxels to accelerate the calculation
             itotrd=itotrd+idif2p
 c ********************************************************************************
 c *  section for the calculation of the 2nd scat from the source without reflexion
@@ -1340,11 +1314,10 @@ c computation of the scattering probability of the scattered light toward the ob
               endif
 c computing scattered intensity toward the observer from the line of sight voxel
               idiff2=fldiff*pdifd2
-              idiff2=idiff2*real((stepdi*ndiff)/(ndiff-nss))                                  ! Correct the result for the skipping of 2nd scattering voxels to accelerate the calculation
+              idiff2=idiff2*real(stepdi)                                  ! Correct the result for the skipping of 2nd scattering voxels to accelerate the calculation
               itodif=itodif+idiff2                  ! sum over the scattering voxels
             endif                                                         ! end condition source = reflection for the computation of the source scat line of sight
           endif                                                           ! end of the case scattering pos = Source pos or line of sight pos
-        endif                                                             ! end diffusing celle underground
       enddo                                                               ! end of the loop over the scattering voxels.
                                         endif                             ! end of the condition ou effdif > 0
 c End of 2nd scattered intensity calculations
@@ -1471,7 +1444,7 @@ c include clouds in the total intensity
 c**********************************************************************
 c computation of the total intensity coming from all the sources of a given type
 c**********************************************************************
-                            itotty=itotty+isourc                          ! Sum of the intensities all sources of the same typeand a given line of sight element
+                            itotty=itotty+isourc                          ! Sum of the intensities all sources of the same type and a given line of sight element
                             ITT(x_s,y_s,stype)=ITT(x_s,y_s,stype)+isourc  ! ITT stores itotty in a matrix
                         endif                                             ! end of the condition "the luminosity of the ground pixel x_s,y_s in not null".
                       enddo                                               ! end the loop over the lines (latitude) of the domain (y_s).
