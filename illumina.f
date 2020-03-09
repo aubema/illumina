@@ -1107,7 +1107,7 @@ c     +altsol(x_sr,y_sr),cloudbase,zondif,ndiff,stepdi,dstep,n2nd,siz)
         ry_dif=zondif(idi,2)+(ry_s+ry_c)/2.
         y_dif=nint(ry_dif/dy)
         z_dif=zondif(idi,3)
-        if (z_dif.lt.z_sr) then                                           ! beginning diffusing cell underground
+        if (z_dif.le.z_sr) then                                           ! beginning diffusing cell underground
           nss=nss+1
         else
           ds1=sqrt((rx_sr-rx_dif)**2.+(ry_sr-ry_dif)**2.+
