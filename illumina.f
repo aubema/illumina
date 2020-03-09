@@ -408,7 +408,7 @@ c determine the 2nd scattering zone
      +    cloudbase,zondif,ndiff,nvol,stepdi,n2nd,siz)
           dss=siz*1.2
           if (verbose.gt.0) then
-            print*,'2nd order scattering grid points =',n2nd
+            print*,'2nd order scattering grid points =',ndiff
             print*,'2nd order scattering smoothing radius =',dss,'m'
           endif
         endif
