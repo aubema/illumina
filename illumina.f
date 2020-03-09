@@ -1100,12 +1100,6 @@ c                                          itodif=0.                       ! Ini
 c determination of the scattering voxels, the reflection surface and the line of sight voxel
 c      call zone_diffusion(rx_sr,ry_sr,z_sr,rx_c,ry_c,z_c,effdif,
 c     +altsol(x_sr,y_sr),cloudbase,zondif,ndiff,stepdi,dstep,n2nd,siz)
-
-
-
-      if (verbose.gt.1) then
-             print*,' 2nd order scat. cells and step = ',ndiff,stepdi
-      endif
       nss=0
       do idi=1,ndiff                                                      ! beginning of the loop over the scattering voxels.
         rx_dif=zondif(idi,1)+(rx_s+rx_c)/2.
