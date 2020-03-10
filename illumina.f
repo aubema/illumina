@@ -65,6 +65,7 @@ c
 c
 c
       program illumina                                                    ! Beginning
+      implicit none
 c
 c=======================================================================
 c     Variables declaration
@@ -118,7 +119,7 @@ c
       integer dirck                                                       ! Test for the position of the source (case source=line of sight voxel)
       integer x_s,y_s,x_sr,y_sr,x_dif,y_dif,zceldi                        ! Positions of the source, the reflecting surface, and the scattering voxels
       real z_s,z_sr,z_dif                                                 ! Heights of the source, the reflecting surface, and the scattering voxel (metre).
-      real rx_s,ry_s,rx_sr,ry_sr,rx_dir,ry_dif
+      real rx_s,ry_s,rx_sr,ry_sr,rx_dif,ry_dif
       real angzen,ouvang                                                  ! Zenithal angle between two voxels (radians) and opening angle of the solid angle in degrees.
       integer anglez                                                      ! Emitting zenithal angle from the luminaire.
       real P_dir,P_indir,P_dif1                                           ! photometric function of the light sources (direct,indirect,scattered)
@@ -212,9 +213,13 @@ c                                                                         ! a li
       real tcloud                                                         ! low cloud transmission
       real rx_sp,ry_sp                                                    ! position of a low cloud pixel
       real flcld(width,width)                                             ! flux crossing a low cloud 
-      real ds1,ds2,dss                                                        ! double scattering distances
+      real ds1,ds2,dss                                                    ! double scattering distances
       integer nss                                                         ! number of skipped 2nd scat elements
       integer nvol                                                        ! number of cell for second scat calc un full resolution
+      real diamobj                                                        ! instrument objective diameter
+      integer i,j,k
+      real tranam,tranaa                                                  ! atmospheric transmittancess of a path (molecular, aerosol)
+      real zhoriz                                                         ! zenith angle of the horizon
       verbose=1                                                           ! Very little printout=0, Many printout = 1, even more=2
       diamobj=1.                                                          ! A dummy value for the diameter of the objective of the instrument used by the observer.
       volu=0.
