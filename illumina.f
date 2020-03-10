@@ -860,11 +860,6 @@ c ******************************************************************************
                         if (dirck.ne.1) then                              ! the source is not at the line of sight voxel position
 c computation of the zenithal angle between the source and the line of sight
 c computation of the horizon for the resolved shadows direct              ! horizon resolution is 1 degree
-
-
-        
-        
-        
                               distd=sqrt((rx_c-rx_s)**2.
      +                        +(ry_c-ry_s)**2.
      +                        +(z_c-z_s)**2.)
@@ -1100,11 +1095,6 @@ c ******************************************************************************
 c * computation of the 2nd scattering contributions (2 order scattering and after reflexion)
 c **************************************************************************************
                                         if (effdif.gt.0.) then
-c                                          irefdi=0.                       ! Initialize the flux reflected and 2nd scattered
-c                                          itodif=0.                       ! Initialisation of the scattered intensity by a source to line of sight 
-c determination of the scattering voxels, the reflection surface and the line of sight voxel
-c      call zone_diffusion(rx_sr,ry_sr,z_sr,rx_c,ry_c,z_c,effdif,
-c     +altsol(x_sr,y_sr),cloudbase,zondif,ndiff,stepdi,dstep,n2nd,siz)
       nss=0
       do idi=1,ndiff                                                      ! beginning of the loop over the scattering voxels.
         rx_dif=zondif(idi,1)+(rx_s+rx_c)/2.
@@ -1440,7 +1430,6 @@ c computation of the reflected intensity toward the sensor by a reflecting cell
                                       endif                               ! end of the condition surface not lighted from the top.
                                   endif                                   ! end of the condition reflecting cell is not on the source.
                                 endif                                     ! end of the condition surface of the domain.
-    
                               enddo                                       ! end of the loop over the rows (latitu) reflecting.
                             enddo                                         ! end of the loop over the column (longitude) reflecting.
 c   end of the computation of the reflected intensity
@@ -1466,7 +1455,6 @@ c include clouds in the total intensity
          stop
        endif
                             endif
-                                                        
 c**********************************************************************
 c computation of the total intensity coming from all the sources of a given type
 c**********************************************************************
@@ -1544,10 +1532,6 @@ c computation of the flux reaching the intrument from the cloud voxel
      +      ftocap/omefov/(pi*(diamobj/2.)**2.)
               endif                                                       ! end of the condition line of sight voxel inside the modelling domain
           endif                                                           ! end condition line of sight voxel 1/stoplim
-          
-          
-c          if (icible.eq.6) stop
-
 c accelerate the computation as we get away from the sources          
           scalo=scal
           scal=scal*1.05                     
