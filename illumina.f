@@ -1045,7 +1045,7 @@ c computation of the solid angle of the reflecting cell seen from the source
                                         r4z=zc+tan(dble(epsilx))*
      +                                  dble(dxp)/2.-tan(dble(epsily))    ! computation of the composante en z of the fourth vector.
      +                                  *dble(dyp)/2.-zn
-                                        call anglesolide(omidiega,r1x,       ! Call of the routine anglesolide to compute the angle solide.
+                                        call anglesolide(omega,r1x,       ! Call of the routine anglesolide to compute the angle solide.
      +                                  r1y,r1z,r2x,r2y,r2z,r3x,r3y,
      +                                  r3z,r4x,r4y,r4z)
          if (omega.lt.0.) then
