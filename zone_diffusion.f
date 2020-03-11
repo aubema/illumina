@@ -48,7 +48,7 @@ c
 c limits of the calculations loops
        imin=-neffet
        imax=+neffet
-       jmin=-neffetncell
+       jmin=-neffet
        jmax=+neffet
        kmax=neffet
        ncell=0
