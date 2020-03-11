@@ -410,7 +410,7 @@ c Initialisation of the arrays and variables
 c determine the 2nd scattering zone
         if (ssswit.ne.0) then
           call zone_diffusion(effdif,
-     +    cloudbase,zondif,ndiff,nvol,stepdi,n2nd,siz)
+     +    cloudbase,zondif,ndiff,nvol,stepdi,siz)
           dss=siz*1.2
           if (verbose.gt.0) then
             print*,'2nd order scattering grid points =',ndiff

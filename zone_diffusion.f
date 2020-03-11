@@ -28,16 +28,15 @@ c    Contact: martin.aube@cegepsherbrooke.qc.ca
 c
 c
       subroutine zone_diffusion(
-     +effet,cloudbase,zondif,ncell,nvol,stepdi,n2nd,siz)
-       integer width                                                      ! Matrix dimension in Length/width and height
-       parameter (width=512)       
+     +effet,cloudbase,zondif,ncell,nvol,stepdi,siz)
+       implicit none
        integer i,j,k
-       integer ncell,neffet,imin,imax,jmin,jmax,kmax
-       integer keep,stepdi,cloudz,n2nd
+       integer ncell,neffet,imin,imax,jmin,jmax,kmax,nvol
+       integer keep,stepdi
        real x1,y1,z1,x0,y0,z0
        real effet,dmin,d
        real zondif(3000000,3),siz
-       real pi
+       real pi,cloudbase
        pi=3.1415926
        keep=0
        x1=0.
@@ -49,7 +48,7 @@ c
 c limits of the calculations loops
        imin=-neffet
        imax=+neffet
-       jmin=-neffet
+       jmin=-neffetncell
        jmax=+neffet
        kmax=neffet
        ncell=0
@@ -59,7 +58,7 @@ c limits of the calculations loops
          do j=jmin,jmax
            y0=real(j)*siz
            do k=1,kmax                                                     
-             z0=real(k)*siz
+             z0=real(k)*siz-siz/2.
              d=sqrt((x1-x0)**2.+(y1-y0)**2.+(z1-z0)**2.)
              if ((z0.lt.35000.).and.(z0.lt.cloudbase)) then
                if (d.le.dmin) then
