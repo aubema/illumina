@@ -215,6 +215,7 @@ c                                                                         ! a li
       real flcld(width,width)                                             ! flux crossing a low cloud 
       real ds1,ds2,dss                                                    ! double scattering distances
       integer nss                                                         ! number of skipped 2nd scat elements
+      integer ndi                                                         ! number of cell under ground
       integer nvol                                                        ! number of cell for second scat calc un full resolution
       real diamobj                                                        ! instrument objective diameter
       integer i,j,k
@@ -1096,6 +1097,7 @@ c * computation of the 2nd scattering contributions (2 order scattering and afte
 c **************************************************************************************
                                         if (effdif.gt.0.) then
       nss=0
+      ndi=0
       do idi=1,ndiff                                                      ! beginning of the loop over the scattering voxels.
         rx_dif=zondif(idi,1)+(rx_s+rx_c)/2.
         x_dif=nint(rx_dif/dx)
@@ -1103,7 +1105,7 @@ c ******************************************************************************
         y_dif=nint(ry_dif/dy)
         z_dif=zondif(idi,3)
         if (z_dif.le.z_sr) then                                           ! beginning diffusing cell underground
-          nss=nss+1
+          ndi=ndi+1
         else
           ds1=sqrt((rx_sr-rx_dif)**2.+(ry_sr-ry_dif)**2.+
      +    (z_sr-z_dif)**2.)
@@ -1209,7 +1211,7 @@ c computation of the scattering probability of the scattered light toward the ob
             endif
 c computing scattered intensity toward the observer from the line of sight voxel
             idif2p=fdif2*pdifd2
-            idif2p=idif2p*real((stepdi*ndiff)/(ndiff-nss))                                    ! Correct the result for the skipping of 2nd scattering voxels to accelerate the calculation
+            idif2p=idif2p*real((stepdi*(ndiff-ndi))/(ndiff-ndi-nss))                                    ! Correct the result for the skipping of 2nd scattering voxels to accelerate the calculation
             itotrd=itotrd+idif2p
 c ********************************************************************************
 c *  section for the calculation of the 2nd scat from the source without reflexion
@@ -1329,7 +1331,7 @@ c computation of the scattering probability of the scattered light toward the ob
               endif
 c computing scattered intensity toward the observer from the line of sight voxel
               idiff2=fldiff*pdifd2
-              idiff2=idiff2*real((stepdi*ndiff)/(ndiff-nss))                                  ! Correct the result for the skipping of 2nd scattering voxels to accelerate the calculation
+              idiff2=idiff2*real((stepdi*(ndiff-ndi))/(ndiff-ndi-nss))                                  ! Correct the result for the skipping of 2nd scattering voxels to accelerate the calculation
               itodif=itodif+idiff2                  ! sum over the scattering voxels
             endif                                                         ! end condition source = reflection for the computation of the source scat line of sight
           endif                                                           ! end of the case scattering pos = Source pos or line of sight pos
