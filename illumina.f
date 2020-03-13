@@ -262,7 +262,7 @@ c        read(1,*) cloudt, cloudbase, cloudtop
         read(1,*) cloudt, cloudbase
         read(1,*) 
       close(1)
-      siz=2000.
+      siz=2500.
       if (ssswit.eq.0) then
         effdif=0.
       else
