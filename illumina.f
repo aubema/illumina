@@ -1224,8 +1224,8 @@ c computation of the scattering probability of the scattered light toward the ob
             endif
 c computing scattered intensity toward the observer from the line of sight voxel
             idif2p=fdif2*pdifd2
-            idif2p=idif2p*real(stepdi)*real(ndiff-ndi))/
-     +      real(ndiff-ndi-nss))                                          ! Correct the result for the skipping of 2nd scattering voxels to accelerate the calculation
+            idif2p=idif2p*real(stepdi)*real(ndiff-ndi)/
+     +      real(ndiff-ndi-nss)                                           ! Correct the result for the skipping of 2nd scattering voxels to accelerate the calculation
             itotrd=itotrd+idif2p
 c ********************************************************************************
 c *  section for the calculation of the 2nd scat from the source without reflexion
@@ -1345,8 +1345,8 @@ c computation of the scattering probability of the scattered light toward the ob
               endif
 c computing scattered intensity toward the observer from the line of sight voxel
               idiff2=fldiff*pdifd2
-              idiff2=idiff2*real(stepdi)*real(ndiff-ndi))/
-     +        real(ndiff-ndi-nss))                                        ! Correct the result for the skipping of 2nd scattering voxels to accelerate the calculation
+              idiff2=idiff2*real(stepdi)*real(ndiff-ndi)/
+     +        real(ndiff-ndi-nss)                                         ! Correct the result for the skipping of 2nd scattering voxels to accelerate the calculation
               itodif=itodif+idiff2                                        ! sum over the scattering voxels
             endif                                                         ! end condition source = reflection for the computation of the source scat line of sight
           endif                                                           ! end of the case scattering pos = Source pos or line of sight pos
