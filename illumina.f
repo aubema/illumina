@@ -213,12 +213,12 @@ c                                                                         ! a li
       real tcloud                                                         ! low cloud transmission
       real rx_sp,ry_sp                                                    ! position of a low cloud pixel
       real flcld(width,width)                                             ! flux crossing a low cloud 
-      real ds1,ds2,dss                                                    ! double scattering distances
+      real ds1,ds2,ds3,dss                                                    ! double scattering distances
       integer nss                                                         ! number of skipped 2nd scat elements
       integer ndi                                                         ! number of cell under ground
       integer nvol                                                        ! number of cell for second scat calc un full resolution
       real diamobj                                                        ! instrument objective diameter
-      integer i,j,k
+      integer i,j,k,id,jd
       real tranam,tranaa                                                  ! atmospheric transmittancess of a path (molecular, aerosol)
       real zhoriz                                                         ! zenith angle of the horizon
       verbose=1                                                           ! Very little printout=0, Many printout = 1, even more=2
@@ -262,11 +262,11 @@ c        read(1,*) cloudt, cloudbase, cloudtop
         read(1,*) cloudt, cloudbase
         read(1,*) 
       close(1)
-      siz=2309.
+      siz=1500.
       if (ssswit.eq.0) then
         effdif=0.
       else
-        effdif=40000.
+        effdif=45000.
       endif
       scal=19.
       scalo=scal
@@ -411,8 +411,11 @@ c Initialisation of the arrays and variables
 c determine the 2nd scattering zone
         if (ssswit.ne.0) then
           call zone_diffusion(effdif,
-     +    cloudbase,zondif,ndiff,nvol,stepdi,siz)
-          dss=siz*1.2
+     +    zondif,ndiff,stepdi,siz)
+          dss=1.*siz
+
+
+
           if (verbose.gt.0) then
             print*,'2nd order scattering grid points =',ndiff
             print*,'2nd order scattering smoothing radius =',dss,'m'
@@ -1103,16 +1106,22 @@ c ******************************************************************************
         x_dif=nint(rx_dif/dx)
         ry_dif=zondif(idi,2)+(ry_s+ry_c)/2.
         y_dif=nint(ry_dif/dy)
-        z_dif=zondif(idi,3)
-        if (z_dif.le.z_sr) then                                           ! beginning diffusing cell underground
+        z_dif=zondif(idi,3)+(z_s+z_c)/2.
+        id=nint(rx_dif/dx)
+        jd=nint(ry_dif/dy)
+        if (z_dif-siz/2..le.altsol(id,jd).or.(z_dif.gt.35000.).or.
+     +  (z_dif.gt.cloudbase)) then                                                   ! beginning diffusing cell underground
           ndi=ndi+1
         else
           ds1=sqrt((rx_sr-rx_dif)**2.+(ry_sr-ry_dif)**2.+
      +    (z_sr-z_dif)**2.)
           ds2=sqrt((rx_c-rx_dif)**2.+(ry_c-ry_dif)**2.+
      +    (z_c-z_dif)**2.)
-          if ((ds1.lt.dss).or.(ds2.lt.dss)) then
+          ds3=sqrt((rx_s-rx_dif)**2.+(ry_s-ry_dif)**2.+
+     +    (z_s-z_dif)**2.)
+          if ((ds1.lt.dss).or.(ds2.lt.dss).or.(ds3.lt.dss)) then
             nss=nss+1
+c       print*,ds1,ds2,ds3,'c',rx_c,ry_c,z_c,'d',rx_dif,ry_dif,z_dif
           else
 c computation of the zenithal angle between the reflection surface and the scattering voxel
 c shadow reflection surface-scattering voxel
@@ -1446,6 +1455,15 @@ c refl->1st scat->2nd scat
                             isourc=isourc*portio                          ! correct for the field of view of the observer
 c include clouds in the total intensity
                             isourc=isourc+icloud 
+
+
+        if ((itodif.lt.0.).or.(itotrd.lt.0.)) then
+          print*,intdir,itotind,itodif,itotrd
+          stop
+        endif
+
+
+
                             if (verbose.eq.2) then
        print*,' Total intensity per component for type ',ntype,':'
        print*,' source->scattering=',intdir
@@ -1536,7 +1554,8 @@ c computation of the flux reaching the intrument from the cloud voxel
           endif                                                           ! end condition line of sight voxel 1/stoplim
 c accelerate the computation as we get away from the sources          
           scalo=scal
-          scal=scal*1.05                     
+          if (scal.le.3000.)  scal=scal*1.12
+                               
         enddo                                                             ! end of the loop over the line of sight voxels.
         if (prmaps.eq.1) then
           open(unit=9,file=pclf,status='unknown')

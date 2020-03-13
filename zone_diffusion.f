@@ -28,20 +28,17 @@ c    Contact: martin.aube@cegepsherbrooke.qc.ca
 c
 c
       subroutine zone_diffusion(
-     +effet,cloudbase,zondif,ncell,nvol,stepdi,siz)
+     +effet,zondif,ncell,stepdi,siz)
        implicit none
        integer i,j,k
-       integer ncell,neffet,imin,imax,jmin,jmax,kmax,nvol
+       integer ncell,neffet,imin,imax,jmin,jmax,kmin,kmax,nvol
        integer keep,stepdi
-       real x1,y1,z1,x0,y0,z0
+       real x0,y0,z0
        real effet,dmin,d
        real zondif(3000000,3),siz
-       real pi,cloudbase
+       real pi
        pi=3.1415926
        keep=0
-       x1=0.
-       y1=0.
-       z1=0.
        neffet=nint(effet/siz)
        dmin=effet
        stepdi=1
@@ -50,20 +47,18 @@ c limits of the calculations loops
        imax=+neffet
        jmin=-neffet
        jmax=+neffet
+       kmin=-neffet
        kmax=neffet
        ncell=0
-       nvol=0
        do i=imin,imax
          x0=real(i)*siz
          do j=jmin,jmax
            y0=real(j)*siz
-           do k=1,kmax                                                     
-             z0=real(k)*siz-siz/2.
-             d=sqrt((x1-x0)**2.+(y1-y0)**2.+(z1-z0)**2.)
-             if ((z0.lt.35000.).and.(z0.lt.cloudbase)) then
+           do k=kmin,kmax                                                     
+             z0=real(k)*siz
+             d=sqrt(x0**2.+y0**2.+z0**2.)
                if (d.le.dmin) then
                  keep=keep+1
-                 nvol=nvol+1
                  if (keep.eq.stepdi) then
                    keep=0
                    ncell=ncell+1
@@ -72,7 +67,6 @@ c limits of the calculations loops
                    zondif(ncell,3)=z0
                  endif
                endif
-             endif                                                           ! fin condition au-dessus du sol
            enddo
          enddo
        enddo
