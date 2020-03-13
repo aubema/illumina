@@ -1108,9 +1108,13 @@ c ******************************************************************************
         y_dif=nint(ry_dif/dy)
         z_dif=zondif(idi,3)+(z_s+z_c)/2.
         id=nint(rx_dif/dx)
+        if (id.gt.width) id=width
+        if (id.lt.1) id=1
+        if (jd.gt.width) jd=width
+        if (jd.lt.1) jd=1
         jd=nint(ry_dif/dy)
         if (z_dif-siz/2..le.altsol(id,jd).or.(z_dif.gt.35000.).or.
-     +  (z_dif.gt.cloudbase)) then                                                   ! beginning diffusing cell underground
+     +  (z_dif.gt.cloudbase)) then                                        ! beginning diffusing cell underground
           ndi=ndi+1
         else
           ds1=sqrt((rx_sr-rx_dif)**2.+(ry_sr-ry_dif)**2.+
@@ -1126,13 +1130,13 @@ c       print*,ds1,ds2,ds3,'c',rx_c,ry_c,z_c,'d',rx_dif,ry_dif,z_dif
 c computation of the zenithal angle between the reflection surface and the scattering voxel
 c shadow reflection surface-scattering voxel
             call anglezenithal(rx_sr,ry_sr,
-     +      z_sr,rx_dif,ry_dif,z_dif,angzen)                                ! computation of the zenithal angle reflection surface - scattering voxel.
-            call angleazimutal(rx_sr,ry_sr,rx_dif,ry_dif,angazi)            ! computation of the angle azimutal line of sight-scattering voxel
+     +      z_sr,rx_dif,ry_dif,z_dif,angzen)                              ! computation of the zenithal angle reflection surface - scattering voxel.
+            call angleazimutal(rx_sr,ry_sr,rx_dif,ry_dif,angazi)          ! computation of the angle azimutal line of sight-scattering voxel
 c horizon blocking not a matte because dif are closeby and some downward
             hh=1.
 c sub-grid obstacles
             angmin=pi/2.-atan(obsH(x_sr,y_sr)/drefle(x_sr,y_sr))
-            if (angzen.lt.angmin) then                                      ! condition obstacle reflechi->scattered
+            if (angzen.lt.angmin) then                                    ! condition obstacle reflechi->scattered
               ff=0.
             else 
               ff=ofill(x_sr,y_sr)
@@ -1150,9 +1154,9 @@ c computing flux reaching the scattering voxel
 c computing the scattering probability toward the line of sight voxel
 c cell unitaire
             if (omega.ne.0.) then
-              call angle3points (rx_sr,ry_sr,z_sr,rx_dif,ry_dif,z_dif,      ! scattering angle.
+              call angle3points (rx_sr,ry_sr,z_sr,rx_dif,ry_dif,z_dif,    ! scattering angle.
      +        rx_c,ry_c,z_c,angdif)
-              call diffusion(angdif,tranam,tranaa,un,secdif,                ! scattering probability of the direct light.
+              call diffusion(angdif,tranam,tranaa,un,secdif,              ! scattering probability of the direct light.
      +        fdifan,pdifd1,z_dif)
             else
               pdifd1=0.
@@ -1165,8 +1169,8 @@ c cell unitaire
 c computing scattered intensity toward the line of sight voxel from the scattering voxel
             idif2=fldif2*pdifd1*volu
 c computing zenith angle between the scattering voxel and the line of sight voxel
-            call anglezenithal(rx_dif,ry_dif,z_dif,rx_c,ry_c,z_c,angzen)    ! computation of the zenithal angle between the scattering voxel and the line of sight voxel.
-            call angleazimutal(rx_dif,ry_dif,rx_c,ry_c,angazi)              ! computation of the azimutal angle surf refl-scattering voxel
+            call anglezenithal(rx_dif,ry_dif,z_dif,rx_c,ry_c,z_c,angzen)  ! computation of the zenithal angle between the scattering voxel and the line of sight voxel.
+            call angleazimutal(rx_dif,ry_dif,rx_c,ry_c,angazi)            ! computation of the azimutal angle surf refl-scattering voxel
 c subgrid obstacles
             if ((x_dif.lt.1).or.(x_dif.gt.nbx).or.(y_dif.lt.1).or.
      +      (y_dif.gt.nbx)) then
@@ -1174,7 +1178,7 @@ c subgrid obstacles
             else
               angmin=pi/2.-atan((obsH(x_dif,y_dif)+altsol(x_dif,y_dif)-
      +        z_dif)/drefle(x_dif,y_dif))
-              if (angzen.lt.angmin) then                                    ! condition subgrid obstacle scattering -> line of sight
+              if (angzen.lt.angmin) then                                  ! condition subgrid obstacle scattering -> line of sight
                 ff=0.
               else 
                 ff=ofill(x_dif,y_dif)
