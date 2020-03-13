@@ -262,11 +262,11 @@ c        read(1,*) cloudt, cloudbase, cloudtop
         read(1,*) cloudt, cloudbase
         read(1,*) 
       close(1)
-      siz=1500.
+      siz=2000.
       if (ssswit.eq.0) then
         effdif=0.
       else
-        effdif=45000.
+        effdif=40000.
       endif
       scal=19.
       scalo=scal
