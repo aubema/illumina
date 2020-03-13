@@ -45,7 +45,7 @@ c **    - Do not consider earth curvature (i.e. local/regional model)           
 c **                                                                                                                  **
 c **********************************************************************************************************************
 c
-c  Copyright (C) 2019 Martin Aube PhD
+c  Copyright (C) 2020 Martin Aube PhD
 c
 c  This program is free software: you can redistribute it and/or modify
 c  it under the terms of the GNU General Public License as published by
@@ -153,7 +153,7 @@ c
       real flrefl                                                         ! flux reaching a reflecting surface (watts).
       real irefl,irefl1                                                   ! intensity leaving a reflecting surface toward the line of sight voxel.
       real effdif                                                         ! Distance around the source voxel and line of sight voxel considered to compute the 2nd order of scattering.
-      real zondif(3000000,3)                                                 ! Array for the scattering voxels positions
+      real zondif(3000000,3)                                              ! Array for the scattering voxels positions
       integer ndiff,idi                                                   ! Number of scattering voxels, counter of the loop over the scattering voxels
       integer stepdi                                                      ! scattering step to speedup the calculation e.g. if =2 one computation over two will be done
       integer ssswit                                                      ! activate double scattering (1=yes, 0=no)
@@ -310,7 +310,7 @@ c opening output file
 c check if the observation angle is above horizon
         angzen=pi/2.-angvis*pi/180.
         call horizon(x_obs,y_obs,z_obs,dx,dy,altsol,angazi,zhoriz,dh)
-        if (angzen.gt.zhoriz) then                                         ! the line of sight is not below the horizon => we compute
+        if (angzen.gt.zhoriz) then                                        ! the line of sight is not below the horizon => we compute
           print*,'PROBLEM! You try to observe below horizon'
           print*,'No calculation will be made'
           write(2,*) '            Sky radiance (W/str/m**2)          '
@@ -506,7 +506,7 @@ c  On cree ici un nouveau sourcetype qui sera le nuage. donc aux valeurs x et y 
 c  et on calcule le lumlp du nouveau type nuage le numero du type sera ntype+1
 c
 c        cloudhei=(cloudtop-cloudbase)/2.
-c        if (z_obs.gt.cloudtop) then                                       ! only calculate the filter effect of low clouds for observer above cloud
+c        if (z_obs.gt.cloudtop) then                                      ! only calculate the filter effect of low clouds for observer above cloud
 
 
 
@@ -517,41 +517,41 @@ c et laisser les lumlp a zero hors nuage et par la suite au moment de prendre
 c le lumlp pour le calcul on verifier si il y a une valeurs de nuage et si oui on prends cette valeur a la place
 c
 c 
-c        do stype=1,ntype                                                  ! beginning of the loop 1 for the nzon types of sources.
+c        do stype=1,ntype                                                 ! beginning of the loop 1 for the nzon types of sources.
 c          pvalto=0.
-c          write(lampno, '(I3.3)' ) stype                                  ! support of nzon different sources (3 digits)
-c          pafile=basenm(1:lenbase)//'_fctem_'//lampno//'.dat'             ! setting the file name of angular photometry.
-c          lufile=basenm(1:lenbase)//'_lumlp_'//lampno//'.bin'             ! setting the file name of the luminosite of the cases.
+c          write(lampno, '(I3.3)' ) stype                                 ! support of nzon different sources (3 digits)
+c          pafile=basenm(1:lenbase)//'_fctem_'//lampno//'.dat'            ! setting the file name of angular photometry.
+c          lufile=basenm(1:lenbase)//'_lumlp_'//lampno//'.bin'            ! setting the file name of the luminosite of the cases.
 c reading photometry files
-c          open(UNIT=1, FILE=pafile,status='OLD')                          ! opening file pa#.dat, angular photometry.
-c            do i=1,181                                                    ! beginning of the loop for the 181 data points
-c              read(1,*) pval(i,stype)                                     ! reading of the data in the array pval.
-c              pvalto=pvalto+pval(i,stype)*2.*pi*                          ! Sum of the values of the  photometric function
-c     a        sin(real(i-1)*dtheta)*dtheta                                ! (pvaleur x 2pi x sin theta x dtheta) (ou theta egale (i-1) x 1 degrees).
-c            enddo                                                         ! end of the loop over the 181 donnees of the fichier pa#.dat.
-c          close(1)                                                        ! closing file pa#.dat, angular photometry.
+c          open(UNIT=1, FILE=pafile,status='OLD')                         ! opening file pa#.dat, angular photometry.
+c            do i=1,181                                                   ! beginning of the loop for the 181 data points
+c              read(1,*) pval(i,stype)                                    ! reading of the data in the array pval.
+c              pvalto=pvalto+pval(i,stype)*2.*pi*                         ! Sum of the values of the  photometric function
+c     a        sin(real(i-1)*dtheta)*dtheta                               ! (pvaleur x 2pi x sin theta x dtheta) (ou theta egale (i-1) x 1 degrees).
+c            enddo                                                        ! end of the loop over the 181 donnees of the fichier pa#.dat.
+c          close(1)                                                       ! closing file pa#.dat, angular photometry.
 c          do i=1,181
-c            if (pvalto.ne.0.) pvalno(i,stype)=pval(i,stype)/pvalto        ! Normalisation of the photometric function.
+c            if (pvalto.ne.0.) pvalno(i,stype)=pval(i,stype)/pvalto       ! Normalisation of the photometric function.
 c          enddo
 c reading luminosity files
 c          call twodin(nbx,nby,lufile,val2d)
-c          do i=1,nbx                                                      ! beginning of the loop over all cells along x.
-c            do j=1,nby                                                    ! beginning of the loop over all cells along y.
-c              if (val2d(i,j).lt.0.) then                                  ! searching of negative fluxes
+c          do i=1,nbx                                                     ! beginning of the loop over all cells along x.
+c            do j=1,nby                                                   ! beginning of the loop over all cells along y.
+c              if (val2d(i,j).lt.0.) then                                 ! searching of negative fluxes
 c                print*,'***Negative lamp flux!, stopping execution'
 c                stop
 c              endif
-c            enddo                                                         ! end of the loop over all cells along y.
+c            enddo                                                        ! end of the loop over all cells along y.
 c          enddo
-c          do i=1,nbx                                                      ! loop over sources
+c          do i=1,nbx                                                     ! loop over sources
 c            do j=1,nby
 c              z_s=(altsol(i,j)+lampal(i,j))
-c              if (z_s.lt.cloudhei) then                                   ! condition source under cloud
+c              if (z_s.lt.cloudhei) then                                  ! condition source under cloud
 c                rx_s=real(i)*dx
 c                ry_s=real(i)*dy
-c                  do ii=1,nbx                                             ! loop over cloud pixel
+c                  do ii=1,nbx                                            ! loop over cloud pixel
 c                    do jj=1,nby
-c                      if (altsol(ii,jj).lt.cloudhei) then                  ! cond cloud above ground
+c                      if (altsol(ii,jj).lt.cloudhei) then                ! cond cloud above ground
 c                        rx_sp=real(ii)*dx
 c                        ry_sp=real(jj)*dy
 c                        z_sp=cloudhei
@@ -562,13 +562,13 @@ c     +                  +(z_s-z_sp)**2.)
 c                        dho=sqrt((rx_s-rx_sp)**2.+(ry_s-ry_sp)**2.)
 c                        call anglezenithal(rx_s,ry_s,z_s
 c     +                  ,rx_sp,ry_sp,z_sp,angzen)                        ! computation of the zenithal angle between the source and the line of sight voxel.
-c                        call angleazimutal(rx_s,ry_s,rx_sp,               ! computation of the angle azimutal direct line of sight-source
+c                        call angleazimutal(rx_s,ry_s,rx_sp,              ! computation of the angle azimutal direct line of sight-source
 c     +                  ry_sp,angazi)
 c                        if (angzen.gt.pi/4.) then                        ! 45deg. it is unlikely to have a 1km high mountain less than 1
 c                          call horizon(i,j,z_s,dx,dy,altsol,
 c     +                    angazi,zhoriz,dh)
 c                          if (dh.le.dho) then
-c                            if (angzen.lt.zhoriz) then                    ! shadow the path line of sight-source is not below the horizon => we compute
+c                            if (angzen.lt.zhoriz) then                   ! shadow the path line of sight-source is not below the horizon => we compute
 c                              hh=1.
 c                            else
 c                              hh=0.
@@ -599,17 +599,17 @@ c                        anglez=nint(180.*angzen/pi)+1
 c                        P_dir=pvalno(anglez,stype)
 c                        call cloudtransmitance(angzen,cloudt,tcloud)
 c computation of the flux direct reaching the line of sight voxel
-c                        flcld(ii,jj)=flcld(ii,jj)+                        ! flux crossing a cloud pixel
+c                        flcld(ii,jj)=flcld(ii,jj)+                       ! flux crossing a cloud pixel
 c     +                  lamplu(i,j,stype)*P_dir*omega*
-c     +                  transm*transa*(1.-ff)*hh*dx*dy                       ! correction for obstacle filling factor
+c     +                  transm*transa*(1.-ff)*hh*dx*dy                   ! correction for obstacle filling factor
 c     +                  *cos(angzen)*tcloud
-c                      endif                                               ! end cond cloud above ground
+c                      endif                                              ! end cond cloud above ground
 c                    enddo
-c                  enddo                                                   ! end loop over cloud pixel
-c              endif                                                        ! end cond source under cloud
+c                  enddo                                                  ! end loop over cloud pixel
+c              endif                                                      ! end cond source under cloud
 c            enddo
-c          enddo                                                            ! end loop over sources
-c         enddo                                                            ! end loop over source type
+c          enddo                                                          ! end loop over sources
+c         enddo                                                           ! end loop over source type
 c          do i=1,nbx
 c            do j=1,nby
 c              z_s=(altsol(i,j)+lampali,j))
@@ -625,7 +625,7 @@ c     a            sin(real(na-1)*dtheta)*dtheta
 c                enddo
 c                do na=1,181
 c                  if (pvalto.ne.0.) pvalno(na,ntype+1)=
-c     +            pval(na,ntype+1)/pvalto                                     ! Normalisation of the photometric function.
+c     +            pval(na,ntype+1)/pvalto                                ! Normalisation of the photometric function.
 c                enddo
 c              do nt=1,ntype
 c                lamplu(i,j,nt)=0.
@@ -634,7 +634,7 @@ c              ntype=ntype+1
 c            endif
 c          enddo
 c        enddo
-c        endif                                                              ! end observer over cloud
+c        endif                                                            ! end observer over cloud
 
         
         
@@ -877,7 +877,7 @@ c computation of the horizon for the resolved shadows direct              ! hori
                                 call horizon(x_s,y_s,z_s,dx,dy,altsol,
      +                          angazi,zhoriz,dh)
                                 if (dh.le.dho) then
-                                  if (angzen.lt.zhoriz) then                ! shadow the path line of sight-source is not below the horizon => we compute
+                                  if (angzen.lt.zhoriz) then              ! shadow the path line of sight-source is not below the horizon => we compute
                                     hh=1.
                                   else
                                     hh=0.
@@ -1126,13 +1126,13 @@ c       print*,ds1,ds2,ds3,'c',rx_c,ry_c,z_c,'d',rx_dif,ry_dif,z_dif
 c computation of the zenithal angle between the reflection surface and the scattering voxel
 c shadow reflection surface-scattering voxel
             call anglezenithal(rx_sr,ry_sr,
-     +      z_sr,rx_dif,ry_dif,z_dif,angzen)                              ! computation of the zenithal angle reflection surface - scattering voxel.
-            call angleazimutal(rx_sr,ry_sr,rx_dif,ry_dif,angazi)          ! computation of the angle azimutal line of sight-scattering voxel
+     +      z_sr,rx_dif,ry_dif,z_dif,angzen)                                ! computation of the zenithal angle reflection surface - scattering voxel.
+            call angleazimutal(rx_sr,ry_sr,rx_dif,ry_dif,angazi)            ! computation of the angle azimutal line of sight-scattering voxel
 c horizon blocking not a matte because dif are closeby and some downward
             hh=1.
 c sub-grid obstacles
             angmin=pi/2.-atan(obsH(x_sr,y_sr)/drefle(x_sr,y_sr))
-            if (angzen.lt.angmin) then                                    ! condition obstacle reflechi->scattered
+            if (angzen.lt.angmin) then                                      ! condition obstacle reflechi->scattered
               ff=0.
             else 
               ff=ofill(x_sr,y_sr)
@@ -1150,9 +1150,9 @@ c computing flux reaching the scattering voxel
 c computing the scattering probability toward the line of sight voxel
 c cell unitaire
             if (omega.ne.0.) then
-              call angle3points (rx_sr,ry_sr,z_sr,rx_dif,ry_dif,z_dif,    ! scattering angle.
+              call angle3points (rx_sr,ry_sr,z_sr,rx_dif,ry_dif,z_dif,      ! scattering angle.
      +        rx_c,ry_c,z_c,angdif)
-              call diffusion(angdif,tranam,tranaa,un,secdif,              ! scattering probability of the direct light.
+              call diffusion(angdif,tranam,tranaa,un,secdif,                ! scattering probability of the direct light.
      +        fdifan,pdifd1,z_dif)
             else
               pdifd1=0.
@@ -1165,8 +1165,8 @@ c cell unitaire
 c computing scattered intensity toward the line of sight voxel from the scattering voxel
             idif2=fldif2*pdifd1*volu
 c computing zenith angle between the scattering voxel and the line of sight voxel
-            call anglezenithal(rx_dif,ry_dif,z_dif,rx_c,ry_c,z_c,angzen)  ! computation of the zenithal angle between the scattering voxel and the line of sight voxel.
-            call angleazimutal(rx_dif,ry_dif,rx_c,ry_c,angazi)            ! computation of the azimutal angle surf refl-scattering voxel
+            call anglezenithal(rx_dif,ry_dif,z_dif,rx_c,ry_c,z_c,angzen)    ! computation of the zenithal angle between the scattering voxel and the line of sight voxel.
+            call angleazimutal(rx_dif,ry_dif,rx_c,ry_c,angazi)              ! computation of the azimutal angle surf refl-scattering voxel
 c subgrid obstacles
             if ((x_dif.lt.1).or.(x_dif.gt.nbx).or.(y_dif.lt.1).or.
      +      (y_dif.gt.nbx)) then
@@ -1220,7 +1220,8 @@ c computation of the scattering probability of the scattered light toward the ob
             endif
 c computing scattered intensity toward the observer from the line of sight voxel
             idif2p=fdif2*pdifd2
-            idif2p=idif2p*real((stepdi*(ndiff-ndi))/(ndiff-ndi-nss))                                    ! Correct the result for the skipping of 2nd scattering voxels to accelerate the calculation
+            idif2p=idif2p*real(stepdi)*real(ndiff-ndi))/
+     +      real(ndiff-ndi-nss))                                          ! Correct the result for the skipping of 2nd scattering voxels to accelerate the calculation
             itotrd=itotrd+idif2p
 c ********************************************************************************
 c *  section for the calculation of the 2nd scat from the source without reflexion
@@ -1237,7 +1238,7 @@ c horizon blocking not a matter because some path are downward and most of them 
               angmin=pi/2.-atan((obsH(x_s,y_s)+
      +        altsol(x_s,y_s)-z_s)/drefle(x_s,
      +        y_s))
-              if (angzen.lt.angmin) then            ! condition obstacle source->scattering.
+              if (angzen.lt.angmin) then                                  ! condition obstacle source->scattering.
                 ff=0.
               else
                 ff=ofill(x_s,y_s)
@@ -1260,7 +1261,7 @@ c computing flux reaching the scattering voxel
      +        omega*transm*transa*(1.-ff)*hh
 c computing the scattering probability toward the line of sight voxel
               if (omega.ne.0.) then 
-                call angle3points (rx_s,ry_s,z_s,                           ! scattering angle.
+                call angle3points (rx_s,ry_s,z_s,                         ! scattering angle.
      +          rx_dif,ry_dif,z_dif,rx_c,ry_c,z_c,
      +          angdif)
                 call diffusion(angdif,                                    ! scattering probability of the direct light.
@@ -1340,8 +1341,9 @@ c computation of the scattering probability of the scattered light toward the ob
               endif
 c computing scattered intensity toward the observer from the line of sight voxel
               idiff2=fldiff*pdifd2
-              idiff2=idiff2*real((stepdi*(ndiff-ndi))/(ndiff-ndi-nss))                                  ! Correct the result for the skipping of 2nd scattering voxels to accelerate the calculation
-              itodif=itodif+idiff2                  ! sum over the scattering voxels
+              idiff2=idiff2*real(stepdi)*real(ndiff-ndi))/
+     +        real(ndiff-ndi-nss))                                        ! Correct the result for the skipping of 2nd scattering voxels to accelerate the calculation
+              itodif=itodif+idiff2                                        ! sum over the scattering voxels
             endif                                                         ! end condition source = reflection for the computation of the source scat line of sight
           endif                                                           ! end of the case scattering pos = Source pos or line of sight pos
         endif                                                             ! end diffusing celle underground
