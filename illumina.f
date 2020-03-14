@@ -1110,9 +1110,9 @@ c ******************************************************************************
         id=nint(rx_dif/dx)
         if (id.gt.width) id=width
         if (id.lt.1) id=1
+        jd=nint(ry_dif/dy)
         if (jd.gt.width) jd=width
         if (jd.lt.1) jd=1
-        jd=nint(ry_dif/dy)
         if (z_dif-siz/2..le.altsol(id,jd).or.(z_dif.gt.35000.).or.
      +  (z_dif.gt.cloudbase)) then                                        ! beginning diffusing cell underground
           ndi=ndi+1
