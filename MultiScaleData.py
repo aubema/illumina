@@ -12,7 +12,7 @@ import pyproj as _pyproj
 from h5py import File as _HDFile
 from numbers import Integral as _Integral
 from copy import deepcopy as _clone
-
+from fractions import Fraction as _frac
 
 class MultiScaleData:
     def __init__(self, params, data=None):
@@ -33,6 +33,15 @@ class MultiScaleData:
 
     def __getitem__(self,idx):
         return self._data[idx]
+
+    def __repr__(self):
+        p  = f"nb_layers: {self._attrs['nb_layers']}, "
+        p += f"nb_pixels: {self._attrs['nb_pixels']*2+1}, "
+        p += f"scale_min: {self._attrs['scale_min']:d}, "
+        sf = _frac(2*self._attrs['nb_pixels']+1,2*self._attrs['nb_core']+1)
+        p += f"scale_factor: {sf} ({float(sf):.3f}), "
+        p += f"srs: {self._attrs['srs']}"
+        return f"MultiScaleData{{{p}}}"
 
     def __setitem__(self,idx,value):
         self._data[idx] = value
