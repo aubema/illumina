@@ -15,8 +15,7 @@ parser = argparse.ArgumentParser(
     description="Generates alternatives scenarios based on the current one."
 )
 parser.add_argument("name",
-    help="Name of the new scenario. "\
-    "If provided in 'split' mode, will only extract the technology of that name."
+    help="Name of the new scenario."
 )
 parser.add_argument("-z", "--zones",
     help="New zones inventory filename."
@@ -46,8 +45,8 @@ if p.zones is not None and \
 	print("Validating the inventories.")
 
 	lamps = np.loadtxt(p.lights,usecols=[0,1])
-	zones = np.loadtxt(p.zones,usecols=[0,1,2])
-	zonData = pt.parse_inventory(p.zones,7)
+	zones = np.loadtxt(params['zones_inventory'],usecols=[0,1,2])
+	zonData = pt.parse_inventory(p.zones,0)
 
 	hasLights = [ sum( x[0] for x in z ) != 0 for z in zonData ]
 
