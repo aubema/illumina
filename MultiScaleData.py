@@ -14,22 +14,28 @@ from numbers import Integral as _Integral
 from copy import deepcopy as _clone
 
 
-class MultiScaleData(_np.ndarray):
-    def __new__(cls, params, data=None):
+class MultiScaleData:
+    def __init__(self, params, data=None):
         if data is None:
             n_layers = params['nb_layers']
             data = [ _np.zeros((
                 2*(params['nb_pixels'] + p['buffer']) + p['observer_size_y'],
                 2*(params['nb_pixels'] + p['buffer']) + p['observer_size_x']
             )) for p in params['layers'] ]
-        obj = _np.asarray(data).view(cls)
-        obj._attrs = _clone(params)
+        self._data = data
+        self._attrs = _clone(params)
 
-        return obj
+    def __len__(self):
+        return len(self._data)
 
-    def __array_finalize__(self, obj):
-        if obj is None: return
-        self._attrs = getattr(obj, '_attrs', None)
+    def __iter__(self):
+        return self._data.__iter__()
+
+    def __getitem__(self,idx):
+        return self._data[idx]
+
+    def __setitem__(self,idx,value):
+        self._data[idx] = value
 
     def _project(self,coords):
         lat,lon = coords
