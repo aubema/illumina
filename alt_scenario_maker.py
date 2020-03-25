@@ -209,6 +209,7 @@ if p.zones is not None:
     newlumlp = hdf.from_domain("domain.ini")
     for fname in glob(os.path.join(dir_name,"*lumlp*")):
         ds = MSD.Open(fname)
+        wl = int(fname.split('_')[2])
         for i, dat in enumerate(ds):
             newlumlp[i] += dat * nspct[x.index(wl)] * dl[x.index(wl)]
 
