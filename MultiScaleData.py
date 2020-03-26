@@ -38,7 +38,7 @@ class MultiScaleData:
         p  = f"nb_layers: {self._attrs['nb_layers']}, "
         p += f"nb_pixels: {self._attrs['nb_pixels']*2+1}, "
         p += f"scale_min: {self._attrs['scale_min']:d}, "
-        sf = _frac(2*self._attrs['nb_pixels']+1,2*self._attrs['nb_core']+1)
+        sf = self.scale_factor()
         p += f"scale_factor: {sf} ({float(sf):.3f}), "
         p += f"srs: {self._attrs['srs']}"
         return f"MultiScaleData{{{p}}}"
@@ -87,7 +87,9 @@ class MultiScaleData:
         return data[row:row+1,col:col+1]
 
     def scale_factor(self):
-        return (self._attrs['nb_pixels']+0.5) / (self._attrs['nb_core']+0.5)
+        n_pix = 2*self._attrs['nb_pixels']+1
+        n_core = 2*self._attrs['nb_core']+1
+        return _frac(n_pix,n_core)
 
     def pixel_size(self,index):
         if isinstance(index, _Integral):
