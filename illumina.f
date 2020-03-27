@@ -186,6 +186,14 @@ c                                                                         ! a li
       integer prmaps                                                      ! flag to enable the tracking of contribution and sensitivity maps
       integer cloudt                                                      ! cloud type 0=clear, 1=Thin Cirrus/Cirrostratus, 2=Thick Cirrus/Cirrostratus, 3=Altostratus/Altocumulus, 
                                                                           ! 4=Stratocumulus/stratus, 5=Cumulus/Cumulonimbus
+      real cloudslope                                                     ! slope of the radiance dependency on the cloud fraction (in percentage) According to 
+                                                                          ! Sciezoras 2020 the slope vary depending on the level of LP and how it is distributed. 
+                                                                          ! We decided instead to simplify this by using an average slope of -0.013. 
+                                                                          ! Rad=Rad_100 * 10**(-0.4*(100-cloudfrac)*cloudslope) this equation is derived from 
+                                                                          ! Tomasz Sciezor , The impact of clouds on the brightness of the night sky, Journal of 
+                                                                          ! Quantitative Spectroscopy & Radiative Transfer (2020), 
+                                                                          ! doi: https://doi.org/10.1016/j.jqsrt.2020.106962
+      real cloudfrac                                                      ! cloud fraction in percentage
       integer xsrmi,xsrma,ysrmi,ysrma                                     ! limits of the loop valeur for the reflecting surfaces
       real rcloud                                                         ! cloud relfectance
       real azencl                                                         ! zenith angle from cloud to observer
@@ -230,6 +238,8 @@ c                                                                         ! a li
       step=1
       ncible=1024 
       stepdi=1
+      cloudslope=-0.013
+      cloudfrac=100.
       if (verbose.ge.1) then
         print*,'Starting ILLUMINA computations...'
       endif
@@ -259,7 +269,7 @@ c reading of the fichier d'entree (illumina.in)
         read(1,*)
         read(1,*) reflsiz
 c        read(1,*) cloudt, cloudbase, cloudtop
-        read(1,*) cloudt, cloudbase
+        read(1,*) cloudt, cloudbase, cloudfrac
         read(1,*) 
       close(1)
       siz=2500.
@@ -1563,6 +1573,7 @@ c accelerate the computation as we get away from the sources
           if (scal.le.3000.)  scal=scal*1.12
                                
         enddo                                                             ! end of the loop over the line of sight voxels.
+        fctcld=fctcld*10**(-0.4*(100.-cloudfrac)*cloudslope)              ! correction for the cloud fraction (defined from 0 to 100)
         if (prmaps.eq.1) then
           open(unit=9,file=pclf,status='unknown')
             do x_s=1,nbx
@@ -1593,10 +1604,14 @@ c load 'BASENAME_pcl.gplot'
         endif                                                             ! end of condition for creating contrib and sensit maps
         if (verbose.ge.1) print*,'======================================
      +==============='
+        print*,'             Cloud radiance (W/str/m**2)'
+        write(*,2001) fctcld/omefov/(pi*(diamobj/2.)**2.)
         print*,'              Sky radiance (W/str/m**2)'
         write(*,2001) (ftocap+fctcld)/omefov/(pi*(diamobj/2.)**2.)
         if (verbose.ge.1) write(2,*) '==================================
      +================='
+        write(2,*) '           Cloud radiance (W/str/m**2)          '
+        write(2,2001) fctcld/omefov/(pi*(diamobj/2.)**2.)    
         write(2,*) '            Sky radiance (W/str/m**2)          '
         write(2,2001) (ftocap+fctcld)/omefov/(pi*(diamobj/2.)**2.)
       close(2)
