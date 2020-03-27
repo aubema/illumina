@@ -189,7 +189,7 @@ c                                                                         ! a li
       real cloudslope                                                     ! slope of the radiance dependency on the cloud fraction (in percentage) According to 
                                                                           ! Sciezoras 2020 the slope vary depending on the level of LP and how it is distributed. 
                                                                           ! We decided instead to simplify this by using an average slope of -0.013. 
-                                                                          ! Rad=Rad_100 * 10**(-0.4*(100-cloudfrac)*cloudslope) this equation is derived from 
+                                                                          ! Rad=Rad_100 * 10**(0.4*(100-cloudfrac)*cloudslope) this equation is derived from 
                                                                           ! Tomasz Sciezor , The impact of clouds on the brightness of the night sky, Journal of 
                                                                           ! Quantitative Spectroscopy & Radiative Transfer (2020), 
                                                                           ! doi: https://doi.org/10.1016/j.jqsrt.2020.106962
@@ -1573,7 +1573,7 @@ c accelerate the computation as we get away from the sources
           if (scal.le.3000.)  scal=scal*1.12
                                
         enddo                                                             ! end of the loop over the line of sight voxels.
-        fctcld=fctcld*10**(-0.4*(100.-cloudfrac)*cloudslope)              ! correction for the cloud fraction (defined from 0 to 100)
+        fctcld=fctcld*10**(0.4*(100.-cloudfrac)*cloudslope)              ! correction for the cloud fraction (defined from 0 to 100)
         if (prmaps.eq.1) then
           open(unit=9,file=pclf,status='unknown')
             do x_s=1,nbx
