@@ -68,7 +68,7 @@ elif p.format == 'vector':
 
     gdf = gpd.GeoDataFrame(
         points,
-        crs={'init':hdf._attrs['srs']},
+        crs=hdf._attrs['srs'],
         geometry=gpd.points_from_xy(points['x'],points['y'])
     )
 

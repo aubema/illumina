@@ -49,10 +49,7 @@ class MultiScaleData:
     def _project(self,coords):
         lat,lon = coords
         wgs84 = _pyproj.Proj("epsg:4326")
-        try:
-            proj = _pyproj.Proj(self._attrs['srs'].decode("utf-8"))
-        except AttributeError:
-            proj = _pyproj.Proj(self._attrs['srs'])
+        proj = _pyproj.Proj(self._attrs['srs'])
         x,y   = _pyproj.transform(wgs84,proj,lon,lat,always_xy=True)
         return x,y
 
@@ -196,4 +193,8 @@ def Open(filename):
     params = dict(ds.attrs)
     params['layers'] = [ dict(ds['layers'][n].attrs) for n in sorted(ds['layers'],key=int) ]
     params.update( ('obs_'+k, ds['obs'][k][:]) for k in ds['obs'] )
+    try:
+        params['srs'] = params['srs'].decode("utf-8")
+    except AttributeError:
+        pass
     return MultiScaleData(params, data)
