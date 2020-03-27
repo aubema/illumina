@@ -19,6 +19,7 @@ air_pressure: 101.3            # lowest domain level atmospheric pressure in KPa
 reflection_radius: 9.99        # radius around light sources whre reflections can occur (m)
 cloud_model: 0                 # cloud model selection 0=clear, 1=Thin Cirrus/Cirrostratus, 2=Thick Cirrus/Cirrostratus, 3=Altostratus/Altocumulus, 4=Stratocumulus,  5=Cumulus/Cumulonimbus
 cloud_base: 0                  # height of the cloud base (m)
+cloud_fraction: 0              # Cloud cover fraction
 stop_limit: 5000.              # Stop computation when the new voxel contribution is less than 1/stoplim of the cumulated flux (suggested value = 5000.)
 double_scattering: False       # Activate double scattering (True/False)
 elevation_angle: [90,45]

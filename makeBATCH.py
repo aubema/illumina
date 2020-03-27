@@ -248,7 +248,8 @@ for i,param_vals in enumerate(comb(*param_space),1):
             "3=Altostratus/Altocumulus, "
             "4=Cumulus/Cumulonimbus, "
             "5=Stratocumulus"),
-         (P['cloud_base'], "Cloud base altitude [m]")),
+         (P['cloud_base'], "Cloud base altitude [m]")
+         (P['could_fraction'], "Cloud fraction")),
         (('', ''),)
     )
 
