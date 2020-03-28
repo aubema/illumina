@@ -32,7 +32,8 @@ if p.format == 'raster':
         b = hdf._attrs['layers'][l]['buffer']
         xmin = hdf._attrs['layers'][l]['xmin'] + b*pix_size
         ymax = hdf._attrs['layers'][l]['ymax'] - b*pix_size
-        data = data[b:-b,b:-b]
+        if b != 0:
+            data = data[b:-b,b:-b]
         if p.area:
             data /= (hdf.pixel_size(l)/1000.)**2
         if p.log:
