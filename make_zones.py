@@ -89,11 +89,8 @@ ratio = [
 
 for n in range(n_bins):
 	r = [
-		np.sum(
-			zon_mask[layer][:,None] * \
-			ratio[n][:,:,None,None],
-			0
-		) for layer in range(len(phie))
+		np.tensordot(ratio[n],zon_mask[layer],axes=([0],[0])) \
+		for layer in range(len(phie))
 	]
 	for i,s in enumerate(sources):
 		new = hdf.from_domain("domain.ini")
