@@ -32,7 +32,8 @@ if p.format == 'raster':
         b = hdf._attrs['layers'][l]['buffer']
         xmin = hdf._attrs['layers'][l]['xmin'] + b*pix_size
         ymax = hdf._attrs['layers'][l]['ymax'] - b*pix_size
-        data = data[b:-b,b:-b]
+        if b != 0:
+            data = data[b:-b,b:-b]
         if p.area:
             data /= (hdf.pixel_size(l)/1000.)**2
         if p.log:
@@ -53,12 +54,12 @@ elif p.format == 'vector':
     points = {'x':[],'y':[],'val':[]}
     for l,data in enumerate(hdf):
         xmin = hdf._attrs['layers'][l]['xmin']
-        ymin = hdf._attrs['layers'][l]['ymin']
+        ymax = hdf._attrs['layers'][l]['ymax']
         pix_size = hdf._attrs['layers'][l]['pixel_size']
 
         pts = np.where(hdf[l]!=-1)
         points['x'].extend( (pts[1]+0.5)*pix_size + xmin )
-        points['y'].extend( (pts[0]+0.5)*pix_size + ymin )
+        points['y'].extend( ymax - (pts[0]+0.5)*pix_size )
         data = hdf[l][hdf[l]!=-1]
         if p.area:
             data /= (hdf.pixel_size(l)/1000.)**2

@@ -20,20 +20,26 @@ def OpenCached(filename,cached={}):
     cached[filename] = ds
     return ds
 
-def plot(ds,n_layer=None,log=False,**options):
+def plot(ds,n_layer=None,log=False,area=False,**options):
     _plt.gca().set_aspect(1)
 
+    norm = _np.array([ (ds.pixel_size(i)/1000)**2 for i in range(len(ds)) ])
+
     for i,layer in reversed(list(enumerate(ds[:n_layer]))):
-        n = ds[i].shape[0]
+        layer = layer.copy()
+        n = layer.shape[0]
         buff = ds._attrs['layers'][i]['buffer']
-        N = n/2 - buff
-        ind = _np.arange(-N-1,N+1)+0.5
-        X,Y = _np.meshgrid(ind,ind)
+
+        psize = ds.pixel_size(i)/1000.
+        if area:
+            layer /= psize**2
+
+        N = psize * (n/2 - buff)
 
         if 'vmin' not in options:
-            options['vmin'] = min(list(map(_np.min,ds)))
+            options['vmin'] = min(_np.array([_np.min(l) for l in ds])/norm)
         if 'vmax' not in options:
-            options['vmax'] = max(list(map(_np.max,ds)))
+            options['vmax'] = max(_np.array([_np.max(l) for l in ds])/norm)
 
         if log:
             options['norm'] = _colors.LogNorm(
@@ -41,13 +47,16 @@ def plot(ds,n_layer=None,log=False,**options):
                 vmax=options['vmax']
             )
 
-        psize = ds.pixel_size(i)/1000.
-        _plt.pcolor(
-            X*psize,
-            Y*psize,
-            layer[buff:n-buff,buff:n-buff][::-1],
+        _plt.imshow(
+            layer[buff:n-buff,buff:n-buff],
+            extent=(-N,N,-N,N),
             **options
         )
+
+    N = ds[-1].shape[0]/2 - ds._attrs['layers'][-1]['buffer']
+    N *= ds.pixel_size(len(ds)-1)/1000
+    _plt.xlim(-N,N)
+    _plt.ylim(-N,N)
 
 def from_domain(params,data=None):
     if isinstance(params,str):
