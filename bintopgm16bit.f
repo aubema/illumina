@@ -32,10 +32,12 @@ c
      +ile name:'
        read*,name1,pixsiz,name3
        call twodin(nbx,nby,name1,dat1)
+       print*,'Domain size:',nbx,'x',nby
        max=0.
        do i=1,nbx
           do j=1,nby
              if (dat1(i,j).gt.max) max=dat1(i,j)
+             if (dat1(i,j).lt.0.) dat1(i,j)=0.
           enddo
        enddo
        gain=max/65535.
