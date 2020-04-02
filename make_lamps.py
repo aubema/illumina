@@ -6,7 +6,7 @@
 #
 # April 2019
 
-import pytools as pt, hdftools as hdf
+import pytools as pt
 import numpy as np
 import MultiScaleData as MSD
 
@@ -19,7 +19,7 @@ def make_lamps(dir_name,inv_name,n_inv,n_bins,params,out_name,
     inv_name = params['lamps_inventory']
     lampsData = np.loadtxt(inv_name, usecols=list(range(7)))
     photometry = np.loadtxt(inv_name, usecols=[-2,-1], dtype=str)
-    domain = hdf.from_domain("domain.ini")
+    domain = MSD.from_domain("domain.ini")
 
     sources = np.unique(photometry[:,1])
 
@@ -46,12 +46,12 @@ def make_lamps(dir_name,inv_name,n_inv,n_bins,params,out_name,
 
     geometry = dict()
     for geo in ['obsth','obstd','obstf','altlp']:
-        geometry[geo] = hdf.from_domain("domain.ini")
+        geometry[geo] = MSD.from_domain("domain.ini")
 
     lumlp = dict()
     for s in sources:
         for wl in x:
-            lumlp[s,wl] = hdf.from_domain("domain.ini")
+            lumlp[s,wl] = MSD.from_domain("domain.ini")
 
     for layer,pts in points.items():
         cols,rows,inds = pts

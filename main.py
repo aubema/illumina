@@ -17,7 +17,10 @@ functions = (
     ("make_inputs","inputs"),
     ("makeBATCH","batches"),
     ("find-failed-runs","failed"),
-    ("extract-output-data","extract")
+    ("extract-output-data","extract"),
+    ("init_run","init"),
+    ("alt_scenario_maker","alternate"),
+    ("hdf_convert","convert")
 )
 
 for module_name,method in functions:

@@ -3,7 +3,7 @@
 import click
 from glob import glob
 import yaml, h5py
-import hdftools
+import MultiScaleData as MSD
 from subprocess import call
 import os
 import numpy as np
@@ -93,7 +93,7 @@ def rasterize(shpfile, projection, extent):
 
 def save(params, data, dstname, scale_factor=1.):
     scaled_data = [ d*scale_factor for d in data ]
-    ds = hdftools.from_domain(params,scaled_data)
+    ds = MSD.from_domain(params,scaled_data)
     ds.save(dstname)
 
 @click.command()

@@ -6,7 +6,7 @@
 #
 # April 2019
 
-import pytools as pt, hdftools as hdf
+import pytools as pt
 import numpy as np
 import MultiScaleData as MSD
 
@@ -30,7 +30,7 @@ def make_zones(dir_name,inv_name,n_inv,n_bins,params,out_name,
 
 	print("Making zone properties files.")
 
-	circles = hdf.from_domain("domain.ini") # Same geolocalisation
+	circles = MSD.from_domain("domain.ini") # Same geolocalisation
 	zonfile = np.loadtxt(params['zones_inventory'],usecols=list(range(7)),ndmin=2)
 
 	# zone number
@@ -101,7 +101,7 @@ def make_zones(dir_name,inv_name,n_inv,n_bins,params,out_name,
 			) for layer in range(len(phie))
 		]
 		for i,s in enumerate(sources):
-			new = hdf.from_domain("domain.ini")
+			new = MSD.from_domain("domain.ini")
 			for layer in range(len(new)):
 				new[layer] = phie[layer] * r[layer][i]
 			new.save(dir_name+"%s_%03d_lumlp_%s" % (out_name,x[n],s))

@@ -10,10 +10,11 @@
 import click
 import os, re
 from collections import defaultdict as ddict
-from hdftools import MSD, from_domain
+import MultiScaleData as MSD
 from functools import partial
 from pytools import load_bin
 from glob import glob
+from copy import deepcopy as copy
 
 def MSDOpen(filename,cached={}):
     if filename in cached:
@@ -57,17 +58,17 @@ def extract(exec_dir,contrib,params):
 
         for oname in out_names:
             if oname == basename + ".out":
-                params = dirpath.split('exec'+os.sep)[1].replace(os.sep,'-')
+                params_name = dirpath.split('exec'+os.sep)[1].replace(os.sep,'-')
             else:
-                params = oname[len(basename)+1:-4]
+                params_name = oname[len(basename)+1:-4]
 
             try:
                 for pname,pvals in params:
-                    if pname not in params:
+                    if pname not in params_name:
                         print("ERROR: Parameter '%s' not found." % pname)
                         exit()
                     for pval in pvals.split(','):
-                        if "%s_%s" % (pname,pval) in params:
+                        if "%s_%s" % (pname,pval) in params_name:
                             break
                     else:
                         raise ValueError()
@@ -78,30 +79,30 @@ def extract(exec_dir,contrib,params):
                 lines = f.readlines()
 
             val = float(lines[-1])
-            skyglow[regex_layer.sub('',params)] += val
+            skyglow[regex_layer.sub('',params_name)] += val
             if contrib:
                 try:
-                    n_layer = int(regex_layer.search(params).groups()[0])
+                    n_layer = int(regex_layer.search(params_name).groups()[0])
                 except AttributeError:
                     # No match, only 1 layer
                     n_layer = 0
 
-                key = regex_layer.sub('',params)
+                key = regex_layer.sub('',params_name)
                 if key not in contributions:
                     try:
-                        coords = re.match(regex_coords,params).group(1)
+                        coords = re.match(regex_coords,params_name).group(1)
                         blank = dirpath.split('exec')[0]+"/obs_data/%s/blank.hdf5" % coords
                     except AttributeError:
                         # No match, only 1 coord
                         blank = glob(dirpath.split('exec')[0]+"/obs_data/*/blank.hdf5")[0]
 
-                    contributions[key] = MSDOpen(blank).copy()
+                    contributions[key] = copy(MSDOpen(blank))
 
                 pix_size = ( contributions[key].pixel_size(n_layer) / 1000. ) ** 2 # in km^2
                 if oname == basename + ".out":
                     pcl_name = [s for s in filenames if "pcl.bin" in s][0]
                 else:
-                    pcl_name = '_'.join([ basename,'pcl',params+".bin" ])
+                    pcl_name = '_'.join([ basename,'pcl',params_name+".bin" ])
                 pcl_path = os.path.join(dirpath,pcl_name)
                 pcl_data = load_bin(pcl_path)
                 pcl_data *= val / pcl_data.sum()

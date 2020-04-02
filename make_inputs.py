@@ -10,7 +10,7 @@ import click
 import numpy as np
 import shutil, re, os, yaml
 from glob import glob
-import pytools as pt, hdftools as hdf
+import pytools as pt
 import MultiScaleData as MSD
 from scipy.interpolate import interp1d as interp
 
@@ -43,11 +43,11 @@ def inputs():
 
 		hasLights = [ sum( x[0] for x in z ) != 0 for z in zonData ]
 
-		circles = hdf.from_domain("domain.ini")
+		circles = MSD.from_domain("domain.ini")
 		for dat,b in zip(zones,hasLights):
 			circles.set_circle((dat[0],dat[1]),dat[2]*1000,b)
 
-		zones_ind = hdf.from_domain("domain.ini")
+		zones_ind = MSD.from_domain("domain.ini")
 		for i,dat in enumerate(zones,1):
 			zones_ind.set_circle((dat[0],dat[1]),dat[2]*1000,i)
 
