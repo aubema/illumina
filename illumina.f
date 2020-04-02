@@ -865,10 +865,8 @@ c ******************************************************************************
      +                  (z_s.eq.z_c))                                     ! same then...
      +                  then
                           dirck=1
-                          if (verbose.eq.2) then
-                            if (verbose.ge.1) then
-                              print*,'Source = line of sight' 
-                            endif
+                          if (verbose.ge.1) then
+                            print*,'Source = line of sight' 
                           endif
                         endif                                             ! end of the case positions x and y source and line of sight voxel identical.
                         if (dirck.ne.1) then                              ! the source is not at the line of sight voxel position
