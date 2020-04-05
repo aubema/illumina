@@ -874,7 +874,7 @@ c ******************************************************************************
                           rz=z_obs+20000.*iz
                           dho=sqrt((rx_obs-rx_s)**2.
      +                    +(ry_obs-ry_s)**2.)
-                          if (dho.gt.0.) then
+                          if ((dho.gt.0.).and.(z_s.ne.z_obs)) then
                             call anglezenithal(rx_s,ry_s,z_s                ! zenithal angle source-observer
      +                      ,rx_obs,ry_obs,z_obs,dzen)
                             call angleazimutal(rx_s,ry_s,rx_obs,              ! computation of the angle azimutal direct line of sight-source
@@ -1188,7 +1188,7 @@ c ******************************************************************************
                         if (icible.eq.1) then                            ! do the direct sight calculation only once
                           dho=sqrt((rx_obs-rx_sr)**2.
      +                    +(ry_obs-ry_sr)**2.)
-                          if (dho.gt.0.) then
+                          if ((dho.gt.0.).and.(z_s.ne.z_obs)) then
                             call anglezenithal(rx_sr,ry_sr,z_sr           ! zenithal angle source-observer
      +                      ,rx_obs,ry_obs,z_obs,dzen)
                             call angleazimutal(rx_sr,ry_sr,rx_obs,        ! computation of the angle azimutal direct line of sight-source
