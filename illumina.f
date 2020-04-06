@@ -488,6 +488,7 @@ c reading subgrid obstacles average distance
         call twodin(nbx,nby,odfile,val2d)
         do i=1,nbx                                                        ! beginning of the loop over all cells along x.
           do j=1,nby                                                      ! beginning of the loop over all cells along y.
+            drefle(i,j)=val2d(i,j)/2.
             if (drefle(i,j).eq.0.) drefle(i,j)=dx                         ! when outside a zone, block to the size of the cell (typically 1km)
           enddo                                                           ! end of the loop over all cells along y.
         enddo
