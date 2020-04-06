@@ -1770,23 +1770,23 @@ c load 'BASENAME_pcl.gplot'
         endif                                                             ! end of condition for creating contrib and sensit maps
         if (verbose.ge.1) print*,'======================================
      +==============='
-        print*,'         Direct irradiance from sources (W/m**2)'
+        print*,'         Direct irradiance from sources (W/m**2/nm)'
         write(*,2001)  direct
-        print*,'         Direct irradiance from reflexion (W/m**2)'
+        print*,'         Direct irradiance from reflexion (W/m**2/nm)'
         write(*,2001)  rdirect
-        print*,'             Cloud radiance (W/str/m**2)'
+        print*,'             Cloud radiance (W/str/m**2/nm)'
         write(*,2001) fctcld/omefov/(pi*(diamobj/2.)**2.)
-        print*,'              Sky radiance (W/str/m**2)'
+        print*,'              Sky radiance (W/str/m**2/nm)'
         write(*,2001) (ftocap+fctcld)/omefov/(pi*(diamobj/2.)**2.)
         if (verbose.ge.1) write(2,*) '==================================
      +================='
-        write(2,*) '         Direct irradiance from sources (W/m**2)'
+        write(2,*) '         Direct irradiance from sources (W/m**2/nm)'
         write(2,2001)  direct
-        write(2,*) '       Direct irradiance from reflexion (W/m**2)'
+        write(2,*) '       Direct irradiance from reflexion (W/m**2/nm)'
         write(2,2001)  rdirect        
-        write(2,*) '           Cloud radiance (W/str/m**2)          '
+        write(2,*) '           Cloud radiance (W/str/m**2/nm)         '
         write(2,2001) fctcld/omefov/(pi*(diamobj/2.)**2.)    
-        write(2,*) '            Sky radiance (W/str/m**2)          '
+        write(2,*) '            Sky radiance (W/str/m**2/nm)          '
         write(2,2001) (ftocap+fctcld)/omefov/(pi*(diamobj/2.)**2.)
       close(2)
  2001 format('                   ',E10.3E2)
