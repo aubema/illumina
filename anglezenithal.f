@@ -31,7 +31,7 @@ c
       subroutine anglezenithal(x1,y1,z1,x2,y2,z2,angzen) 
       real x1,y1,x2,y2
       real z1,z2,pi,angzen                                                    
-      parameter (pi=3.1415926)   
+      parameter (pi=3.141592654)   
       hdist=sqrt((x2-x1)**2.
      a    +(y2-y1)**2.)
       if (z2-z1.ne.0.) then

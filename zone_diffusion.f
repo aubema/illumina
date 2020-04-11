@@ -37,7 +37,7 @@ c
        real effet,dmin,d
        real zondif(3000000,3),siz
        real pi
-       pi=3.1415926
+       pi=3.141592654
        keep=0
        neffet=nint(effet/siz)
        dmin=effet
