@@ -41,6 +41,7 @@ c
           enddo
        enddo
        gain=max/65535.
+       print*,'Max val=',max,'Gain=',gain
        offset=0.
        valmax=65535
        nom='converted'

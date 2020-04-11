@@ -33,7 +33,7 @@ c
       real x1,y1,x2,y2,x3,y3
       real z1,z2,z3,an3pts,argume
       real xu,yu,zu,xv,yv,zv,dx,dy,pi,comp
-      parameter (pi = 3.1415926)
+      parameter (pi = 3.141592654)
       xu=x2-x1                                                            ! Voici les composantes du vecteur u.
       yu=y2-y1
       zu=z2-z1

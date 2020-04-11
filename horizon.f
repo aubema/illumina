@@ -31,7 +31,7 @@ c
       integer x,y,nx,ny
       real dx,dy,altsol(width,width),anga,zout,pi,angaz1,ix,iy,dist
       real posx,posy,scalef,zhoriz,z,d,dout
-      pi=3.1415926
+      pi=3.141592654
 c      angaz1 = (pi*anga)/180.
       angaz1=anga
       ix = (cos(angaz1))                                                  ! viewing vector components
