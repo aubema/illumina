@@ -14,6 +14,7 @@ from hdftools import MSD, from_domain
 from functools import partial
 from pytools import load_bin
 from glob import glob
+from copy import deepcopy as copy
 
 parser = argparse.ArgumentParser(description="Extract Illumina output.")
 parser.add_argument( "exec_dir", default='.', nargs='?',
@@ -91,7 +92,7 @@ for dirpath,dirnames,filenames in os.walk(p.exec_dir):
                     # No match, only 1 coord
                     blank = glob(dirpath.split('exec')[0]+"/obs_data/*/blank.hdf5")[0]
 
-                contrib[key] = MSDOpen(blank).copy()
+                contrib[key] = copy(MSDOpen(blank))
 
             pix_size = ( contrib[key].pixel_size(n_layer) / 1000. ) ** 2 # in km^2
             if oname == basename + ".out":
