@@ -187,6 +187,15 @@ class MultiScaleData:
                 for key,val in list(self._attrs['layers'][i].items()):
                     ds.attrs[key] = val
 
+    def plot(self,type="map",**attrs):
+        if type not in ["map","curve"]:
+            raise AttributeError('"type" must be one of "map" or "curve".')
+
+        if type == "map":
+            plot(self,**attrs)
+        else:
+            scatter(self,**attrs)
+
 def Open(filename):
     """Open a multiscale HDF5 data fileself.
 
@@ -223,12 +232,12 @@ def plot(ds,n_layer=None,log=False,area=False,**options):
 
         N = psize * (n/2 - buff)
 
-        if log:
+        if area:
             norm = _np.array([ (ds.pixel_size(i)/1000)**2 for i in range(len(ds)) ])
         else:
             norm = 1.
         if 'vmin' not in options:
-            options['vmin'] = min(_np.array([_np.min(l) for l in ds])/norm)
+            options['vmin'] = min(_np.array([_np.min(l[l!=0] if log else l) for l in ds])/norm)
         if 'vmax' not in options:
             options['vmax'] = max(_np.array([_np.max(l) for l in ds])/norm)
 
@@ -248,6 +257,34 @@ def plot(ds,n_layer=None,log=False,area=False,**options):
     N *= ds.pixel_size(len(ds)-1)/1000
     _plt.xlim(-N,N)
     _plt.ylim(-N,N)
+
+def scatter(ds,fmt=".",n_layer=None,area=False,**options):
+    R,I = [],[]
+
+    for i,layer in list(enumerate(ds[:n_layer])):
+        layer = layer.copy()
+        n = layer.shape[0]
+        buff = ds._attrs['layers'][i]['buffer']
+
+        psize = ds.pixel_size(i)/1000.
+        if area:
+            layer /= psize**2
+
+        N = n//2 - buff
+        x = _np.arange(-N,N+1) * psize
+        xx,yy = _np.meshgrid(x,x)
+        r = _np.sqrt( xx**2 + yy**2 )
+
+        L = layer[buff:n-buff,buff:n-buff]
+
+        R.append(r[L!=0])
+        I.append(L[L!=0])
+
+    R = _np.concatenate(R).flatten()
+    I = _np.concatenate(I).flatten()
+
+    _plt.plot(R,I,fmt,**options)
+
 
 def from_domain(params,data=None):
     if isinstance(params,str):
