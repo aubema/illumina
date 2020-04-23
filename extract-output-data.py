@@ -15,6 +15,8 @@ from functools import partial
 from pytools import load_bin
 from glob import glob
 from copy import deepcopy as copy
+from functools import partial
+import numpy as np
 
 parser = argparse.ArgumentParser(description="Extract Illumina output.")
 parser.add_argument( "exec_dir", default='.', nargs='?',
@@ -24,6 +26,8 @@ parser.add_argument( '-c', '--contrib', action="store_true",
 parser.add_argument( '-p', '--param', action='append', nargs=2, default=[],
     metavar=('NAME','VALUE(S)'), help="Values of the parameter NAME to extract. "\
         "Multiple values must be separated by commas.")
+parser.add_argument( '-f', '--full', action="store_true",
+    help="If present, will extract all available outputs.")
 
 p = parser.parse_args()
 regex_layer = re.compile(r'-layer_(\d+)')
@@ -37,6 +41,8 @@ def MSDOpen(filename,cached={}):
     return ds
 
 skyglow = ddict(float)
+if p.full:
+    outputs = ddict(partial(np.zeros,4))
 if p.contrib:
     contrib = dict()
 
@@ -75,7 +81,12 @@ for dirpath,dirnames,filenames in os.walk(p.exec_dir):
             lines = f.readlines()
 
         val = float(lines[-1])
-        skyglow[regex_layer.sub('',params)] += val
+        if p.full:
+            vals =  np.array([ float(l) for l in lines[-7::2] ])
+            outputs[regex_layer.sub('',params)] += vals
+        else:
+            skyglow[regex_layer.sub('',params)] += val
+
         if p.contrib:
             try:
                 n_layer = int(regex_layer.search(params).groups()[0])
@@ -105,7 +116,14 @@ for dirpath,dirnames,filenames in os.walk(p.exec_dir):
             b = (pcl_data.shape[0] - contrib[key][n_layer].shape[0]) // 2
             contrib[key][n_layer] = pcl_data[b:-b,b:-b] if b else pcl_data
 
-for key,val in skyglow.items():
-    print(key,val)
+if p.full:
+    print("Case\tDirect irradiance\tReflected irradiance\tCloud radiance\tSky radiance")
+    for key,vals in outputs.items():
+        print(key,*vals,sep="\t")
+    if p.contrib:
+        contrib[key].save(key)
+else:
+    for key,val in skyglow.items():
+        print(key,val,sep="\t")
     if p.contrib:
         contrib[key].save(key)
