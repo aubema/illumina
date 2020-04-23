@@ -17,7 +17,8 @@ setup(
         'scipy',
         'astropy',
         'pandas',
-        'geopandas'
+        'geopandas',
+	'fiona'
     ],
     entry_points='''
         [console_scripts]

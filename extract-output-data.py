@@ -15,6 +15,7 @@ from functools import partial
 from pytools import load_bin
 from glob import glob
 from copy import deepcopy as copy
+import numpy as np
 
 def MSDOpen(filename,cached={}):
     if filename in cached:
@@ -28,7 +29,8 @@ def MSDOpen(filename,cached={}):
 @click.option("-c","--contrib",is_flag=True,help="If present, extract contribution maps.")
 @click.option("-p","--params",multiple=True,nargs=2,
     help="Parameter name,value pair to extract. Can be provided more than once.")
-def extract(exec_dir,contrib,params):
+@click.option("-f","--full",is_flag=True,help="If present, will extract all available outputs.")
+def extract(exec_dir,contrib,params,full):
     """Extract Illumina outputs.
 
     Will walk the EXEC_DIR to locate and extract illumina outputs.
@@ -41,6 +43,8 @@ def extract(exec_dir,contrib,params):
     regex_coords = re.compile(r'observer_coordinates_(-?\d+\.\d+_-?\d+\.\d+)')
 
     skyglow = ddict(float)
+    if full:
+        outputs = ddict(partial(np.zeros,4))
     if contrib:
         contributions = dict()
 
@@ -79,7 +83,11 @@ def extract(exec_dir,contrib,params):
                 lines = f.readlines()
 
             val = float(lines[-1])
-            skyglow[regex_layer.sub('',params_name)] += val
+            if full:
+                vals =  np.array([ float(l) for l in lines[-7::2] ])
+                outputs[regex_layer.sub('',params_name)] += vals
+            else:
+                skyglow[regex_layer.sub('',params_name)] += val
             if contrib:
                 try:
                     n_layer = int(regex_layer.search(params_name).groups()[0])
@@ -109,7 +117,14 @@ def extract(exec_dir,contrib,params):
                 b = (pcl_data.shape[0] - contributions[key][n_layer].shape[0]) // 2
                 contributions[key][n_layer] = pcl_data[b:-b,b:-b] if b else pcl_data
 
-    for key,val in skyglow.items():
-        print(key,val)
+    if full:
+        print("Case\tDirect irradiance\tReflected irradiance\tCloud radiance\tSky radiance")
+        for key,vals in outputs.items():
+            print(key,*vals,sep="\t")
         if contrib:
             contributions[key].save(key)
+    else:
+        for key,val in skyglow.items():
+            print(key,val,sep="\t")
+            if contrib:
+                contributions[key].save(key)
