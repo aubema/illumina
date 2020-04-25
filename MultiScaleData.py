@@ -95,6 +95,9 @@ class MultiScaleData:
             n_layer = self._get_layer(index)
         return self._attrs['layers'][n_layer]['pixel_size']
 
+    def copy(self):
+        return _clone(self)
+
     def get_obs_pos(self,proj=False):
         if proj:
             return self._attrs['obs_x'],self._attrs['obs_y']
