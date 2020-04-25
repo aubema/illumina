@@ -11,7 +11,6 @@ import shutil, re, os, yaml
 from glob import glob
 import pytools as pt, hdftools as hdf
 import MultiScaleData as MSD
-from scipy.interpolate import interp1d as interp
 
 from collections import defaultdict as ddict
 
@@ -75,7 +74,7 @@ lop = {
 # Spectral distribution (normalised with scotopric vision to 1)
 wav, viirs = np.loadtxt( "Lights/viirs.dat", skiprows=1 ).T
 viirs /= np.max(viirs)
-#viirs = pt.spct_norm(wav,viirs)0000000000000000000
+#viirs = pt.spct_norm(wav,viirs)
 # norm_spectrum = pt.load_spct(
 # 	wav,
 # 	np.ones(wav.shape),
@@ -127,11 +126,7 @@ for type in asper:
 	wl,refl = asper[type].T
 	wl *= 1000.
 	refl /= 100.
-	asper[type] = interp(
-		wl, refl,
-		bounds_error=False,
-		fill_value=0.
-	)(wav)
+	asper[type] = np.interp(wav, wl, refl)
 
 sum_coeffs = sum(
 	params['reflectance'][type] \
