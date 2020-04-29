@@ -187,6 +187,9 @@ class MultiScaleData:
                 for key,val in list(self._attrs['layers'][i].items()):
                     ds.attrs[key] = val
 
+    def copy(self):
+        return _clone(self)
+
     def plot(self,type="map",**attrs):
         if type not in ["map","curve"]:
             raise AttributeError('"type" must be one of "map" or "curve".')

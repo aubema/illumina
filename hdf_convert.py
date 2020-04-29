@@ -17,11 +17,11 @@ def convert(filename,outname,vector,log,area):
     Converts FILENAME to OUTNAME.EXT where ext is defined based on the output format.
     The output format is either vector (GeoJSON) or raster (Tiff).
     """
-    hdf = MSD.Open(p.filename)
+    hdf = MSD.Open(filename)
     hdf.set_buffer(-1)
     hdf.set_overlap(-1)
 
-    if p.format == 'raster':
+    if not vector:
         import gdal, osr
         driver = gdal.GetDriverByName("GTiff")
         srs = osr.SpatialReference()
@@ -34,12 +34,12 @@ def convert(filename,outname,vector,log,area):
             ymax = hdf._attrs['layers'][l]['ymax'] - b*pix_size
             if b != 0:
                 data = data[b:-b,b:-b]
-            if p.area:
+            if area:
                 data /= (hdf.pixel_size(l)/1000.)**2
-            if p.log:
+            if log:
                 data = np.log10(data)
             ds = driver.Create(
-                p.outname+"_%d.tif" % l,
+                outname+"_%d.tif" % l,
                 data.shape[1],
                 data.shape[0],
                 1,
@@ -48,9 +48,9 @@ def convert(filename,outname,vector,log,area):
             ds.SetProjection(srs.ExportToWkt())
             ds.SetGeoTransform((xmin,pix_size,0,ymax,0,-pix_size))
             ds.GetRasterBand(1).WriteArray(data)
-            ds.GetRasterBand(1).SetNoDataValue(-np.inf if p.log else -1)
+            ds.GetRasterBand(1).SetNoDataValue(-np.inf if log else -1)
 
-    elif p.format == 'vector':
+    elif vector:
         points = {'x':[],'y':[],'val':[]}
         for l,data in enumerate(hdf):
             xmin = hdf._attrs['layers'][l]['xmin']
@@ -61,9 +61,9 @@ def convert(filename,outname,vector,log,area):
             points['x'].extend( (pts[1]+0.5)*pix_size + xmin )
             points['y'].extend( ymax - (pts[0]+0.5)*pix_size )
             data = hdf[l][hdf[l]!=-1]
-            if p.area:
+            if area:
                 data /= (hdf.pixel_size(l)/1000.)**2
-            if p.log:
+            if log:
                 data = np.log10(data)
             points['val'].extend(data)
 
@@ -73,4 +73,4 @@ def convert(filename,outname,vector,log,area):
             geometry=gpd.points_from_xy(points['x'],points['y'])
         )
 
-        gdf.to_file(p.outname+'.geojson', driver='GeoJSON')
+        gdf.to_file(outname+'.geojson', driver='GeoJSON')
