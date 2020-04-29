@@ -286,6 +286,9 @@ c        read(1,*) cloudt, cloudbase, cloudtop
       endif
       scal=19.
       scalo=scal
+      if (angvis.lt.0.) then                                              ! the line of sight is not below the horizon => we compute
+        ncible=1
+      endif  
 c omemax: exclude calculations too close (<57m) this is a sustended angle of 1 deg.
 c the calculated flux is highly sensitive to that number for a very high 
 c pixel resolution (a few 10th of meters). We assume anyway that somebody
@@ -326,16 +329,7 @@ c opening output file
 c check if the observation angle is above horizon
         angzen=pi/2.-angvis*pi/180.
         call horizon(x_obs,y_obs,z_obs,dx,dy,altsol,angazi,zhoriz,dh)
-        if (angzen.gt.zhoriz) then                                        ! the line of sight is not below the horizon => we compute
-          print*,'PROBLEM! You try to observe below horizon'
-          print*,'No calculation will be made'
-          write(2,*) '            Sky radiance (W/str/m**2)          '
-          write(2,2001) zero
-          print*,'            Sky radiance (W/str/m**2)          '
-          print*,'                 0.0000'
-          close(2)        
-          stop
-        endif
+
         write(2,*) 'FILE USED:'
         write(2,*) mnaf,diffil
         print*,'Wavelength (nm):',lambda,
@@ -1769,6 +1763,21 @@ c load 'BASENAME_pcl.gplot'
      +      with dots'
           close(unit=9)
         endif                                                             ! end of condition for creating contrib and sensit maps
+        
+        if (angvis.lt.0.) then                                            ! the line of sight is not below the horizon => we compute
+c         print*,'PROBLEM! You try to observe below horizon'
+c          print*,'No calculation will be made'
+c          write(2,*) '            Sky radiance (W/str/m**2)          '
+c          write(2,2001) zero
+c          print*,'            Sky radiance (W/str/m**2)          '
+c          print*,'                 0.0000'
+c          close(2)        
+c          stop
+          ftocap=0.
+          fctcld=0.
+        endif        
+        
+        
         if (verbose.ge.1) print*,'======================================
      +==============='
         print*,'         Direct irradiance from sources (W/m**2/nm)'
