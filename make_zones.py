@@ -45,8 +45,9 @@ def make_zones(dir_name,inv_name,n_inv,n_bins,params,out_name,
 
 	print("Inverting lamp intensity.")
 
-	viirs_dat = MSD.Open("stable_lights.hdf5") * 1e-5 #nW/cm^2/sr -> W/m^2/sr
+	viirs_dat = MSD.Open("stable_lights.hdf5")
 	for i in range(len(viirs_dat)):
+		viirs_dat[i] *= 1e-5 #nW/cm^2/sr -> W/m^2/sr
 		viirs_dat[i][viirs_dat[i]<0] = 0.
 
 	water_mask = MSD.Open("water_mask.hdf5")
