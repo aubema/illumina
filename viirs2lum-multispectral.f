@@ -35,7 +35,7 @@ c ndb is the number of spectral bands
       real dist,spct(nwa,nag),zone(wid,wid)
       real dnb(wid,wid),sumwav,Phi_c(wid,wid),wavel(nwa),viirs_sens(nwa)
       real thetas(nag),obsth(wid,wid),obstd(wid,wid),lamph(wid,wid)
-      real obstf(wid,wid),fobst(nzo)
+      real obstf(wid,wid),fobst(nzo),viirs_max
 c     obsth=obstacle height, obstd=mean free path to the ground,
 c     lamph=lamp height above the ground
       character*72 Gn(nzo),zonfile,viirs_resp,bands_file,fctfile
@@ -97,17 +97,18 @@ c Reading VIIRS-dnb spectral response
       print*,'Reading VIIRS-dnb spectral response...'
       OPEN(UNIT=1,FILE=viirs_resp,STATUS='OLD')
         READ(1,*) junk
-        viirs_sum = 0.
+        viirs_max = 0.
         DO nw=1,nwa
           READ(1,*) wavel(nw),viirs_sens(nw)
-          viirs_sum = viirs_sum + viirs_sens(nw)
+          if (viirs_sens(nw).gt.viirs_max) then
+            viirs_max = viirs_sens(nw)
+          endif
         ENDDO
         dwav=(wavel(2)-wavel(1))
-        viirs_sum=viirs_sum*dwav
 c Normalizing VIIRS-dnb spectral response
         print*,'Normalizing VIIRS-dnb spectral response...'
         do nw=1,nwa
-          viirs_sens(nw)=viirs_sens(nw)/viirs_sum
+          viirs_sens(nw)=viirs_sens(nw)/viirs_max
         enddo
       CLOSE(unit=1)
 c lecture de l'image viirs dnb
