@@ -234,8 +234,8 @@ if not stop:
 
     print "Fortran done."
 
-    #for filename in tmp_list:
-    #    os.remove(os.path.basename(filename))
+    for filename in tmp_list:
+        os.remove(os.path.basename(filename))
 
     #mie_files = sorted(glob("*.mie.out"))
     # Writing both .lst files
