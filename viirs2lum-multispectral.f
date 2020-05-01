@@ -342,6 +342,11 @@ c
 c creating combined lumlp for each band
 
         do nb=1,n_bands
+          do i=1,nbx
+            do j=1,nby
+              datf(i,j)=0.
+            enddo
+          enddo
           do n=1,nzon
             write(waven, '(I3.3)' ) int(avgwav(nb))
             write(zonenu, '(I3.3)' ) n

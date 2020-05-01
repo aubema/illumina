@@ -83,7 +83,7 @@ if not os.path.exists(dirname):
 
 for i in xrange(len(zones)):
     bin_zon = np.zeros((len(angles)+1,len(wav)+1))
-    bin_zon[0,0] = len(wav+1)
+    bin_zon[0,0] = len(wav)+1
     bin_zon[1:,0] = angles
     bin_zon[0,1:] = wav
     bin_zon[1:,1:] = zones[i]
@@ -234,8 +234,8 @@ if not stop:
 
     print "Fortran done."
 
-    for filename in tmp_list:
-        os.remove(os.path.basename(filename))
+    #for filename in tmp_list:
+    #    os.remove(os.path.basename(filename))
 
     #mie_files = sorted(glob("*.mie.out"))
     # Writing both .lst files
