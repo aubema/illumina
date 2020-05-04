@@ -220,6 +220,9 @@ for fname in zfiles&lfiles:
 		zdat.save(os.path.join("Inputs",fname))
 	else:
 		print("WARNING: File %s not merged properly." % fname)
+if "origin.hdf5" not in zfiles:
+	origin = hdf.from_domain("domain.ini")
+	origin.save("Inputs/origin")
 shutil.rmtree(".Inputs_lamps",True)
 shutil.rmtree(".Inputs_zones",True)
 

@@ -32,6 +32,11 @@ for i,dat in enumerate(zonfile,1):
 	circles.set_circle((dat[0],dat[1]),dat[2]*1000,i)
 circles.save(dir_name+out_name+"_zone")
 
+weights = [ sum(z[0] for z in zone) for zone in zonData ]
+for w,dat in zip(weights,zonfile):
+	circles.set_circle((dat[0],dat[1]),dat[2]*1000,bool(w))
+circles.save(dir_name+"origin")
+
 for n,name in zip(range(3,7),['obsth','obstd','obstf','altlp']):
     for i,dat in enumerate(zonfile,1):
     	circles.set_circle((dat[0],dat[1]),dat[2]*1000,dat[n])
