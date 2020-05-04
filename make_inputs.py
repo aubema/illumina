@@ -206,7 +206,7 @@ def inputs():
 		dir_name = ".Inputs_lamps/"
 		shutil.rmtree(dir_name,True)
 		os.makedirs(dir_name)
-		make_lamps(dir_name,n_inv,n_bins,params,out_name,
+		make_lamps(dir_name,n_bins,params,out_name,
 			x,lop,angles,wav,spct,viirs,refl,bool_array)
 
 	print("Unifying inputs.")
