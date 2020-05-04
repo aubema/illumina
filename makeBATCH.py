@@ -196,6 +196,11 @@ for i,param_vals in enumerate(comb(*param_space),1):
             fold_name+exp_name+"_topogra.bin"
         )
 
+        os.symlink(
+            os.path.relpath(os.path.join(obs_fold,"origin.bin"),fold_name),
+            foldname+"origin.bin"
+        )
+
         for name in ["obstd","obsth","obstf","altlp"]:
             os.symlink(
                 os.path.relpath(os.path.join(obs_fold,"%s_%s.bin" % \
