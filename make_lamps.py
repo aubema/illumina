@@ -10,7 +10,7 @@ import pytools as pt
 import numpy as np
 import MultiScaleData as MSD
 
-def make_lamps(dir_name,inv_name,n_inv,n_bins,params,out_name,
+def make_lamps(dir_name,n_inv,n_bins,params,out_name,
     x,lop,angles,wav,spct,viirs,refl,bool_array):
 
     print("Building inputs from discrete inventory.")
