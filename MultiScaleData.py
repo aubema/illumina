@@ -98,6 +98,9 @@ class MultiScaleData:
             n_layer = self._get_layer(index)
         return self._attrs['layers'][n_layer]['pixel_size']
 
+    def copy(self):
+        return _clone(self)
+
     def get_obs_pos(self,proj=False):
         if proj:
             return self._attrs['obs_x'],self._attrs['obs_y']
@@ -187,9 +190,6 @@ class MultiScaleData:
                 for key,val in list(self._attrs['layers'][i].items()):
                     ds.attrs[key] = val
 
-    def copy(self):
-        return _clone(self)
-
     def plot(self,type="map",**attrs):
         if type not in ["map","curve"]:
             raise AttributeError('"type" must be one of "map" or "curve".')
@@ -204,7 +204,7 @@ def Open(filename):
 
     Returns a MultiScaleData object."""
     ds = _HDFile(filename,'r')
-    data = _np.array([ ds['layers'][n][:] for n in sorted(ds['layers'],key=int) ])
+    data = [ ds['layers'][n][:] for n in sorted(ds['layers'],key=int) ]
     params = dict(ds.attrs)
     params['layers'] = [ dict(ds['layers'][n].attrs) for n in sorted(ds['layers'],key=int) ]
     params.update( ('obs_'+k, ds['obs'][k][:]) for k in ds['obs'] )

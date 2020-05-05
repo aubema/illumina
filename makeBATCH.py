@@ -197,6 +197,11 @@ def batches(input_params_path,compact,batch_size,batch_name=None):
                 fold_name+exp_name+"_topogra.bin"
             )
 
+            os.symlink(
+                os.path.relpath(os.path.join(obs_fold,"origin.bin"),fold_name),
+                fold_name+"origin.bin"
+            )
+
             for name in ["obstd","obsth","obstf","altlp"]:
                 os.symlink(
                     os.path.relpath(os.path.join(obs_fold,"%s_%s.bin" % \
