@@ -27,6 +27,7 @@ def inputs():
 	dir_name = "Inputs/"
 	shutil.rmtree(dir_name,True)
 	os.makedirs(dir_name)
+	shutil.copy("inputs_params.in","Inputs/inputs_params.in")
 
 	with open("inputs_params.in") as f:
 		params = yaml.safe_load(f)
