@@ -42,7 +42,8 @@ for fname in tracked_list:
     with open(fname,'w') as f:
         f.write(file_content.replace(full,version))
 
-print(repo.git.commit(a=p.all,m=f"{version} {p.message}"))
-
 with open("version",'w') as f:
     f.write(version)
+
+repo.git.add("version")
+print(repo.git.commit(a=p.all,m=f"{version} {p.message}"))
