@@ -19,7 +19,7 @@ if p.version and not re.match(r"^\d+\.\d+$",p.version):
 
 repo = Repo('.')
 
-tracked_list = ["illumina.f"]
+tracked_list = ["illumina.f","setup.py","main.py"]
 
 with open("version") as f:
     full = f.read()

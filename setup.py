@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='illum',
-    version='2.0.1',
+    version='2.1.20w19.3a-dev',
     py_modules=['main','defineDomain','Illuminutils','make_inputs',
     'make_zones','make_lamps','makeBATCH','find-failed-runs','extract-output-data',
     'init_run','alt_scenario_maker','hdf_convert','pytools','MultiScaleData'],
@@ -18,7 +18,7 @@ setup(
         'astropy',
         'pandas',
         'geopandas',
-	'fiona'
+        'fiona'
     ],
     entry_points='''
         [console_scripts]
