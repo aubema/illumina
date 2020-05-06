@@ -229,14 +229,17 @@ c                                                                         ! a li
       integer i,j,k,id,jd
       real tranam,tranaa                                                  ! atmospheric transmittancess of a path (molecular, aerosol)
       real zhoriz                                                         ! zenith angle of the horizon
-      real direct                                                         ! irradiance from sources on a surface normal to the line of sight (no scattering)
-      real rdirect                                                        ! irradiance from a reflecting surface on a surface normal to the line of sight (no scattering)
+      real direct                                                         ! direct radiance from sources on a surface normal to the line of sight (no scattering)
+      real rdirect                                                        ! direct radiance from a reflecting surface on a surface normal to the line of sight (no scattering)
       real dang                                                           ! Angle between the line of sight and the direction of a source
       real dzen                                                           ! zenith angle of the source-observer line
       real ddir_obs                                                       ! distance between the source and the observer
-      real rx,ry,rz                                                       ! driving vector for the calculation of the projection angle for irradiance. It is 20km long
+      real rx,ry,rz                                                       ! driving vector for the calculation of the projection angle for direct radiance. It is 20km long
+      real dfov                                                           ! field of view in degrees for the calculation of the direct radiance this number will be a kind of smoothing effect. The angular grid resolution to create a direct radiance panorama should be finer than that number
       verbose=1                                                           ! Very little printout=0, Many printout = 1, even more=2
       diamobj=1.                                                          ! A dummy value for the diameter of the objective of the instrument used by the observer.
+      fov=5.
+      fov=(fov*pi/180.)/2.
       volu=0.
       zero=0.
       un=1.
@@ -761,8 +764,8 @@ c temporaire !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
  1110   format(I4,1x,I4,1x,I4)
         fctcld=0.
         ftocap=0.                                                         ! Initialisation of the value of flux received by the sensor
-        direct=0.                                                         ! initialize the total direct irradiance between sources and observer
-        rdirect=0.                                                        ! initialize the total reflected irradiance between sources and observer       
+        direct=0.                                                         ! initialize the total direct radiance between sources and observer
+        rdirect=0.                                                        ! initialize the total direct reflected radiance between sources and observer       
         angvi1 = (pi*angvis)/180.
         angaz1 = (pi*azim)/180.
         ix = ( sin((pi/2.)-angvi1) ) * (cos(angaz1))                      ! viewing vector components
@@ -860,8 +863,8 @@ c beginning of the loop over the types of light sources
                         z_s=(altsol(x_s,y_s)+lampal(x_s,y_s))             ! Definition of the position (metre) vertical of the source.
 c
 c *********************************************************************************************************
-c calculation of the irradiance of sources falling on a surface perpendicular
-c to the viewing angle Units of W/nm/m2
+c calculation of the direct radiance of sources falling on a surface perpendicular
+c to the viewing angle Units of W/nm/m2/sr
 c *********************************************************************************************************
                         if (icible.eq.1) then                             ! do the direct sight calculation only once
                           rx=rx_obs+20000.*ix
@@ -912,14 +915,16 @@ c computation of the flux direct reaching the line of sight voxel
      +                      then
                               ddir_obs=sqrt((rx_obs-rx_s)**2.+               ! distance direct sight between source and observer
      +                        (ry_obs-ry_s)**2.+(z_obs-z_s)**2.)
-c computation of the solid angle of the line of sight voxel seen from the source
+c computation of the solid angle of a unit surface seen from the source
                               omega=1.*abs(cos(dang))/ddir_obs**2.                  
                               call transmitm(dzen,z_s,z_obs,ddir_obs,
      +                        transm,tranam)
                               call transmita(dzen,z_s,z_obs,ddir_obs,
      +                        transa,tranaa)
-                              direct=direct+lamplu(x_s,y_s,stype)*
-     +                        P_dir*omega*(1.-ff)*hh                        ! correction for obstacle filling factor  
+                              if (dang.lt.dfov) then                      ! check if the source enter the field of view of the observer
+                                direct=direct+lamplu(x_s,y_s,stype)*
+     +                          P_dir*omega*(1.-ff)*hh/dfov**2.           ! correction for obstacle filling factor 
+                              endif
                             endif
                           endif
                         endif                                             ! end icible=1 for the calculation of direct sight
@@ -1177,8 +1182,8 @@ c computation of the reflected intensity leaving the ground surface
                                         
 c
 c *********************************************************************************************************
-c calculation of the irradiance from reflexion falling on a surface perpendicular
-c to the viewing angle Units of W/nm/m2
+c calculation of the direct radiance from reflexion falling on a surface perpendicular
+c to the viewing angle Units of W/nm/m2/sr
 c *********************************************************************************************************
                         if (icible.eq.1) then                            ! do the direct sight calculation only once
                           dho=sqrt((rx_obs-rx_sr)**2.
@@ -1230,19 +1235,13 @@ c computation of the solid angle of the line of sight voxel seen from the source
      +                        transm,tranam)
                               call transmita(dzen,z_sr,z_obs,ddir_obs,
      +                        transa,tranaa)
-                              rdirect=rdirect+irefl1*omega*transa*
-     +                        transm*hh*(1.-ff)
+                              if (dang.lt.dfov) then                      ! check if the reflecting surface enter the field of view of the observer
+                                rdirect=rdirect+irefl1*omega*transa*
+     +                          transm*hh*(1.-ff)/dfov**2.
+                              endif
                             endif
                           endif
                         endif                                             ! end icible=1 for the calculation of direct sight                                        
-                                        
-                                        
-                                        
-                                        
-                                        
-                                        
-                                        
-                                        
 c
 c
 c
@@ -1780,9 +1779,9 @@ c          stop
         
         if (verbose.ge.1) print*,'======================================
      +==============='
-        print*,'         Direct irradiance from sources (W/m**2/nm)'
+        print*,'         Direct radiance from sources (W/str/m**2/nm)'
         write(*,2001)  direct
-        print*,'         Direct irradiance from reflexion (W/m**2/nm)'
+        print*,'         Direct radiance from reflexion (W/str/m**2/nm)'
         write(*,2001)  rdirect
         print*,'             Cloud radiance (W/str/m**2/nm)'
         write(*,2001) fctcld/omefov/(pi*(diamobj/2.)**2.)
@@ -1790,9 +1789,9 @@ c          stop
         write(*,2001) (ftocap+fctcld)/omefov/(pi*(diamobj/2.)**2.)
         if (verbose.ge.1) write(2,*) '==================================
      +================='
-        write(2,*) '         Direct irradiance from sources (W/m**2/nm)'
+        write(2,*) '         Direct radiance from sources (W/str/m**2/nm)'
         write(2,2001)  direct
-        write(2,*) '       Direct irradiance from reflexion (W/m**2/nm)'
+        write(2,*) '       Direct radiance from reflexion (W/str/m**2/nm)'
         write(2,2001)  rdirect        
         write(2,*) '           Cloud radiance (W/str/m**2/nm)         '
         write(2,2001) fctcld/omefov/(pi*(diamobj/2.)**2.)    
