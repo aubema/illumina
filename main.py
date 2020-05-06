@@ -4,7 +4,8 @@ import click
 from importlib import import_module
 
 @click.group()
-def illum():
+@click.version_option("2.1.2018a",prog_name="Illumina model")
+def illum(version):
     r"""Illumina model.
 
     See 'illum COMMAND --help' to read about specific subcommand.
