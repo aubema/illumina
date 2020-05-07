@@ -19,31 +19,26 @@ if p.version and not re.match(r"^\d+\.\d+$",p.version):
 
 repo = Repo('.')
 
-tracked_list = ["illumina.f"]
+tracked_list = ["version","illumina.f"]
 
 with open("version") as f:
-    full = f.read()
-major = p.version if p.version \
-    else '.'.join(full.split('.')[:2])
+    old = f.read()
+new = p.version if p.version \
+    else '.'.join(old.split('.')[:2])
 
-minor = dt.now().strftime("%gw%V.%u")
-minor += 'a' if major != '.'.join(full.split('.')[:2]) \
-    else chr(ord(full.split('-')[0][-1])+1)
+new += '.' + dt.now().strftime("%gw%V.%u")
+new += 'a' if new != old.split('-')[0][:-1] \
+    else chr(ord(old.split('-')[0][-1])+1)
 
 branch = repo.active_branch.name
 if branch != "master":
-    minor += "-" + branch
-
-version = major + '.' + minor
+    new += "-" + branch
 
 for fname in tracked_list:
     with open(fname) as f:
         file_content = f.read()
     with open(fname,'w') as f:
-        f.write(file_content.replace(full,version))
+        f.write(file_content.replace(old,new))
+    repo.git.add(fname)
 
-with open("version",'w') as f:
-    f.write(version)
-
-repo.git.add("version")
-print(repo.git.commit(a=p.all,m=f"{version} {p.message}"))
+print(repo.git.commit(a=p.all,m=f"{new} {p.message}"))
