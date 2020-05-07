@@ -115,18 +115,18 @@ x = np.mean([limits[1:],limits[:-1]],0)
 
 print("Interpolating reflectance.")
 
-asper_files = glob("Lights/*.asper")
-asper = {
+aster_files = glob("Lights/*.aster")
+aster = {
 	os.path.basename(s).split('.',1)[0] : \
 	np.loadtxt(s) \
-	for s in asper_files
+	for s in aster_files
 }
 
-for type in asper:
-	wl,refl = asper[type].T
+for type in aster:
+	wl,refl = aster[type].T
 	wl *= 1000.
 	refl /= 100.
-	asper[type] = np.interp(wav, wl, refl)
+	aster[type] = np.interp(wav, wl, refl)
 
 sum_coeffs = sum(
 	params['reflectance'][type] \
@@ -136,7 +136,7 @@ if sum_coeffs == 0:
 	sum_coeffs = 1.
 
 refl = sum(
-	asper[type]*coeff/sum_coeffs \
+	aster[type]*coeff/sum_coeffs \
 	for type,coeff \
 	in params['reflectance'].items()
 )
