@@ -275,7 +275,6 @@ c reading of the fichier d'entree (illumina.in)
         read(1,*)
         read(1,*)
         read(1,*) reflsiz
-c        read(1,*) cloudt, cloudbase, cloudtop
         read(1,*) cloudt, cloudbase, cloudfrac
         read(1,*)
       close(1)
@@ -339,7 +338,7 @@ c cartesian, azim=0 toward east, 90 toward north, 180 toward west etc
       if (azim.ge.360.) azim=azim-360.
 c opening output file
       open(unit=2,file=outfile,status='unknown')
-        write(2,*) "ILLUMINA version 2.0.20w19.4d"
+        write(2,*) "ILLUMINA version 2.0.20w19.4e"
 c check if the observation angle is above horizon
         angzen=pi/2.-angvis*pi/180.
         call horizon(x_obs,y_obs,z_obs,dx,dy,altsol,angazi,zhoriz,dh)
