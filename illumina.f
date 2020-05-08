@@ -292,6 +292,17 @@ c        read(1,*) cloudt, cloudbase, cloudtop
       if (angvis.lt.0.) then                                              ! the line of sight is not below the horizon => we compute
         ncible=1
       endif
+c Atmospheric correction and obstacles masking corrections to the lamp
+c flux arrays (lumlp)
+      
+      
+      
+      
+      
+      
+      
+      
+      
 c omemax: exclude calculations too close (<57m) this is a sustended angle of 1 deg.
 c the calculated flux is highly sensitive to that number for a very high
 c pixel resolution (a few 10th of meters). We assume anyway that somebody
@@ -1789,9 +1800,9 @@ c          stop
         write(*,2001) (ftocap+fctcld)/omefov/(pi*(diamobj/2.)**2.)
         if (verbose.ge.1) write(2,*) '==================================
      +================='
-        write(2,*) '         Direct radiance from sources (W/str/m**2/nm)'
+        write(2,*) '       Direct radiance from sources (W/str/m**2/nm)'
         write(2,2001)  direct
-        write(2,*) '       Direct radiance from reflexion (W/str/m**2/nm)'
+        write(2,*) '     Direct radiance from reflexion (W/str/m**2/nm)'
         write(2,2001)  rdirect        
         write(2,*) '           Cloud radiance (W/str/m**2/nm)         '
         write(2,2001) fctcld/omefov/(pi*(diamobj/2.)**2.)
