@@ -15,7 +15,7 @@ aerosol.mie.out                ! Aerosol optical cross section file
 13 13 0 1                      ! Observer X position ; Observer Y position ; Observer elevation above ground [m] ; Beginning cell along line of sight
                                !
 90 0                           ! Elevation viewing angle ; Azimuthal viewing angle
-                               !
+                               ! FOV angle in degrees for the direct radiance calculation
 1.0 1.0 1.0 1.1283791671       ! Slit width [m] ; Pixel size [m] ; Focal length [m] ; Apperture diameter [m]
                                ! to get W/str/m**2, SW*PS*pi*AD**2/4/FL**2 = 1  / 1. 1. 1. 1.1283791671 is doing exactly that
 62.                            ! Maximum radius for reflexion on the groud surface
