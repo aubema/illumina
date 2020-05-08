@@ -241,7 +241,7 @@ for i,param_vals in enumerate(comb(*param_space),1):
         (('', ''),),
         ((P['elevation_angle'], "Elevation viewing angle"),
          (P['azimuth_angle'], "Azimuthal viewing angle")),
-        (('', ''),),
+        ((P['direct_fov'], 'Direct field of view'),),
         (('', ''),),
         (('', ''),),
         (('', ''),),

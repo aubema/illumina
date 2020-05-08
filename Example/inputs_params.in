@@ -24,5 +24,6 @@ stop_limit: 5000.              # Stop computation when the new voxel contributio
 double_scattering: False       # Activate double scattering (True/False)
 elevation_angle: [90,45]
 azimuth_angle: [0,60,120,180,240,300]
+direct_fov: 5                  # Field of view for the direct radiance calculations
 aerosol_optical_depth: 0.11    # AOD value at 500 nm
 angstrom_coefficient: 0.7      # angstrom exponent value
