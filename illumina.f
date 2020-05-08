@@ -236,6 +236,10 @@ c                                                                         ! a li
       real ddir_obs                                                       ! distance between the source and the observer
       real rx,ry,rz                                                       ! driving vector for the calculation of the projection angle for direct radiance. It is 20km long
       real dfov                                                           ! field of view in degrees for the calculation of the direct radiance this number will be a kind of smoothing effect. The angular grid resolution to create a direct radiance panorama should be finer than that number
+      real Fo                                                             ! flux correction factor for obstacles
+      real thetali                                                        ! limit angle for the obstacles blocking of viirs
+      integer viirs(width,width)                                          ! viirs flag 1=yes 0=no
+      character*72 vifile                                                 ! name of the viirs flag file
       verbose=1                                                           ! Very little printout=0, Many printout = 1, even more=2
       diamobj=1.                                                          ! A dummy value for the diameter of the objective of the instrument used by the observer.
       volu=0.
@@ -275,7 +279,6 @@ c reading of the fichier d'entree (illumina.in)
         read(1,*)
         read(1,*)
         read(1,*) reflsiz
-c        read(1,*) cloudt, cloudbase, cloudtop
         read(1,*) cloudt, cloudbase, cloudfrac
         read(1,*)
       close(1)
@@ -291,17 +294,6 @@ c        read(1,*) cloudt, cloudbase, cloudtop
       if (angvis.lt.0.) then                                              ! the line of sight is not below the horizon => we compute
         ncible=1
       endif
-c Atmospheric correction and obstacles masking corrections to the lamp
-c flux arrays (lumlp)
-      
-      
-      
-      
-      
-      
-      
-      
-      
 c omemax: exclude calculations too close (<57m) this is a sustended angle of 1 deg.
 c the calculated flux is highly sensitive to that number for a very high
 c pixel resolution (a few 10th of meters). We assume anyway that somebody
@@ -314,7 +306,7 @@ c choice
         print*,'2nd order scattering grid = ',siz,'m'
         print*,'2nd order scattering radius=',effdif,'m'
         print*,'Pixel size = ',dx,' x ',dy
-        print*,'Maximum radius for reflexion = ',reflsiz
+        print*,'Maximum radius for reflection = ',reflsiz
       endif
 c computing the actual AOD at the wavelength lambda
       if (verbose.ge.1) print*,'500nm AOD=',taua,'500nm angstrom coeff.=
@@ -339,7 +331,7 @@ c cartesian, azim=0 toward east, 90 toward north, 180 toward west etc
       if (azim.ge.360.) azim=azim-360.
 c opening output file
       open(unit=2,file=outfile,status='unknown')
-        write(2,*) "ILLUMINA version 2.0.20w19.4e"
+        write(2,*) "ILLUMINA version 2.0.20w19.4h"
 c check if the observation angle is above horizon
         angzen=pi/2.-angvis*pi/180.
         call horizon(x_obs,y_obs,z_obs,dx,dy,altsol,angazi,zhoriz,dh)
@@ -372,6 +364,7 @@ c Initialisation of the arrays and variables
             val2d(i,j)=0.
             altsol(i,j)=0.
             obsH(i,j)=0.
+            viirs(i,j)=0
             ofill(i,j)=0.
             inclix(i,j)=0.
             incliy(i,j)=0.
@@ -437,9 +430,6 @@ c determine the 2nd scattering zone
           call zone_diffusion(effdif,
      +    zondif,ndiff,stepdi,siz)
           dss=1.*siz
-
-
-
           if (verbose.gt.0) then
             print*,'2nd order scattering grid points =',ndiff
             print*,'2nd order scattering smoothing radius =',dss,'m'
@@ -447,6 +437,7 @@ c determine the 2nd scattering zone
         endif
 c determination of the vertical atmospheric transmittance
         call transtoa(lambda,taua,pressi,tranam,tranaa)                   ! tranam and tranaa are the top of atmosphere transmittance (molecules and aerosols)
+
 c reading of the environment variables
 c reading of the elevation file
         call twodin(nbx,nby,mnaf,altsol)
@@ -477,6 +468,7 @@ c of the sources, obstacle height and distance
         odfile=basenm(1:lenbase)//'_obstd.bin'
         alfile=basenm(1:lenbase)//'_altlp.bin'                            ! setting the file name of height of the sources lumineuse.
         offile=basenm(1:lenbase)//'_obstf.bin'
+        vifile='origin.bin'
         dtheta=.017453293                                                 ! one degree
 c reading lamp heights
         call twodin(nbx,nby,alfile,val2d)
@@ -505,6 +497,13 @@ c reading subgrid obstacles filling factor
         do i=1,nbx                                                        ! beginning of the loop over all cells along x.
           do j=1,nby                                                      ! beginning of the loop over all cells along y.
             ofill(i,j)=val2d(i,j)                                         ! Filling of the array 0-1
+          enddo                                                           ! end of the loop over all cells along y.
+        enddo
+c reading viirs flag
+        call twodin(nbx,nby,vifile,val2d)
+        do i=1,nbx                                                        ! beginning of the loop over all cells along x.
+          do j=1,nby                                                      ! beginning of the loop over all cells along y.
+            viirs(i,j)=nint(val2d(i,j))                                   ! viirs flag array 0 or 1
           enddo                                                           ! end of the loop over all cells along y.
         enddo
 c reading of the scattering parameters
@@ -738,6 +737,15 @@ c reading luminosity files
  336      do i=1,nbx                                                      ! beginning of the loop over all cells along x.
             do j=1,nby                                                    ! beginning of the loop over all cells along y.
               lamplu(i,j,stype)=val2d(i,j)                                ! remplir the array of the lamp type: stype
+c Atmospheric correction and obstacles masking corrections to the lamp
+c flux arrays (lumlp)
+              if (viirs(i,j).eq.1) then
+                lamplu(i,j,stype)=lamplu(i,j,stype)/(tranam*tranaa)
+                thetali=atan(drefle(i,j)/obsH(i,j))
+                Fo=(1.-cos(70.*pi/180.))/(1.-ofill(i,j)*cos(thetali)+
+     +          (ofill(i,j)-1.)*cos(70.*pi/180.))
+                lamplu(i,j,stype)=lamplu(i,j,stype)*Fo
+              endif
               totlu(stype)=totlu(stype)+lamplu(i,j,stype)                 ! the total lamp flux should be non-null to proceed to the calculations
             enddo                                                         ! end of the loop over all cells along y.
           enddo                                                           ! end of the loop over all cells along x.
@@ -1018,7 +1026,7 @@ c distance pour traverser la cellule unitaire parfaitement orientée
                               endif
 c computation of the source contribution to the direct intensity toward the sensor by a line of sight voxel
                               intdir=fldir*pdifdi
-c contribution of the cloud reflexion of the light coming directly from the source
+c contribution of the cloud reflection of the light coming directly from the source
                               if (cloudt.ne.0) then                       ! line of sight voxel = cloud
                                 if (cloudbase-z_c.le.iz*scal) then
                                   call anglezenithal(rx_c,ry_c,z_c,
@@ -1045,13 +1053,13 @@ c
 c
 c
 c **********************************************************************************************************************
-c * computation of the scattered light toward the observer by a line of sight voxel lighted by the ground reflexion    *
+c * computation of the scattered light toward the observer by a line of sight voxel lighted by the ground reflection    *
 c **********************************************************************************************************************
 c etablissement of the conditions ands boucles
                             itotind=0.                                    ! Initialisation of the reflected intensity of the source
                             itotrd=0.
-                            boxx=nint(reflsiz/dx)                         ! Number of column to consider left/right of the source for the reflexion.
-                            boxy=nint(reflsiz/dy)                         ! Number of column to consider up/down of the source for the reflexion.
+                            boxx=nint(reflsiz/dx)                         ! Number of column to consider left/right of the source for the reflection.
+                            boxy=nint(reflsiz/dy)                         ! Number of column to consider up/down of the source for the reflection.
                             xsrmi=x_s-boxx
                             if (xsrmi.lt.1) xsrmi=1
                             xsrma=x_s+boxx
@@ -1191,7 +1199,7 @@ c computation of the reflected intensity leaving the ground surface
 
 c
 c *********************************************************************************************************
-c calculation of the direct radiance from reflexion falling on a surface perpendicular
+c calculation of the direct radiance from reflection falling on a surface perpendicular
 c to the viewing angle Units of W/nm/m2/sr
 c *********************************************************************************************************
                         if (icible.eq.1) then                            ! do the direct sight calculation only once
@@ -1258,7 +1266,7 @@ c
 c
 c
 c **************************************************************************************
-c * computation of the 2nd scattering contributions (2 order scattering and after reflexion)
+c * computation of the 2nd scattering contributions (2 order scattering and after reflection)
 c **************************************************************************************
                                         if (effdif.gt.0.) then
       nss=0
@@ -1802,7 +1810,7 @@ c          stop
         write(2,*) '       Direct radiance from sources (W/str/m**2/nm)'
         write(2,2001)  direct
         write(2,*) '     Direct radiance from reflexion (W/str/m**2/nm)'
-        write(2,2001)  rdirect        
+        write(2,2001)  rdirect
         write(2,*) '           Cloud radiance (W/str/m**2/nm)         '
         write(2,2001) fctcld/omefov/(pi*(diamobj/2.)**2.)
         write(2,*) '            Sky radiance (W/str/m**2/nm)          '
