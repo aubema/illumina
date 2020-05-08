@@ -238,8 +238,6 @@ c                                                                         ! a li
       real dfov                                                           ! field of view in degrees for the calculation of the direct radiance this number will be a kind of smoothing effect. The angular grid resolution to create a direct radiance panorama should be finer than that number
       verbose=1                                                           ! Very little printout=0, Many printout = 1, even more=2
       diamobj=1.                                                          ! A dummy value for the diameter of the objective of the instrument used by the observer.
-      fov=5.
-      fov=(fov*pi/180.)/2.
       volu=0.
       zero=0.
       un=1.
@@ -272,7 +270,7 @@ c reading of the fichier d'entree (illumina.in)
         read(1,*) x_obs,y_obs,z_o
         read(1,*)
         read(1,*) angvis,azim
-        read(1,*)
+        read(1,*) dfov
         read(1,*)
         read(1,*)
         read(1,*)
@@ -281,6 +279,7 @@ c        read(1,*) cloudt, cloudbase, cloudtop
         read(1,*) cloudt, cloudbase, cloudfrac
         read(1,*)
       close(1)
+      dfov=(fov*pi/180.)/2.
       siz=2500.
       if (ssswit.eq.0) then
         effdif=0.
