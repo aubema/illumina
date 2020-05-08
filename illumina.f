@@ -279,7 +279,7 @@ c        read(1,*) cloudt, cloudbase, cloudtop
         read(1,*) cloudt, cloudbase, cloudfrac
         read(1,*)
       close(1)
-      dfov=(fov*pi/180.)/2.
+      dfov=(dfov*pi/180.)/2.
       siz=2500.
       if (ssswit.eq.0) then
         effdif=0.
