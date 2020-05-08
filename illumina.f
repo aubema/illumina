@@ -236,6 +236,10 @@ c                                                                         ! a li
       real ddir_obs                                                       ! distance between the source and the observer
       real rx,ry,rz                                                       ! driving vector for the calculation of the projection angle for direct radiance. It is 20km long
       real dfov                                                           ! field of view in degrees for the calculation of the direct radiance this number will be a kind of smoothing effect. The angular grid resolution to create a direct radiance panorama should be finer than that number
+      real Fo                                                             ! flux correction factor for obstacles
+      real thetali                                                        ! limit angle for the obstacles blocking of viirs
+      integer viirs(width,width)                                          ! viirs flag 1=yes 0=no
+      character*72 vifile                                                 ! name of the viirs flag file
       verbose=1                                                           ! Very little printout=0, Many printout = 1, even more=2
       diamobj=1.                                                          ! A dummy value for the diameter of the objective of the instrument used by the observer.
       volu=0.
@@ -290,17 +294,6 @@ c reading of the fichier d'entree (illumina.in)
       if (angvis.lt.0.) then                                              ! the line of sight is not below the horizon => we compute
         ncible=1
       endif
-c Atmospheric correction and obstacles masking corrections to the lamp
-c flux arrays (lumlp)
-      
-      
-      
-      
-      
-      
-      
-      
-      
 c omemax: exclude calculations too close (<57m) this is a sustended angle of 1 deg.
 c the calculated flux is highly sensitive to that number for a very high
 c pixel resolution (a few 10th of meters). We assume anyway that somebody
@@ -338,7 +331,7 @@ c cartesian, azim=0 toward east, 90 toward north, 180 toward west etc
       if (azim.ge.360.) azim=azim-360.
 c opening output file
       open(unit=2,file=outfile,status='unknown')
-        write(2,*) "ILLUMINA version 2.0.20w19.4f"
+        write(2,*) "ILLUMINA version 2.0.20w19.4g"
 c check if the observation angle is above horizon
         angzen=pi/2.-angvis*pi/180.
         call horizon(x_obs,y_obs,z_obs,dx,dy,altsol,angazi,zhoriz,dh)
@@ -371,6 +364,7 @@ c Initialisation of the arrays and variables
             val2d(i,j)=0.
             altsol(i,j)=0.
             obsH(i,j)=0.
+            viirs(i,j)=0
             ofill(i,j)=0.
             inclix(i,j)=0.
             incliy(i,j)=0.
@@ -436,9 +430,6 @@ c determine the 2nd scattering zone
           call zone_diffusion(effdif,
      +    zondif,ndiff,stepdi,siz)
           dss=1.*siz
-
-
-
           if (verbose.gt.0) then
             print*,'2nd order scattering grid points =',ndiff
             print*,'2nd order scattering smoothing radius =',dss,'m'
@@ -446,6 +437,7 @@ c determine the 2nd scattering zone
         endif
 c determination of the vertical atmospheric transmittance
         call transtoa(lambda,taua,pressi,tranam,tranaa)                   ! tranam and tranaa are the top of atmosphere transmittance (molecules and aerosols)
+        
 c reading of the environment variables
 c reading of the elevation file
         call twodin(nbx,nby,mnaf,altsol)
@@ -476,6 +468,7 @@ c of the sources, obstacle height and distance
         odfile=basenm(1:lenbase)//'_obstd.bin'
         alfile=basenm(1:lenbase)//'_altlp.bin'                            ! setting the file name of height of the sources lumineuse.
         offile=basenm(1:lenbase)//'_obstf.bin'
+        vifile='origin.bin'
         dtheta=.017453293                                                 ! one degree
 c reading lamp heights
         call twodin(nbx,nby,alfile,val2d)
@@ -504,6 +497,13 @@ c reading subgrid obstacles filling factor
         do i=1,nbx                                                        ! beginning of the loop over all cells along x.
           do j=1,nby                                                      ! beginning of the loop over all cells along y.
             ofill(i,j)=val2d(i,j)                                         ! Filling of the array 0-1
+          enddo                                                           ! end of the loop over all cells along y.
+        enddo
+c reading viirs flag
+        call twodin(nbx,nby,vifile,val2d)
+        do i=1,nbx                                                        ! beginning of the loop over all cells along x.
+          do j=1,nby                                                      ! beginning of the loop over all cells along y.
+            viirs(i,j)=nint(val2d(i,j))                                   ! viirs flag array 0 or 1
           enddo                                                           ! end of the loop over all cells along y.
         enddo
 c reading of the scattering parameters
@@ -737,6 +737,15 @@ c reading luminosity files
  336      do i=1,nbx                                                      ! beginning of the loop over all cells along x.
             do j=1,nby                                                    ! beginning of the loop over all cells along y.
               lamplu(i,j,stype)=val2d(i,j)                                ! remplir the array of the lamp type: stype
+c Atmospheric correction and obstacles masking corrections to the lamp
+c flux arrays (lumlp)
+              if (viirs(i,j).eq.1) then
+                lamplu(i,j,stype)=lamplu(i,j,stype)/(tranam*tranaa)
+                thetali=atan(drefle(i,j)/obsH(i,j))
+                Fo=(1.-cos(70.*pi/180.))/(1.-ofill(i,j)*cos(thetali)+
+     +          (ofill(i,j)-1.)*cos(70.*pi/180.))
+                lamplu(i,j,stype)=lamplu(i,j,stype)*Fo
+              endif
               totlu(stype)=totlu(stype)+lamplu(i,j,stype)                 ! the total lamp flux should be non-null to proceed to the calculations
             enddo                                                         ! end of the loop over all cells along y.
           enddo                                                           ! end of the loop over all cells along x.
