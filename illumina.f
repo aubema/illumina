@@ -941,8 +941,8 @@ c computation of the solid angle of the line of sight voxel seen from the source
                               call transmita(dzen,z_s,z_obs,ddir_obs,
      +                        transa,tranaa)
                               if (dang.lt.dfov) then                      ! check if the reflecting surface enter the field of view of the observer
-                                rdirect=rdirect+irefl1*omega*transa*
-     +                          transm*hh*(1.-ff)/dfov**2.
+                                direct=direct+lamplu(x_s,y_s,stype)*
+     +                          P_dir*omega*(1.-ff)*hh/dfov**2.           ! correction for obstacle filling factor
                               endif
                             endif
                           endif
