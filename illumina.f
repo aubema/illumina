@@ -313,7 +313,7 @@ c choice
         print*,'2nd order scattering grid = ',siz,'m'
         print*,'2nd order scattering radius=',effdif,'m'
         print*,'Pixel size = ',dx,' x ',dy
-        print*,'Maximum radius for reflexion = ',reflsiz
+        print*,'Maximum radius for reflection = ',reflsiz
       endif
 c computing the actual AOD at the wavelength lambda
       if (verbose.ge.1) print*,'500nm AOD=',taua,'500nm angstrom coeff.=
@@ -338,7 +338,7 @@ c cartesian, azim=0 toward east, 90 toward north, 180 toward west etc
       if (azim.ge.360.) azim=azim-360.
 c opening output file
       open(unit=2,file=outfile,status='unknown')
-        write(2,*) "ILLUMINA version 2.0.20w19.4e"
+        write(2,*) "ILLUMINA version 2.0.20w19.4f"
 c check if the observation angle is above horizon
         angzen=pi/2.-angvis*pi/180.
         call horizon(x_obs,y_obs,z_obs,dx,dy,altsol,angazi,zhoriz,dh)
@@ -1017,7 +1017,7 @@ c distance pour traverser la cellule unitaire parfaitement orientée
                               endif
 c computation of the source contribution to the direct intensity toward the sensor by a line of sight voxel
                               intdir=fldir*pdifdi
-c contribution of the cloud reflexion of the light coming directly from the source
+c contribution of the cloud reflection of the light coming directly from the source
                               if (cloudt.ne.0) then                       ! line of sight voxel = cloud
                                 if (cloudbase-z_c.le.iz*scal) then
                                   call anglezenithal(rx_c,ry_c,z_c,
@@ -1044,13 +1044,13 @@ c
 c
 c
 c **********************************************************************************************************************
-c * computation of the scattered light toward the observer by a line of sight voxel lighted by the ground reflexion    *
+c * computation of the scattered light toward the observer by a line of sight voxel lighted by the ground reflection    *
 c **********************************************************************************************************************
 c etablissement of the conditions ands boucles
                             itotind=0.                                    ! Initialisation of the reflected intensity of the source
                             itotrd=0.
-                            boxx=nint(reflsiz/dx)                         ! Number of column to consider left/right of the source for the reflexion.
-                            boxy=nint(reflsiz/dy)                         ! Number of column to consider up/down of the source for the reflexion.
+                            boxx=nint(reflsiz/dx)                         ! Number of column to consider left/right of the source for the reflection.
+                            boxy=nint(reflsiz/dy)                         ! Number of column to consider up/down of the source for the reflection.
                             xsrmi=x_s-boxx
                             if (xsrmi.lt.1) xsrmi=1
                             xsrma=x_s+boxx
@@ -1190,7 +1190,7 @@ c computation of the reflected intensity leaving the ground surface
 
 c
 c *********************************************************************************************************
-c calculation of the direct radiance from reflexion falling on a surface perpendicular
+c calculation of the direct radiance from reflection falling on a surface perpendicular
 c to the viewing angle Units of W/nm/m2/sr
 c *********************************************************************************************************
                         if (icible.eq.1) then                            ! do the direct sight calculation only once
@@ -1257,7 +1257,7 @@ c
 c
 c
 c **************************************************************************************
-c * computation of the 2nd scattering contributions (2 order scattering and after reflexion)
+c * computation of the 2nd scattering contributions (2 order scattering and after reflection)
 c **************************************************************************************
                                         if (effdif.gt.0.) then
       nss=0
