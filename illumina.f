@@ -291,9 +291,11 @@ c reading of the fichier d'entree (illumina.in)
       endif
       scal=19.
       scalo=scal
-      if (angvis.lt.0.) then                                              ! the line of sight is not below the horizon => we compute
-        ncible=1
-      endif
+c      if (angvis.lt.0.) then                                              ! the line of sight is not below the horizon => we compute
+c        ncible=1
+c      endif
+
+
 c omemax: exclude calculations too close (<57m) this is a sustended angle of 1 deg.
 c the calculated flux is highly sensitive to that number for a very high
 c pixel resolution (a few 10th of meters). We assume anyway that somebody
@@ -331,10 +333,13 @@ c cartesian, azim=0 toward east, 90 toward north, 180 toward west etc
       if (azim.ge.360.) azim=azim-360.
 c opening output file
       open(unit=2,file=outfile,status='unknown')
-        write(2,*) "ILLUMINA version 2.0.20w19.4h"
-c check if the observation angle is above horizon
+        write(2,*) "ILLUMINA version 2.0.20w20.3a"
+
+
+c I DO NOT THINK THE FOLLOWING 2 LINES ARE STILL REQUIRED
         angzen=pi/2.-angvis*pi/180.
         call horizon(x_obs,y_obs,z_obs,dx,dy,altsol,angazi,zhoriz,dh)
+
 
         write(2,*) 'FILE USED:'
         write(2,*) mnaf,diffil
@@ -796,7 +801,14 @@ c temporaire !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         do icible=1,ncible                                                ! beginning of the loop over the line of sight voxels
           rx_c=rx_c+ix*(scalo/2.+scal/2.)
           ry_c=ry_c+iy*(scalo/2.+scal/2.)
+          x_c=nint(rx_c/dx)
+          if (x_c.lt.1) x_c=1
+          if (x_c.gt.width) x_c=width
+          y_c=nint(ry_c/dy)
+          if (y_c.lt.1) y_c=1
+          if (y_c.gt.width) y_c=width
           z_c=z_c+iz*(scalo/2.+scal/2.)
+          if (z_c.gt.altsol(x_c,y_c)) then
           if ((fcapt.ge.ftocap/stoplim).and.(z_c.lt.cloudbase).and.       ! stop the calculation of the viewing line when the increment is lower than 1/stoplim
      +    (z_c.lt.35000.)) then                                           ! or when hitting a cloud or when z>40km (scattering probability =0 (given precision)
             fcapt=0.
@@ -840,7 +852,7 @@ c computation of the Solid angle of the line of sight voxel seen from the observ
       if (verbose.ge.1) print*,' Horizontal dist. line of sight =',
      +sqrt((rx_c-rx_obs)**2.+(ry_c-ry_obs)**2.),' m'
       if (verbose.ge.1) print*,' Vertical dist. line of sight =',
-     +z_c-z_obs,' m'
+     +abs(z_c-z_obs),' m'
               if (verbose.ge.1) write(2,*) '========================
      +====================='
       if (verbose.ge.1) write(2,*) ' Progression along the line of sight
@@ -848,7 +860,7 @@ c computation of the Solid angle of the line of sight voxel seen from the observ
       if (verbose.ge.1) write(2,*) ' Horizontal dist. line of sight =',
      +sqrt((rx_c-rx_obs)**2.+(ry_c-ry_obs)**2.),' m'
       if (verbose.ge.1) write(2,*) ' Vertical dist. line of sight =',
-     +z_c-z_obs,' m'
+     +abs(z_c-z_obs),' m'
               dis_obs=sqrt((z_c-z_obs)**2.+(ry_c-ry_obs)**2.
      +          +(rx_c-rx_obs)**2.)
               if (dis_obs.eq.0.) then
@@ -940,8 +952,10 @@ c computation of the solid angle of the line of sight voxel seen from the source
      +                        transm,tranam)
                               call transmita(dzen,z_s,z_obs,ddir_obs,
      +                        transa,tranaa)
-                              direct=direct+lamplu(x_s,y_s,stype)*
-     +                        P_dir*omega*(1.-ff)*hh                        ! correction for obstacle filling factor
+                              if (dang.lt.dfov) then                      ! check if the reflecting surface enter the field of view of the observer
+                                direct=direct+lamplu(x_s,y_s,stype)*
+     +                          P_dir*omega*(1.-ff)*hh/dfov**2.           ! correction for obstacle filling factor
+                              endif
                             endif
                           endif
                         endif                                             ! end icible=1 for the calculation of direct sight
@@ -1749,7 +1763,7 @@ c computation of the flux reaching the intrument from the cloud voxel
 c accelerate the computation as we get away from the sources
           scalo=scal
           if (scal.le.3000.)  scal=scal*1.12
-
+          endif
         enddo                                                             ! end of the loop over the line of sight voxels.
         fctcld=fctcld*10**(0.4*(100.-cloudfrac)*cloudslope)               ! correction for the cloud fraction (defined from 0 to 100)
         if (prmaps.eq.1) then
@@ -1781,18 +1795,10 @@ c load 'BASENAME_pcl.gplot'
           close(unit=9)
         endif                                                             ! end of condition for creating contrib and sensit maps
 
-        if (angvis.lt.0.) then                                            ! the line of sight is not below the horizon => we compute
-c         print*,'PROBLEM! You try to observe below horizon'
-c          print*,'No calculation will be made'
-c          write(2,*) '            Sky radiance (W/str/m**2)          '
-c          write(2,2001) zero
-c          print*,'            Sky radiance (W/str/m**2)          '
-c          print*,'                 0.0000'
-c          close(2)
-c          stop
-          ftocap=0.
-          fctcld=0.
-        endif
+c        if (angvis.lt.0.) then                                            ! the line of sight is not below the horizon => we compute
+c          ftocap=0.
+c          fctcld=0.
+c        endif
 
 
         if (verbose.ge.1) print*,'======================================
@@ -1803,7 +1809,7 @@ c          stop
         write(*,2001)  rdirect
         print*,'             Cloud radiance (W/str/m**2/nm)'
         write(*,2001) fctcld/omefov/(pi*(diamobj/2.)**2.)
-        print*,'              Sky radiance (W/str/m**2/nm)'
+        print*,'            Diffuse radiance (W/str/m**2/nm)'
         write(*,2001) (ftocap+fctcld)/omefov/(pi*(diamobj/2.)**2.)
         if (verbose.ge.1) write(2,*) '==================================
      +================='
@@ -1813,7 +1819,7 @@ c          stop
         write(2,2001)  rdirect
         write(2,*) '           Cloud radiance (W/str/m**2/nm)         '
         write(2,2001) fctcld/omefov/(pi*(diamobj/2.)**2.)
-        write(2,*) '            Sky radiance (W/str/m**2/nm)          '
+        write(2,*) '         Diffuse radiance (W/str/m**2/nm)          '
         write(2,2001) (ftocap+fctcld)/omefov/(pi*(diamobj/2.)**2.)
       close(2)
  2001 format('                   ',E10.3E2)
