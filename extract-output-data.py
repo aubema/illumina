@@ -120,10 +120,10 @@ if p.full:
     print("Case\tDirect irradiance\tReflected irradiance\tCloud radiance\tSky radiance")
     for key,vals in outputs.items():
         print(key,*vals,sep="\t")
-    if p.contrib:
-        contrib[key].save(key)
+        if p.contrib:
+            contrib[key].save(key)
 else:
     for key,val in skyglow.items():
         print(key,val,sep="\t")
-    if p.contrib:
-        contrib[key].save(key)
+        if p.contrib:
+            contrib[key].save(key)

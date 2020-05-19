@@ -333,13 +333,13 @@ c cartesian, azim=0 toward east, 90 toward north, 180 toward west etc
       if (azim.ge.360.) azim=azim-360.
 c opening output file
       open(unit=2,file=outfile,status='unknown')
-        write(2,*) "ILLUMINA version 2.0.20w19.4h"
-        
-        
-c I DO NOT THINK THE FOLLOWING 2 LINES ARE STILL REQUIRED  
+        write(2,*) "ILLUMINA version 2.0.20w20.3a"
+
+
+c I DO NOT THINK THE FOLLOWING 2 LINES ARE STILL REQUIRED
         angzen=pi/2.-angvis*pi/180.
-        call horizon(x_obs,y_obs,z_obs,dx,dy,altsol,angazi,zhoriz,dh) 
-        
+        call horizon(x_obs,y_obs,z_obs,dx,dy,altsol,angazi,zhoriz,dh)
+
 
         write(2,*) 'FILE USED:'
         write(2,*) mnaf,diffil
@@ -806,7 +806,7 @@ c temporaire !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
           if (x_c.gt.width) x_c=width
           y_c=nint(ry_c/dy)
           if (y_c.lt.1) y_c=1
-          if (y_c.gt.width) y_c=width         
+          if (y_c.gt.width) y_c=width
           z_c=z_c+iz*(scalo/2.+scal/2.)
           if (z_c.gt.altsol(x_c,y_c)) then
           if ((fcapt.ge.ftocap/stoplim).and.(z_c.lt.cloudbase).and.       ! stop the calculation of the viewing line when the increment is lower than 1/stoplim
