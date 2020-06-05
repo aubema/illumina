@@ -81,7 +81,7 @@ class MultiScaleData:
     def _view_latlon(self,coords):
         n_layer = self._get_layer(coords)
         col,row = self._get_col_row(coords,n_layer)
-        return data[row:row+1,col:col+1]
+        return self._data[row:row+1,col:col+1]
 
     def scale_factor(self):
         n_pix = 2*self._attrs['nb_pixels']+1
