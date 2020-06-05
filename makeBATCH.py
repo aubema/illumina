@@ -242,7 +242,7 @@ def batches(input_params_path,compact,batch_size,batch_name=None):
             (('', ''),),
             ((P['elevation_angle'], "Elevation viewing angle"),
              (P['azimuth_angle'], "Azimuthal viewing angle")),
-            (('', ''),),
+            ((P['direct_fov'], 'Direct field of view'),),
             (('', ''),),
             (('', ''),),
             (('', ''),),
@@ -254,7 +254,8 @@ def batches(input_params_path,compact,batch_size,batch_name=None):
                 "3=Altostratus/Altocumulus, "
                 "4=Cumulus/Cumulonimbus, "
                 "5=Stratocumulus"),
-             (P['cloud_base'], "Cloud base altitude [m]")),
+             (P['cloud_base'], "Cloud base altitude [m]"),
+             (P['cloud_fraction'], "Cloud fraction")),
             (('', ''),)
         )
 

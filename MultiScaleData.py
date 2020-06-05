@@ -53,7 +53,7 @@ class MultiScaleData:
         lat,lon = coords
         wgs84 = _pyproj.Proj("epsg:4326")
         proj = _pyproj.Proj(self._attrs['srs'])
-        x,y   = _pyproj.transform(wgs84,proj,lon,lat,always_xy=True)
+        x,y = _pyproj.transform(wgs84,proj,lon,lat,always_xy=True)
         return x,y
 
     def _get_layer(self,coords):
@@ -84,7 +84,7 @@ class MultiScaleData:
     def _view_latlon(self,coords):
         n_layer = self._get_layer(coords)
         col,row = self._get_col_row(coords,n_layer)
-        return data[row:row+1,col:col+1]
+        return self._data[row:row+1,col:col+1]
 
     def scale_factor(self):
         n_pix = 2*self._attrs['nb_pixels']+1

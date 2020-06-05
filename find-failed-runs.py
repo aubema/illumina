@@ -41,8 +41,8 @@ def failed(executable):
                 else:
                     with open(outnames[0]) as f:
                         lines = f.readlines()
-                        if len(lines) < 2 or "Sky radiance" not in lines[-2]:
-                            failed(dirname)
+                    if len(lines) < 2 or "Diffuse radiance" not in lines[-2]:
+                        failed(dirname)
             elif os.path.isfile(os.path.join(dirname,basename+".out")) \
                 or len(outnames)+1 != nb_in:
                     failed(dirname)
