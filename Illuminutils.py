@@ -7,6 +7,19 @@ from subprocess import call
 import os
 import numpy as np
 from PIL import Image
+import argparse
+
+parser = argparse.ArgumentParser(description="""Warps sattelite imagery.
+
+If no parameters are given, executes the standard pipeline.""")
+parser.add_argument( "output_name", default=None, nargs='?', help="Name of the output file." )
+parser.add_argument( "filename", nargs="*", help="Files to warp." )
+
+p = parser.parse_args()
+
+if p.output_name == None and len(p.filename) == 0:
+    print("ERROR: If an output name is given, files to process must also be provided.")
+    raise SystemExit
 
 def OpenTIFF(path):
     return np.array(Image.open(path))
@@ -102,48 +115,54 @@ def save(params, data, dstname, scale_factor=1.):
 with open(glob("*.ini")[0]) as f:
     params = yaml.safe_load(f)
 
-if os.path.isfile("GHSL.zip"):
-    print("Found GHSL.zip file, processing.")
-    data = [ warp(["/vsizip/GHSL.zip/GHSL.tif"], params['srs'], extent) \
+if len(p.filename):
+    data = [ warp(p.filename, params['srs'], extent) \
         for extent in params['extents'] ]
-    save(params, data, "obstf")
-else:
-    print("WARNING: Could not find GHSL.zip file.")
-    print("If you don't intend to use it, you can safely ignore this.")
+    save(params, data, p.output_name)
 
-files = sorted(glob("SRTM/*.hgt"))
-if not len(files):
-    print("ERROR: Could not find SRTM file(s), aborting.")
-    raise SystemExit
-print("    ".join(map(str,files)))
-data = [ warp(files, params['srs'], extent) \
-    for extent in params['extents'] ]
-save(params, data, "srtm")
-
-files = sorted(glob("VIIRS-DNB/*.tif"))
-if not len(files):
-    print("WARNING: Did not find VIIRS file(s).")
-    print("If you don't intend to use zones inventory, you can safely ignore this.")
 else:
-    if not os.path.isfile("hydropolys.zip"):
-        print("ERROR: Could not find hydropolys.zip file, aborting.")
+    if os.path.isfile("GHSL.zip"):
+        print("Found GHSL.zip file, processing.")
+        data = [ warp(["/vsizip/GHSL.zip/GHSL.tif"], params['srs'], extent) \
+            for extent in params['extents'] ]
+        save(params, data, "obstf")
+    else:
+        print("WARNING: Could not find GHSL.zip file.")
+        print("If you don't intend to use it, you can safely ignore this.")
+
+    files = sorted(glob("SRTM/*.hgt"))
+    if not len(files):
+        print("ERROR: Could not find SRTM file(s), aborting.")
         raise SystemExit
-
     print("    ".join(map(str,files)))
     data = [ warp(files, params['srs'], extent) \
         for extent in params['extents'] ]
-    save(params, data, "stable_lights")
+    save(params, data, "srtm")
 
-    prep_shp(
-        "hydropolys.zip/hydropolys.shp",
-        params['srs'],
-        params['extents'][-1]
-    )
-    data = [ rasterize("tmp_merge.shp", params['srs'], extent) \
-        for extent in params['extents'] ]
-    save(params, data, "water_mask")
+    files = sorted(glob("VIIRS-DNB/*.tif"))
+    if not len(files):
+        print("WARNING: Did not find VIIRS file(s).")
+        print("If you don't intend to use zones inventory, you can safely ignore this.")
+    else:
+        if not os.path.isfile("hydropolys.zip"):
+            print("ERROR: Could not find hydropolys.zip file, aborting.")
+            raise SystemExit
 
-    for fname in glob("tmp*"):
-        os.remove(fname)
+        print("    ".join(map(str,files)))
+        data = [ warp(files, params['srs'], extent) \
+            for extent in params['extents'] ]
+        save(params, data, "stable_lights")
 
-    print("Done.")
+        prep_shp(
+            "hydropolys.zip/hydropolys.shp",
+            params['srs'],
+            params['extents'][-1]
+        )
+        data = [ rasterize("tmp_merge.shp", params['srs'], extent) \
+            for extent in params['extents'] ]
+        save(params, data, "water_mask")
+
+for fname in glob("tmp_*"):
+    os.remove(fname)
+
+print("Done.")
