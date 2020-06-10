@@ -46,8 +46,8 @@ def prep_shp(infile, projection, extent):
             extent['xmax'],
             extent['ymax']
         ]
-        cmd += ['-spat_srs','+init='+projection]
-        cmd += ['-t_srs','+init='+projection]
+        cmd += ['-spat_srs',projection]
+        cmd += ['-t_srs',projection]
         cmd += ['tmp_select.shp']
         cmd += ['/vsizip/'+os.path.abspath(infile)]
         cmd = list(map(str,cmd))
@@ -61,6 +61,10 @@ def prep_shp(infile, projection, extent):
         cmd += ['-sql','SELECT ST_Union(geometry) AS geometry FROM tmp_select']
         print("EXECUTING :", ' '.join(cmd))
         call(cmd)
+
+        if not os.path.isfile("tmp_merge.shp"):
+            for fname in glob("tmp_select.*"):
+                os.rename(fname,fname.replace("select","merge"))
 
 def rasterize(shpfile, projection, extent):
     tmpfile = "tmp_rasterize.tiff"
