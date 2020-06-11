@@ -17,7 +17,7 @@ parser.add_argument( "filename", nargs="*", help="Files to warp." )
 
 p = parser.parse_args()
 
-if p.output_name == None and len(p.filename) == 0:
+if p.output_name != None and len(p.filename) == 0:
     print("ERROR: If an output name is given, files to process must also be provided.")
     raise SystemExit
 
