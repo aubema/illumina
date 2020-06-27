@@ -904,13 +904,13 @@ c ******************************************************************************
                           dho=sqrt((rx_obs-rx_s)**2.
      +                    +(ry_obs-ry_s)**2.)
                           if ((dho.gt.0.).and.(z_s.ne.z_obs)) then
-                            call anglezenithal(rx_s,ry_s,z_s                ! zenithal angle source-observer
-     +                      ,rx_obs,ry_obs,z_obs,dzen)
-                            call angleazimutal(rx_s,ry_s,rx_obs,              ! computation of the angle azimutal direct line of sight-source
-     +                        ry_obs,angazi)
+                            call anglezenithal(rx_obs,ry_obs,z_obs                ! zenithal angle source-observer
+     +                      ,rx_s,ry_s,z_s,dzen)
+                            call angleazimutal(rx_obs,ry_obs,rx_s,            ! computation of the angle azimutal direct line of sight-source
+     +                        ry_s,angazi)
                             if (dzen.gt.pi/4.) then                         ! 45deg. it is unlikely to have a 1km high mountain less than 1
-                              call horizon(x_s,y_s,z_s,dx,dy,altsol,
-     +                        angazi,zhoriz,dh)
+                              call horizon(x_obs,y_obs,z_obs,dx,dy,
+     +                        altsol,angazi,zhoriz,dh)
                               if (dh.le.dho) then
                                 if (dzen.lt.zhoriz) then                    ! shadow the path line of sight-source is not below the horizon => we compute
                                   hh=1.
@@ -925,18 +925,19 @@ c ******************************************************************************
                             endif
 c sub-grid obstacles
                             ff=0.
-                            if (dho.gt.drefle(x_s,y_s)) then                ! light path to observer larger than the mean free path -> subgrid obstacles
-                              angmin=pi/2.-atan((altsol(x_s,y_s)+
-     +                        obsH(x_s,y_s)-z_s)/drefle(x_s,y_s))
+                            if (dho.gt.drefle(x_obs,y_obs)) then                ! light path to observer larger than the mean free path -> subgrid obstacles
+                              angmin=pi/2.-atan((altsol(x_obs,y_obs)+
+     +                        obsH(x_obs,y_obs)-z_obs)/drefle(x_obs,
+                              y_obs))
                               if (dzen.lt.angmin) then                      ! condition sub-grid obstacles direct.
                                 ff=0.
                               else
-                                ff=ofill(x_s,y_s)
+                                ff=ofill(x_obs,y_obs)
                               endif
                             endif                                           ! end light path to the observer larger than mean free path
 c projection angle of line to the lamp and the viewing angle
-                            call angle3points (rx_s,ry_s,z_s,rx_obs,        ! scattering angle.
-     +                      ry_obs,z_obs,rx,ry,rz,dang)
+                            call angle3points (rx_obs,ry_obs,z_obs,rx_s,        ! scattering angle.
+     +                      ry_s,z_s,rx,ry,rz,dang)
                             dang=pi-dang
 c computation of the solid angle of the line of sight voxel seen from the source
                             anglez=nint(180.*dzen/pi)+1
@@ -948,13 +949,14 @@ c computation of the flux direct reaching the line of sight voxel
      +                        (ry_obs-ry_s)**2.+(z_obs-z_s)**2.)
 c computation of the solid angle of the line of sight voxel seen from the source
                               omega=1.*abs(cos(dang))/ddir_obs**2.
-                              call transmitm(dzen,z_s,z_obs,ddir_obs,
+                              call transmitm(dzen,z_obs,z_s,ddir_obs,
      +                        transm,tranam)
-                              call transmita(dzen,z_s,z_obs,ddir_obs,
+                              call transmita(dzen,z_obs,z_s,ddir_obs,
      +                        transa,tranaa)
                               if (dang.lt.dfov) then                      ! check if the reflecting surface enter the field of view of the observer
                                 direct=direct+lamplu(x_s,y_s,stype)*
-     +                          P_dir*omega*(1.-ff)*hh/dfov**2.           ! correction for obstacle filling factor
+     +                          transa*transm*P_dir*omega*(1.-ff)*hh
+                                /dfov**2.                                 ! correction for obstacle filling factor
                               endif
                             endif
                           endif
@@ -1220,13 +1222,13 @@ c ******************************************************************************
                           dho=sqrt((rx_obs-rx_sr)**2.
      +                    +(ry_obs-ry_sr)**2.)
                           if ((dho.gt.0.).and.(z_s.ne.z_obs)) then
-                            call anglezenithal(rx_sr,ry_sr,z_sr           ! zenithal angle source-observer
-     +                      ,rx_obs,ry_obs,z_obs,dzen)
-                            call angleazimutal(rx_sr,ry_sr,rx_obs,        ! computation of the angle azimutal direct line of sight-source
-     +                        ry_obs,angazi)
+                            call anglezenithal(rx_obs,ry_obs,z_obs           ! zenithal angle source-observer
+     +                      ,rx_sr,ry_sr,z_sr,dzen)
+                            call angleazimutal(rx_obs,ry_obs,rx_sr,        ! computation of the angle azimutal direct line of sight-source
+     +                        ry_sr,angazi)
                             if (dzen.gt.pi/4.) then                       ! 45deg. it is unlikely to have a 1km high mountain less than 1
-                              call horizon(x_sr,y_sr,z_sr,dx,dy,altsol,
-     +                        angazi,zhoriz,dh)
+                              call horizon(x_obs,y_obs,z_obs,dx,dy,
+     +                        altsol,angazi,zhoriz,dh)
                               if (dh.le.dho) then
                                 if (dzen.lt.zhoriz) then                  ! shadow the path line of sight-source is not below the horizon => we compute
                                   hh=1.
@@ -1241,18 +1243,19 @@ c ******************************************************************************
                             endif
 c sub-grid obstacles
                             ff=0.
-                            if (dho.gt.drefle(x_sr,y_sr)) then            ! light path to observer larger than the mean free path -> subgrid obstacles
-                              angmin=pi/2.-atan((altsol(x_sr,y_sr)+
-     +                        obsH(x_sr,y_sr)-z_sr)/drefle(x_sr,y_sr))
+                            if (dho.gt.drefle(x_obs,y_obs)) then            ! light path to observer larger than the mean free path -> subgrid obstacles
+                              angmin=pi/2.-atan((altsol(x_obs,y_obs)+
+     +                        obsH(x_obs,y_obs)-z_obs)/drefle(x_obs,
+     +                        y_obs))
                               if (dzen.lt.angmin) then                    ! condition sub-grid obstacles direct.
                                 ff=0.
                               else
-                                ff=ofill(x_sr,y_sr)
+                                ff=ofill(x_obs,y_obs)
                               endif
                             endif                                         ! end light path to the observer larger than mean free path
 c projection angle of line to the lamp and the viewing angle
-                            call angle3points (rx_sr,ry_sr,z_sr,rx_obs,   ! scattering angle.
-     +                      ry_obs,z_obs,rx,ry,rz,dang)
+                            call angle3points (rx_obs,ry_obs,z_obs,       ! scattering angle.
+     +                      rx_sr,ry_sr,z_sr,rx,ry,rz,dang)
                             dang=pi-dang
 
 c computation of the flux direct reaching the line of sight voxel
@@ -1262,9 +1265,9 @@ c computation of the flux direct reaching the line of sight voxel
      +                        (ry_obs-ry_sr)**2.+(z_obs-z_sr)**2.)
 c computation of the solid angle of the line of sight voxel seen from the source
                               omega=1.*abs(cos(dang))/ddir_obs**2.
-                              call transmitm(dzen,z_sr,z_obs,ddir_obs,
+                              call transmitm(dzen,z_obs,z_sr,ddir_obs,
      +                        transm,tranam)
-                              call transmita(dzen,z_sr,z_obs,ddir_obs,
+                              call transmita(dzen,z_obs,z_sr,ddir_obs,
      +                        transa,tranaa)
                               if (dang.lt.dfov) then                      ! check if the reflecting surface enter the field of view of the observer
                                 rdirect=rdirect+irefl1*omega*transa*
