@@ -333,7 +333,7 @@ c cartesian, azim=0 toward east, 90 toward north, 180 toward west etc
       if (azim.ge.360.) azim=azim-360.
 c opening output file
       open(unit=2,file=outfile,status='unknown')
-        write(2,*) "ILLUMINA version 2.0.20w26.5a"
+        write(2,*) "ILLUMINA version 2.0.20w26.5b"
 
 
 c I DO NOT THINK THE FOLLOWING 2 LINES ARE STILL REQUIRED
@@ -940,7 +940,7 @@ c projection angle of line to the lamp and the viewing angle
      +                      ry_s,z_s,rx,ry,rz,dang)
                             dang=pi-dang
 c computation of the solid angle of the line of sight voxel seen from the source
-                            anglez=nint(180.*dzen/pi)+1
+                            anglez=nint(180.*(pi-dzen)/pi)+1
                             P_dir=pvalno(anglez,stype)
 c computation of the flux direct reaching the line of sight voxel
                             if ((cos(dang).gt.0.).and.(dang.lt.pi/2.))
