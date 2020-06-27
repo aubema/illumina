@@ -928,7 +928,7 @@ c sub-grid obstacles
                             if (dho.gt.drefle(x_obs,y_obs)) then                ! light path to observer larger than the mean free path -> subgrid obstacles
                               angmin=pi/2.-atan((altsol(x_obs,y_obs)+
      +                        obsH(x_obs,y_obs)-z_obs)/drefle(x_obs,
-                              y_obs))
+     +                        y_obs))
                               if (dzen.lt.angmin) then                      ! condition sub-grid obstacles direct.
                                 ff=0.
                               else
@@ -956,7 +956,7 @@ c computation of the solid angle of the line of sight voxel seen from the source
                               if (dang.lt.dfov) then                      ! check if the reflecting surface enter the field of view of the observer
                                 direct=direct+lamplu(x_s,y_s,stype)*
      +                          transa*transm*P_dir*omega*(1.-ff)*hh
-                                /dfov**2.                                 ! correction for obstacle filling factor
+     +                          /dfov**2.                                 ! correction for obstacle filling factor
                               endif
                             endif
                           endif
