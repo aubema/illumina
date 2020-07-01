@@ -40,7 +40,7 @@ class MultiScaleData:
     def __repr__(self):
         p  = f"nb_layers: {self._attrs['nb_layers']}, "
         p += f"nb_pixels: {self._attrs['nb_pixels']*2+1}, "
-        p += f"scale_min: {self._attrs['scale_min']:d}, "
+        p += f"scale_min: {self._attrs['scale_min']:g}, "
         sf = self.scale_factor()
         p += f"scale_factor: {sf} ({float(sf):.3f}), "
         p += f"srs: {self._attrs['srs']}"

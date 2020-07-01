@@ -47,8 +47,8 @@ def prep_shp(infile, projection, extent):
             extent['xmax'],
             extent['ymax']
         ]
-        cmd += ['-spat_srs','+init='+projection]
-        cmd += ['-t_srs','+init='+projection]
+        cmd += ['-spat_srs',projection]
+        cmd += ['-t_srs',projection]
         cmd += ['tmp_select.shp']
         cmd += ['/vsizip/'+os.path.abspath(infile)]
         cmd = list(map(str,cmd))
@@ -62,6 +62,10 @@ def prep_shp(infile, projection, extent):
         cmd += ['-sql','SELECT ST_Union(geometry) AS geometry FROM tmp_select']
         print("EXECUTING :", ' '.join(cmd))
         call(cmd)
+
+        if not os.path.isfile("tmp_merge.shp"):
+            for fname in glob("tmp_select.*"):
+                os.rename(fname,fname.replace("select","merge"))
 
 def rasterize(shpfile, projection, extent):
     tmpfile = "tmp_rasterize.tiff"
@@ -97,7 +101,9 @@ def save(params, data, dstname, scale_factor=1.):
     ds.save(dstname)
 
 @click.command()
-def warp():
+@click.argument("output_name", required=False)
+@click.argument("infiles", required=False, nargs=-1)
+def warp(output_name=None, infiles=[]):
     """Warps the satellite imagery.
 
     Warps the satellite imagery based on the domain defined in
@@ -108,52 +114,65 @@ def warp():
         Unzipped SRTM data in a folder named 'SRTM'.
         If used, VIIRS data in a volder named 'VIIRS-DNB'.
         If VIIRS data is used, the 'hydropolys.zip' file.
+
+    Can also be used on specific files, in wich case an output name and
+    a list of files to process must be given (the use of bash wildcards is encouraged).
     """
+    if output_name != None and len(infiles) == 0:
+        print("ERROR: If an output name is given, files to process must also be provided.")
+        raise SystemExit
+
     with open(glob("*.ini")[0]) as f:
         params = yaml.safe_load(f)
 
-    if os.path.isfile("GHSL.zip"):
-        print("Found GHSL.zip file, processing.")
-        data = [ warp_files(["/vsizip/GHSL.zip/GHSL.tif"], params['srs'], extent) \
+    if len(infiles):
+        data = [ warp_files(infiles, params['srs'], extent) \
             for extent in params['extents'] ]
-        save(params, data, "obstf")
-    else:
-        print("WARNING: Could not find GHSL.zip file.")
-        print("If you don't intend to use it, you can safely ignore this.")
+        save(params, data, output_name)
 
-    files = sorted(glob("SRTM/*.hgt"))
-    if not len(files):
-        print("ERROR: Could not find SRTM file(s), aborting.")
-        raise SystemExit
-    print("    ".join(map(str,files)))
-    data = [ warp_files(files, params['srs'], extent) \
-        for extent in params['extents'] ]
-    save(params, data, "srtm")
-
-    files = sorted(glob("VIIRS-DNB/*.tif"))
-    if not len(files):
-        print("WARNING: Did not find VIIRS file(s).")
-        print("If you don't intend to use zones inventory, you can safely ignore this.")
     else:
-        if not os.path.isfile("hydropolys.zip"):
-            print("ERROR: Could not find hydropolys.zip file, aborting.")
+        if os.path.isfile("GHSL.zip"):
+            print("Found GHSL.zip file, processing.")
+            data = [ warp_files(["/vsizip/GHSL.zip/GHSL.tif"], params['srs'], extent) \
+                for extent in params['extents'] ]
+            save(params, data, "obstf")
+        else:
+            print("WARNING: Could not find GHSL.zip file.")
+            print("If you don't intend to use it, you can safely ignore this.")
+
+        files = sorted(glob("SRTM/*.hgt"))
+        if not len(files):
+            print("ERROR: Could not find SRTM file(s), aborting.")
             raise SystemExit
-
         print("    ".join(map(str,files)))
         data = [ warp_files(files, params['srs'], extent) \
             for extent in params['extents'] ]
-        save(params, data, "stable_lights")
+        save(params, data, "srtm")
 
-        prep_shp(
-            "hydropolys.zip/hydropolys.shp",
-            params['srs'],
-            params['extents'][-1]
-        )
-        data = [ rasterize("tmp_merge.shp", params['srs'], extent) \
-            for extent in params['extents'] ]
-        save(params, data, "water_mask")
+        files = sorted(glob("VIIRS-DNB/*.tif"))
+        if not len(files):
+            print("WARNING: Did not find VIIRS file(s).")
+            print("If you don't intend to use zones inventory, you can safely ignore this.")
+        else:
+            if not os.path.isfile("hydropolys.zip"):
+                print("ERROR: Could not find hydropolys.zip file, aborting.")
+                raise SystemExit
 
-        for fname in glob("tmp*"):
+            print("    ".join(map(str,files)))
+            data = [ warp_files(files, params['srs'], extent) \
+                for extent in params['extents'] ]
+            save(params, data, "stable_lights")
+
+            prep_shp(
+                "hydropolys.zip/hydropolys.shp",
+                params['srs'],
+                params['extents'][-1]
+            )
+            data = [ rasterize("tmp_merge.shp", params['srs'], extent) \
+                for extent in params['extents'] ]
+            save(params, data, "water_mask")
+
+        for fname in glob("tmp_*"):
             os.remove(fname)
 
-        print("Done.")
+    print("Done.")
