@@ -240,6 +240,7 @@ c                                                                         ! a li
       real thetali                                                        ! limit angle for the obstacles blocking of viirs
       integer viirs(width,width)                                          ! viirs flag 1=yes 0=no
       character*72 vifile                                                 ! name of the viirs flag file
+      real dh0,dhmax                                                      ! horizontal distance along the line of sight and maximum distance before beeing blocked by topography
       verbose=1                                                           ! Very little printout=0, Many printout = 1, even more=2
       diamobj=1.                                                          ! A dummy value for the diameter of the objective of the instrument used by the observer.
       volu=0.
@@ -333,12 +334,11 @@ c cartesian, azim=0 toward east, 90 toward north, 180 toward west etc
       if (azim.ge.360.) azim=azim-360.
 c opening output file
       open(unit=2,file=outfile,status='unknown')
-        write(2,*) "ILLUMINA version 2.0.20w26.5b"
+        write(2,*) "ILLUMINA version 2.0.20w27.2a"
 
 
-c I DO NOT THINK THE FOLLOWING 2 LINES ARE STILL REQUIRED
         angzen=pi/2.-angvis*pi/180.
-        call horizon(x_obs,y_obs,z_obs,dx,dy,altsol,angazi,zhoriz,dh)
+        call horizon(x_obs,y_obs,z_obs,dx,dy,altsol,angazi,zhoriz,dhmax)  ! calculating the distance before the line of sight beeing blocked by topography
 
 
         write(2,*) 'FILE USED:'
@@ -801,6 +801,8 @@ c temporaire !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         do icible=1,ncible                                                ! beginning of the loop over the line of sight voxels
           rx_c=rx_c+ix*(scalo/2.+scal/2.)
           ry_c=ry_c+iy*(scalo/2.+scal/2.)
+        dh0=sqrt((rx_c-rx_obs)**2.+(ry_c-ry_obs)**2)
+        if (dh0.le.dhmax) then                                            ! the line of sight is not yet blocked by the topography
           x_c=nint(rx_c/dx)
           if (x_c.lt.1) x_c=1
           if (x_c.gt.width) x_c=width
@@ -1767,6 +1769,7 @@ c accelerate the computation as we get away from the sources
           scalo=scal
           if (scal.le.3000.)  scal=scal*1.12
           endif
+        endif                                                             ! line of sight not blocked by topography
         enddo                                                             ! end of the loop over the line of sight voxels.
         fctcld=fctcld*10**(0.4*(100.-cloudfrac)*cloudslope)               ! correction for the cloud fraction (defined from 0 to 100)
         if (prmaps.eq.1) then
