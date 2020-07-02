@@ -334,11 +334,11 @@ c cartesian, azim=0 toward east, 90 toward north, 180 toward west etc
       if (azim.ge.360.) azim=azim-360.
 c opening output file
       open(unit=2,file=outfile,status='unknown')
-        write(2,*) "ILLUMINA version 2.0.20w27.2a"
+        write(2,*) "ILLUMINA version 2.0.20w27.4a"
 
 
         angzen=pi/2.-angvis*pi/180.
-        call horizon(x_obs,y_obs,z_obs,dx,dy,altsol,angazi,zhoriz,dhmax)  ! calculating the distance before the line of sight beeing blocked by topography
+        call horizon(x_obs,y_obs,z_obs,dx,dy,altsol,azim,zhoriz,dhmax)    ! calculating the distance before the line of sight beeing blocked by topography
 
 
         write(2,*) 'FILE USED:'
@@ -764,9 +764,6 @@ c Some preliminary tasks
         if (z_obs.eq.0.) z_obs=0.001
         largx=dx*real(nbx)                                                ! computation of the Width along x of the case.
         largy=dy*real(nby)                                                ! computation of the Width along y of the case.
-
-
-
         write(2,*) 'Width of the domain [NS](m):',largx,'#cases:',nbx
         write(2,*) 'Width of the domain [EO](m):',largy,'#cases:',nby
         write(2,*) 'Size of a cell (m):',dx,' X ',dy
