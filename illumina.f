@@ -295,8 +295,6 @@ c reading of the fichier d'entree (illumina.in)
 c      if (angvis.lt.0.) then                                              ! the line of sight is not below the horizon => we compute
 c        ncible=1
 c      endif
-
-
 c omemax: exclude calculations too close (<57m) this is a sustended angle of 1 deg.
 c the calculated flux is highly sensitive to that number for a very high
 c pixel resolution (a few 10th of meters). We assume anyway that somebody
