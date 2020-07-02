@@ -344,8 +344,8 @@ c opening output file
         print*,'2nd order scattering radius:',effdif,' m'
         write(2,*) 'Observer position (x,y,z)',x_obs,y_obs,z_o
         print*,'Observer position (x,y,z)',x_obs,y_obs,z_o
-        write(2,*) 'Elevation angle:',angvis,' azim angle (clockwise fro
-     +m north)',azim
+        write(2,*) 'Elevation angle:',angvis,' azim angle (counterclockwise
+     +from east)',azim
         print*,'Elevation angle:',angvis,' azim angle (counterclockwise
      +from east)',azim
 c Initialisation of the arrays and variables
