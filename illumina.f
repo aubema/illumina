@@ -334,7 +334,6 @@ c opening output file
       open(unit=2,file=outfile,status='unknown')
         write(2,*) "ILLUMINA version 2.0.20w27.4a"
         angzen=pi/2.-angvis*pi/180.
-        call horizon(x_obs,y_obs,z_obs,dx,dy,altsol,azim,zhoriz,dhmax)    ! calculating the distance before the line of sight beeing blocked by topography
         write(2,*) 'FILE USED:'
         write(2,*) mnaf,diffil
         print*,'Wavelength (nm):',lambda,
@@ -783,6 +782,8 @@ c temporaire !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         rdirect=0.                                                        ! initialize the total reflected irradiance between sources and observer
         angvi1 = (pi*angvis)/180.
         angaz1 = (pi*azim)/180.
+        call horizon(x_obs,y_obs,z_obs,dx,dy,altsol,angaz1,zhoriz,        ! calculating the distance before the line of sight beeing blocked by topography
+     +  dhmax)
         ix = ( sin((pi/2.)-angvi1) ) * (cos(angaz1))                      ! viewing vector components
         iy = ( sin((pi/2.)-angvi1) ) * (sin(angaz1))
         iz = (sin(angvi1))
