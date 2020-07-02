@@ -334,7 +334,11 @@ c cartesian, azim=0 toward east, 90 toward north, 180 toward west etc
       if (azim.ge.360.) azim=azim-360.
 c opening output file
       open(unit=2,file=outfile,status='unknown')
+<<<<<<< HEAD
         write(2,*) "ILLUMINA version 2.0.20w27.4a"
+=======
+        write(2,*) "ILLUMINA version 2.0.20w27.3a"
+>>>>>>> 09b3ed94dbb6d7168fc206134166a7ce0026af37
 
 
         angzen=pi/2.-angvis*pi/180.
