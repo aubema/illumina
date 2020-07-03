@@ -38,9 +38,9 @@ c **    - Exponential concentrations vertical profile (H aerosol= 2km, H molecul
 c **    - Accounting for heterogeneity luminaires number, luminaires heights, luminaire spectrum,                     **
 c **      angular photometry, obstacle properties                                                                     **
 c **    - Wavelength dependant                                                                                        **
-c **    - Cloud models (type and cloud base height) only the overhead clouds are considered                           **
-c **    - Do not support direct observation of a source                                                               **
-c **    - Direct observation of the ground not implemented                                                            **
+c **    - Cloud models (type and cloud base height) only the overhead clouds are considered with cloud fraction       **
+c **    - Support direct observation of a source                                                                      **
+c **    - Direct observation of the ground is implemented                                                             **
 c **    - Do not consider earth curvature (i.e. local/regional model)                                                 **
 c **                                                                                                                  **
 c **********************************************************************************************************************
