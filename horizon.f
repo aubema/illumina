@@ -46,17 +46,18 @@ c
         posy=posy+iy*scalef
         nx=nint(posx/dx)
         ny=nint(posy/dy)
-        dout=sqrt(dx**2.*real((nx-x))**2.+dy**2.*real((ny-y))**2.)        
-        if (dout.ne.0.) then
-           zout=pi/2.-atan((altsol(nx,ny)-z)/sqrt(dx**
-     +     2.*real((nx-x))**2.+dy**2.*real((ny-y))**2.))
-        endif
+        if ((nx.eq.x).and.(ny.eq.y)) then
+        else
+        zout=pi/2.-atan((altsol(nx,ny)-z)/sqrt(dx**
+     +  2.*real((nx-x))**2.+dy**2.*real((ny-y))**2.))
+        dout=sqrt(dx**2.*real((nx-x))**2.+dy**2.*real((ny-y))**2.)
         if (altsol(nx,ny).eq.z) then
            zout=pi/2.-0.0001*pi/180.                                      ! bug for zhoriz=pi, anyway in the real world pi is almost impossible 
         endif        
         if (zout.lt.zhoriz) then
            zhoriz=zout
            d=dout
+        endif
         endif
       enddo
       end 
