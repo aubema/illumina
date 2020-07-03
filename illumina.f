@@ -937,7 +937,7 @@ c computation of the flux direct reaching the line of sight voxel
      +                      then
                               ddir_obs=sqrt((rx_obs-rx_s)**2.+               ! distance direct sight between source and observer
      +                        (ry_obs-ry_s)**2.+(z_obs-z_s)**2.)
-c computation of the solid angle of the line of sight voxel seen from the source
+c computation of the solid angle 1m^2 at the observer as seen from the source
                               omega=1.*abs(cos(dang))/ddir_obs**2.
                               call transmitm(dzen,z_obs,z_s,ddir_obs,
      +                        transm,tranam)
