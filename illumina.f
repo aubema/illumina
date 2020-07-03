@@ -283,6 +283,14 @@ c reading of the fichier d'entree (illumina.in)
         read(1,*) cloudt, cloudbase, cloudfrac
         read(1,*)
       close(1)
+      if (angvis.gt.90.) then
+         print*,'Error: elevation angle larger than 90 deg'
+         stop
+      endif
+      if (angvis.lt.-90.) then
+         print*,'Error: elevation angle smaller than -90 deg'
+         stop
+      endif      
       dfov=(dfov*pi/180.)/2.
       siz=2500.
       if (ssswit.eq.0) then
@@ -887,6 +895,7 @@ c ******************************************************************************
 c calculation of the direct radiance of sources falling on a surface perpendicular
 c to the viewing angle Units of W/nm/m2/sr
 c *********************************************************************************************************
+
                         if (icible.eq.1) then                             ! do the direct sight calculation only once
                           rx=rx_obs+20000.*ix
                           ry=ry_obs+20000.*iy
@@ -926,13 +935,14 @@ c sub-grid obstacles
                               endif
                             endif                                           ! end light path to the observer larger than mean free path
 c projection angle of line to the lamp and the viewing angle
-                            call angle3points (rx_obs,ry_obs,z_obs,rx_s,        ! scattering angle.
-     +                      ry_s,z_s,rx,ry,rz,dang)
+                            call angle3points (rx_s,ry_s,z_s,rx_obs,        ! scattering angle.
+     +                      ry_obs,z_obs,rx,ry,rz,dang)
                             dang=pi-dang
 c computation of the solid angle of the line of sight voxel seen from the source
                             anglez=nint(180.*(pi-dzen)/pi)+1
                             P_dir=pvalno(anglez,stype)
 c computation of the flux direct reaching the line of sight voxel
+
                             if ((cos(dang).gt.0.).and.(dang.lt.pi/2.))
      +                      then
                               ddir_obs=sqrt((rx_obs-rx_s)**2.+               ! distance direct sight between source and observer
@@ -943,6 +953,8 @@ c computation of the solid angle 1m^2 at the observer as seen from the source
      +                        transm,tranam)
                               call transmita(dzen,z_obs,z_s,ddir_obs,
      +                        transa,tranaa)
+                print*,'calcul du direct',dang,cos(dang),dfov
+
                               if (dang.lt.dfov) then                      ! check if the reflecting surface enter the field of view of the observer
                                 direct=direct+lamplu(x_s,y_s,stype)*
      +                          transa*transm*P_dir*omega*(1.-ff)*hh
@@ -1244,8 +1256,8 @@ c sub-grid obstacles
                               endif
                             endif                                         ! end light path to the observer larger than mean free path
 c projection angle of line to the lamp and the viewing angle
-                            call angle3points (rx_obs,ry_obs,z_obs,       ! scattering angle.
-     +                      rx_sr,ry_sr,z_sr,rx,ry,rz,dang)
+                            call angle3points (rx_sr,ry_sr,z_sr,          ! scattering angle.
+     +                      rx_obs,ry_obs,z_obs,rx,ry,rz,dang)
                             dang=pi-dang
 
 c computation of the flux direct reaching the line of sight voxel
@@ -1758,7 +1770,7 @@ c accelerate the computation as we get away from the sources
           if (scal.le.3000.)  scal=scal*1.12
           endif
         else
-           print*,'End of line of sight - touching the ground'
+c           print*,'End of line of sight - touching the ground'
         endif                                                             ! line of sight not blocked by topography
         enddo                                                             ! end of the loop over the line of sight voxels.
         fctcld=fctcld*10**(0.4*(100.-cloudfrac)*cloudslope)               ! correction for the cloud fraction (defined from 0 to 100)
