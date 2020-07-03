@@ -300,7 +300,7 @@ c reading of the fichier d'entree (illumina.in)
       endif
       scal=19.
       scalo=scal
-c omemax: exclude calculations too close (<57m) this is a sustended angle of 1 deg.
+c omemax: exclude calculations too close (<10m) this is a sustended angle of 1 deg.
 c the calculated flux is highly sensitive to that number for a very high
 c pixel resolution (a few 10th of meters). We assume anyway that somebody
 c observing the sky will never lies closer than that distance to a
