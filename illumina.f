@@ -292,9 +292,6 @@ c reading of the fichier d'entree (illumina.in)
       endif
       scal=19.
       scalo=scal
-c      if (angvis.lt.0.) then                                              ! the line of sight is not below the horizon => we compute
-c        ncible=1
-c      endif
 c omemax: exclude calculations too close (<57m) this is a sustended angle of 1 deg.
 c the calculated flux is highly sensitive to that number for a very high
 c pixel resolution (a few 10th of meters). We assume anyway that somebody
@@ -333,7 +330,6 @@ c cartesian, azim=0 toward east, 90 toward north, 180 toward west etc
 c opening output file
       open(unit=2,file=outfile,status='unknown')
         write(2,*) "ILLUMINA version 2.0.20w27.4a"
-        angzen=pi/2.-angvis*pi/180.
         write(2,*) 'FILE USED:'
         write(2,*) mnaf,diffil
         print*,'Wavelength (nm):',lambda,
@@ -950,7 +946,7 @@ c computation of the solid angle of the line of sight voxel seen from the source
                               if (dang.lt.dfov) then                      ! check if the reflecting surface enter the field of view of the observer
                                 direct=direct+lamplu(x_s,y_s,stype)*
      +                          transa*transm*P_dir*omega*(1.-ff)*hh
-     +                          /dfov**2.                                 ! correction for obstacle filling factor
+     +                          /(pi*dfov**2.)                            ! correction for obstacle filling factor
                               endif
                             endif
                           endif
@@ -1265,7 +1261,7 @@ c computation of the solid angle of the line of sight voxel seen from the source
      +                        transa,tranaa)
                               if (dang.lt.dfov) then                      ! check if the reflecting surface enter the field of view of the observer
                                 rdirect=rdirect+irefl1*omega*transa*
-     +                          transm*hh*(1.-ff)/dfov**2.
+     +                          transm*hh*(1.-ff)/(pi*dfov**2.)
                               endif
                             endif
                           endif
@@ -1761,6 +1757,8 @@ c accelerate the computation as we get away from the sources
           scalo=scal
           if (scal.le.3000.)  scal=scal*1.12
           endif
+        else
+           print*,'End of line of sight - touching the ground'
         endif                                                             ! line of sight not blocked by topography
         enddo                                                             ! end of the loop over the line of sight voxels.
         fctcld=fctcld*10**(0.4*(100.-cloudfrac)*cloudslope)               ! correction for the cloud fraction (defined from 0 to 100)
