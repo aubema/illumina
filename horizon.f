@@ -54,7 +54,7 @@ c        print*,nx,ny,x,y
           dout=sqrt(dx**2.*real((nx-x))**2.+dy**2.*real((ny-y))**2.)
         else
           zout=pi/2.-0.5*pi/180.                                          ! bug for zhoriz=pi, anyway in the real world pi is almost impossible 
-          dout=real(width)*dx
+          dout=real(width)*dx/2.
         endif        
         if (zout.lt.zhoriz) then
            zhoriz=zout
