@@ -290,7 +290,7 @@ c reading of the fichier d'entree (illumina.in)
       if (angvis.lt.-90.) then
          print*,'Error: elevation angle smaller than -90 deg'
          stop
-      endif      
+      endif
       dfov=(dfov*pi/180.)/2.
       siz=2500.
       if (ssswit.eq.0) then
@@ -337,7 +337,7 @@ c cartesian, azim=0 toward east, 90 toward north, 180 toward west etc
       if (azim.ge.360.) azim=azim-360.
 c opening output file
       open(unit=2,file=outfile,status='unknown')
-        write(2,*) "ILLUMINA version 2.0.20w27.4a"
+        write(2,*) "ILLUMINA version 2.0.20w27.5d"
         write(2,*) 'FILE USED:'
         write(2,*) mnaf,diffil
         print*,'Wavelength (nm):',lambda,
