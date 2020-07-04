@@ -38,9 +38,9 @@ c **    - Exponential concentrations vertical profile (H aerosol= 2km, H molecul
 c **    - Accounting for heterogeneity luminaires number, luminaires heights, luminaire spectrum,                     **
 c **      angular photometry, obstacle properties                                                                     **
 c **    - Wavelength dependant                                                                                        **
-c **    - Cloud models (type and cloud base height) only the overhead clouds are considered                           **
-c **    - Do not support direct observation of a source                                                               **
-c **    - Direct observation of the ground not implemented                                                            **
+c **    - Cloud models (type and cloud base height) only the overhead clouds are considered with cloud fraction       **
+c **    - Support direct observation of a source                                                                      **
+c **    - Direct observation of the ground is implemented                                                             **
 c **    - Do not consider earth curvature (i.e. local/regional model)                                                 **
 c **                                                                                                                  **
 c **********************************************************************************************************************
@@ -283,6 +283,14 @@ c reading of the fichier d'entree (illumina.in)
         read(1,*) cloudt, cloudbase, cloudfrac
         read(1,*)
       close(1)
+      if (angvis.gt.90.) then
+         print*,'Error: elevation angle larger than 90 deg'
+         stop
+      endif
+      if (angvis.lt.-90.) then
+         print*,'Error: elevation angle smaller than -90 deg'
+         stop
+      endif
       dfov=(dfov*pi/180.)/2.
       siz=2500.
       if (ssswit.eq.0) then
@@ -292,12 +300,7 @@ c reading of the fichier d'entree (illumina.in)
       endif
       scal=19.
       scalo=scal
-c      if (angvis.lt.0.) then                                              ! the line of sight is not below the horizon => we compute
-c        ncible=1
-c      endif
-
-
-c omemax: exclude calculations too close (<57m) this is a sustended angle of 1 deg.
+c omemax: exclude calculations too close (<10m) this is a sustended angle of 1 deg.
 c the calculated flux is highly sensitive to that number for a very high
 c pixel resolution (a few 10th of meters). We assume anyway that somebody
 c observing the sky will never lies closer than that distance to a
@@ -334,11 +337,7 @@ c cartesian, azim=0 toward east, 90 toward north, 180 toward west etc
       if (azim.ge.360.) azim=azim-360.
 c opening output file
       open(unit=2,file=outfile,status='unknown')
-        write(2,*) "ILLUMINA version 2.1.20w19.3a-dev"
-        angzen=pi/2.-angvis*pi/180.
-        call horizon(x_obs,y_obs,z_obs,dx,dy,altsol,angazi,zhoriz,dhmax)  ! calculating the distance before the line of sight beeing blocked by topography
-
-
+        write(2,*) "ILLUMINA version 2.1.20w27.6a-dev"
         write(2,*) 'FILE USED:'
         write(2,*) mnaf,diffil
         print*,'Wavelength (nm):',lambda,
@@ -349,8 +348,8 @@ c opening output file
         print*,'2nd order scattering radius:',effdif,' m'
         write(2,*) 'Observer position (x,y,z)',x_obs,y_obs,z_o
         print*,'Observer position (x,y,z)',x_obs,y_obs,z_o
-        write(2,*) 'Elevation angle:',angvis,' azim angle (clockwise fro
-     +m north)',azim
+        write(2,*) 'Elevation angle:',angvis,' azim angle (counterclockwise
+     +from east)',azim
         print*,'Elevation angle:',angvis,' azim angle (counterclockwise
      +from east)',azim
 c Initialisation of the arrays and variables
@@ -762,9 +761,6 @@ c Some preliminary tasks
         if (z_obs.eq.0.) z_obs=0.001
         largx=dx*real(nbx)                                                ! computation of the Width along x of the case.
         largy=dy*real(nby)                                                ! computation of the Width along y of the case.
-
-
-
         write(2,*) 'Width of the domain [NS](m):',largx,'#cases:',nbx
         write(2,*) 'Width of the domain [EO](m):',largy,'#cases:',nby
         write(2,*) 'Size of a cell (m):',dx,' X ',dy
@@ -790,6 +786,9 @@ c temporaire !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         rdirect=0.                                                        ! initialize the total reflected irradiance between sources and observer
         angvi1 = (pi*angvis)/180.
         angaz1 = (pi*azim)/180.
+        call horizon(x_obs,y_obs,z_obs,dx,dy,altsol,angaz1,zhoriz,        ! calculating the distance before the line of sight beeing blocked by topography
+     +  dhmax)
+
         ix = ( sin((pi/2.)-angvi1) ) * (cos(angaz1))                      ! viewing vector components
         iy = ( sin((pi/2.)-angvi1) ) * (sin(angaz1))
         iz = (sin(angvi1))
@@ -897,6 +896,7 @@ c ******************************************************************************
 c calculation of the direct radiance of sources falling on a surface perpendicular
 c to the viewing angle Units of W/nm/m2/sr
 c *********************************************************************************************************
+
                         if (icible.eq.1) then                             ! do the direct sight calculation only once
                           rx=rx_obs+20000.*ix
                           ry=ry_obs+20000.*iy
@@ -936,27 +936,30 @@ c sub-grid obstacles
                               endif
                             endif                                           ! end light path to the observer larger than mean free path
 c projection angle of line to the lamp and the viewing angle
-                            call angle3points (rx_obs,ry_obs,z_obs,rx_s,        ! scattering angle.
-     +                      ry_s,z_s,rx,ry,rz,dang)
+                            call angle3points (rx_s,ry_s,z_s,rx_obs,        ! scattering angle.
+     +                      ry_obs,z_obs,rx,ry,rz,dang)
                             dang=pi-dang
 c computation of the solid angle of the line of sight voxel seen from the source
                             anglez=nint(180.*(pi-dzen)/pi)+1
                             P_dir=pvalno(anglez,stype)
 c computation of the flux direct reaching the line of sight voxel
+
                             if ((cos(dang).gt.0.).and.(dang.lt.pi/2.))
      +                      then
                               ddir_obs=sqrt((rx_obs-rx_s)**2.+               ! distance direct sight between source and observer
      +                        (ry_obs-ry_s)**2.+(z_obs-z_s)**2.)
-c computation of the solid angle of the line of sight voxel seen from the source
+c computation of the solid angle 1m^2 at the observer as seen from the source
                               omega=1.*abs(cos(dang))/ddir_obs**2.
                               call transmitm(dzen,z_obs,z_s,ddir_obs,
      +                        transm,tranam)
                               call transmita(dzen,z_obs,z_s,ddir_obs,
      +                        transa,tranaa)
+                print*,'calcul du direct',dang,cos(dang),dfov
+
                               if (dang.lt.dfov) then                      ! check if the reflecting surface enter the field of view of the observer
                               direct=direct+lamplu(x_s,y_s,stype)*
      +                          transa*transm*P_dir*omega*(1.-ff)*hh
-     +                          /dfov**2.                                 ! correction for obstacle filling factor
+     +                          /(pi*dfov**2.)                            ! correction for obstacle filling factor
                               endif
                             endif
                           endif
@@ -1254,8 +1257,8 @@ c sub-grid obstacles
                               endif
                             endif                                         ! end light path to the observer larger than mean free path
 c projection angle of line to the lamp and the viewing angle
-                            call angle3points (rx_obs,ry_obs,z_obs,       ! scattering angle.
-     +                      rx_sr,ry_sr,z_sr,rx,ry,rz,dang)
+                            call angle3points (rx_sr,ry_sr,z_sr,          ! scattering angle.
+     +                      rx_obs,ry_obs,z_obs,rx,ry,rz,dang)
                             dang=pi-dang
 
 c computation of the flux direct reaching the line of sight voxel
@@ -1271,7 +1274,7 @@ c computation of the solid angle of the line of sight voxel seen from the source
      +                        transa,tranaa)
                               if (dang.lt.dfov) then                      ! check if the reflecting surface enter the field of view of the observer
                                 rdirect=rdirect+irefl1*omega*transa*
-     +                          transm*hh*(1.-ff)/dfov**2.
+     +                          transm*hh*(1.-ff)/(pi*dfov**2.)
                               endif
                             endif
                           endif
@@ -1767,6 +1770,8 @@ c accelerate the computation as we get away from the sources
           scalo=scal
           if (scal.le.3000.)  scal=scal*1.12
           endif
+        else
+c           print*,'End of line of sight - touching the ground'
         endif                                                             ! line of sight not blocked by topography
         enddo                                                             ! end of the loop over the line of sight voxels.
         fctcld=fctcld*10**(0.4*(100.-cloudfrac)*cloudslope)               ! correction for the cloud fraction (defined from 0 to 100)

@@ -22,7 +22,7 @@ repo = Repo('.')
 tracked_list = ["version","illumina.f","setup.py","main.py"]
 
 with open("version") as f:
-    old = f.read()
+    old = f.read().strip()
 new = p.version if p.version \
     else '.'.join(old.split('.')[:2])
 
