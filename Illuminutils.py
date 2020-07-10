@@ -112,6 +112,29 @@ def save(params, data, dstname, scale_factor=1.):
     ds = hdftools.from_domain(params,scaled_data)
     ds.save(dstname)
 
+def correction_filenames(srcfiles):
+    return [ fname.replace(fname.split('_')[3],"zero_correction") \
+        .replace("avg_rade9h.tif","csv") \
+        for fname in srcfiles ]
+
+def convert_correction_data(srcfiles):
+    corr_files = np.unique(correction_filenames(srcfiles))
+
+    data = np.nanmean([ np.loadtxt(fname,delimiter=',') for fname in corr_files ],0)
+    data[np.isnan(data)] = -9999
+
+    with open("VIIRS-DNB/correction.asc",'w') as f:
+        f.write("NCOLS 72\n")
+        f.write("NROWS 28\n")
+        f.write("XLLCORNER -180\n")
+        f.write("YLLCORNER -65\n")
+        f.write("CELLSIZE 5\n")
+        f.write("NODATA_VALUE -9999\n")
+        np.savetxt(f, data)
+
+    with open("VIIRS-DNB/correction.prj",'w') as f:
+        f.write('GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137,298.257223563]],PRIMEM["Greenwich",0],UNIT["Degree",0.017453292519943295]]')
+
 with open(glob("*.ini")[0]) as f:
     params = yaml.safe_load(f)
 
@@ -149,8 +172,25 @@ else:
             raise SystemExit
 
         print("    ".join(map(str,files)))
+
+        correction = np.all([ os.path.isfile(fname) \
+            for fname in correction_filenames(files) ])
+        if not correction:
+            print("WARNING: Could not find correction files that matched the VIIRS files.")
+            print("If you indend to use it, please validate that you have the right ones.")
+            print("Note that only the VCMCFG dataset from VIIRS can be corrected.")
+
         data = [ warp(files, params['srs'], extent) \
             for extent in params['extents'] ]
+
+        if correction:
+            convert_correction_data(files)
+            corr = [ warp(["VIIRS-DNB/correction.asc"], params['srs'], extent) \
+                for extent in params['extents'] ]
+            save(params, corr, "VIIRS_background")
+            for l in range(len(data)):
+                data[l] -= corr[l]
+
         save(params, data, "stable_lights")
 
         prep_shp(
