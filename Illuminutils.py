@@ -199,13 +199,13 @@ def warp(output_name=None, infiles=[]):
             data = [ warp_files(files, params['srs'], extent) \
                 for extent in params['extents'] ]
 
-        if correction:
-            convert_correction_data(files)
-            corr = [ warp(["VIIRS-DNB/correction.asc"], params['srs'], extent) \
-                for extent in params['extents'] ]
-            save(params, corr, "VIIRS_background")
-            for l in range(len(data)):
-                data[l] -= corr[l]
+            if correction:
+                convert_correction_data(files)
+                corr = [ warp_files(["VIIRS-DNB/correction.asc"], params['srs'], extent) \
+                    for extent in params['extents'] ]
+                save(params, corr, "VIIRS_background")
+                for l in range(len(data)):
+                    data[l] -= corr[l]
 
             save(params, data, "stable_lights")
 
