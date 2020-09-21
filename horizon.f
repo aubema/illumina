@@ -35,7 +35,7 @@ c
       angaz1=anga
       ix = (cos(angaz1))                                                  ! viewing vector components
       iy = (sin(angaz1))
-      scalef=dx     
+      scalef=dx/3.     
       posx=real(x)*dx
       posy=real(y)*dy
       zhoriz=pi
