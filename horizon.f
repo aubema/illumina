@@ -29,28 +29,34 @@ c
       integer width                                                       ! Matrix dimension in Length/width and height
       parameter (width=512)      
       integer x,y,nx,ny
-      real dx,dy,altsol(width,width),anga,zout,pi,angaz1,ix,iy,dist
+      real dx,dy,altsol(width,width),anga,zout,pi,angaz1,ix,iy
       real posx,posy,scalef,zhoriz,z,d,dout
       pi=3.141592654
       angaz1=anga
       ix = (cos(angaz1))                                                  ! viewing vector components
       iy = (sin(angaz1))
-      dist=(real(width))*sqrt(1.+tan(angaz1)**2.)
-      scalef=dx/3.     
+      scalef=dx     
       posx=real(x)*dx
       posy=real(y)*dy
       zhoriz=pi
-      do while (((posx.le.real(width)*dx).and.(posx.gt.1.*dx)).and.
-     +((posy.le.real(width)*dy).and.(posy.gt.1.*dy)))
+      d=(real(width))*sqrt(1.+tan(angaz1)**2.)
+      do while (((posx.le.real(width)*dx).and.(posx.ge.1.*dx)).and.
+     +((posy.le.real(width)*dy).and.(posy.ge.1.*dy)))
         posx=posx+ix*scalef
         posy=posy+iy*scalef
         nx=nint(posx/dx)
         ny=nint(posy/dy)
-        if ((nx.eq.x).and.(ny.eq.y)) then
+        if ((nx.eq.x).and.(ny.eq.y)) then                                  ! to forbid division by zero
+           if (z.gt.altsol(nx,ny)) then
+              zout=pi
+              d=0.
+           else
+              zout=0.
+              d=0.
+           endif
         else
-        zout=pi/2.-atan((altsol(nx,ny)-z)/sqrt(dx**
-     +  2.*real((nx-x))**2.+dy**2.*real((ny-y))**2.))
-        dout=sqrt(dx**2.*real((nx-x))**2.+dy**2.*real((ny-y))**2.)
+        dout=sqrt(dx**2.*real((nx-x))**2.+dy**2.*real((ny-y))**2.)       
+        zout=pi/2.-atan((altsol(nx,ny)-z)/dout)
         if (altsol(nx,ny).eq.z) then
            zout=pi/2.-0.0001*pi/180.                                      ! bug for zhoriz=pi, anyway in the real world pi is almost impossible 
         endif        
