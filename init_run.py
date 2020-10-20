@@ -8,6 +8,7 @@ import click
 @click.command()
 def init():
     """Initialize an execution folder."""
+    print("Initializing Illumina execution folder.")
     ppath = os.environ['PATH'].split(os.pathsep)
     illumpath = [s for s in ppath if "illumina" in s and "bin" not in s][0]
 
