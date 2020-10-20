@@ -210,7 +210,7 @@ c                                                                         ! a li
       real scal                                                           ! stepping along the line of sight
       real scalo                                                          ! previous value of scal
       real siz                                                            ! resolution of the 2nd scat grid in meter
-      real angvi1,angaz1                                                  ! viewing angles in radian
+      real angvi1,angaz1,angze1                                           ! viewing angles in radian
       real ix,iy,iz                                                       ! base vector of the viewing (length=1)
       real dsc2,doc2                                                      ! square of the path lengths for the cloud contribution
       real azcl1,azcl2                                                    ! zenith angle from the (source, refl surface, or scattering voxel) to line of path and observer to line p.
@@ -785,6 +785,7 @@ c temporaire !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         direct=0.                                                         ! initialize the total direct irradiance between sources and observer
         rdirect=0.                                                        ! initialize the total reflected irradiance between sources and observer
         angvi1 = (pi*angvis)/180.
+        angze1 = pi/2.-angvi1
         angaz1 = (pi*azim)/180.
         call horizon(x_obs,y_obs,z_obs,dx,dy,altsol,angaz1,zhoriz,        ! calculating the distance before the line of sight beeing blocked by topography
      +  dhmax)
@@ -799,7 +800,8 @@ c temporaire !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
           rx_c=rx_c+ix*(scalo/2.+scal/2.)
           ry_c=ry_c+iy*(scalo/2.+scal/2.)
         dh0=sqrt((rx_c-rx_obs)**2.+(ry_c-ry_obs)**2)
-        if (dh0.le.dhmax) then                                            ! the line of sight is not yet blocked by the topography
+        if ((dh0.le.dhmax).or.((dh0.gt.dhmax).and.(angze1.le.zhoriz)))    ! the line of sight is not yet blocked by the topography
+     +  then
           x_c=nint(rx_c/dx)
           if (x_c.lt.1) x_c=1
           if (x_c.gt.width) x_c=width
@@ -968,7 +970,7 @@ c computation of the solid angle 1m^2 at the observer as seen from the source
 
 c
 c *********************************************************************************************************
-c * computation of the direct intensity toward the observer by a line of sight voxel from the source      *
+c * computation of the intensity toward the observer by a line of sight voxel from the source      *
 c *********************************************************************************************************
 
                         dirck=0                                           ! Initialisation of the verification of the position of the source
