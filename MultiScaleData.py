@@ -259,8 +259,10 @@ def plot(ds,n_layer=None,log=False,area=False,**options):
             **options
         )
 
-    N = ds[-1].shape[0]/2 - ds._attrs['layers'][-1]['buffer']
-    N *= ds.pixel_size(len(ds)-1)/1000
+    if n_layer is None:
+        n_layer = len(ds)
+    N = ds[n_layer-1].shape[0]/2 - ds._attrs['layers'][n_layer-1]['buffer']
+    N *= ds.pixel_size(n_layer-1)/1000
     _plt.xlim(-N,N)
     _plt.ylim(-N,N)
 
