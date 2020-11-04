@@ -782,8 +782,8 @@ c temporaire !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
  1110   format(I4,1x,I4,1x,I4)
         fctcld=0.
         ftocap=0.                                                         ! Initialisation of the value of flux received by the sensor
-        direct=0.                                                         ! initialize the total direct irradiance between sources and observer
-        rdirect=0.                                                        ! initialize the total reflected irradiance between sources and observer
+        direct=0.                                                         ! initialize the total direct radiance from sources to observer
+        rdirect=0.                                                        ! initialize the total reflected radiance from surface to observer
         angvi1 = (pi*angvis)/180.
         angze1 = pi/2.-angvi1
         angaz1 = (pi*azim)/180.
@@ -800,8 +800,8 @@ c temporaire !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
           rx_c=rx_c+ix*(scalo/2.+scal/2.)
           ry_c=ry_c+iy*(scalo/2.+scal/2.)
         dh0=sqrt((rx_c-rx_obs)**2.+(ry_c-ry_obs)**2)
-        if ((dh0.le.dhmax).or.((dh0.gt.dhmax).and.(angze1.le.zhoriz)))    ! the line of sight is not yet blocked by the topography
-     +  then
+        if ((dh0.le.dhmax).or.((dh0.gt.dhmax).and.(angze1-zhoriz.lt.      ! the line of sight is not yet blocked by the topography
+     +  0.00001))) then
           x_c=nint(rx_c/dx)
           if (x_c.lt.1) x_c=1
           if (x_c.gt.width) x_c=width
@@ -914,7 +914,7 @@ c ******************************************************************************
                               call horizon(x_obs,y_obs,z_obs,dx,dy,
      +                        altsol,angazi,zhoriz,dh)
                               if (dh.le.dho) then
-                                if (dzen.lt.zhoriz) then                    ! shadow the path line of sight-source is not below the horizon => we compute
+                                if (dzen-zhoriz.lt.0.00001) then                    ! shadow the path line of sight-source is not below the horizon => we compute
                                   hh=1.
                                 else
                                   hh=0.
@@ -998,7 +998,7 @@ c computation of the horizon for the resolved shadows direct              ! hori
                                 call horizon(x_s,y_s,z_s,dx,dy,altsol,
      +                          angazi,zhoriz,dh)
                                 if (dh.le.dho) then
-                                  if (angzen.lt.zhoriz) then              ! shadow the path line of sight-source is not below the horizon => we compute
+                                  if (angzen-zhoriz.lt.0.00001) then              ! shadow the path line of sight-source is not below the horizon => we compute
                                     hh=1.
                                   else
                                     hh=0.
@@ -1235,7 +1235,7 @@ c ******************************************************************************
                               call horizon(x_obs,y_obs,z_obs,dx,dy,
      +                        altsol,angazi,zhoriz,dh)
                               if (dh.le.dho) then
-                                if (dzen.lt.zhoriz) then                  ! shadow the path line of sight-source is not below the horizon => we compute
+                                if (dzen-zhoriz.lt.0.00001) then                  ! shadow the path line of sight-source is not below the horizon => we compute
                                   hh=1.
                                 else
                                   hh=0.
@@ -1578,7 +1578,8 @@ c verify if there is shadow between sr and line of sight voxel
                                         if (angzen.gt.pi/4.) then         ! 45deg. it is unlikely to have a 1km high mountain less than 1
         call horizon(x_sr,y_sr,z_sr,dx,dy,altsol,angazi,zhoriz,dh)
                                           if (dh.le.dho) then
-                                            if (angzen.lt.zhoriz) then    ! the path line of sight-reflec is not below the horizon => we compute
+                                            if (angzen-zhoriz.lt.
+     +                                      0.00001) then                 ! the path line of sight-reflec is not below the horizon => we compute
                                               hh=1.
                                             else
                                               hh=0.
