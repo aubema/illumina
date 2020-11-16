@@ -956,8 +956,6 @@ c computation of the solid angle 1m^2 at the observer as seen from the source
      +                        transm,tranam)
                               call transmita(dzen,z_obs,z_s,ddir_obs,
      +                        transa,tranaa)
-                print*,'calcul du direct',dang,cos(dang),dfov
-
                               if (dang.lt.dfov) then                      ! check if the reflecting surface enter the field of view of the observer
                                 direct=direct+lamplu(x_s,y_s,stype)*
      +                          transa*transm*P_dir*omega*(1.-ff)*hh
