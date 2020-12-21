@@ -226,7 +226,7 @@ for i,param_vals in enumerate(comb(*param_space),1):
         (("aerosol.mie.out", "Aerosol optical cross section file"),),
         (('', ''),),
         ((P['double_scattering']*1, "Double scattering activated" ),),
-        (('', ''),),
+        ((P['single_scattering']*1, "Single scattering activated" ),),
         ((wavelength, "Wavelength [nm]"),),
         ((reflectance, "Reflectance"),),
         ((P['air_pressure'], "Ground level pressure [kPa]"),),
