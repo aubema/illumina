@@ -96,7 +96,7 @@ c
       real altsol(width,width)                                            ! Ground elevation (meter)
       real srefl                                                          ! Ground reflectance
       integer stype                                                       ! Source type or zone index
-      character*72 pafile,lufile,alfile,ohfile,odfile,offile              ! Files related to light sources and obstacles (photometric function of the sources (sr-1), flux (W), height (m), obstacles c                                                               ! height (m), obstacle distance (m), obstacle filling factor (0-1).
+      character*72 pafile,lufile,alfile,ohfile,odfile,offile              ! Files related to light sources and obstacles (photometric function of the sources (sr-1), flux (W), height (m), obstacles c                                                                   ! height (m), obstacle distance (m), obstacle filling factor (0-1).
       real lamplu(width,width,nzon)                                       ! Source fluxes
       real lampal(width,width)                                            ! Height of the light sources relative to the ground (meter)
       real pval(181,nzon),pvalto,pvalno(181,nzon)                         ! Values of the angular photometry functions (unnormalized, integral, normalized)
@@ -232,6 +232,8 @@ c                                                                         ! a li
       real zhoriz                                                         ! zenith angle of the horizon
       real direct                                                         ! direct radiance from sources on a surface normal to the line of sight (no scattering)
       real rdirect                                                        ! direct radiance from a reflecting surface on a surface normal to the line of sight (no scattering)
+      real irdirect                                                       ! direct irradiance from sources on a surface normal to the line of sight (no scattering)
+      real irrdirect                                                      ! direct irradiance from a reflecting surface on a surface normal to the line of sight (no scattering)      
       real dang                                                           ! Angle between the line of sight and the direction of a source
       real dzen                                                           ! zenith angle of the source-observer line
       real ddir_obs                                                       ! distance between the source and the observer
@@ -346,7 +348,7 @@ c cartesian, azim=0 toward east, 90 toward north, 180 toward west etc
       if (azim.ge.360.) azim=azim-360.
 c opening output file
       open(unit=2,file=outfile,status='unknown')
-        write(2,*) "ILLUMINA version 2.0.20w52.1a"
+        write(2,*) "ILLUMINA version 2.0.20w43.2a"
         write(2,*) 'FILE USED:'
         write(2,*) mnaf,diffil
         print*,'Wavelength (nm):',lambda,
@@ -860,6 +862,8 @@ c computation of the solid angle 1m^2 at the observer as seen from the source
                       direct=direct+lamplu(x_s,y_s,stype)*
      +                transa*transm*P_dir*omega*(1.-ff)*hh
      +                /(pi*dfov**2.)                                      ! correction for obstacle filling factor
+                      irdirect=irdirect+lamplu(x_s,y_s,stype)*
+     +                transa*transm*P_dir*omega*(1.-ff)*hh                ! correction for obstacle filling factor     
                     endif
                   endif
                 endif
@@ -1059,6 +1063,8 @@ c computation of the solid angle of the line of sight voxel seen from the source
                                 if (dang.lt.dfov) then                      ! check if the reflecting surface enter the field of view of the observer
                                   rdirect=rdirect+irefl1*omega*transa*
      +                            transm*hh*(1.-ff)/(pi*dfov**2.)
+                                  irrdirect=irrdirect+irefl1*omega*transa*
+     +                            transm*hh*(1.-ff)     
                                 endif
                               endif  
                               
@@ -1098,6 +1104,8 @@ c temporaire !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         ftocap=0.                                                         ! Initialisation of the value of flux received by the sensor
         direct=0.                                                         ! initialize the total direct radiance from sources to observer
         rdirect=0.                                                        ! initialize the total reflected radiance from surface to observer
+        irdirect=0.                                                       ! initialize the total direct irradiance from sources to observer
+        irrdirect=0.                                                      ! initialize the total reflected irradiance from surface to observer        
         call horizon(x_obs,y_obs,z_obs,dx,dy,altsol,angaz1,zhoriz,        ! calculating the distance before the line of sight beeing blocked by topography
      +  dhmax)
         rx_c=real(x_obs)*dx-ix*scal/2.
@@ -1975,6 +1983,10 @@ c =================================
 
         if (verbose.ge.1) print*,'======================================
      +==============='
+        print*,'         Direct irradiance from sources (W/m**2/nm)'
+        write(*,2001)  irdirect
+        print*,'       Direct irradiance from reflexion (W/m**2/nm)'
+        write(*,2001)  irrdirect     
         print*,'         Direct radiance from sources (W/str/m**2/nm)'
         write(*,2001)  direct
         print*,'         Direct radiance from reflexion (W/str/m**2/nm)'
@@ -1985,16 +1997,20 @@ c =================================
         write(*,2001) (ftocap+fctcld)/omefov/(pi*(diamobj/2.)**2.)
         if (verbose.ge.1) write(2,*) '==================================
      +================='
-        write(2,*) '       Direct radiance from sources (W/str/m**2/nm)'
+        write(2,*) '     Direct irradiance from sources (W/m**2/nm)'
+        write(2,2001)  irdirect
+        write(2,*) '     Direct irradiance from reflexion (W/m**2/nm)'
+        write(2,2001)  irrdirect         
+        write(2,*) '     Direct radiance from sources (W/str/m**2/nm)'
         write(2,2001)  direct
         write(2,*) '     Direct radiance from reflexion (W/str/m**2/nm)'
         write(2,2001)  rdirect
-        write(2,*) '           Cloud radiance (W/str/m**2/nm)         '
+        write(2,*) '     Cloud radiance (W/str/m**2/nm)         '
         write(2,2001) fctcld/omefov/(pi*(diamobj/2.)**2.)
-        write(2,*) '         Diffuse radiance (W/str/m**2/nm)          '
+        write(2,*) '     Diffuse radiance (W/str/m**2/nm)          '
         write(2,2001) (ftocap+fctcld)/omefov/(pi*(diamobj/2.)**2.)
       close(2)
- 2001 format('                   ',E10.3E2)
+ 2001 format('                 ',E10.3E2)
       stop
       end
 c***********************************************************************************************************************
