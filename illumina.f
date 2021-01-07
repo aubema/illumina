@@ -1007,7 +1007,7 @@ c computation of the reflected intensity leaving the ground surface
                             irefl1=flrefl*srefl/pi                         ! The factor 1/pi comes from the normalisation of the fonction
 c
 c *********************************************************************************************************
-c calculation of the direct radiance from reflection falling on a surface perpendicular
+c calculation of the direct radiance from reflection falling on a surface perpendicular 
 c to the viewing angle Units of W/nm/m2/sr
 c *********************************************************************************************************
                             dho=sqrt((rx_obs-rx_sr)**2.
