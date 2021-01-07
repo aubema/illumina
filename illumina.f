@@ -862,9 +862,9 @@ c computation of the solid angle 1m^2 at the observer as seen from the source
                       direct=direct+lamplu(x_s,y_s,stype)*
      +                transa*transm*P_dir*omega*(1.-ff)*hh
      +                /(pi*dfov**2.)                                      ! correction for obstacle filling factor
-                      irdirect=irdirect+lamplu(x_s,y_s,stype)*
-     +                transa*transm*P_dir*omega*(1.-ff)*hh                ! correction for obstacle filling factor     
                     endif
+                    irdirect=irdirect+lamplu(x_s,y_s,stype)*
+     +              transa*transm*P_dir*omega*(1.-ff)*hh                  ! correction for obstacle filling factor     
                   endif
                 endif
 c
@@ -1062,10 +1062,10 @@ c computation of the solid angle of the line of sight voxel seen from the source
      +                          transa,tranaa)
                                 if (dang.lt.dfov) then                      ! check if the reflecting surface enter the field of view of the observer
                                   rdirect=rdirect+irefl1*omega*transa*
-     +                            transm*hh*(1.-ff)/(pi*dfov**2.)
-                                  irrdirect=irrdirect+irefl1*omega*transa*
-     +                            transm*hh*(1.-ff)     
+     +                            transm*hh*(1.-ff)/(pi*dfov**2.) 
                                 endif
+                                irrdirect=irrdirect+irefl1*omega*transa*
+     +                          transm*hh*(1.-ff)   
                               endif  
                               
                             endif
