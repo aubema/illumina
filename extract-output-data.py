@@ -81,11 +81,12 @@ def extract(exec_dir,contrib,params,full):
 
             with open(os.sep.join([dirpath,oname])) as f:
                 lines = f.readlines()
+            idx_results = np.where([ "==" in l for l in lines ])[0][-1] + 1
 
             val = float(lines[-1])
-            if full:
-                vals =  np.array([ float(l) for l in lines[-7::2] ])
-                outputs[regex_layer.sub('',params_name)] += vals
+            if p.full:
+                vals =  np.array([ float(l) for l in lines[idx_results+1::2] ])
+                outputs[regex_layer.sub('',params)] += vals
             else:
                 skyglow[regex_layer.sub('',params_name)] += val
             if contrib:
@@ -118,7 +119,8 @@ def extract(exec_dir,contrib,params,full):
                 contributions[key][n_layer] = pcl_data[b:-b,b:-b] if b else pcl_data
 
     if full:
-        print("Case\tDirect irradiance\tReflected irradiance\tCloud radiance\tSky radiance")
+        results_names = ["Case"] + [ s[:s.index('(')] for s in lines[idx_results::2] ]
+        print('\t'.join(results_names))
         for key,vals in outputs.items():
             print(key,*vals,sep="\t")
         if contrib:

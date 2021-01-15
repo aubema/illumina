@@ -227,7 +227,7 @@ def batches(input_params_path,compact,batch_size,batch_name=None):
             (("aerosol.mie.out", "Aerosol optical cross section file"),),
             (('', ''),),
             ((P['double_scattering']*1, "Double scattering activated" ),),
-            (('', ''),),
+            ((P['single_scattering']*1, "Single scattering activated" ),),
             ((wavelength, "Wavelength [nm]"),),
             ((reflectance, "Reflectance"),),
             ((P['air_pressure'], "Ground level pressure [kPa]"),),
