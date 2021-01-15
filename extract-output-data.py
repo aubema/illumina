@@ -118,7 +118,7 @@ for dirpath,dirnames,filenames in os.walk(p.exec_dir):
             contrib[key][n_layer] = pcl_data[b:-b,b:-b] if b else pcl_data
 
 if p.full:
-    results_names = [ s[:s.index('(')] for s in lines[idx_results::2] ]
+    results_names = ["Case"] + [ s[:s.index('(')] for s in lines[idx_results::2] ]
     print('\t'.join(results_names))
     for key,vals in outputs.items():
         print(key,*vals,sep="\t")
