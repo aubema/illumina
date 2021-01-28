@@ -4,13 +4,13 @@ import click
 from importlib import import_module
 
 @click.group()
-@click.version_option("2.1.21w02.5a-dev",prog_name="Illumina model")
+@click.version_option("2.1.21w04.4a-dev",prog_name="Illumina model")
 def illum():
     r"""Illumina model.
 
     See 'illum COMMAND --help' to read about specific subcommand.
     The user's guide is available at:
-    https://w1.cegepsherbrooke.qc.ca/~aubema/index.php/Prof/IlluminaGuide2019
+    https://lx02.cegepsherbrooke.qc.ca/~aubema/index.php/Prof/IlluminaGuide2021
 
     Below is detailled the typical use case:
 
