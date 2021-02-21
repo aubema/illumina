@@ -2001,9 +2001,9 @@ c =================================
         write(2,2001)  irdirect
         write(2,*) '     Direct irradiance from reflexion (W/m**2/nm)'
         write(2,2001)  irrdirect
-        write(2,*) '         Direct radiance from sources (W/str/m**2/nm)'
+        write(2,*) '     Direct radiance from sources (W/str/m**2/nm)'
         write(2,2001)  direct
-        write(2,*) '       Direct radiance from reflexion (W/str/m**2/nm)'
+        write(2,*) '     Direct radiance from reflexion (W/str/m**2/nm)'
         write(2,2001)  rdirect
         write(2,*) '           Cloud radiance (W/str/m**2/nm)         '
         write(2,2001) fctcld/omefov/(pi*(diamobj/2.)**2.)
