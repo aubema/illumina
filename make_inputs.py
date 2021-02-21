@@ -70,6 +70,13 @@ def inputs():
 
 	out_name = params['exp_name']
 
+	if params['road_orientation']:
+		print("Computing road orientation (Can be slow for large domains)")
+		from street_orientation import street_orientation
+		lats,lons = MSD.Open("srtm.hdf5").get_obs_pos()
+		bearings = street_orientation(lats,lons)
+		np.savetxt(dir_name+"/brng.lst",bearings,fmt="%g")
+
 	print("Loading photometry files.")
 
 	# Angular distribution (normalised to 1)

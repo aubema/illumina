@@ -2,10 +2,24 @@ from setuptools import setup
 
 setup(
     name='illum',
-    version='2.1.21w04.4b',
-    py_modules=['main','defineDomain','Illuminutils','make_inputs',
-    'make_zones','make_lamps','makeBATCH','find-failed-runs','extract-output-data',
-    'init_run','alt_scenario_maker','hdf_convert','pytools','MultiScaleData'],
+    version='2.1.21w07.7a-dev',
+    py_modules=[
+        'main',
+        'alt_scenario_maker',
+        'defineDomain',
+        'extract-output-data',
+        'find-failed-runs',
+        'hdf_convert',
+        'Illuminutils',
+        'init_run',
+        'make_inputs',
+        'make_zones',
+        'make_lamps',
+        'makeBATCH',
+        'MultiScaleData',
+        'pytools',
+        'street_orientation'
+    ],
     install_requires=[
         'Click',
         'pyproj',
@@ -18,7 +32,8 @@ setup(
         'astropy',
         'pandas',
         'geopandas',
-        'fiona'
+        'fiona',
+        'osmnx'
     ],
     entry_points='''
         [console_scripts]

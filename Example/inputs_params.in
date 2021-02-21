@@ -13,6 +13,7 @@ aerosol_profile: maritime      # Aerosol profile. 'maritime','urban' or 'rural'
 relative_humidity: 70
 estimated_computing_time: 1    # estimated computing time per case in hours
 batch_file_name: batch
+road_orientation: False        # Observation angle given relative to road orientation instead of North (WARNING: Can be slow for large domains)
 # parameters after here can be lists
 observer_elevation: 10         # elevation above ground level (m)
 air_pressure: 101.3            # lowest domain level atmospheric pressure in KPa
