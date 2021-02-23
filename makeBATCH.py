@@ -30,7 +30,7 @@ def MSDOpen(filename,cached={}):
     return ds
 
 @click.command()
-@click.argument("input_params_path",type=click.Path(exists=True))
+@click.argument("input_params_path",type=click.Path(exists=True),default=".")
 @click.argument("batch_name",required=False)
 @click.option("-c","--compact",is_flag=True,help="If given, will chain similar executions. "\
     "Reduces the overall number of runs at the cost of longuer individual executions.")
@@ -112,6 +112,9 @@ def batches(input_params_path,compact,batch_size,batch_name=None):
     with open("lamps.lst") as f:
         lamps = f.read().split()
 
+    if os.path.isfile("brng.lst"):
+        brng = np.loadtxt("brng.lst", ndmin=1)
+
     # Clear and create execution folder
     dir_name = "exec" + os.sep
     shutil.rmtree(dir_name,True)
@@ -142,6 +145,13 @@ def batches(input_params_path,compact,batch_size,batch_name=None):
             and P['elevation_angle'] == 90 \
             and params['azimuth_angle'].index(P['azimuth_angle']) != 0:
             continue
+
+        if os.path.isfile("brng.lst"):
+            obs_index = 0 if 'observer_coordinates' not in multival else \
+                params['observer_coordinates'].index(P['observer_coordinates'])
+            bearing = brng[obs_index]
+        else:
+            bearing = 0
 
         coords = "%6f_%6f" % P['observer_coordinates']
         if 'observer_coordinates' in multival:
@@ -241,7 +251,7 @@ def batches(input_params_path,compact,batch_size,batch_name=None):
              (P['observer_elevation'], "Observer elevation above ground [m]")),
             (('', ''),),
             ((P['elevation_angle'], "Elevation viewing angle"),
-             (P['azimuth_angle'], "Azimuthal viewing angle")),
+             (P['azimuth_angle']+bearing, "Azimuthal viewing angle")),
             ((P['direct_fov'], 'Direct field of view'),),
             (('', ''),),
             (('', ''),),

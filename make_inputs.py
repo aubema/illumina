@@ -73,7 +73,7 @@ def inputs():
 	if params['road_orientation']:
 		print("Computing road orientation (Can be slow for large domains)")
 		from street_orientation import street_orientation
-		lats,lons = MSD.Open("srtm.hdf5").get_obs_pos()
+		lats,lons = MSD.from_domain("domain.ini").get_obs_pos()
 		bearings = street_orientation(lats,lons)
 		np.savetxt(dir_name+"/brng.lst",bearings,fmt="%g")
 

@@ -19,10 +19,10 @@ def get_bearing(lat1, lon1, lat2, lon2):
 def street_orientation(lats, lons):
     print("    Loading graph")
     Graph = ox.graph_from_bbox(
-        north=max(lats),
-        south=min(lats),
-        east=max(lons),
-        west=min(lons),
+        north=max(lats)+0.01,
+        south=min(lats)-0.01,
+        east=max(lons)+0.01,
+        west=min(lons)-0.01,
         network_type='drive',
         simplify=False,
         retain_all=True,
