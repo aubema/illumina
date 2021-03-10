@@ -9,11 +9,7 @@ from scipy.stats import norm
 from astropy.convolution import Gaussian2DKernel, interpolate_replace_nans, Box2DKernel
 from osgeo import gdal
 
-pix_size= 8 # taille du pixel en micron
-focal_distance= 400 # distance en mm
-ISS_altitude= 400000 # altutide de l'ISS en m
-deviation= (25* (focal_distance/1000))/((pix_size/1000000)*ISS_altitude) # stdev to Blur final image with a 25m resolution
-# on estime que la distance entre les lampadaires est typiquement de 50m dans une ville
+path='C:/Users/nikki/OneDrive/Bureau' 
 
 file_name_intensity = 'Corr_iss035e017088_ImpactVlG_GR.fits' # nom de l'image d'intensité de la ville à étudier (ImpactVlG_GR)
 file_name_technology = 'Corr_iss035e017088Composite.fits' # nom de l'image des technologies d'éclairement de la ville à étudier (Composite)
@@ -30,20 +26,10 @@ image_intensity =file_intensity[0].data.astype(np.float32)
 # print(type(image_intensity))
 # print(image_intensity.shape)
 image_tech = file_tech[0].data.astype(np.float32)
-plt.figure()
-plt.imshow(image_tech, cmap="rainbow")
-plt.colorbar()
-plt.title('')
-plt.show()
-
-
 
 file_intensity.close() #											pas pour tech?
-ncol=np.size(image_tech,1) #										pour la sauvegarde à la fin
+ncol=np.size(image_tech,1)
 nrow=np.size(image_tech,0)
-
-
-
 
 
 ## 1. Start of treatment : elimination of noise
@@ -147,49 +133,52 @@ plt.title('Intensity with clean dark aeras')
 
 ## 3. Concordance...
 
-#3a. We make a copy of our image to create a new binary map without changing our current image
+## 3a. We make a copy of our image to create a new binary map without changing our current image
 image_intensity_temporary=image_intensity.copy()
 image_intensity_temporary_NaN = np.isnan(image_intensity_temporary)
 image_intensity_temporary[image_intensity_temporary>=0] = 1
 image_intensity_temporary[image_intensity_temporary_NaN] = 0
 image_binary=np.nan_to_num(image_copy2)
 
-# 3b. eliminating points of value=0
+## 3b. eliminating points of value=0
 image_tech [image_tech==0] = np.nan
 
-# 3c. By multiplying our technology map with the binary of intensity, we eliminate data where we have none in the intensity image
-image_tech = image_tech * image_binaire2
+## 3c. By multiplying our technology map with the binary of intensity, we eliminate data where we have none in the intensity image
+image_tech = image_tech * image_binary
 image_tech[image_tech==0] = np.nan
 
-plt.figure()
-plt.imshow(image_tech2, cmap='rainbow')
-plt.title("Technologies")
-# plt.show()
-image_tech_non_floue=image_tech2.copy()
 
-# Copie de l'image des technologie initiale pour manipulations ultérieures
-# image_tech_traite = image_tech2.copy() 
-# plt.figure()
-# plt.imshow(image_tech_final, cmap='rainbow')
-# plt.colorbar()
-# plt.title('Technologies, final')
+## 4. Creation of MSI map
 
-# # Création image des technologies binaire
-# image_tech_NaN = np.isnan(image_tech2)
-# image_tech2[image_tech_NaN] = 0
-# image_tech2[image_tech2>0] = 1
-# image_binaire_tech=image_tech2
+## 4a. Estimation of MSI for each category (may need to be updated)
+MSI_1=0.539
+MSI_2=0.446
+MSI_3=0.274
+MSI_4=0.043
+MSI_5=0.118
+MSI_6=0.017
 
-# # Concordance entre les deux images 
-# image_intensity_finale = image_binaire_tech * image_intensity_treated
-# plt.figure()
-# plt.imshow(image_intensity_finale, cmap='rainbow')
-# plt.colorbar()
-# plt.title('Intensité lumineuse, final')
+## 4b. We create a map with the same properties (size, datatype...) but with every value=0, then we add the MSI values according to the location of the technology categories in tech image
+image_MSI = np.zeros_like(image_tech)
+image_MSI[image_tech == 1] = MSI_1
+image_MSI[image_tech == 2] = MSI_2
+image_MSI[image_tech == 3] = MSI_3
+image_MSI[image_tech == 4] = MSI_4
+image_MSI[image_tech == 5] = MSI_5
+image_MSI[image_tech == 6] = MSI_6
 
-# Fonction de floutage
 
-def Convolution_sans_zero(image,stdev=deviation):
+## 5. Bluring
+
+## 5a. Defining standard deviation
+pix_size= 8 # pixel size in micrometer
+focal_distance= 400 # focal distance in mm
+ISS_altitude= 400000 # altutide of ISS in m
+distance_dev=25 # influence standrad deviation of a single lamp
+deviation= (distance_dev * (focal_distance/1000))/((pix_size/1000000)*ISS_altitude) # influence standard deviation in pixel
+
+## 5b. Defining the bluring fonction
+def Convolution_without_zero(image,stdev=deviation):
 	image=image.copy()
 	mask = image==0
 	image[mask]=np.nan
@@ -198,122 +187,64 @@ def Convolution_sans_zero(image,stdev=deviation):
 	Blur[mask]=np.nan
 	return Blur
 
+## 5c. Bluring intensity image
+Blur_intensity=Convolution_without_zero(image_intensity)
+
+## 5d. Bluring MSI image
+Blur_MSI = Convolution_without_zero(image_MSI)
 
 
-# Floutage de l'image de l'intensité
-Blur_intensity=Convolution_sans_zero(image_intensity_traite)
-plt.figure()
-plt.imshow(Blur_intensity, cmap= 'rainbow')
-plt.colorbar()
-plt.title('Intensité flouée')
-
-# Variables des valeurs de MSI associées aux catégories de technologies
-MSI_1=0.539
-MSI_2=0.446
-MSI_3=0.274
-MSI_4=0.043
-MSI_5=0.118
-MSI_6=0.017
-
-# Création carte MSI par remplacement des valeurs de 1 à 6 par les valeurs de MSI associées
-image_MSI = np.zeros_like(image_tech2)
-image_MSI[image_tech2 == 1] = MSI_1
-image_MSI[image_tech2 == 2] = MSI_2
-image_MSI[image_tech2 == 3] = MSI_3
-image_MSI[image_tech2 == 4] = MSI_4
-image_MSI[image_tech2 == 5] = MSI_5
-image_MSI[image_tech2 == 6] = MSI_6
-plt.figure()
-plt.imshow(image_MSI, cmap='rainbow')
-plt.colorbar()
-plt.title('Carte MSI')
-
-# Floutage de la carte des MSI
-# stdev dépend de la résolution de pixels
-Blur_MSI = Convolution_sans_zero(image_MSI)
-plt.figure()
-plt.imshow(Blur_MSI, cmap = 'rainbow')
-plt.colorbar()
-plt.title('MSI flouée')
-
-# Création de la carte de l'impact final (MSI et intensité combinés)
+## 6. Creation of impact MSI image
 Impact_MSI=Blur_MSI*Blur_intensity
-plt.figure()
-plt.imshow(Impact_MSI, cmap="rainbow")
-plt.colorbar()
-plt.title('Impact MSI')
+
+
+## Uncomment to show final images
+# plt.figure()
+# plt.imshow(Blur_MSI, cmap = 'rainbow')
+# plt.colorbar()
+# plt.title('Blured MSI')
+#
+# plt.figure()
+# plt.imshow(Impact_MSI, cmap="rainbow")
+# plt.colorbar()
+# plt.title('Impact MSI')
+# # plt.show()
+#
+# plt.figure()
+# plt.imshow(Blur_intensity, cmap="rainbow")
+# plt.colorbar()
+# plt.title("Blured Intensity")
 # plt.show()
 
-plt.figure()
-plt.imshow(Blur_intensity, cmap="rainbow")
-plt.colorbar()
-plt.title("blur intensity")
-plt.show()
-
-
  
+## 7. Uploading images to computer
 
-
+## 7a. Uploading intensity
 final_data = Blur_intensity
-# get parameters
-# geotransform = src_dataset.GetGeoTransform()
-# spatialreference = src_dataset.GetProjection()
 nband = 1
-print(ncol,nrow)
-print(type(ncol))
-# create dataset for output
 fmt = 'GTiff'
 driver = gdal.GetDriverByName(fmt)
-dst_dataset = driver.Create('C:/Users/nikki/OneDrive/Bureau/Blur_intensity.tiff', ncol, nrow, nband, gdal.GDT_Float32)
-# dst_dataset.SetGeoTransform(geotransform)
-# dst_dataset.SetProjection(spatialreference)
+dst_dataset = driver.Create(path+"/Blur_intensity.tiff", ncol, nrow, nband, gdal.GDT_Float32)
 dst_dataset.GetRasterBand(1).WriteArray(final_data.astype(float))
 dst_dataset = None
-
 np.save('Blur_Vrad',Blur_intensity) 
 
-
-
-
+## 7b. Uploading MSI
 final_data = Blur_MSI
-# get parameters
-# geotransform = src_dataset.GetGeoTransform()
-# spatialreference = src_dataset.GetProjection()
 nband = 1
-print(ncol,nrow)
-print(type(ncol))
-# create dataset for output
 fmt = 'GTiff'
 driver = gdal.GetDriverByName(fmt)
-dst_dataset = driver.Create('C:/Users/nikki/OneDrive/Bureau/Impact_MSI.tiff', ncol, nrow, nband, gdal.GDT_Float32)
-# dst_dataset.SetGeoTransform(geotransform)
-# dst_dataset.SetProjection(spatialreference)
+dst_dataset = driver.Create(path+"/Blur_MSI.tiff", ncol, nrow, nband, gdal.GDT_Float32)
 dst_dataset.GetRasterBand(1).WriteArray(final_data.astype(float))
 dst_dataset = None
-
 np.save('Impact_MSI',Impact_MSI)
 
-
-
-
-
-
-
-
+## 7c. Uploading Impact MSI
 final_data = Impact_MSI
-# get parameters
-# geotransform = src_dataset.GetGeoTransform()
-# spatialreference = src_dataset.GetProjection()
 nband = 1
-print(ncol,nrow)
-print(type(ncol))
-# create dataset for output
 fmt = 'GTiff'
 driver = gdal.GetDriverByName(fmt)
-dst_dataset = driver.Create('C:/Users/nikki/OneDrive/Bureau/Impact_MSI.tiff', ncol, nrow, nband, gdal.GDT_Float32)
-# dst_dataset.SetGeoTransform(geotransform)
-# dst_dataset.SetProjection(spatialreference)
+dst_dataset = driver.Create(path+"/Impact_MSI.tiff", ncol, nrow, nband, gdal.GDT_Float32)
 dst_dataset.GetRasterBand(1).WriteArray(final_data.astype(float))
 dst_dataset = None
-
 np.save('Impact_MSI',Impact_MSI)
