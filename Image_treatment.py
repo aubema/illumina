@@ -30,6 +30,11 @@ image_intensity =file_intensity[0].data.astype(np.float32)
 # print(type(image_intensity))
 # print(image_intensity.shape)
 image_tech = file_tech[0].data.astype(np.float32)
+plt.figure()
+plt.imshow(image_tech, cmap="rainbow")
+plt.colorbar()
+plt.title('')
+plt.show()
 
 
 
@@ -41,9 +46,9 @@ nrow=np.size(image_tech,0)
 
 
 
-## 1. Start of treatement : elimination of noise
+## 1. Start of treatment : elimination of noise
 
-## 1a. We first eliminate negative data, as these are a mistake resulting of the pre-treatement
+## 1a. We first eliminate negative data, as these are a mistake resulting of the pre-treatment
 image_intensity [image_intensity<0] = np.nan
 
 ## 1b. Statistical data
@@ -68,7 +73,7 @@ print("mean2:", mean2 , "median2:",  median2, "mode2:",  mode2, "standard_deviat
 Noise= mode + standard_deviation2 ## this value can change. Modifie accordingly in order to achieve the best results (see step 1.f)
 image_intensity-= Noise 
 
-## 1e. Eliminating negative pixels created by our treatement of the noise in the image
+## 1e. Eliminating negative pixels created by our treatment of the noise in the image
 image_intensity [image_intensity<0] = np.nan
 
 ## 1f. Compare your image to the ones in ReadMe for reference as well as Google maps to know which zones should emit light or not
@@ -142,21 +147,20 @@ plt.title('Intensity with clean dark aeras')
 
 ## 3. Concordance...
 
+#3a. We make a copy of our image to create a new binary map without changing our current image
+image_intensity_temporary=image_intensity.copy()
+image_intensity_temporary_NaN = np.isnan(image_intensity_temporary)
+image_intensity_temporary[image_intensity_temporary>=0] = 1
+image_intensity_temporary[image_intensity_temporary_NaN] = 0
+image_binary=np.nan_to_num(image_copy2)
 
-image_tech [image_tech==0] = np.nan #								Tout de suite?
+# 3b. eliminating points of value=0
+image_tech [image_tech==0] = np.nan
 
+# 3c. By multiplying our technology map with the binary of intensity, we eliminate data where we have none in the intensity image
+image_tech = image_tech * image_binaire2
+image_tech[image_tech==0] = np.nan
 
-image_binaire2=image_copy2.copy()
-
-image_binaire2_NaN = np.isnan(image_binaire2)
-image_binaire2[image_binaire2>=0] = 1
-image_binaire2[image_binaire2_NaN] = 0
-image_intensity_traite=np.nan_to_num(image_copy2)
-
-
-# Concordance entre les deux images (0 aux mêmes endroits)
-image_tech2 = image_tech * image_binaire2
-image_tech2[image_tech2==0] = np.nan
 plt.figure()
 plt.imshow(image_tech2, cmap='rainbow')
 plt.title("Technologies")
