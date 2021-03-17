@@ -123,7 +123,7 @@ c
       real angzen,ouvang                                                  ! Zenithal angle between two voxels (radians) and opening angle of the solid angle in degrees.
       integer anglez                                                      ! Emitting zenithal angle from the luminaire.
       real P_dir,P_indir,P_dif1                                           ! photometric function of the light sources (direct,indirect,scattered)
-      real transa,transm                                                  ! Transmittance between two voxels (aerosols,molecules).
+      real transa,transm,transl                                           ! Transmittance between two voxels (aerosols,molecules,particle layer).
       real tran1a,tran1m                                                  ! Transmittance of the voxel (aerosols,molecules).
       real taua                                                           ! Aerosol optical depth @ 500nm.
       real alpha                                                          ! Angstrom coefficient of aerosol AOD
@@ -244,10 +244,13 @@ c                                                                         ! a li
       integer viirs(width,width)                                          ! viirs flag 1=yes 0=no
       character*72 vifile                                                 ! name of the viirs flag file
       real dh0,dhmax                                                      ! horizontal distance along the line of sight and maximum distance before beeing blocked by topography
-      character*12 layerfile                                              ! filename of the optical properties of the fog or dust layer
-      real layeraod                                                       ! 500 nm aod of the fog or dust layer
-      real layera                                                         ! spectral exponent of the aod for the fog or dust layer
-      real layerh                                                         ! exponential vertical scale height of the fog of dust layer
+      character*12 layfile                                                ! filename of the optical properties of the particle layer
+      real layaod                                                         ! 500 nm aod of the particle layer
+      real layalp                                                         ! spectral exponent of the aod for the particle layer
+      real hlay                                                           ! exponential vertical scale height of the particle layer
+      real secdil                                                         ! scattering/extinction ratio for the particle layer
+      real fdifl(181)                                                          ! scattering phase function of the particle layer
+      real tranal                                                         ! top of atmos transmission of the particle layer 
       verbose=1                                                           ! Very little printout=0, Many printout = 1, even more=2
       diamobj=1.                                                          ! A dummy value for the diameter of the objective of the instrument used by the observer.
       volu=0.
@@ -269,7 +272,7 @@ c reading of the fichier d'entree (illumina.in)
         read(1,*) basenm
         read(1,*) dx,dy
         read(1,*) diffil
-        read(1,*) layerfile, layeraod, layera, layerh
+        read(1,*) layfile, layaod, layalp, hlay
         read(1,*) ssswit
         read(1,*) fsswit
         read(1,*) lambda
@@ -400,6 +403,7 @@ c Initialisation of the arrays and variables
         do i=1,181
           fdifa(i)=0.
           fdifan(i)=0.
+          fdifl(i)=0.
           anglea(i)=0.
           do j=1,nzon
             pval(i,j)=0.
@@ -453,7 +457,7 @@ c determine the 2nd scattering zone
           endif
         endif
 c determination of the vertical atmospheric transmittance
-        call transtoa(lambda,taua,pressi,tranam,tranaa)                   ! tranam and tranaa are the top of atmosphere transmittance (molecules and aerosols)
+        call transtoa(lambda,taua,layaod,pressi,tranam,tranaa,tranal)                   ! tranam and tranaa are the top of atmosphere transmittance (molecules and aerosols)
 
 c reading of the environment variables
 c reading of the elevation file
@@ -532,149 +536,15 @@ c reading of the scattering parameters for background aerosols
             fdifan(i)=fdifa(i)/pix4                                       ! The integral of the imported phase fonction over sphere = 4 pi) We divide by 4 pi to get it per unit of solid angle
           enddo
         close(1)
-        secdif=scatte/extinc                                              ! Rapport (sigmadif/sigmatotal).
-c reading parameters of fog or dust layer
-        
-        
-        
-c
-c replace ground based source by cloud lambertian source for souces under
-c cloud central layer and keep sources for source above cloud central layer
-c
-c  On cree ici un nouveau sourcetype qui sera le nuage. donc aux valeurs x et y concernees tous lamplu des autres types deviennent 0.
-c  et on calcule le lumlp du nouveau type nuage le numero du type sera ntype+1
-c
-c        cloudhei=(cloudtop-cloudbase)/2.
-c        if (z_obs.gt.cloudtop) then                                      ! only calculate the filter effect of low clouds for observer above cloud
-
-
-
-
-
-c !!!!!!!!!!!!!!!!!!!!!!!!!!!! faudrait ici determiner le lumlp et fctem du nuage
-c et laisser les lumlp a zero hors nuage et par la suite au moment de prendre
-c le lumlp pour le calcul on verifier si il y a une valeurs de nuage et si oui on prends cette valeur a la place
-c
-c
-c        do stype=1,ntype                                                 ! beginning of the loop 1 for the nzon types of sources.
-c          pvalto=0.
-c          write(lampno, '(I3.3)' ) stype                                 ! support of nzon different sources (3 digits)
-c          pafile=basenm(1:lenbase)//'_fctem_'//lampno//'.dat'            ! setting the file name of angular photometry.
-c          lufile=basenm(1:lenbase)//'_lumlp_'//lampno//'.bin'            ! setting the file name of the luminosite of the cases.
-c reading photometry files
-c          open(UNIT=1, FILE=pafile,status='OLD')                         ! opening file pa#.dat, angular photometry.
-c            do i=1,181                                                   ! beginning of the loop for the 181 data points
-c              read(1,*) pval(i,stype)                                    ! reading of the data in the array pval.
-c              pvalto=pvalto+pval(i,stype)*2.*pi*                         ! Sum of the values of the  photometric function
-c     a        sin(real(i-1)*dtheta)*dtheta                               ! (pvaleur x 2pi x sin theta x dtheta) (ou theta egale (i-1) x 1 degrees).
-c            enddo                                                        ! end of the loop over the 181 donnees of the fichier pa#.dat.
-c          close(1)                                                       ! closing file pa#.dat, angular photometry.
-c          do i=1,181
-c            if (pvalto.ne.0.) pvalno(i,stype)=pval(i,stype)/pvalto       ! Normalisation of the photometric function.
-c          enddo
-c reading luminosity files
-c          call twodin(nbx,nby,lufile,val2d)
-c          do i=1,nbx                                                     ! beginning of the loop over all cells along x.
-c            do j=1,nby                                                   ! beginning of the loop over all cells along y.
-c              if (val2d(i,j).lt.0.) then                                 ! searching of negative fluxes
-c                print*,'***Negative lamp flux!, stopping execution'
-c                stop
-c              endif
-c            enddo                                                        ! end of the loop over all cells along y.
-c          enddo
-c          do i=1,nbx                                                     ! loop over sources
-c            do j=1,nby
-c              z_s=(altsol(i,j)+lampal(i,j))
-c              if (z_s.lt.cloudhei) then                                  ! condition source under cloud
-c                rx_s=real(i)*dx
-c                ry_s=real(i)*dy
-c                  do ii=1,nbx                                            ! loop over cloud pixel
-c                    do jj=1,nby
-c                      if (altsol(ii,jj).lt.cloudhei) then                ! cond cloud above ground
-c                        rx_sp=real(ii)*dx
-c                        ry_sp=real(jj)*dy
-c                        z_sp=cloudhei
-c computation of the zenithal angle between the source and the cloud
-c computation of the horizon for the resolved shadows direct              ! horizon resolution is 1 degree
-c                        distd=sqrt((rx_s-rx_sp)**2.+(ry_s-ry_sp)**2.
-c     +                  +(z_s-z_sp)**2.)
-c                        dho=sqrt((rx_s-rx_sp)**2.+(ry_s-ry_sp)**2.)
-c                        call anglezenithal(rx_s,ry_s,z_s
-c     +                  ,rx_sp,ry_sp,z_sp,angzen)                        ! computation of the zenithal angle between the source and the line of sight voxel.
-c                        call angleazimutal(rx_s,ry_s,rx_sp,              ! computation of the angle azimutal direct line of sight-source
-c     +                  ry_sp,angazi)
-c                        if (angzen.gt.pi/4.) then                        ! 45deg. it is unlikely to have a 1km high mountain less than 1
-c                          call horizon(i,j,z_s,dx,dy,altsol,
-c     +                    angazi,zhoriz,dh)
-c                          if (dh.le.dho) then
-c                            if (angzen.lt.zhoriz) then                   ! shadow the path line of sight-source is not below the horizon => we compute
-c                              hh=1.
-c                            else
-c                              hh=0.
-c                            endif
-c                          else
-c                            hh=1.
-c                          endif
-c                        else
-c                          hh=1.
-c                        endif
-c sub-grid obstacles
-c                        angmin=pi/2.-atan((altsol(i,j)+
-c     +                  obsH(i,j)-z_s)/drefle(i,j))
-c                        if (angzen.lt.angmin) then                       ! condition sub-grid obstacles direct.
-c                          ff=0.
-c                        else
-c                          ff=ofill(i,j)
-c                        endif
-c computation of the transmittance between the source and the line of sight
-c                        call transmitm(angzen,z_s,z_sp,distd,
-c     +                  transm,tranam)
-c                        call transmita(angzen,z_s,z_sp,distd,
-c     +                  transa,tranaa)
-c computation of the solid angle of the line of sight voxel seen from the source
-c                        omega=1./distd**2.
-c                        if (omega.gt.omemax) omega=0.
-c                        anglez=nint(180.*angzen/pi)+1
-c                        P_dir=pvalno(anglez,stype)
-c                        call cloudtransmitance(angzen,cloudt,tcloud)
-c computation of the flux direct reaching the line of sight voxel
-c                        flcld(ii,jj)=flcld(ii,jj)+                       ! flux crossing a cloud pixel
-c     +                  lamplu(i,j,stype)*P_dir*omega*
-c     +                  transm*transa*(1.-ff)*hh*dx*dy                   ! correction for obstacle filling factor
-c     +                  *cos(angzen)*tcloud
-c                      endif                                              ! end cond cloud above ground
-c                    enddo
-c                  enddo                                                  ! end loop over cloud pixel
-c              endif                                                      ! end cond source under cloud
-c            enddo
-c          enddo                                                          ! end loop over sources
-c         enddo                                                           ! end loop over source type
-c          do i=1,nbx
-c            do j=1,nby
-c              z_s=(altsol(i,j)+lampali,j))
-c              if (z_s.lt.cloudhei) then
-c                lampal(i,j)=cloudhei-altsol(i,j)
-c                do nt=1,ntype
-c                  pvalto=0.
-c                enddo
-c                do na=1,181
-c                  pval(na,ntype+1)=pi
-c                  pvalto=pvalto+pval(na,ntype+1)*2.*pi*                          ! Sum of the values of the  photometric function
-c     a            sin(real(na-1)*dtheta)*dtheta
-c                enddo
-c                do na=1,181
-c                  if (pvalto.ne.0.) pvalno(na,ntype+1)=
-c     +            pval(na,ntype+1)/pvalto                                ! Normalisation of the photometric function.
-c                enddo
-c              do nt=1,ntype
-c                lamplu(i,j,nt)=0.
-c              enddo
-c              ntype=ntype+1
-c            endif
-c          enddo
-c        enddo
-c        endif                                                            ! end observer over cloud
-
+c reading scattering parameters of particle layer
+         open(unit = 1, file = layfile,status= 'old')                     ! opening file containing the scattering parameters
+          read(1,*)  secdil                                               ! the scattering / extinction ratio of particle layer
+          read(1,*)
+          do i=1,181
+            read(1,*) anglea(i), fdifa(i)                                 ! reading of the scattering functions of the particle layer
+            fdifl(i)=fdifa(i)/pix4                                        ! The integral of the imported phase fonction over sphere = 4 pi) We divide by 4 pi to get it per unit of solid angle
+          enddo
+        close(1)       
 c Some preliminary tasks
         do stype=1,ntype                                                  ! beginning of the loop 1 for the nzon types of sources.
           imin(stype)=nbx
@@ -860,13 +730,15 @@ c computation of the solid angle 1m^2 at the observer as seen from the source
      +              transm,tranam)
                     call transmita(dzen,z_obs,z_s,ddir_obs,
      +              transa,tranaa)
+                    call transmitl(dzen,z_obs,z_s,ddir_obs,
+     +              hlay,transl,tranal)     
                     if (dang.lt.dfov) then                                ! check if the reflecting surface enter the field of view of the observer
                       direct=direct+lamplu(x_s,y_s,stype)*
-     +                transa*transm*P_dir*omega*(1.-ff)*hh
+     +                transa*transm*transl*P_dir*omega*(1.-ff)*hh
      +                /(pi*dfov**2.)                                      ! correction for obstacle filling factor
                     endif
                     irdirect=irdirect+lamplu(x_s,y_s,stype)*
-     +              transa*transm*P_dir*omega*(1.-ff)*hh                  ! correction for obstacle filling factor
+     +              transa*transm*transl*P_dir*omega*(1.-ff)*hh           ! correction for obstacle filling factor
                   endif
                 endif
 c
@@ -917,6 +789,8 @@ c computation of the transmittance between the source and the ground surface
      +                      z_sr,distd,transm,tranam)
                             call transmita(angzen,z_s,
      +                      z_sr,distd,transa,tranaa)
+                            call transmitl(angzen,z_s,z_sr,distd,
+     +                      hlay,transl,tranal)     
 c computation of the solid angle of the reflecting cell seen from the source
                             xc=dble(x_sr)*dble(dx)                        ! Position in meters of the observer voxel (longitude).
                             yc=dble(y_sr)*dble(dy)                        ! Position in meters of the observer voxel (latitu).
@@ -1004,7 +878,7 @@ c average +- ouvang
                             P_indir=P_indir/nbang
 c computation of the flux reaching the reflecting surface
                             flrefl=lamplu(x_s,y_s,stype)*
-     +                      P_indir*omega*transm*transa
+     +                      P_indir*omega*transm*transa*transl
 c computation of the reflected intensity leaving the ground surface
                             irefl1=flrefl*srefl/pi                         ! The factor 1/pi comes from the normalisation of the fonction
 c
@@ -1062,12 +936,14 @@ c computation of the solid angle of the line of sight voxel seen from the source
      +                          transm,tranam)
                                 call transmita(dzen,z_obs,z_sr,ddir_obs,
      +                          transa,tranaa)
+                                call transmitl(dzen,z_obs,z_sr,ddir_obs,
+     +                          hlay,transl,tranal)    
                                 if (dang.lt.dfov) then                      ! check if the reflecting surface enter the field of view of the observer
                                   rdirect=rdirect+irefl1*omega*transa*
-     +                            transm*hh*(1.-ff)/(pi*dfov**2.)
+     +                            transm*transl*hh*(1.-ff)/(pi*dfov**2.)
                                 endif
                                 irrdirect=irrdirect+irefl1*omega*transa*
-     +                          transm*hh*(1.-ff)
+     +                          transm*transl*hh*(1.-ff)
                               endif
 
                             endif
@@ -1267,6 +1143,8 @@ c computation of the transmittance between the source and the line of sight
      +                        transm,tranam)
                               call transmita(angzen,z_s,z_c,distd,
      +                        transa,tranaa)
+                              call transmitl(angzen,z_s,z_c,distd,
+     +                        hlay,transl,tranal)    
 c computation of the solid angle of the line of sight voxel seen from the source
                               omega=1./distd**2.
                               if (omega.gt.omemax) omega=0.
@@ -1274,16 +1152,16 @@ c computation of the solid angle of the line of sight voxel seen from the source
                               P_dir=pvalno(anglez,stype)
 c computation of the flux reaching the line of sight voxel
                               fldir=lamplu(x_s,y_s,stype)*P_dir*
-     +                        omega*transm*transa*(1.-ff)*hh              ! correction for obstacle filling factor
+     +                        omega*transm*transa*transl*(1.-ff)*hh       ! correction for obstacle filling factor
 c computation of the scattering probability of the direct light
 c distance pour traverser la cellule unitaire parfaitement orientée
                               if (omega.ne.0.) then
                                 call angle3points (rx_s,ry_s,z_s,rx_c,    ! scattering angle.
      +                          ry_c,z_c,rx_obs,ry_obs,z_obs,
      +                          angdif)
-                                call diffusion(angdif,                    ! scattering probability of the direct light.
-     +                          tranam,tranaa,secdif,un,fdifan,
-     +                          pdifdi,z_c)
+                                call diffusion(angdif,                    ! scattering probability of the direct light. ############################################ secdif et un etaient inverses
+     +                          tranam,tranaa,tranal,un,secdif,secdil,
+     +                          fdifan,fdifl,hlay,pdifdi,z_c)
                               else
                                 pdifdi=0.
                               endif
@@ -1364,6 +1242,8 @@ c computation of the transmittance between the source and the ground surface
      +                                  z_sr,distd,transm,tranam)
                                         call transmita(angzen,z_s,
      +                                  z_sr,distd,transa,tranaa)
+                                        call transmitl(angzen,z_s,z_sr,
+     +                                  distd,hlay,transl,tranal)    
 c computation of the solid angle of the reflecting cell seen from the source
                                         xc=dble(x_sr)*dble(dx)            ! Position in meters of the observer voxel (longitude).
                                         yc=dble(y_sr)*dble(dy)            ! Position in meters of the observer voxel (latitu).
@@ -1451,7 +1331,8 @@ c average +- ouvang
                                         P_indir=P_indir/nbang
 c computation of the flux reaching the reflecting surface
                                         flrefl=lamplu(x_s,y_s,stype)*
-     +                                  P_indir*omega*transm*transa
+     +                                  P_indir*omega*transm*transa*
+     +                                  transl
 c computation of the reflected intensity leaving the ground surface
                                         irefl1=flrefl*srefl/pi            ! The factor 1/pi comes from the normalisation of the fonction
 c
@@ -1514,18 +1395,20 @@ c computation of the transmittance between the reflection surface and the scatte
      +      (z_dif-z_sr)**2.)
             call transmitm(angzen,z_sr,z_dif,distd,transm,tranam)
             call transmita(angzen,z_sr,z_dif,distd,transa,tranaa)
+            call transmitl(angzen,z_sr,z_dif,
+     +      distd,hlay,transl,tranal)            
 c computation of the solid angle of the scattering voxel seen from the reflecting surface
             omega=1./distd**2.
             if (omega.gt.omemax) omega=0.
 c computing flux reaching the scattering voxel
-            fldif2=irefl1*omega*transm*transa*(1.-ff)*hh
+            fldif2=irefl1*omega*transm*transa*transl*(1.-ff)*hh
 c computing the scattering probability toward the line of sight voxel
 c cell unitaire
             if (omega.ne.0.) then
               call angle3points (rx_sr,ry_sr,z_sr,rx_dif,ry_dif,z_dif,    ! scattering angle.
      +        rx_c,ry_c,z_c,angdif)
-              call diffusion(angdif,tranam,tranaa,un,secdif,              ! scattering probability of the direct light.
-     +        fdifan,pdifd1,z_dif)
+              call diffusion(angdif,tranam,tranaa,tranal,un,secdif,       ! scattering probability of the direct light.
+     +        secdil,fdifan,fdifl,hlay,pdifd1,z_dif)
             else
               pdifd1=0.
             endif
@@ -1562,11 +1445,13 @@ c computing transmittance between the scattering voxel and the line of sight vox
      +      (z_dif-z_c)**2.)
             call transmitm(angzen,z_dif,z_c,distd,transm,tranam)
             call transmita(angzen,z_dif,z_c,distd,transa,tranaa)
+            call transmitl(angzen,z_dif,z_c,
+     +      distd,hlay,transl,tranal)
 c computing the solid angle of the line of sight voxel as seen from the scattering voxel
             omega=1./distd**2.
             if (omega.gt.omemax) omega=0.
 c computation of the scattered flux reaching the line of sight voxel
-            fdif2=idif2*omega*transm*transa*(1.-ff)*hh
+            fdif2=idif2*omega*transm*transa*transl*(1.-ff)*hh
 c cloud contribution for double scat from a reflecting pixel
             if (cloudt.ne.0) then                                         ! line of sight voxel = cloud
               if (cloudbase-z_c.le.iz*scal) then
@@ -1589,8 +1474,8 @@ c computation of the scattering probability of the scattered light toward the ob
             if (omega.ne.0.) then
               call angle3points(rx_dif,ry_dif,z_dif,rx_c,ry_c,z_c,        ! scattering angle.
      +        rx_obs,ry_obs,z_obs,angdif)
-              call diffusion(angdif,tranam,tranaa,un,secdif,              ! scattering probability of the direct light.
-     +        fdifan,pdifd2,z_c)
+              call diffusion(angdif,tranam,tranaa,tranal,un,secdif,              ! scattering probability of the direct light.
+     +        secdil,fdifan,fdifl,hlay,pdifd2,z_c)
             else
               pdifd2=0.
             endif
@@ -1627,6 +1512,8 @@ c computation of the transmittance between the source and the scattering voxel
      +        distd,transm,tranam)
               call transmita(angzen,z_s,z_dif,
      +        distd,transa,tranaa)
+              call transmitl(angzen,z_s,z_dif,
+     +        distd,hlay,transl,tranal)
 c computation of the Solid angle of the scattering unit voxel seen from the source
               omega=1./distd**2.
               if (omega.gt.omemax) omega=0.
@@ -1634,15 +1521,15 @@ c computation of the Solid angle of the scattering unit voxel seen from the sour
               P_dif1=pvalno(anglez,stype)
 c computing flux reaching the scattering voxel
               fldif1=lamplu(x_s,y_s,stype)*P_dif1*
-     +        omega*transm*transa*(1.-ff)*hh
+     +        omega*transm*transa*transl*(1.-ff)*hh
 c computing the scattering probability toward the line of sight voxel
               if (omega.ne.0.) then
                 call angle3points (rx_s,ry_s,z_s,                         ! scattering angle.
      +          rx_dif,ry_dif,z_dif,rx_c,ry_c,z_c,
      +          angdif)
                 call diffusion(angdif,                                    ! scattering probability of the direct light.
-     +          tranam,tranaa,un,secdif,
-     +          fdifan,pdifd1,z_dif)
+     +          tranam,tranaa,tranal,un,secdif,secdil,
+     +          fdifan,fdifl,hlay,pdifd1,z_dif)
               else
                 pdifd1=0.
               endif
@@ -1685,11 +1572,13 @@ c Computing transmittance between the scattering voxel and the line of sight vox
      +        distd,transm,tranam)
               call transmita(angzen,z_dif,z_c,
      +        distd,transa,tranaa)
+              call transmitl(angzen,z_dif,z_c,
+     +        distd,hlay,transl,tranal)
 c computing the solid angle of the line of sight voxel as seen from the scattering voxel
               omega=1./distd**2.
               if (omega.gt.omemax) omega=0.
 c computation of the scattered flux reaching the line of sight voxel
-              fldiff=idif1*omega*transm*transa*(1.-ff)*hh
+              fldiff=idif1*omega*transm*transa*transl*(1.-ff)*hh
 c cloud contribution to the double scattering from a source
               if (cloudt.ne.0) then                                       ! line of sight voxel = cloud
                 if (cloudbase-z_c.le.iz*scal) then
@@ -1714,8 +1603,8 @@ c computation of the scattering probability of the scattered light toward the ob
      +          z_dif,rx_c,ry_c,z_c,rx_obs,ry_obs,
      +          z_obs,angdif)
                 call diffusion(angdif,                                    ! scattering probability of the direct light.
-     +          tranam,tranaa,un,secdif,
-     +          fdifan,pdifd2,z_c)
+     +          tranam,tranaa,tranal,un,secdif,secdil,
+     +          fdifan,fdifl,hlay,pdifd2,z_c)
               else
                 pdifd2=0.
               endif
@@ -1787,12 +1676,14 @@ c computation of the transmittance between the ground surface and the line of si
      +                                    z_c,distd,transm,tranam)
                                           call transmita(angzen,z_sr,
      +                                    z_c,distd,transa,tranaa)
+                                          call transmitl(angzen,z_sr,
+     +                                    z_c,distd,hlay,transl,tranal)
 c computation of the solid angle of the line of sight voxel seen from the reflecting cell
                                           omega=1./distd**2.
                                           if (omega.gt.omemax) omega=0.
 c computation of the flux reflected reaching the line of sight voxel
                                           flindi=irefl*omega*transm*
-     +                                    transa*(1.-ff)*hh               ! obstacles correction
+     +                                    transa*transl*(1.-ff)*hh        ! obstacles correction
 c cloud contribution to the reflected light from a ground pixel
                               if (cloudt.ne.0) then                       ! line of sight voxel = cloud
                                 if (cloudbase-z_c.le.iz*scal) then
@@ -1817,8 +1708,9 @@ c computation of the scattering probability of the reflected light
      +                                      ry_sr,z_sr,rx_c,ry_c,z_c,
      +                                      rx_obs,ry_obs,z_obs,angdif)
                                             call diffusion(angdif,        ! scattering probability of the reflected light.
-     +                                      tranam,tranaa,un,secdif,
-     +                                      fdifan,pdifin,z_c)
+     +                                      tranam,tranaa,tranal,un,
+     +                                      secdif,secdil,fdifan,fdifl,
+     +                                      hlay,pdifin,z_c)
                                           else
                                             pdifin=0.
                                           endif
@@ -1905,11 +1797,14 @@ c computation of the transmittance between the line of sight voxel and the obser
      +                              +(z_c-z_obs)**2.)
                 call transmitm(angzen,z_c,z_obs,distd,transm,tranam)
                 call transmita(angzen,z_c,z_obs,distd,transa,tranaa)
+                call transmitl(angzen,z_c,z_obs,
+     +          distd,hlay,transl,tranal)
 c computation of the flux reaching the objective of the telescope from the line of sight voxel
-                fcapt=itotci*ometif*transa*transm                         ! computation of the flux reaching the intrument from the line of sight voxel
+                fcapt=itotci*ometif*transa*transm*transl                         ! computation of the flux reaching the intrument from the line of sight voxel
                 do x_s=1,nbx
                   do y_s=1,nby
-                    FCA(x_s,y_s)=ITC(x_s,y_s)*ometif*transa*transm
+                    FCA(x_s,y_s)=ITC(x_s,y_s)*ometif*transa*transm*
+     +              transl
                   enddo
                 enddo
                 if (cos(pi-angzen).eq.0.) then
@@ -1928,7 +1823,7 @@ c end of the computation of the flux reaching the observer voxel from the line o
 c correction for the FOV to the flux reaching the intrument from the cloud voxel
             if (cloudt.ne.0) then
 c computation of the flux reaching the intrument from the cloud voxel
-                fccld=icloud*ometif*transa*transm
+                fccld=icloud*ometif*transa*transm*transl
                 fctcld=fctcld+fccld                                       ! cloud flux for all source all type all line of sight element
             endif
             if (verbose.ge.1) print*,'Added radiance =',

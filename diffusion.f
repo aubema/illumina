@@ -31,12 +31,12 @@ c
 c    Contact: martin.aube@cegepsherbrooke.qc.ca
 c
 c
-      subroutine diffusion(angdif,tranam,tranaa,un,secdif,
-     +   fonc_a,pdif,altit)
-      real angdif,pdif,prob_a,prob_m,secdif 
-      real fctmol,pi,fonc_a(181),fonc_ae
-      real angdeg,tranam,tranaa
-      real altit,un
+      subroutine diffusion(angdif,tranam,tranaa,tranal,un,secdif,secdil,
+     +   fonc_a,fonc_l,hlay,pdif,altit)
+      real angdif,pdif,prob_a,prob_m,prob_l,secdif,secdil
+      real fctmol,pi,fonc_a(181),fonc_l(181),fonc_ae,fonc_le
+      real angdeg,tranam,tranaa,tranal
+      real altit,un,hlay
       integer rang,na,naz
       parameter (pi=3.1415926)
 c--------------------------------------------------------      
@@ -48,22 +48,27 @@ c=======================================================================
 c        Calcul de la fonction d'emission de la source vers la cible
 c=======================================================================
       fonc_ae=fonc_a(rang)
+      fonc_le=fonc_l(rang)
       fctmol=0.75*(1.+((cos(angdif))**2.))/(4.*pi)
 c----------------------------------------
 c  Calcul des probabilites de diffusion par unite d'angle solide 
 c----------------------------------------    
-c      prob_a=(1.-tranaa)*exp(-1.*altit/2000.)*distd*secdif*fonc_ae        ! Les fonctions utilisees ici sont deja normalisees
+c      prob_a=(1.-tranaa)*exp(-1.*altit/2000.)*distd*secdif*fonc_ae       ! Les fonctions utilisees ici sont deja normalisees
 c     +/2000.
-c      prob_m=(1.-tranam)*exp(-1.*altit/8000.)*distd*fctmol/8000.               ! Fonc_ae normalisee dans le MAIN, fctmol dans la routine (voir 
+c      prob_l=(1.-tranal)*exp(-1.*altit/hlay)*distd*secdif*fonc_le        ! Les fonctions utilisees ici sont deja normalisees
+c     +/hlay
+c      prob_m=(1.-tranam)*exp(-1.*altit/8000.)*distd*fctmol/8000.         ! Fonc_ae normalisee dans le MAIN, fctmol dans la routine (voir 
 c                                                                         ! la division par 4 pi).
 
-      prob_a=(1.-exp(log(tranaa)*exp(-1.*altit/2000.)*un/2000.))*        ! Les fonctions utilisees ici sont deja normalisees
+      prob_a=(1.-exp(log(tranaa)*exp(-1.*altit/2000.)*un/2000.))*         ! Les fonctions utilisees ici sont deja normalisees
      +secdif*fonc_ae
-      prob_m=(1.-exp(log(tranam)*exp(-1.*altit/8000.)*un/8000.))*               ! Fonc_ae normalisee dans le MAIN, fctmol dans la routine (voir 
-     +fctmol                                                                    ! la division par 4 pi).
+      prob_l=(1.-exp(log(tranal)*exp(-1.*altit/hlay)*un/hlay))*           ! Les fonctions utilisees ici sont deja normalisees
+     +secdil*fonc_le     
+      prob_m=(1.-exp(log(tranam)*exp(-1.*altit/8000.)*un/8000.))*         ! Fonc_ae normalisee dans le MAIN, fctmol dans la routine (voir 
+     +fctmol                                                              ! la division par 4 pi).
 
-      pdif = prob_a+prob_m                                                ! Ce calcul est approximatif et bon seulement si 1-transa et
-                                                                          ! 1-transm sont tres petits.
+      pdif = prob_a+prob_m+prob_l                                         ! Ce calcul est approximatif et bon seulement si 1-transa,
+                                                                          ! 1-transm et 1-transl sont tres petits.
       if (prob_a.gt.1.) then
          print*,'prob_a>1.'
          stop
@@ -79,18 +84,20 @@ c                                                                         ! la d
       if (prob_m.lt.0.) then
          print*,'prob_m`¸^<0..'
          stop
-      endif      
-      if (pdif.gt.1.) then
-         print*,'prob>1.',pdif,prob_a,prob_m,tranaa,tranam,altit,distd,
-     +omega,omega*prob_a
+      endif
+      if (prob_l.gt.1.) then
+         print*,'prob_l>1.'
          stop
+      endif
+      if (prob_l.lt.0.) then
+         print*,'prob_l`¸^<0..'
+         stop
+      endif
+      if (pdif.gt.1.) then
+         pdif=1.
       endif
       if (pdif.lt.0.) then
-         print*,'prob<0.',pdif,prob_a,prob_m
-         stop
+         pdif=0.
       endif
-       
-c      if (pdif.gt.1.) pdif=1.
-
       return
       end
