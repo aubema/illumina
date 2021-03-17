@@ -1,8 +1,19 @@
-Readme file for fog and dust layers into illumina v2
+Readme file for aerosol optical properties in illumina
 
-We used the scattering to extinction ratios and phase functions
-provided by OPAC v3.1 package. We simply interpolated to the angles 
-and wavelength used in illumina. 
+Illumina defines 3 aerosol models (urban, maritime, rural).
+All of them having a fixed vertical scale height of 2 km.
+The size distribution and composition were determined from Shettle and
+Fenn 1979. For the optical calculations we used the complex refractive
+index defined in OPAC v3.1 (salt, soot, waso (water soluble), inso 
+(insoluble).
+
+The calculation were made with utils/mietool assuming spefical particles
+with homogeneous mixing of water for salt and waso. The codes are
+derived from B. Evans Mie code.
+
+For Fog and Dust, we used the scattering to extinction ratios and phase 
+functions provided by OPAC v3.1 package. We simply interpolated to the 
+angles and wavelength used in illumina. 
 
 For dust, we used the miam00 file (mineral accumulation mode)
 
