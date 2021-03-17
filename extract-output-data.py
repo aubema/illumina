@@ -84,7 +84,7 @@ def extract(exec_dir,contrib,params,full):
             idx_results = np.where([ "==" in l for l in lines ])[0][-1] + 1
 
             val = float(lines[-1])
-            if full:
+            if p.full:
                 vals =  np.array([ float(l) for l in lines[idx_results+1::2] ])
                 outputs[regex_layer.sub('',params)] += vals
             else:
