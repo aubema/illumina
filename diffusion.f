@@ -1,19 +1,19 @@
 c------------------------------------------------------------------------
 c
 c=======================================================================
-c  Routine diffusion (Alex Neron 2004) (Modifie par Martin Aube, Valerie Houle, Philippe Robert-Staehler)
+c  Routine diffusion
 c
-c  Determine la probabilite de diffusion de la lumiere par unite d'angle solide
-c  dans la direction angdif. Les parametres de diffusion sont donnes
-c  par secdif (rapport de la section efficace de diffusion sur la section
-c  efficace d'extinction totale), fonc_anorm (fonction de diffusion
-c  normalisees des aerosols)
-c  Retourne la probabilite de diffusion pdif
+c Determine the probability of light scattering per unit of solid angle
+c in the angdif direction. The scattering parameters are given
+c by secdif (ratio of the effective section of scattering on the section
+c of extinction), fonc_anorm (scattering phase function
 c
-c  pour utilisation avec Illumina
+c Returns the scattering probability pdif
+c
+c an Illumina routine
 c-----------------------------------------------------------------------
 c   
-c    Copyright (C) 2009  Martin Aube
+c    Copyright (C) 2021  Martin Aube
 c
 c    This program is free software: you can redistribute it and/or modify
 c    it under the terms of the GNU General Public License as published by
@@ -45,30 +45,29 @@ c--------------------------------------------------------
       angdeg=((angdif*180.)/pi)
       rang=int(angdeg)+1
 c=======================================================================
-c        Calcul de la fonction d'emission de la source vers la cible
+c     value of the phase function
 c=======================================================================
       fonc_ae=fonc_a(rang)
       fonc_le=fonc_l(rang)
       fctmol=0.75*(1.+((cos(angdif))**2.))/(4.*pi)
 c----------------------------------------
-c  Calcul des probabilites de diffusion par unite d'angle solide 
+c  Calculate scattering probability per unit of steradian                 ! The probability is for a voxel of 1x1x1m refer to equation 1 in Aubé et al.
+c
+c  Aubé, M., Simoneau, A., Muñoz-Tuñón, C., Díaz-Castro, J., & 
+c  Serra-Ricart, M. (2020). Restoring the night sky darkness at 
+c  Observatorio del Teide: First application of the model Illumina 
+c  version 2. Monthly Notices of the Royal Astronomical Society, 
+c  497(3), 2501-2516.
 c----------------------------------------    
-c      prob_a=(1.-tranaa)*exp(-1.*altit/2000.)*distd*secdif*fonc_ae       ! Les fonctions utilisees ici sont deja normalisees
-c     +/2000.
-c      prob_l=(1.-tranal)*exp(-1.*altit/hlay)*distd*secdif*fonc_le        ! Les fonctions utilisees ici sont deja normalisees
-c     +/hlay
-c      prob_m=(1.-tranam)*exp(-1.*altit/8000.)*distd*fctmol/8000.         ! Fonc_ae normalisee dans le MAIN, fctmol dans la routine (voir 
-c                                                                         ! la division par 4 pi).
-
-      prob_a=(1.-exp(log(tranaa)*exp(-1.*altit/2000.)*un/2000.))*         ! Les fonctions utilisees ici sont deja normalisees
+      prob_a=(1.-exp(log(tranaa)*exp(-1.*altit/2000.)*un/2000.))*         ! Functions are normalized in the main code. See their division by 4pi
      +secdif*fonc_ae
-      prob_l=(1.-exp(log(tranal)*exp(-1.*altit/hlay)*un/hlay))*           ! Les fonctions utilisees ici sont deja normalisees
+      prob_l=(1.-exp(log(tranal)*exp(-1.*altit/hlay)*un/hlay))*           
      +secdil*fonc_le     
-      prob_m=(1.-exp(log(tranam)*exp(-1.*altit/8000.)*un/8000.))*         ! Fonc_ae normalisee dans le MAIN, fctmol dans la routine (voir 
-     +fctmol                                                              ! la division par 4 pi).
+      prob_m=(1.-exp(log(tranam)*exp(-1.*altit/8000.)*un/8000.))*
+     +fctmol
 
-      pdif = prob_a+prob_m+prob_l                                         ! Ce calcul est approximatif et bon seulement si 1-transa,
-                                                                          ! 1-transm et 1-transl sont tres petits.
+      pdif = prob_a+prob_m+prob_l                                         ! This is an approximation valide if 1-transa,
+                                                                          ! 1-transm et 1-transl are small
       if (prob_a.gt.1.) then
          print*,'prob_a>1.'
          stop
