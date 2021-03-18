@@ -54,7 +54,7 @@ c  version 2. Monthly Notices of the Royal Astronomical Society,
 c  497(3), 2501-2516.
 c---------------------------------------- 
       fonc_ae=fonc_a(rang)                                                ! value of the aerosol phase function
-      prob_a=(1.-exp(log(tranaa)*exp(-1.*altit/haer.)*un/haer.))*         ! Functions are normalized in the main code. See their division by 4pi
+      prob_a=(1.-exp(log(tranaa)*exp(-1.*altit/haer)*un/haer))*           ! Functions are normalized in the main code. See their division by 4pi
      +secdif*fonc_ae
       if (tranal.lt.1.) then
          fonc_le=fonc_l(rang)                                             ! value of the layer phase function
