@@ -4,7 +4,7 @@
 #
 # Author : Alexandre Simoneau
 #
-# January 2019
+# March 2021
 
 import click
 import numpy as np
@@ -170,23 +170,39 @@ def inputs():
 
 	print("Linking mie files.")
 
-	aero_profile = params['aerosol_profile']
-	RH = params['relative_humidity']
-	mie_pre = aero_profile+"_RH%02d" % RH
-
 	ppath = os.environ['PATH'].split(os.pathsep)
 	illumpath = [s for s in ppath if "illumina" in s and "bin" not in s][0]
+	mie_path = illumpath + "/Aerosol_optics/"
 
-	mie_path = illumpath + "/Aerosol_optical_prop/"
-	mie_files = glob(mie_path+mie_pre+"*.mie.out")
-	mie_files = { int(s.split('.')[-3][:3]):s for s in mie_files }
+	mie_type = params['aerosol_profile']
+	RH = params['relative_humidity']
+	if "RH" in glob(mie_path+mie_type+"*.txt")[0]:
+		mie_type += "_RH%02d" % RH
+
+	mie_files = glob(mie_path+mie_type+"*.txt")
+	mie_files = { int(s.split('_')[-1][:-4]):s for s in mie_files }
 	mie_wl = np.asarray(sorted(mie_files.keys()))
 	wl2mie = np.asarray([min(mie_wl, key=lambda i: abs(i-j)) for j in x])
+	mie_type = mie_type.split('_')[0]
+
+	layer_type = params['layer_type']
+	if "RH" in glob(mie_path+layer_type+"*.txt")[0]:
+		layer_type += "_RH%02d" % RH
+	layer_files = glob(mie_path+layer_type+"*.txt")
+	layer_files = { int(s.split('_')[-1][:-4]):s for s in layer_files }
+	layer_type = layer_type.split('_')[0]
 
 	for i in range(len(wl2mie)):
-		name = dir_name+mie_pre.strip('_')+"_0.%03d0um.mie.out"%x[i]
+		name = dir_name+mie_type.strip('_')+"_%03d.txt"%x[i]
 		try:
 			shutil.copy2(os.path.abspath(mie_files[wl2mie[i]]),name)
+		except OSError as e:
+			if e[0] != 17:
+				raise
+
+		layer_name = dir_name+layer_type+"_%03d.txt"%x[i]
+		try:
+			shutil.copy2(os.path.abspath(layer_files[wl2mie[i]]),layer_name)
 		except OSError as e:
 			if e[0] != 17:
 				raise
