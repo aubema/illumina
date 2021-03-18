@@ -222,7 +222,7 @@ c                                                                         ! a li
       real tcloud                                                         ! low cloud transmission
       real rx_sp,ry_sp                                                    ! position of a low cloud pixel
       real flcld(width,width)                                             ! flux crossing a low cloud
-      real ds1,ds2,ds3,dss                                                    ! double scattering distances
+      real ds1,ds2,ds3,dss                                                ! double scattering distances
       integer nss                                                         ! number of skipped 2nd scat elements
       integer ndi                                                         ! number of cell under ground
       integer nvol                                                        ! number of cell for second scat calc un full resolution
@@ -249,7 +249,7 @@ c                                                                         ! a li
       real layalp                                                         ! spectral exponent of the aod for the particle layer
       real hlay                                                           ! exponential vertical scale height of the particle layer
       real secdil                                                         ! scattering/extinction ratio for the particle layer
-      real fdifl(181)                                                          ! scattering phase function of the particle layer
+      real fdifl(181)                                                     ! scattering phase function of the particle layer
       real tranal                                                         ! top of atmos transmission of the particle layer 
       verbose=1                                                           ! Very little printout=0, Many printout = 1, even more=2
       diamobj=1.                                                          ! A dummy value for the diameter of the objective of the instrument used by the observer.
@@ -457,7 +457,7 @@ c determine the 2nd scattering zone
           endif
         endif
 c determination of the vertical atmospheric transmittance
-        call transtoa(lambda,taua,layaod,pressi,tranam,tranaa,tranal)                   ! tranam and tranaa are the top of atmosphere transmittance (molecules and aerosols)
+        call transtoa(lambda,taua,layaod,pressi,tranam,tranaa,tranal)     ! tranam and tranaa are the top of atmosphere transmittance (molecules and aerosols)
 
 c reading of the environment variables
 c reading of the elevation file
@@ -798,9 +798,9 @@ c computation of the solid angle of the reflecting cell seen from the source
                             xn=dble(x_s)*dble(dx)                         ! Position in meters of the source (longitude).
                             yn=dble(y_s)*dble(dy)                         ! Position in meters of the source (latitu).
                             zn=dble(z_s)                                  ! Position in meters of the source (altitude).
-                            epsilx=inclix(x_sr,y_sr)                       ! tilt along x of the ground reflectance
-                            epsily=incliy(x_sr,y_sr)                       ! tilt along x of the ground reflectance
-                            if (dx.gt.reflsiz) then                        ! use a sub-grid surface when the reflectance radius is smaller than the cell size
+                            epsilx=inclix(x_sr,y_sr)                      ! tilt along x of the ground reflectance
+                            epsily=incliy(x_sr,y_sr)                      ! tilt along x of the ground reflectance
+                            if (dx.gt.reflsiz) then                       ! use a sub-grid surface when the reflectance radius is smaller than the cell size
                               if ((x_sr.eq.x_s).and.(y_sr
      +                        .eq.y_s)) then
                                 dxp=reflsiz
@@ -820,27 +820,27 @@ c computation of the solid angle of the reflecting cell seen from the source
                             else
                               dyp=dy
                             endif
-                            r1x=xc-dble(dxp)/2.-xn                         ! computation of the composante along x of the first vector.
-                            r1y=yc+dble(dyp)/2.-yn                         ! computation of the composante along y of the first vector.
+                            r1x=xc-dble(dxp)/2.-xn                        ! computation of the composante along x of the first vector.
+                            r1y=yc+dble(dyp)/2.-yn                        ! computation of the composante along y of the first vector.
                             r1z=zc-tan(dble(epsilx))*
-     +                      dble(dxp)/2.+tan(dble(epsily))                 ! computation of the composante en z of the first vector.
+     +                      dble(dxp)/2.+tan(dble(epsily))                ! computation of the composante en z of the first vector.
      +                      *dble(dyp)/2.-zn
-                            r2x=xc+dble(dxp)/2.-xn                         ! computation of the composante along x of the second vector.
-                            r2y=yc+dble(dyp)/2.-yn                         ! computation of the composante along y of the second vector.
+                            r2x=xc+dble(dxp)/2.-xn                        ! computation of the composante along x of the second vector.
+                            r2y=yc+dble(dyp)/2.-yn                        ! computation of the composante along y of the second vector.
                             r2z=zc+tan(dble(epsilx))*
-     +                      dble(dxp)/2.+tan(dble(epsily))                 ! computation of the composante en z of the second vector.
+     +                      dble(dxp)/2.+tan(dble(epsily))                ! computation of the composante en z of the second vector.
      +                      *dble(dyp)/2.-zn
-                            r3x=xc-dble(dxp)/2.-xn                         ! computation of the composante along x of the third vector.
-                            r3y=yc-dble(dyp)/2.-yn                         ! computation of the composante along y of the third vector.
+                            r3x=xc-dble(dxp)/2.-xn                        ! computation of the composante along x of the third vector.
+                            r3y=yc-dble(dyp)/2.-yn                        ! computation of the composante along y of the third vector.
                             r3z=zc-tan(dble(epsilx))*
-     +                      dble(dxp)/2.-tan(dble(epsily))                 ! computation of the composante en z of the third vector.
+     +                      dble(dxp)/2.-tan(dble(epsily))                ! computation of the composante en z of the third vector.
      +                      *dble(dyp)/2.-zn
-                            r4x=xc+dble(dxp)/2.-xn                         ! computation of the composante along x of the fourth vector.
-                            r4y=yc-dble(dyp)/2.-yn                         ! computation of the composante along y of the fourth vector.
+                            r4x=xc+dble(dxp)/2.-xn                        ! computation of the composante along x of the fourth vector.
+                            r4y=yc-dble(dyp)/2.-yn                        ! computation of the composante along y of the fourth vector.
                             r4z=zc+tan(dble(epsilx))*
-     +                      dble(dxp)/2.-tan(dble(epsily))                 ! computation of the composante en z of the fourth vector.
+     +                      dble(dxp)/2.-tan(dble(epsily))                ! computation of the composante en z of the fourth vector.
      +                      *dble(dyp)/2.-zn
-                            call anglesolide(omega,r1x,                    ! Call of the routine anglesolide to compute the angle solide.
+                            call anglesolide(omega,r1x,                   ! Call of the routine anglesolide to compute the angle solide.
      +                      r1y,r1z,r2x,r2y,r2z,r3x,r3y,
      +                      r3z,r4x,r4y,r4z)
          if (omega.lt.0.) then
@@ -849,8 +849,8 @@ c computation of the solid angle of the reflecting cell seen from the source
          endif
 c estimation of the half of the underlying angle of the solid angle       ! this angle servira a obtenir un meilleur isime (moyenne) of
 c                                                                         ! P_dir for le cas of grans solid angles the , pvalno varie significativement sur +- ouvang.
-                            ouvang=sqrt(omega/pi)                          ! Angle in radian.
-                            ouvang=ouvang*180./pi                          ! Angle in degrees.
+                            ouvang=sqrt(omega/pi)                         ! Angle in radian.
+                            ouvang=ouvang*180./pi                         ! Angle in degrees.
 c computation of the photometric function of the light fixture toward the reflection surface
 c=======================================================================
 c
@@ -859,7 +859,7 @@ c
      +                      anglez=-anglez
                             if (anglez.gt.180) anglez=360
      +                      -anglez
-                            anglez=anglez+1                                ! Transform the angle in integer degree into the position in the array.
+                            anglez=anglez+1                               ! Transform the angle in integer degree into the position in the array.
 c average +- ouvang
                             naz=0
                             nbang=0.
@@ -867,7 +867,7 @@ c average +- ouvang
                             do na=-nint(ouvang),nint(ouvang)
                               naz=anglez+na
                               if (naz.lt.0) naz=-naz
-                              if (naz.gt.181) naz=362-naz                  ! symetric function
+                              if (naz.gt.181) naz=362-naz                 ! symetric function
                               if (naz.eq.0) naz=1
                               P_indir=P_indir+pvalno(naz,
      +                        stype)*abs(sin(pi*real(naz)
@@ -880,7 +880,7 @@ c computation of the flux reaching the reflecting surface
                             flrefl=lamplu(x_s,y_s,stype)*
      +                      P_indir*omega*transm*transa*transl
 c computation of the reflected intensity leaving the ground surface
-                            irefl1=flrefl*srefl/pi                         ! The factor 1/pi comes from the normalisation of the fonction
+                            irefl1=flrefl*srefl/pi                        ! The factor 1/pi comes from the normalisation of the fonction
 c
 c *********************************************************************************************************
 c calculation of the direct radiance from reflection falling on a surface perpendicular
@@ -889,15 +889,15 @@ c ******************************************************************************
                             dho=sqrt((rx_obs-rx_sr)**2.
      +                      +(ry_obs-ry_sr)**2.)
                             if ((dho.gt.0.).and.(z_s.ne.z_obs)) then
-                              call anglezenithal(rx_obs,ry_obs,z_obs           ! zenithal angle source-observer
+                              call anglezenithal(rx_obs,ry_obs,z_obs      ! zenithal angle source-observer
      +                        ,rx_sr,ry_sr,z_sr,dzen)
-                              call angleazimutal(rx_obs,ry_obs,rx_sr,        ! computation of the angle azimutal direct line of sight-source
+                              call angleazimutal(rx_obs,ry_obs,rx_sr,     ! computation of the angle azimutal direct line of sight-source
      +                        ry_sr,angazi)
-                              if (dzen.gt.pi/4.) then                       ! 45deg. it is unlikely to have a 1km high mountain less than 1
+                              if (dzen.gt.pi/4.) then                     ! 45deg. it is unlikely to have a 1km high mountain less than 1
                                 call horizon(x_obs,y_obs,z_obs,dx,dy,
      +                          altsol,angazi,zhoriz,dh)
                                 if (dh.le.dho) then
-                                  if (dzen-zhoriz.lt.0.00001) then                  ! shadow the path line of sight-source is not below the horizon => we compute
+                                  if (dzen-zhoriz.lt.0.00001) then        ! shadow the path line of sight-source is not below the horizon => we compute
                                     hh=1.
                                   else
                                     hh=0.
@@ -910,25 +910,25 @@ c ******************************************************************************
                               endif
 c sub-grid obstacles
                               ff=0.
-                              if (dho.gt.drefle(x_obs,y_obs)) then            ! light path to observer larger than the mean free path -> subgrid obstacles
+                              if (dho.gt.drefle(x_obs,y_obs)) then        ! light path to observer larger than the mean free path -> subgrid obstacles
                                 angmin=pi/2.-atan((altsol(x_obs,y_obs)+
      +                          obsH(x_obs,y_obs)-z_obs)/drefle(x_obs,
      +                          y_obs))
-                                if (dzen.lt.angmin) then                    ! condition sub-grid obstacles direct.
+                                if (dzen.lt.angmin) then                  ! condition sub-grid obstacles direct.
                                   ff=0.
                                 else
                                   ff=ofill(x_obs,y_obs)
                                 endif
-                              endif                                         ! end light path to the observer larger than mean free path
+                              endif                                       ! end light path to the observer larger than mean free path
 c projection angle of line to the lamp and the viewing angle
-                              call angle3points (rx_sr,ry_sr,z_sr,          ! scattering angle.
+                              call angle3points (rx_sr,ry_sr,z_sr,        ! scattering angle.
      +                        rx_obs,ry_obs,z_obs,rx,ry,rz,dang)
                               dang=pi-dang
 
 c computation of the flux direct reaching the line of sight voxel
                               if ((cos(dang).gt.0.).and.(dang.lt.pi/2.))
      +                        then
-                                ddir_obs=sqrt((rx_obs-rx_sr)**2.+               ! distance direct sight between source and observer
+                                ddir_obs=sqrt((rx_obs-rx_sr)**2.+         ! distance direct sight between source and observer
      +                          (ry_obs-ry_sr)**2.+(z_obs-z_sr)**2.)
 c computation of the solid angle of the line of sight voxel seen from the source
                                 omega=1.*abs(cos(dang))/ddir_obs**2.
@@ -938,7 +938,7 @@ c computation of the solid angle of the line of sight voxel seen from the source
      +                          transa,tranaa)
                                 call transmitl(dzen,z_obs,z_sr,ddir_obs,
      +                          hlay,transl,tranal)    
-                                if (dang.lt.dfov) then                      ! check if the reflecting surface enter the field of view of the observer
+                                if (dang.lt.dfov) then                    ! check if the reflecting surface enter the field of view of the observer
                                   rdirect=rdirect+irefl1*omega*transa*
      +                            transm*transl*hh*(1.-ff)/(pi*dfov**2.)
                                 endif
@@ -1116,7 +1116,7 @@ c computation of the horizon for the resolved shadows direct              ! hori
                                 call horizon(x_s,y_s,z_s,dx,dy,altsol,
      +                          angazi,zhoriz,dh)
                                 if (dh.le.dho) then
-                                  if (angzen-zhoriz.lt.0.00001) then              ! shadow the path line of sight-source is not below the horizon => we compute
+                                  if (angzen-zhoriz.lt.0.00001) then      ! shadow the path line of sight-source is not below the horizon => we compute
                                     hh=1.
                                   else
                                     hh=0.
@@ -1129,10 +1129,10 @@ c computation of the horizon for the resolved shadows direct              ! hori
                               endif
 c sub-grid obstacles
                               ff=0.
-                              if (dho.gt.drefle(x_s,y_s)) then                ! light path to observer larger than the mean free path -> subgrid obstacles
+                              if (dho.gt.drefle(x_s,y_s)) then            ! light path to observer larger than the mean free path -> subgrid obstacles
                                 angmin=pi/2.-atan((altsol(x_s,y_s)+
      +                          obsH(x_s,y_s)-z_s)/drefle(x_s,y_s))
-                                if (angzen.lt.angmin) then                  ! condition sub-grid obstacles direct.
+                                if (angzen.lt.angmin) then                ! condition sub-grid obstacles direct.
                                   ff=0.
                                 else
                                   ff=ofill(x_s,y_s)
@@ -1382,9 +1382,9 @@ c horizon blocking not a matte because dif are closeby and some downward
             hh=1.
 c sub-grid obstacles
             ff=0.
-            if (dho.gt.drefle(x_sr,y_sr)) then                              ! light path to observer larger than the mean free path -> subgrid obstacles
+            if (dho.gt.drefle(x_sr,y_sr)) then                            ! light path to observer larger than the mean free path -> subgrid obstacles
               angmin=pi/2.-atan(obsH(x_sr,y_sr)/drefle(x_sr,y_sr))
-              if (angzen.lt.angmin) then                                    ! condition obstacle reflechi->scattered
+              if (angzen.lt.angmin) then                                  ! condition obstacle reflechi->scattered
                 ff=0.
               else
                 ff=ofill(x_sr,y_sr)
@@ -1429,10 +1429,10 @@ c subgrid obstacles
             else
               dho=sqrt((rx_dif-rx_c)**2.+(ry_dif-ry_c)**2.)
               ff=0.
-              if (dho.gt.drefle(x_dif,y_dif)) then                            ! light path to observer larger than the mean free path -> subgrid obstacles
+              if (dho.gt.drefle(x_dif,y_dif)) then                        ! light path to observer larger than the mean free path -> subgrid obstacles
                 angmin=pi/2.-atan((obsH(x_dif,y_dif)+
      +          altsol(x_dif,y_dif)-z_dif)/drefle(x_dif,y_dif))
-                if (angzen.lt.angmin) then                                  ! condition subgrid obstacle scattering -> line of sight
+                if (angzen.lt.angmin) then                                ! condition subgrid obstacle scattering -> line of sight
                   ff=0.
                 else
                   ff=ofill(x_dif,y_dif)
@@ -1474,7 +1474,7 @@ c computation of the scattering probability of the scattered light toward the ob
             if (omega.ne.0.) then
               call angle3points(rx_dif,ry_dif,z_dif,rx_c,ry_c,z_c,        ! scattering angle.
      +        rx_obs,ry_obs,z_obs,angdif)
-              call diffusion(angdif,tranam,tranaa,tranal,un,secdif,              ! scattering probability of the direct light.
+              call diffusion(angdif,tranam,tranaa,tranal,un,secdif,       ! scattering probability of the direct light.
      +        secdil,fdifan,fdifl,hlay,pdifd2,z_c)
             else
               pdifd2=0.
@@ -1556,7 +1556,7 @@ c subgrid obstacles
                    angmin=pi/2.-atan((obsH(x_dif,y_dif)
      +             +altsol(x_dif,y_dif)-z_dif)/drefle(
      +             x_dif,y_dif))
-                   if (angzen.lt.angmin) then                               ! condition obstacles scattering->line of sight
+                   if (angzen.lt.angmin) then                             ! condition obstacles scattering->line of sight
                      ff=0.
                    else
                      ff=ofill(x_dif,y_dif)
@@ -1665,7 +1665,7 @@ c obstacle
      +                                   then
                                            angmin=pi/2.-atan(obsH(x_sr,
      +                                     y_sr)/drefle(x_sr,y_sr))
-                                           if (angzen.lt.angmin) then      ! condition obstacle reflected.
+                                           if (angzen.lt.angmin) then     ! condition obstacle reflected.
                                              ff=0.
                                            else
                                              ff=ofill(x_sr,y_sr)
@@ -1912,6 +1912,6 @@ c =================================
       end
 c***********************************************************************************************************************
 c*                                                                                                                     *
-c*                                         end of the programme                                                            *
+c*                                         end of the programme                                                        *
 c*                                                                                                                     *
 c***********************************************************************************************************************
