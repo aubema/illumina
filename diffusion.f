@@ -32,11 +32,11 @@ c    Contact: martin.aube@cegepsherbrooke.qc.ca
 c
 c
       subroutine diffusion(angdif,tranam,tranaa,tranal,un,secdif,secdil,
-     +   fonc_a,fonc_l,hlay,pdif,altit)
+     +   fonc_a,fonc_l,haer,hlay,pdif,altit)
       real angdif,pdif,prob_a,prob_m,prob_l,secdif,secdil
       real fctmol,pi,fonc_a(181),fonc_l(181),fonc_ae,fonc_le
       real angdeg,tranam,tranaa,tranal
-      real altit,un,hlay
+      real altit,un,hlay,haer
       integer rang,na,naz
       parameter (pi=3.1415926)
 c--------------------------------------------------------      
@@ -54,7 +54,7 @@ c  version 2. Monthly Notices of the Royal Astronomical Society,
 c  497(3), 2501-2516.
 c---------------------------------------- 
       fonc_ae=fonc_a(rang)                                                ! value of the aerosol phase function
-      prob_a=(1.-exp(log(tranaa)*exp(-1.*altit/2000.)*un/2000.))*         ! Functions are normalized in the main code. See their division by 4pi
+      prob_a=(1.-exp(log(tranaa)*exp(-1.*altit/haer.)*un/haer.))*         ! Functions are normalized in the main code. See their division by 4pi
      +secdif*fonc_ae
       if (tranal.lt.1.) then
          fonc_le=fonc_l(rang)                                             ! value of the layer phase function

@@ -251,6 +251,7 @@ c                                                                         ! a li
       real secdil                                                         ! scattering/extinction ratio for the particle layer
       real fdifl(181)                                                     ! scattering phase function of the particle layer
       real tranal                                                         ! top of atmos transmission of the particle layer 
+      real haer                                                           ! exponential vertical scale height of the background aerosol layer
       verbose=1                                                           ! Very little printout=0, Many printout = 1, even more=2
       diamobj=1.                                                          ! A dummy value for the diameter of the objective of the instrument used by the observer.
       volu=0.
@@ -278,7 +279,7 @@ c reading of the fichier d'entree (illumina.in)
         read(1,*) lambda
         read(1,*) srefl
         read(1,*) pressi
-        read(1,*) taua,alpha
+        read(1,*) taua,alpha,haer
         read(1,*) ntype
         read(1,*) stoplim
         read(1,*)
@@ -336,6 +337,7 @@ c computing the actual AOD at the wavelength lambda
       if (verbose.ge.1) print*,'500nm AOD=',taua,'500nm angstrom coeff.=
      +',alpha
       taua=taua*(lambda/500.)**(-1.*alpha)
+      layaod=layaod*(lambda/500.)**(-1.*layalp)      
 c  determine the Length of basenm
       lenbase=index(basenm,' ')-1
       mnaf=basenm(1:lenbase)//'_topogra.bin'                              ! determine the names of input and output files
@@ -1161,7 +1163,7 @@ c distance pour traverser la cellule unitaire parfaitement orientée
      +                          angdif)
                                 call diffusion(angdif,                    ! scattering probability of the direct light. ############################################ secdif et un etaient inverses
      +                          tranam,tranaa,tranal,un,secdif,secdil,
-     +                          fdifan,fdifl,hlay,pdifdi,z_c)
+     +                          fdifan,fdifl,haer,hlay,pdifdi,z_c)
                               else
                                 pdifdi=0.
                               endif
@@ -1408,7 +1410,7 @@ c cell unitaire
               call angle3points (rx_sr,ry_sr,z_sr,rx_dif,ry_dif,z_dif,    ! scattering angle.
      +        rx_c,ry_c,z_c,angdif)
               call diffusion(angdif,tranam,tranaa,tranal,un,secdif,       ! scattering probability of the direct light.
-     +        secdil,fdifan,fdifl,hlay,pdifd1,z_dif)
+     +        secdil,fdifan,fdifl,haer,hlay,pdifd1,z_dif)
             else
               pdifd1=0.
             endif
@@ -1475,7 +1477,7 @@ c computation of the scattering probability of the scattered light toward the ob
               call angle3points(rx_dif,ry_dif,z_dif,rx_c,ry_c,z_c,        ! scattering angle.
      +        rx_obs,ry_obs,z_obs,angdif)
               call diffusion(angdif,tranam,tranaa,tranal,un,secdif,       ! scattering probability of the direct light.
-     +        secdil,fdifan,fdifl,hlay,pdifd2,z_c)
+     +        secdil,fdifan,fdifl,haer,hlay,pdifd2,z_c)
             else
               pdifd2=0.
             endif
@@ -1529,7 +1531,7 @@ c computing the scattering probability toward the line of sight voxel
      +          angdif)
                 call diffusion(angdif,                                    ! scattering probability of the direct light.
      +          tranam,tranaa,tranal,un,secdif,secdil,
-     +          fdifan,fdifl,hlay,pdifd1,z_dif)
+     +          fdifan,fdifl,haer,hlay,pdifd1,z_dif)
               else
                 pdifd1=0.
               endif
@@ -1604,7 +1606,7 @@ c computation of the scattering probability of the scattered light toward the ob
      +          z_obs,angdif)
                 call diffusion(angdif,                                    ! scattering probability of the direct light.
      +          tranam,tranaa,tranal,un,secdif,secdil,
-     +          fdifan,fdifl,hlay,pdifd2,z_c)
+     +          fdifan,fdifl,haer,hlay,pdifd2,z_c)
               else
                 pdifd2=0.
               endif
@@ -1710,7 +1712,7 @@ c computation of the scattering probability of the reflected light
                                             call diffusion(angdif,        ! scattering probability of the reflected light.
      +                                      tranam,tranaa,tranal,un,
      +                                      secdif,secdil,fdifan,fdifl,
-     +                                      hlay,pdifin,z_c)
+     +                                      haer,hlay,pdifin,z_c)
                                           else
                                             pdifin=0.
                                           endif
