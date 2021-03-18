@@ -45,7 +45,7 @@ c **    - Do not consider earth curvature (i.e. local/regional model)           
 c **                                                                                                                  **
 c **********************************************************************************************************************
 c
-c  Copyright (C) 2020 Martin Aube PhD
+c  Copyright (C) 2021 Martin Aube PhD
 c
 c  This program is free software: you can redistribute it and/or modify
 c  it under the terms of the GNU General Public License as published by

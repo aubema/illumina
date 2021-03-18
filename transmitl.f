@@ -14,7 +14,7 @@ c
 c pour utilisation avec Illumina 
 c-----------------------------------------------------------------------
 c   
-c    Copyright (C) 2009  Martin Aube
+c    Copyright (C) 2021  Martin Aube
 c
 c    This program is free software: you can redistribute it and/or modify
 c    it under the terms of the GNU General Public License as published by
