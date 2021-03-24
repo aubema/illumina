@@ -101,9 +101,13 @@ def save(params, data, dstname, scale_factor=1.):
     ds.save(dstname)
 
 def correction_filenames(srcfiles):
-    return [ fname.replace(fname.split('_')[3],"zero_correction") \
-        .replace("avg_rade9h.tif","csv") \
-        for fname in srcfiles ]
+    try:
+        return [ fname.replace(fname.split('_')[3],"zero_correction") \
+            .replace("avg_rade9h.tif","csv") \
+            for fname in srcfiles ]
+    except IndexError:
+        return [ fname.replace("avg_rade9h.tif","csv") \
+            for fname in srcfiles ]
 
 def convert_correction_data(srcfiles):
     corr_files = np.unique(correction_filenames(srcfiles))
