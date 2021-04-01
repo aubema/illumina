@@ -543,8 +543,8 @@ c reading scattering parameters of particle layer
           read(1,*)  secdil                                               ! the scattering / extinction ratio of particle layer
           read(1,*)
           do i=1,181
-            read(1,*) anglea(i), fdifa(i)                                 ! reading of the scattering functions of the particle layer
-            fdifl(i)=fdifa(i)/pix4                                        ! The integral of the imported phase fonction over sphere = 4 pi) We divide by 4 pi to get it per unit of solid angle
+            read(1,*) anglea(i), fdifl(i)                                 ! reading of the scattering functions of the particle layer
+            fdifl(i)=fdifl(i)/pix4                                        ! The integral of the imported phase fonction over sphere = 4 pi) We divide by 4 pi to get it per unit of solid angle
           enddo
         close(1)       
 c Some preliminary tasks
