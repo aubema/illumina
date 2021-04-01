@@ -53,10 +53,14 @@ c  Observatorio del Teide: First application of the model Illumina
 c  version 2. Monthly Notices of the Royal Astronomical Society, 
 c  497(3), 2501-2516.
 c---------------------------------------- 
-      fonc_ae=fonc_a(rang)                                                ! value of the aerosol phase function
-      prob_a=(1.-exp(log(tranaa)*exp(-1.*altit/haer)*un/haer))*           ! Functions are normalized in the main code. See their division by 4pi
-     +secdif*fonc_ae
-      if (tranal.le.1.) then
+      if ((tranaa.le.1.).and.(tranaa.gt.0.)) then
+         fonc_ae=fonc_a(rang)                                             ! value of the aerosol phase function
+         prob_a=(1.-exp(log(tranaa)*exp(-1.*altit/haer)*un/haer))*        ! Functions are normalized in the main code. See their division by 4pi
+     +   secdif*fonc_ae
+      else
+         prob_a=0.
+      endif      
+      if ((tranal.le.1.).and.(tranal.gt.0.)) then
          fonc_le=fonc_l(rang)                                             ! value of the layer phase function
          prob_l=(1.-exp(log(tranal)*exp(-1.*altit/hlay)*un/hlay))*           
      +   secdil*fonc_le
