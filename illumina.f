@@ -244,7 +244,7 @@ c                                                                         ! a li
       integer viirs(width,width)                                          ! viirs flag 1=yes 0=no
       character*72 vifile                                                 ! name of the viirs flag file
       real dh0,dhmax                                                      ! horizontal distance along the line of sight and maximum distance before beeing blocked by topography
-      character*12 layfile                                                ! filename of the optical properties of the particle layer
+      character*72 layfile                                                ! filename of the optical properties of the particle layer
       real layaod                                                         ! 500 nm aod of the particle layer
       real layalp                                                         ! spectral exponent of the aod for the particle layer
       real hlay                                                           ! exponential vertical scale height of the particle layer
