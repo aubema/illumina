@@ -44,7 +44,7 @@ def extract(exec_dir,contrib,params,full):
 
     skyglow = ddict(float)
     if full:
-        outputs = ddict(partial(np.zeros,4))
+        outputs = ddict(partial(np.zeros,6))
     if contrib:
         contributions = dict()
 
@@ -86,7 +86,7 @@ def extract(exec_dir,contrib,params,full):
             val = float(lines[-1])
             if full:
                 vals =  np.array([ float(l) for l in lines[idx_results+1::2] ])
-                outputs[regex_layer.sub('',params)] += vals
+                outputs[regex_layer.sub('',params_name)] += vals
             else:
                 skyglow[regex_layer.sub('',params_name)] += val
             if contrib:
