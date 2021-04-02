@@ -5,7 +5,7 @@
 # Author : Alexandre Simoneau
 # unless noted otherwise
 #
-# January 2019
+# March 2021
 
 import click
 import MultiScaleData as MSD
@@ -176,13 +176,22 @@ def batches(input_params_path,compact,batch_size,batch_name=None):
             os.makedirs(fold_name)
 
             # Linking files
-            mie_file = "%s_RH%02d_0.%s0um.mie.out" % (
+            mie_file = "%s_%s.txt" % (
                 params['aerosol_profile'],
-                params['relative_humidity'],
                 wavelength )
             os.symlink(
                 os.path.relpath(mie_file,fold_name),
-                fold_name+"aerosol.mie.out" )
+                fold_name+"aerosol.txt"
+            )
+
+            layer_file = "%s_%s.txt" % (
+                params['layer_type'],
+                wavelength
+            )
+            os.symlink(
+                os.path.relpath(layer_file,fold_name),
+                fold_name+"layer.txt"
+            )
 
             for l,lamp in enumerate(lamps,1):
                 os.symlink(
@@ -193,7 +202,8 @@ def batches(input_params_path,compact,batch_size,batch_name=None):
             illumpath = [s for s in ppath if "/illumina" in s and "/bin" in s][0]
             os.symlink(
                 os.path.abspath(illumpath+"/illumina"),
-                fold_name+"illumina" )
+                fold_name+"illumina"
+            )
 
             # Copying layer data
             obs_fold = os.path.join(
@@ -234,15 +244,19 @@ def batches(input_params_path,compact,batch_size,batch_name=None):
             ((exp_name, "Root file name"),),
             ((ds.pixel_size(layer), "Cell size along X [m]"),
              (ds.pixel_size(layer), "Cell size along Y [m]")),
-            (("aerosol.mie.out", "Aerosol optical cross section file"),),
-            (('', ''),),
+            (("aerosol.txt", "Aerosol optical cross section file"),),
+            (("layer.txt", "Layer optical cross section file"),
+             (P['layer_aod'], "Layer aerosol optical depth at 500nm"),
+             (P['layer_alpha'], "Layer angstom coefficient"),
+             (P['layer_height'], "Layer scale height [m]")),
             ((P['double_scattering']*1, "Double scattering activated" ),),
             ((P['single_scattering']*1, "Single scattering activated" ),),
             ((wavelength, "Wavelength [nm]"),),
             ((reflectance, "Reflectance"),),
             ((P['air_pressure'], "Ground level pressure [kPa]"),),
-            ((P['aerosol_optical_depth'], "500nm aerosol optical depth"),
-             (P['angstrom_coefficient'], "Angstrom exponent")),
+            ((P['aerosol_optical_depth'], "Aerosol optical depth at 500nm"),
+             (P['angstrom_coefficient'], "Angstrom exponent"),
+             (P['aerosol_height'], "Aerosol scale height [m]")),
             ((len(lamps), "Number of source types"),),
             ((P['stop_limit'], "Contribution threshold"),),
             (('', ''),),
