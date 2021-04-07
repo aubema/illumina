@@ -158,7 +158,7 @@ def alternate(name,zones,lights):
     nspct = np.array(list(map(np.mean,np.array_split(nspct[bool_array],n_bins))))
 
     for aero_file in glob("Inputs/*.txt"):
-        shutil.copy(fname,fname.replace("Inputs",dirname))
+        shutil.copy(aero_file,aero_file.replace("Inputs",dirname))
 
     # print("Linking mie files.")
     #
