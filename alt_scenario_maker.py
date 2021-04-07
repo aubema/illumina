@@ -10,6 +10,8 @@ import yaml, click
 
 from scipy.interpolate import interp1d as interp
 from collections import defaultdict as ddict
+from make_zones import make_zones
+from make_lamps import make_lamps
 
 @click.command()
 @click.argument("name")
@@ -188,13 +190,14 @@ def alternate(name,zones,lights):
     with open(dirname+"/wav.lst",'w') as zfile:
     	zfile.write('\n'.join( ["%03d"%n for n in x])+'\n')
 
-    if zones is not None:
-        dir_name = ".Inputs_zones/"
-        inv_name = zones
-        n_inv = 0
-        shutil.rmtree(dir_name,True)
-        os.makedirs(dir_name)
-        exec(compile(open(os.path.join(illumpath,"make_zones.py"), "rb").read(), os.path.join(illumpath,"make_zones.py"), 'exec'))
+	if params['zones_inventory'] is not None:
+		dir_name = ".Inputs_zones/"
+		inv_name = params['zones_inventory']
+		n_inv = 7
+		shutil.rmtree(dir_name,True)
+		os.makedirs(dir_name)
+		make_zones(dir_name,inv_name,n_inv,n_bins,params,out_name,
+			x,lop,angles,wav,spct,viirs,refl,bool_array)
 
         oldlumlp = MSD.from_domain("domain.ini")
         for fname in glob("Inputs/*lumlp*"):
@@ -220,12 +223,12 @@ def alternate(name,zones,lights):
                 ds[i] *= dat
             ds.save(fname)
 
-    if lights is not None:
-        params['lamps_inventory'] = lights
-        dir_name = ".Inputs_lamps/"
-        shutil.rmtree(dir_name,True)
-        os.makedirs(dir_name)
-        exec(compile(open(os.path.join(illumpath,"make_lamps.py"), "rb").read(), os.path.join(illumpath,"make_lamps.py"), 'exec'))
+	if params['lamps_inventory'] is not None:
+		dir_name = ".Inputs_lamps/"
+		shutil.rmtree(dir_name,True)
+		os.makedirs(dir_name)
+		make_lamps(dir_name,n_bins,params,out_name,
+			x,lop,angles,wav,spct,viirs,refl,bool_array)
 
     print("Unifying inputs.")
 
