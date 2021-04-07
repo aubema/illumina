@@ -110,7 +110,7 @@ def alternate(name,zones,lights):
 
     out_name = params['exp_name']
 
-    asper_files = glob("Lights/*.asper")
+    asper_files = glob("Lights/*.aster")
     asper = {
     	os.path.basename(s).split('.',1)[0] : \
     	np.loadtxt(s) \

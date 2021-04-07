@@ -22,7 +22,7 @@ def convert(filename,outname,vector,log,area):
     hdf.set_overlap(-1)
 
     if not vector:
-        import gdal, osr
+        from osgeo import gdal, osr
         driver = gdal.GetDriverByName("GTiff")
         srs = osr.SpatialReference()
         srs.ImportFromEPSG(int(hdf._attrs['srs'].split(':')[1]))
