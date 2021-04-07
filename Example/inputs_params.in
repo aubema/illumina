@@ -9,12 +9,12 @@ reflectance:
     asphalt: 0.8
     grass: 0.2
     snow: 0
-aerosol_profile: maritime      # Aerosol profile. 'maritime','urban' or 'rural'
-layer_type: dust               # Additional layer. Previous choices plus 'dust' or 'fog'. Set 'layer_aod' to 0 to disable.
+aerosol_profile: maritime      # Aerosol profile. 'maritime','urban', 'rural', 'dust', or 'fog'
+layer_type: dust               # Additional layer. Same choices as aerosol_profile. Set 'layer_aod' to 0 to disable.
 relative_humidity: 70
 estimated_computing_time: 1    # estimated computing time per case [h]
 batch_file_name: batch
-road_orientation: False        # Observation angle given relative to road orientation instead of North (WARNING: Can be slow for large domains)
+road_orientation: False        # The final azimuth angles will be determined with azimuth_angle (see below) relative to the direction between the observer and the nearest point of the nearest road instead of relative to the north. (WARNING: Can be slow for large domains)
 # parameters after here can be lists
 observer_elevation: 10         # elevation above ground level [m]
 air_pressure: 101.3            # lowest domain level atmospheric pressure [kPa]
