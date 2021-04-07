@@ -37,40 +37,40 @@ def alternate(name,zones,lights):
         params = yaml.safe_load(f)
 
     if zones is not None and \
-    	lights is not None:
+        lights is not None:
 
-    	print("Validating the inventories.")
+        print("Validating the inventories.")
 
-    	lamps = np.loadtxt(lights,usecols=[0,1])
-    	zones = np.loadtxt(params['zones_inventory'],usecols=[0,1,2])
-    	zonData = pt.parse_inventory(zones,0)
+        lamps = np.loadtxt(lights,usecols=[0,1])
+        zones = np.loadtxt(params['zones_inventory'],usecols=[0,1,2])
+        zonData = pt.parse_inventory(zones,0)
 
-    	hasLights = [ sum( x[0] for x in z ) != 0 for z in zonData ]
+        hasLights = [ sum( x[0] for x in z ) != 0 for z in zonData ]
 
-    	circles = MSD.from_domain("domain.ini")
-    	for dat,b in zip(zones,hasLights):
-    		circles.set_circle((dat[0],dat[1]),dat[2]*1000,b)
+        circles = MSD.from_domain("domain.ini")
+        for dat,b in zip(zones,hasLights):
+            circles.set_circle((dat[0],dat[1]),dat[2]*1000,b)
 
-    	zones_ind = MSD.from_domain("domain.ini")
-    	for i,dat in enumerate(zones,1):
-    		zones_ind.set_circle((dat[0],dat[1]),dat[2]*1000,i)
+        zones_ind = MSD.from_domain("domain.ini")
+        for i,dat in enumerate(zones,1):
+            zones_ind.set_circle((dat[0],dat[1]),dat[2]*1000,i)
 
-    	failed = set()
-    	for l,coords in enumerate(lamps,1):
-    		for i in range(len(circles)):
-    			try:
-    				col,row = circles._get_col_row(coords,i)
-    				if circles[i][row,col] and col >= 0 and row >= 0:
-    					zon_ind = zones_ind[i][row,col]
-    					failed.add((l,coords[0],coords[1],zon_ind))
-    			except IndexError:
-    				continue
+        failed = set()
+        for l,coords in enumerate(lamps,1):
+            for i in range(len(circles)):
+                try:
+                    col,row = circles._get_col_row(coords,i)
+                    if circles[i][row,col] and col >= 0 and row >= 0:
+                        zon_ind = zones_ind[i][row,col]
+                        failed.add((l,coords[0],coords[1],zon_ind))
+                except IndexError:
+                    continue
 
-    	if len(failed):
-    		for l,lat,lon,zon_ind in sorted(failed):
-    			print("WARNING: Lamp #%d (%.06g,%.06g) falls within non-null zone #%d" \
-    				% (l,lat,lon,zon_ind))
-    		raise SystemExit()
+        if len(failed):
+            for l,lat,lon,zon_ind in sorted(failed):
+                print("WARNING: Lamp #%d (%.06g,%.06g) falls within non-null zone #%d" \
+                    % (l,lat,lon,zon_ind))
+            raise SystemExit()
 
 
     print("\nLoading data...")
@@ -114,44 +114,44 @@ def alternate(name,zones,lights):
 
     asper_files = glob("Lights/*.aster")
     asper = {
-    	os.path.basename(s).split('.',1)[0] : \
-    	np.loadtxt(s) \
-    	for s in asper_files
+        os.path.basename(s).split('.',1)[0] : \
+        np.loadtxt(s) \
+        for s in asper_files
     }
 
     for type in asper:
-    	wl,refl = asper[type].T
-    	wl *= 1000.
-    	refl /= 100.
-    	asper[type] = interp(
-    		wl, refl,
-    		bounds_error=False,
-    		fill_value=0.
-    	)(wav)
+        wl,refl = asper[type].T
+        wl *= 1000.
+        refl /= 100.
+        asper[type] = interp(
+            wl, refl,
+            bounds_error=False,
+            fill_value=0.
+        )(wav)
 
     sum_coeffs = sum(
-    	params['reflectance'][type] \
-    	for type in params['reflectance']
+        params['reflectance'][type] \
+        for type in params['reflectance']
     )
     if sum_coeffs == 0:
-    	sum_coeffs = 1.
+        sum_coeffs = 1.
 
     refl = sum(
-    	asper[type]*coeff/sum_coeffs \
-    	for type,coeff \
-    	in params['reflectance'].items()
+        asper[type]*coeff/sum_coeffs \
+        for type,coeff \
+        in params['reflectance'].items()
     )
 
     reflect = [ np.mean(a) for a in \
         np.array_split(
-    		refl[bool_array],
-    		n_bins,
-    		-1
+            refl[bool_array],
+            n_bins,
+            -1
         )
     ]
 
     with open(dirname+"/refl.lst",'w') as zfile:
-    	zfile.write('\n'.join( ["%.06g"%n for n in reflect])+'\n')
+        zfile.write('\n'.join( ["%.06g"%n for n in reflect])+'\n')
 
     # Photopic/scotopic spectrum
     #   ratio_ps = float(raw_input("    photopic/scotopic ratio for lamp power ? (0 <= p/(s+p) <= 1) : "))
@@ -178,26 +178,26 @@ def alternate(name,zones,lights):
     # wl2mie = np.asarray([min(mie_wl, key=lambda i: abs(i-j)) for j in x])
     #
     # for i in range(len(wl2mie)):
-    # 	name = dirname+mie_pre.strip('_')+"_0.%03d0um.mie.out"%x[i]
-    # 	try:
-    # 		shutil.copy2(os.path.abspath(mie_files[wl2mie[i]]),name)
-    # 	except OSError as e:
-    # 		if e[0] != 17:
-    # 			raise
+    #     name = dirname+mie_pre.strip('_')+"_0.%03d0um.mie.out"%x[i]
+    #     try:
+    #         shutil.copy2(os.path.abspath(mie_files[wl2mie[i]]),name)
+    #     except OSError as e:
+    #         if e[0] != 17:
+    #             raise
 
     shutil.copy("srtm.hdf5",dirname)
 
     with open(dirname+"/wav.lst",'w') as zfile:
-    	zfile.write('\n'.join( ["%03d"%n for n in x])+'\n')
+        zfile.write('\n'.join( ["%03d"%n for n in x])+'\n')
 
     if params['zones_inventory'] is not None:
-    	dir_name = ".Inputs_zones/"
-    	inv_name = params['zones_inventory']
-    	n_inv = 7
-    	shutil.rmtree(dir_name,True)
-    	os.makedirs(dir_name)
-    	make_zones(dir_name,inv_name,n_inv,n_bins,params,out_name,
-    		x,lop,angles,wav,spct,viirs,refl,bool_array)
+        dir_name = ".Inputs_zones/"
+        inv_name = params['zones_inventory']
+        n_inv = 7
+        shutil.rmtree(dir_name,True)
+        os.makedirs(dir_name)
+        make_zones(dir_name,inv_name,n_inv,n_bins,params,out_name,
+            x,lop,angles,wav,spct,viirs,refl,bool_array)
 
         oldlumlp = MSD.from_domain("domain.ini")
         for fname in glob("Inputs/*lumlp*"):
@@ -224,38 +224,38 @@ def alternate(name,zones,lights):
             ds.save(fname)
 
     if params['lamps_inventory'] is not None:
-    	dir_name = ".Inputs_lamps/"
-    	shutil.rmtree(dir_name,True)
-    	os.makedirs(dir_name)
-    	make_lamps(dir_name,n_bins,params,out_name,
-    		x,lop,angles,wav,spct,viirs,refl,bool_array)
+        dir_name = ".Inputs_lamps/"
+        shutil.rmtree(dir_name,True)
+        os.makedirs(dir_name)
+        make_lamps(dir_name,n_bins,params,out_name,
+            x,lop,angles,wav,spct,viirs,refl,bool_array)
 
     print("Unifying inputs.")
 
     lfiles = { fname.split(os.sep)[-1] for fname in glob(".Inputs_lamps/*") }
     zfiles = { fname.split(os.sep)[-1] for fname in glob(".Inputs_zones/*") }
     for fname in lfiles-zfiles:
-    	shutil.move(os.path.join(".Inputs_lamps",fname),dirname)
+        shutil.move(os.path.join(".Inputs_lamps",fname),dirname)
     for fname in zfiles-lfiles:
-    	shutil.move(os.path.join(".Inputs_zones",fname),dirname)
+        shutil.move(os.path.join(".Inputs_zones",fname),dirname)
     for fname in zfiles&lfiles:
-    	if "fctem" in fname:
-    		shutil.move(os.path.join(".Inputs_lamps",fname),dirname)
-    	elif fname.endswith('.lst'):
-    		with open(os.path.join(".Inputs_lamps",fname)) as f:
-    			ldat = f.readlines()
-    		with open(os.path.join(".Inputs_zones",fname)) as f:
-    			zdat = f.readlines()
-    		with open(os.path.join(dirname,fname),'w') as f:
-    			f.write(''.join(sorted(set(ldat+zdat))))
-    	elif fname.endswith('.hdf5'):
-    		ldat = MSD.Open(os.path.join(".Inputs_lamps",fname))
-    		zdat = MSD.Open(os.path.join(".Inputs_zones",fname))
-    		for i, dat in enumerate(ldat):
-    			zdat[i][dat != 0] = dat[dat != 0]
-    		zdat.save(os.path.join(dirname,fname))
-    	else:
-    		print("WARNING: File %s not merged properly." % fname)
+        if "fctem" in fname:
+            shutil.move(os.path.join(".Inputs_lamps",fname),dirname)
+        elif fname.endswith('.lst'):
+            with open(os.path.join(".Inputs_lamps",fname)) as f:
+                ldat = f.readlines()
+            with open(os.path.join(".Inputs_zones",fname)) as f:
+                zdat = f.readlines()
+            with open(os.path.join(dirname,fname),'w') as f:
+                f.write(''.join(sorted(set(ldat+zdat))))
+        elif fname.endswith('.hdf5'):
+            ldat = MSD.Open(os.path.join(".Inputs_lamps",fname))
+            zdat = MSD.Open(os.path.join(".Inputs_zones",fname))
+            for i, dat in enumerate(ldat):
+                zdat[i][dat != 0] = dat[dat != 0]
+            zdat.save(os.path.join(dirname,fname))
+        else:
+            print("WARNING: File %s not merged properly." % fname)
     shutil.rmtree(".Inputs_lamps",True)
     shutil.rmtree(".Inputs_zones",True)
 
