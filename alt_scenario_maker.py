@@ -73,6 +73,8 @@ def alternate(name,zones,lights):
             raise SystemExit()
 
 
+    shutil.copy("Inputs/nputs_params.in",dirname)
+
     print("\nLoading data...")
 
     # Angular distribution (normalised to 1)

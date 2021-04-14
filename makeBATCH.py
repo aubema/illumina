@@ -15,7 +15,6 @@ from glob import glob
 from itertools import product as comb, count as itcount
 import numpy as np
 from collections import ChainMap, OrderedDict
-from math import sqrt
 
 def input_line(val,comment,n_space=30):
     value_str = ' '.join(str(v) for v in val)
@@ -30,28 +29,29 @@ def MSDOpen(filename,cached={}):
     return ds
 
 @click.command()
-@click.argument("input_params_path",type=click.Path(exists=True),default=".")
+@click.argument("input_path",type=click.Path(exists=True),default=".")
 @click.argument("batch_name",required=False)
 @click.option("-c","--compact",is_flag=True,help="If given, will chain similar executions. "\
     "Reduces the overall number of runs at the cost of longuer individual executions.")
 @click.option("-N","--batch_size",type=int,default=300,show_default=True,
     help="Number of runs per produced batch file.")
-def batches(input_params_path,compact,batch_size,batch_name=None):
+def batches(input_path,compact,batch_size,batch_name=None):
     """Makes the execution batches.
 
-    INPUT_PARAMS_PATH is the path to the folder containing the
-    'inputs_params.in' file.
+    INPUT_PATH is the path to the folder containing the inputs.
 
     BATCH_NAME is an optional name for the produced batch files.
     It overwrites the one defined in 'inputs_params.in' is given.
     """
-    with open(os.path.join(input_params_path,"inputs_params.in")) as f:
+    os.chdir(input_path)
+
+    with open("inputs_params.in") as f:
         params = yaml.safe_load(f)
 
     if batch_name is not None:
         params['batch_file_name'] = batch_name
 
-    for fname in glob(os.path.join(input_params_path,"%s*" % params['batch_file_name'])):
+    for fname in glob("%s*" % params['batch_file_name']):
         os.remove(fname)
 
     exp_name = params['exp_name']
@@ -300,12 +300,7 @@ def batches(input_params_path,compact,batch_size,batch_name=None):
             os.chmod(fold_name+"execute",0o777)
 
             # Append execution to batch list
-            with open(
-                input_params_path + \
-                    '/' + \
-                    params['batch_file_name'] + \
-                    "_%d" % ((count/batch_size)+1) ,
-                'a' ) as f:
+            with open(f"{params['batch_file_name']}_{(count/batch_size)+1}", 'a') as f:
                 f.write("cd %s\n" % os.path.abspath(fold_name))
                 f.write("sbatch ./execute\n")
                 f.write("sleep 0.05\n")
