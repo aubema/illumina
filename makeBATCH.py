@@ -265,7 +265,7 @@ def batches(input_path,compact,batch_size,batch_name=None):
              (P['observer_elevation'], "Observer elevation above ground [m]")),
             (('', ''),),
             ((P['elevation_angle'], "Elevation viewing angle"),
-             (P['azimuth_angle']+bearing, "Azimuthal viewing angle")),
+             ((P['azimuth_angle']+bearing)%360, "Azimuthal viewing angle")),
             ((P['direct_fov'], 'Direct field of view'),),
             (('', ''),),
             (('', ''),),
