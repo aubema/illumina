@@ -74,7 +74,6 @@ def alternate(name,zones,lights):
 
 
     shutil.copy("Inputs/inputs_params.in",dirname)
-    shutil.copy("Inputs/origin.hdf5",dirname)
 
     print("\nLoading data...")
 
@@ -259,6 +258,9 @@ def alternate(name,zones,lights):
             zdat.save(os.path.join(dirname,fname))
         else:
             print("WARNING: File %s not merged properly." % fname)
+    	if "origin.hdf5" not in zfiles:
+    		origin = MSD.from_domain("domain.ini")
+    		origin.save(dirname+"/origin")
     shutil.rmtree(".Inputs_lamps",True)
     shutil.rmtree(".Inputs_zones",True)
 
