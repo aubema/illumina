@@ -73,7 +73,7 @@ def alternate(name,zones,lights):
             raise SystemExit()
 
 
-    shutil.copy("Inputs/nputs_params.in",dirname)
+    shutil.copy("Inputs/inputs_params.in",dirname)
 
     print("\nLoading data...")
 
