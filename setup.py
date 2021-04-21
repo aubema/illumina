@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='illum',
-    version='2.1.21w15.3a',
+    version='2.1.21w16.3a',
     py_modules=[
         'main',
         'alt_scenario_maker',

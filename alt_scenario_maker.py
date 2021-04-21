@@ -188,6 +188,7 @@ def alternate(name,zones,lights):
     #             raise
 
     shutil.copy("srtm.hdf5",dirname)
+    shutil.copy("origin.hdf5",dirname)
 
     with open(dirname+"/wav.lst",'w') as zfile:
         zfile.write('\n'.join( ["%03d"%n for n in x])+'\n')
