@@ -302,6 +302,15 @@ c reading of the fichier d'entree (illumina.in)
          print*,'Error: elevation angle smaller than -90 deg'
          stop
       endif
+c conversion of the geographical viewing angles toward the cartesian
+c angle we assume that the angle in the file illumina.in
+c is consistent with the geographical definition
+c geographical, azim=0 toward north, 90 toward east, 180 toward south
+c etc
+c cartesian, azim=0 toward east, 90 toward north, 180 toward west etc
+      azim=90.-azim
+      if (azim.lt.0.) azim=azim+360.
+      if (azim.ge.360.) azim=azim-360.
       angvi1 = (pi*angvis)/180.
       angze1 = pi/2.-angvi1
       angaz1 = (pi*azim)/180.
@@ -346,15 +355,6 @@ c  determine the Length of basenm
       pclimg=basenm(1:lenbase)//'_pcl.bin'
       pcwimg=basenm(1:lenbase)//'_pcw.bin'
       pclgp=basenm(1:lenbase)//'_pcl.gplot'
-c conversion of the geographical viewing angles toward the cartesian
-c angle we assume that the angle in the file illumina.in
-c is consistent with the geographical definition
-c geographical, azim=0 toward north, 90 toward east, 180 toward south
-c etc
-c cartesian, azim=0 toward east, 90 toward north, 180 toward west etc
-      azim=90.-azim
-      if (azim.lt.0.) azim=azim+360.
-      if (azim.ge.360.) azim=azim-360.
 c opening output file
       open(unit=2,file=outfile,status='unknown')
         write(2,*) "ILLUMINA version 2.1.21w16.3e"
