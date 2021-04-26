@@ -15,6 +15,7 @@ from glob import glob
 from itertools import product as comb, count as itcount
 import numpy as np
 from collections import ChainMap, OrderedDict
+from progressbar import progressbar
 
 def input_line(val,comment,n_space=30):
     value_str = ' '.join(str(v) for v in val)
@@ -67,19 +68,7 @@ def batches(input_path,compact,batch_size,batch_name=None):
         for i in range(len(ds)):
             os.makedirs("obs_data/%6f_%6f/%d" % (lat,lon,i))
 
-    N = len(glob("*.hdf5"))
-    ms = 0
-    for i,fname in enumerate(glob("*.hdf5"),1):
-        if 100.*i/N >= ms:
-            if ms%10 == 0:
-                print(ms, end=' ')
-            else:
-                print('..', end=' ')
-            sys.stdout.flush()
-            ms += 5
-        if i == N:
-            print('')
-
+    for i,fname in progressbar(enumerate(glob("*.hdf5"),1),redirect_stdout=True):
         dataset = MSD.Open(fname)
         for clipped in dataset.split_observers():
             lat,lon = clipped.get_obs_pos()
@@ -124,21 +113,8 @@ def batches(input_path,compact,batch_size,batch_name=None):
     multival = [k for k in params if isinstance(params[k],list)]
     multival = sorted( multival, key=len, reverse=True ) # Semi-arbitrary sort
     param_space = [ params[k] for k in multival ]
-    N = np.prod(list(map(len,param_space)))
-    print("Number of parameter combinations:", N)
 
-    ms = 0
-    for i,param_vals in enumerate(comb(*param_space),1):
-        if 100.*i/N >= ms:
-            if ms%10 == 0:
-                print(ms, end=' ')
-            else:
-                print('..', end=' ')
-            sys.stdout.flush()
-            ms += 5
-        if i == N:
-            print('')
-
+    for i,param_vals in progressbar(enumerate(comb(*param_space),1),redirect_stdout=True):
         local_params = OrderedDict(zip(multival,param_vals))
         P = ChainMap(local_params,params)
         if "azimuth_angle" in multival \
