@@ -276,7 +276,7 @@ def batches(input_path,compact,batch_size,batch_name=None):
             os.chmod(fold_name+"execute",0o777)
 
             # Append execution to batch list
-            with open(f"{params['batch_file_name']}_{(count/batch_size)+1}", 'a') as f:
+            with open(f"{params['batch_file_name']}_{(count//batch_size)+1}", 'a') as f:
                 f.write("cd %s\n" % os.path.abspath(fold_name))
                 f.write("sbatch ./execute\n")
                 f.write("sleep 0.05\n")
