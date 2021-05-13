@@ -653,7 +653,10 @@ c flux arrays (lumlp)
 
 
 
-
+        direct=0.                                                         ! initialize the total direct radiance from sources to observer
+        rdirect=0.                                                        ! initialize the total reflected radiance from surface to observer
+        irdirect=0.                                                       ! initialize the total direct irradiance from sources to observer
+        irrdirect=0.                                                      ! initialize the total reflected irradiance from surface to observer
 c =================================
 c Calculation of the direct radiances
 c
@@ -723,6 +726,7 @@ c computation of the solid angle of the line of sight voxel seen from the source
                   anglez=nint(180.*(pi-dzen)/pi)+1
                   P_dir=pvalno(anglez,stype)
 c computation of the flux direct reaching the line of sight voxel
+         print*,cos(dang),dang,pi/2.,lamplu(x_s,y_s,stype)
                   if ((cos(dang).gt.0.).and.(dang.lt.pi/2.))
      +            then
                     ddir_obs=sqrt((rx_obs-rx_s)**2.+                      ! distance direct sight between source and observer
@@ -735,6 +739,8 @@ c computation of the solid angle 1m^2 at the observer as seen from the source
      +              transa,tranaa)
                     call transmitl(dzen,z_obs,z_s,ddir_obs,
      +              hlay,transl,tranal)
+         print*,'trans',transa,transm,transl
+         print*,'pdir,omega,1-ff,hh',P_dir,omega,1.-ff,hh
                     if (dang.lt.dfov) then                                ! check if the reflecting surface enter the field of view of the observer
                       direct=direct+lamplu(x_s,y_s,stype)*
      +                transa*transm*transl*P_dir*omega*(1.-ff)*hh
@@ -983,10 +989,6 @@ c temporaire !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
  1110   format(I4,1x,I4,1x,I4)
         fctcld=0.
         ftocap=0.                                                         ! Initialisation of the value of flux received by the sensor
-        direct=0.                                                         ! initialize the total direct radiance from sources to observer
-        rdirect=0.                                                        ! initialize the total reflected radiance from surface to observer
-        irdirect=0.                                                       ! initialize the total direct irradiance from sources to observer
-        irrdirect=0.                                                      ! initialize the total reflected irradiance from surface to observer
         call horizon(x_obs,y_obs,z_obs,dx,dy,altsol,angaz1,zhoriz,        ! calculating the distance before the line of sight beeing blocked by topography
      +  dhmax)
         rx_c=real(x_obs)*dx-ix*scal/2.
