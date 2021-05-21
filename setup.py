@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='illum',
-    version='2.1.21w17.3b',
+    version='2.1.21w20.5a',
     py_modules=[
         'main',
         'alt_scenario_maker',
@@ -21,7 +21,7 @@ setup(
         'street_orientation'
     ],
     install_requires=[
-        'Click',
+        'Click<8',
         'progressbar2',
         'pyproj',
         'pyyaml',
