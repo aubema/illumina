@@ -73,8 +73,11 @@ def inputs():
 	if params['road_orientation']:
 		print("Computing road orientation (Can be slow for large domains)")
 		from street_orientation import street_orientation
+		with open("domain.ini") as f:
+			domain_params = yaml.safe_load(f)
+		srs = domain_params['srs']
 		lats,lons = MSD.from_domain("domain.ini").get_obs_pos()
-		bearings = street_orientation(lats,lons)
+		bearings = street_orientation(lats,lons,srs)
 		np.savetxt(dir_name+"/brng.lst",bearings,fmt="%g")
 
 	print("Loading photometry files.")
