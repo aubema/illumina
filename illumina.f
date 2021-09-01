@@ -726,7 +726,6 @@ c computation of the solid angle of the line of sight voxel seen from the source
                   anglez=nint(180.*(pi-dzen)/pi)+1
                   P_dir=pvalno(anglez,stype)
 c computation of the flux direct reaching the line of sight voxel
-         print*,cos(dang),dang,pi/2.,lamplu(x_s,y_s,stype)
                   if ((cos(dang).gt.0.).and.(dang.lt.pi/2.))
      +            then
                     ddir_obs=sqrt((rx_obs-rx_s)**2.+                      ! distance direct sight between source and observer
@@ -739,8 +738,6 @@ c computation of the solid angle 1m^2 at the observer as seen from the source
      +              transa,tranaa)
                     call transmitl(dzen,z_obs,z_s,ddir_obs,
      +              hlay,transl,tranal)
-         print*,'trans',transa,transm,transl
-         print*,'pdir,omega,1-ff,hh',P_dir,omega,1.-ff,hh
                     if (dang.lt.dfov) then                                ! check if the reflecting surface enter the field of view of the observer
                       direct=direct+lamplu(x_s,y_s,stype)*
      +                transa*transm*transl*P_dir*omega*(1.-ff)*hh
