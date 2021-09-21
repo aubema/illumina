@@ -726,7 +726,6 @@ c computation of the solid angle of the line of sight voxel seen from the source
                   anglez=nint(180.*(pi-dzen)/pi)+1
                   P_dir=pvalno(anglez,stype)
 c computation of the flux direct reaching the line of sight voxel
-         print*,cos(dang),dang,pi/2.,lamplu(x_s,y_s,stype)
                   if ((cos(dang).gt.0.).and.(dang.lt.pi/2.))
      +            then
                     ddir_obs=sqrt((rx_obs-rx_s)**2.+                      ! distance direct sight between source and observer
@@ -739,8 +738,6 @@ c computation of the solid angle 1m^2 at the observer as seen from the source
      +              transa,tranaa)
                     call transmitl(dzen,z_obs,z_s,ddir_obs,
      +              hlay,transl,tranal)
-         print*,'trans',transa,transm,transl
-         print*,'pdir,omega,1-ff,hh',P_dir,omega,1.-ff,hh
                     if (dang.lt.dfov) then                                ! check if the reflecting surface enter the field of view of the observer
                       direct=direct+lamplu(x_s,y_s,stype)*
      +                transa*transm*transl*P_dir*omega*(1.-ff)*hh
@@ -1851,7 +1848,7 @@ c           print*,'End of line of sight - touching the ground'
         enddo                                                             ! end of the loop over the line of sight voxels.
         fctcld=fctcld*10**(0.4*(100.-cloudfrac)*cloudslope)               ! correction for the cloud fraction (defined from 0 to 100)
         if (prmaps.eq.1) then
-          open(unit=9,file=pclf,status='unknown')
+c          open(unit=9,file=pclf,status='unknown')
             do x_s=1,nbx
               do y_s=1,nby
                 FTC(x_s,y_s)=FTC(x_s,y_s)/ftocap                          ! Here FTC becomes the flux fraction of each pixel. The sum of FTC values over all pixels give the total flux
@@ -1861,22 +1858,22 @@ c           print*,'End of line of sight - touching the ground'
               print*,'Writing normalized contribution array'
               print*,'Warning Cloud contrib. excluded from that array.'
             endif
-            do x_s=1,nbx
-              do y_s=1,nby
-                write(9,*) x_s,y_s,FTC(x_s,y_s)                           ! emettrice au sol, c'est un % par unite of watt installes
-              enddo
-            enddo
+c            do x_s=1,nbx
+c              do y_s=1,nby
+c                write(9,*) x_s,y_s,FTC(x_s,y_s)                           ! emettrice au sol, c'est un % par unite of watt installes
+c              enddo
+c            enddo
             call twodout(nbx,nby,pclimg,FTC)
-          close(unit=9)
+c          close(unit=9)
 c creation of gnuplot file. To visualize, type gnuplot and then
 c load 'BASENAME_pcl.gplot'
-          open(unit=9,file=pclgp,status='unknown')
-            write(9,*) 'sand dgrid3d',nbx,',',nby
-            write(9,*) 'sand hidden3d'
-            write(9,*) 'sand pm3d'
-            write(9,*) 'splot "'//basenm(1:lenbase)//'_pcl.txt"
-     +      with dots'
-          close(unit=9)
+c          open(unit=9,file=pclgp,status='unknown')
+c            write(9,*) 'sand dgrid3d',nbx,',',nby
+c            write(9,*) 'sand hidden3d'
+c            write(9,*) 'sand pm3d'
+c            write(9,*) 'splot "'//basenm(1:lenbase)//'_pcl.txt"
+c     +      with dots'
+c          close(unit=9)
         endif                                                             ! end of condition for creating contrib and sensit maps
         endif                                                             ! end of scattered light
 c
