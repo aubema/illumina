@@ -293,6 +293,7 @@ def scatter(ds,fmt=".",n_layer=None,area=False,**options):
 
     _plt.plot(R,I,fmt,**options)
 
+    return R,I
 
 def from_domain(params,data=None):
     if isinstance(params,str):
