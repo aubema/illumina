@@ -1,3 +1,0 @@
-to execute type ./imies_run.py
-You will get a bunch of aerosol optical data *.mie.out
-computed cases may be changed by editing vectors in the source code imies_run.py
