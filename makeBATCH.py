@@ -150,7 +150,6 @@ def batches(input_path,compact,batch_size,batch_name=None):
 
         if not os.path.isdir(fold_name):
             os.makedirs(fold_name)
-
             # Linking files
             mie_file = "%s_%s.txt" % (
                 params['aerosol_profile'],
@@ -159,7 +158,6 @@ def batches(input_path,compact,batch_size,batch_name=None):
                 os.path.relpath(mie_file,fold_name),
                 fold_name+"aerosol.txt"
             )
-
             layer_file = "%s_%s.txt" % (
                 params['layer_type'],
                 wavelength

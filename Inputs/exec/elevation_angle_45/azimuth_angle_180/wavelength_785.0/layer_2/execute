@@ -1,0 +1,10 @@
+#!/bin/sh
+#SBATCH --job-name=Illumina
+#SBATCH --time=1:00:00
+#SBATCH --mem=2G
+cd /home/hlinares/git/illumina/Inputs/exec/elevation_angle_45/azimuth_angle_180/wavelength_785.0/layer_2
+umask 0011
+cp elevation_angle_45-azimuth_angle_180-wavelength_785.0-layer_2.in illumina.in
+./illumina
+mv Hawaii.out Hawaii_elevation_angle_45-azimuth_angle_180-wavelength_785.0-layer_2.out
+mv Hawaii_pcl.bin Hawaii_pcl_elevation_angle_45-azimuth_angle_180-wavelength_785.0-layer_2.bin

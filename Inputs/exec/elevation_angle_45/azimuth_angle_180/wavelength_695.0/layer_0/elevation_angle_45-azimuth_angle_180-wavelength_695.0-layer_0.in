@@ -1,0 +1,24 @@
+                               ! Input file for ILLUMINA
+Hawaii                         ! Root file name
+1000.0 1000.0                  ! Cell size along X [m] ; Cell size along Y [m]
+aerosol.txt                    ! Aerosol optical cross section file
+layer.txt 0.1 1.0 2000         ! Layer optical cross section file ; Layer aerosol optical depth at 500nm ; Layer angstom coefficient ; Layer scale height [m]
+1                              ! Double scattering activated
+1                              ! Single scattering activated
+695                            ! Wavelength [nm]
+0.121863                       ! Reflectance
+101.3                          ! Ground level pressure [kPa]
+0.11 0.7 2000                  ! Aerosol optical depth at 500nm ; Angstrom exponent ; Aerosol scale height [m]
+3                              ! Number of source types
+5000.0                         ! Contribution threshold
+                               ! 
+256 256 10                     ! Observer X position ; Observer Y position ; Observer elevation above ground [m]
+                               ! 
+45 180                         ! Elevation viewing angle ; Azimuthal viewing angle
+5                              ! Direct field of view
+                               ! 
+                               ! 
+                               ! 
+9.99                           ! Radius around the light source where reflextions are computed
+0 0 0                          ! Cloud model: 0=clear, 1=Thin Cirrus/Cirrostratus, 2=Thick Cirrus/Cirrostratus, 3=Altostratus/Altocumulus, 4=Cumulus/Cumulonimbus, 5=Stratocumulus ; Cloud base altitude [m] ; Cloud fraction
+                               ! 

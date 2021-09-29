@@ -1,0 +1,14 @@
+Click<8
+astropy
+fiona
+geopandas
+h5py
+matplotlib
+numpy
+osmnx
+pandas
+pillow
+progressbar2
+pyproj
+pyyaml
+scipy

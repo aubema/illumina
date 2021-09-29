@@ -1,0 +1,74 @@
+AEROSOL CHARACTERIZATION GUIDE 
+
+Illumina allows to create 2 different layers of aerosols with different properties: compositions, scale height, AOD and angstrom coefficient.
+
+The aerosol types that Illumina includes are extracted from OPAC data (Hess, Koepke and Schult 1998. See http://cds-espri.ipsl.fr/etherTypo/?id=989&fbclid=IwAR0Ome7uT9JDK3OlfgwV3Psyja4BZIxedNtojLT1-twEgc23SOEZ1bUKSac).
+
+Aerosol types:
+
+- Insoluble
+- Water soluble
+- Soot
+- Sea salt (acc.mode)
+- Sea salt (coa. mode)
+- Mineral (nuc. mode)
+- Mineral (acc. mode)
+- Mineral (coa. mode)
+- Mineral-transported
+- Sulfate droplets
+- Fog
+
+Illumina allows the user to combine any component using their Particle density (particules/cm³). Moreover, there are some typical combination that are already defined:
+
+- Continental clean (CC)
+	total         2600
+	water soluble 2600
+	insoluble     0.15
+- Continental average (CA)
+	total         15300
+	water soluble 7000
+	insoluble     0.4
+	soot          8300
+- Continental polluted (CP)
+	total	      50000
+	water soluble 15700
+	insoluble     0.6
+	soot          34300
+- Urban (U) 
+	total	      158000
+	water soluble 28000
+	insoluble     1.5
+	soot          130000
+- Desert (D)
+	total	      2300
+	water soluble 2000
+	mineral nuc   269.5   
+	mineral acc   30.5
+	mineral coa   0.142
+- Maritime clean (MC)
+	total         1520
+	water soluble 1500
+	see salt acc  20
+	see salt coa  3.2*10^(-3)
+- Maritime polluted (MP)
+	total         9000
+	water soluble 3800
+	see salt acc  20
+	see salt coa  3.2*10^(-3)
+	soot          5180
+- Maritime tropical (MT)
+	total         600
+	water soluble 590
+	see salt acc  10
+	see salt coa  1.3*10^(-3)
+- Artic (ART)
+	total	      6600
+	water soluble 1300
+	see salt acc  1.9
+	soot          5900
+- Antarctic (ANT)
+	total         43
+	sulfate       42.9
+	see salt acc  0.047
+	mineral trans 0.0053
+
