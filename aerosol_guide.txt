@@ -72,3 +72,9 @@ Illumina allows the user to combine any component using their Particle density (
 	see salt acc  0.047
 	mineral trans 0.0053
 
+The aerosol components are mixed in order to obtain the resulting Single Scatering albedo and Scatering Phase Function. The equations used are the following:
+
+(1)			SSA = SUM(N_i*scat_coef_i)/SUM(N_i*ext_coef_i)
+
+(2)			PF(angle) = SUM(N_i*PF_i(angle))
+

@@ -341,17 +341,23 @@ for i in range(1,bins+1):
                 gtotal_den = gtotal_den + pf_total[i, 1]*((math.cos(math.pi) - math.cos(pf_total[i,0]-((pf_total[i, 0]-pf_total[i-1,0])/2))))
 
         g_total=gtotal_num/gtotal_den
+        ##normalization
 
+        pf_norm = np.arange((181) * 2, dtype='float')
+        pf_norm = pf_norm.reshape((181), 2)
+        norm_factor=0
 
         f=open('./Inputs/'+combination_type+'_'+str(int(wl))+'.txt','w+')
         f.write(str(w_total)+' # single scatering albedo\n')
         f.write('ScatAngle PhaseFct\n')
         for i in range(181):
+            pf_norm[i, 0] = i * math.pi / 180
             absolute_val_array = np.abs(pf_total[:, 0]*180/math.pi - i)
             smallest_diffe_ind = absolute_val_array.argmin()
             if min(absolute_val_array)==0:
                 smallest_diffe_ind = absolute_val_array.argmin()
                 f.write(str(float(i))+' '+str(pf_total[smallest_diffe_ind,1])+'\n')
+                pf_norm[i,1]=pf_total[smallest_diffe_ind,1]
             else:
                 if pf_total[smallest_diffe_ind,0]*180/math.pi - i < 0:
                     pf=(pf_total[smallest_diffe_ind,1]*np.abs(1/(pf_total[smallest_diffe_ind,0]*180/math.pi - i))+pf_total[smallest_diffe_ind+1,1]*np.abs(1/(pf_total[smallest_diffe_ind+1,0]*180/math.pi - i)))/(np.abs(1/(pf_total[smallest_diffe_ind,0]*180/math.pi - i))+np.abs(1/(pf_total[smallest_diffe_ind+1,0]*180/math.pi - i)))
@@ -361,9 +367,27 @@ for i in range(1,bins+1):
                                      np.abs(1 / (pf_total[smallest_diffe_ind, 0] * 180 / math.pi - i)) + np.abs(
                                  1 / (pf_total[smallest_diffe_ind - 1, 0] * 180 / math.pi - i)))
                 f.write(str(float(i)) + ' ' + str(pf) + '\n')
+                pf_norm[i, 1] = pf
         #print(w_total,g_total)
         f.close()
 
+        pf_norm2 = np.arange((181) * 2, dtype='float')
+        pf_norm2 = pf_norm2.reshape((181), 2)
+        norm = 1
+        if norm == 1:
+            for i in range(181):
+                norm_factor = norm_factor+ (1 / (4 * math.pi)) * 2 * math.pi * pf_norm[i, 1] * math.sin(pf_norm[i, 0]) * math.pi / 180
+            for i in range(181):
+                pf_norm2[i, 1] = pf_norm[i, 1] / norm_factor
+                pf_norm2[i, 0] = pf_norm[i, 0]
 
+        print(pf_norm)
+        norm_factor2=0
+        g_total_norm=0
+        for i in range(181):
+            norm_factor2 =norm_factor2 + (1 / (4 * math.pi)) * 2 * math.pi * pf_norm[i, 1] * math.sin(pf_norm[i, 0]) * math.pi / 180
+            g_total_norm=g_total_norm+(0.5*math.sin(pf_norm[i,0])*pf_norm2[i,1]*math.cos(pf_norm[i,0])*math.pi/180)
+        print(norm_factor2,g_total_norm)
+        
 
             
