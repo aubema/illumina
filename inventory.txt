@@ -1,6 +1,0 @@
-# lat	lon	R	hobs	dobs	fobst   hlamp	Zone inventory		# Comment
-21.44739  -157.97117	50	7	25	0.5	7	90_HPS_5   10_MH_10	#  1. Oahu
-21.00524  -157.01226	40	7	25	0.5	7	90_HPS_5   10_MH_10	# 11. Molokai + Lanai
-20.77635  -156.15116	64	7	25	0.5	7	18_HPS_10  72_HPS_0  10_MH_10	# 14. Maui
-19.64676  -155.57143	103	7	25	0.5	7	87_LPS_10  8_HPS_10  5_MH_5	# 16. Big Island
-19.28781  -155.21787	23	7	25	0.5	7	0_LPS_0			# 17. Lava

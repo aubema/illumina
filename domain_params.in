@@ -1,9 +1,0 @@
-# defineDomain.py parameters
-latitude: 20.708
-longitude: -156.257
-srs: auto
-scale_factor: 3
-nb_pixels: 27
-nb_layers: 3
-scale_min: 1000
-buffer: 10
