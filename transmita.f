@@ -50,10 +50,10 @@ c
         z2=z_f
       endif
       if (z1.ne.z2) then    
-        transa=exp((log(tranaa)/abs(cos(angz)))*(exp(-1.*z1/haer.)-
+        transa=exp((log(tranaa)/abs(cos(angz)))*(exp(-1.*z1/haer)-
      +  exp(-1.*z2/haer.)))
       else
-        transa=exp((log(tranaa))*exp(-1.*z1/haer.)*distd)  
+        transa=exp((log(tranaa))*exp(-1.*z1/haer)*distd)  
       endif
          if (transa.eq.0.) then
             print*,'ERREUR transa - no transmission',z_i,z_f,angz
