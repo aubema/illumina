@@ -51,7 +51,7 @@ c
       endif
       if (z1.ne.z2) then    
         transa=exp((log(tranaa)/abs(cos(angz)))*(exp(-1.*z1/haer)-
-     +  exp(-1.*z2/haer.)))
+     +  exp(-1.*z2/haer)))
       else
         transa=exp((log(tranaa))*exp(-1.*z1/haer)*distd)  
       endif
