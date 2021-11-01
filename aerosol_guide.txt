@@ -76,5 +76,5 @@ The aerosol components are mixed in order to obtain the resulting Single Scateri
 
 (1)			SSA = SUM(N_i*scat_coef_i)/SUM(N_i*ext_coef_i)
 
-(2)			PF(angle) = SUM(N_i*PF_i(angle))
+(2)			PF(angle) = SUM(N_i*PF_i(angle)) (normalized)
 
