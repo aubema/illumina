@@ -116,19 +116,8 @@ def inputs():
 	lmin = params['lambda_min']
 	lmax = params['lambda_max']
 
-	bool_array = (lmin<=wav)*(wav<lmax)
-
-	limits = np.array(list(map(
-		np.min, np.array_split(
-			wav[bool_array],
-			n_bins,
-			-1 ) )) + [lmax] )
-
-	lim_file = dir_name + "integration_limits.dat"
-	with open(lim_file,'w') as f:
-		f.write("%d\n"%n_bins)
-	with open(lim_file,'ab') as f:
-		np.savetxt(f,limits[:,np.newaxis])
+	limits = np.linspace(lmin,lmax,n_bins+1)
+	bool_array = (wav >= limits[:-1,None]) & (wav < limits[1:,None])
 
 	x = np.mean([limits[1:],limits[:-1]],0)
 
@@ -160,13 +149,7 @@ def inputs():
 		in params['reflectance'].items()
 	)
 
-	reflect = [ np.mean(a) for a in \
-	    np.array_split(
-			refl[bool_array],
-			n_bins,
-			-1
-	    )
-	]
+	reflect = [ np.mean(refl[mask]) for mask in bool_array ]
 
 	with open(dir_name+"/refl.lst",'w') as zfile:
 		zfile.write('\n'.join( ["%.06g"%n for n in reflect])+'\n')
@@ -196,14 +179,14 @@ def inputs():
 	layer_type = layer_type.split('_')[0]
 
 	for i in range(len(wl2mie)):
-		name = dir_name+mie_type.strip('_')+"_%03d.txt"%x[i]
+		name = dir_name+mie_type.strip('_')+"_%g.txt"%x[i]
 		try:
 			shutil.copy2(os.path.abspath(mie_files[wl2mie[i]]),name)
 		except OSError as e:
 			if e[0] != 17:
 				raise
 
-		layer_name = dir_name+layer_type+"_%03d.txt"%x[i]
+		layer_name = dir_name+layer_type+"_%g.txt"%x[i]
 		try:
 			shutil.copy2(os.path.abspath(layer_files[wl2mie[i]]),layer_name)
 		except OSError as e:
@@ -213,7 +196,7 @@ def inputs():
 	shutil.copy("srtm.hdf5",dir_name)
 
 	with open(dir_name+"/wav.lst",'w') as zfile:
-		zfile.write('\n'.join( ["%03d"%n for n in x])+'\n')
+		zfile.write('\n'.join(map(str,x)) + '\n')
 
 	if params['zones_inventory'] is not None:
 		dir_name = ".Inputs_zones/"
