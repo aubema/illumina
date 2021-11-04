@@ -21,12 +21,15 @@ c    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 c
 c    Contact: martin.aube@cegepsherbrooke.qc.ca
 
-      subroutine transtoa(lambm,taua,layaod,pressi,tranam,tranaa,tranal)
-      real m,lambm,taua,pressi,tranam,tranaa,tranal,layaod
+      subroutine transtoa(lambm,bandw,taua,layaod,pressi,tranam,tranaa
+     +,tranal)
+      real m,lambm,taua,pressi,tranam,tranaa,tranal,layaod,tabs,bandw
       m=(pressi/101.3)
 c  transmittance tiree de Kneizys et al. (1980)   
       tranam=exp(-1.*m/(((lambm/1000.)**4.)*(115.6406-(1.335/((lambm/
      +1000.)**2.)))))
+      call molabs(lambm,bandw,tabs)
+      tranam=tranam*tabs
       tranaa=exp(-1.*taua)
       tranal=exp(-1.*layaod)
       return

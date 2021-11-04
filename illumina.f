@@ -252,7 +252,8 @@ c                                                                         ! a li
       real fdifl(181)                                                     ! scattering phase function of the particle layer
       real tranal                                                         ! top of atmos transmission of the particle layer
       real haer                                                           ! exponential vertical scale height of the background aerosol layer
-      real distc,hcur                                                     ! distance to any cell and curvature correction for the earth curvature
+      real distc,hcur                                                     ! distance to any cell and curvature  correction for the earth curvature
+      real bandw                                                          ! bandwidth of the spectral bin
       verbose=1                                                           ! Very little printout=0, Many printout = 1, even more=2
       diamobj=1.                                                          ! A dummy value for the diameter of the objective of the instrument used by the observer.
       volu=0.
@@ -277,7 +278,7 @@ c reading of the fichier d'entree (illumina.in)
         read(1,*) layfile, layaod, layalp, hlay
         read(1,*) ssswit
         read(1,*) fsswit
-        read(1,*) lambda
+        read(1,*) lambda,bandw
         read(1,*) srefl
         read(1,*) pressi
         read(1,*) taua,alpha,haer
@@ -460,7 +461,8 @@ c determine the 2nd scattering zone
           endif
         endif
 c determination of the vertical atmospheric transmittance
-        call transtoa(lambda,taua,layaod,pressi,tranam,tranaa,tranal)     ! tranam and tranaa are the top of atmosphere transmittance (molecules and aerosols)
+        call transtoa(lambda,bandw,taua,layaod,pressi,tranam,tranaa,      ! tranam and tranaa are the top of atmosphere transmittance (molecules and aerosols)
+     +tranal)
 
 c reading of the environment variables
 c reading of the elevation file
