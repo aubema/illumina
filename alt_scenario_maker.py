@@ -108,8 +108,9 @@ def alternate(name,zones,lights):
 
     limits = np.linspace(lmin,lmax,n_bins+1)
     bool_array = (wav >= limits[:-1,None]) & (wav < limits[1:,None])
+    dl = (lmax-lmin)/n_bins
 
-    x = np.mean([limits[1:],limits[:-1]],0)
+    x = np.mean([limits[1:],limits[:-1]],0).tolist()
 
     ppath = os.environ['PATH'].split(os.pathsep)
     illumpath = [s for s in ppath if "illumina" in s and "bin" not in s][0]
@@ -202,14 +203,14 @@ def alternate(name,zones,lights):
             ds = MSD.Open(fname)
             wl = int(fname.split('_')[1])
             for i, dat in enumerate(ds):
-                oldlumlp[i] += dat * nspct[x.index(wl)] * dl[x.index(wl)]
+                oldlumlp[i] += dat * nspct[x.index(wl)] * dl
 
         newlumlp = MSD.from_domain("domain.ini")
         for fname in glob(os.path.join(dir_name,"*lumlp*")):
             ds = MSD.Open(fname)
             wl = int(fname.split('_')[2])
             for i, dat in enumerate(ds):
-                newlumlp[i] += dat * nspct[x.index(wl)] * dl[x.index(wl)]
+                newlumlp[i] += dat * nspct[x.index(wl)] * dl
 
         ratio = MSD.from_domain("domain.ini")
         for i in range(len(ratio)):

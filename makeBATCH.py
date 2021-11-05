@@ -171,6 +171,11 @@ def batches(input_path,compact,batch_size,batch_name=None):
                 fold_name+"layer.txt"
             )
 
+            os.symlink(
+                os.path.relpath("MolecularAbs.txt",fold_name),
+                fold_name+"MolecularAbs.txt"
+            )
+
             for l,lamp in enumerate(lamps,1):
                 os.symlink(
                     os.path.relpath("fctem_wl_%s_lamp_%s.dat" % (wavelength,lamp),fold_name),

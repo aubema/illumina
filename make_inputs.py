@@ -160,6 +160,11 @@ def inputs():
 	illumpath = [s for s in ppath if "illumina" in s and "bin" not in s][0]
 	mie_path = illumpath + "/Aerosol_optics/"
 
+	shutil.copy2(
+		os.path.abspath(illumpath+"/Molecular_optics/MolecularAbs.txt"),
+		dir_name
+	)
+
 	mie_type = params['aerosol_profile']
 	RH = params['relative_humidity']
 	if "RH" in glob(mie_path+mie_type+"*.txt")[0]:
