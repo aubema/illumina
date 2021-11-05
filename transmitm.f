@@ -50,8 +50,9 @@ c
         transm=exp((log(tranam*tabs)/abs(cos(angz)))*(exp(-1.*z1/8000.)-
      +  exp(-1.*z2/8000.)))
       else
-        transm=exp((log(tranam*tabs))*exp(-1.*z1/8000.)*distd)  
+        transm=exp((log(tranam*tabs))*exp(-1.*z1/8000.)*distd/8000.)  
       endif
+      if (distd.eq.0.) transm=1.
       if ((transm.lt.0.).or.(transm.gt.1.)) then
         print*,'ERREUR avec transm',transm,tranam,
      +  z_f,z_i,distd,angz
