@@ -7,6 +7,7 @@ c
       tabs=0.
       wlabs=0.
       wla=0.
+      bwabs=0.
       open(unit=1,file='MolecularAbs.txt',status='old')
         read(1,*) 
         do while (wla.lt.wmax) 
