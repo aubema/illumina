@@ -13,7 +13,7 @@ c
         do while (wla.lt.wmax) 
            read(1,*) wla,ta,bwa
            if (wla.gt.wmin) then
-              tabs=tabs+tabs*bwa
+              tabs=tabs+ta*bwa
               bwabs=bwabs+bwa
            endif
         enddo
