@@ -252,7 +252,7 @@ c                                                                         ! a li
       real fdifl(181)                                                     ! scattering phase function of the particle layer
       real tranal                                                         ! top of atmos transmission of the particle layer
       real haer                                                           ! exponential vertical scale height of the background aerosol layer
-      real distc,hcur                                                     ! distance to any cell and curvature  correction for the earth curvature
+      real distc,hcur,hcurmin                                             ! distance to any cell and curvature  correction for the earth curvature
       real bandw                                                          ! bandwidth of the spectral bin
       verbose=1                                                           ! Very little printout=0, Many printout = 1, even more=2
       diamobj=1.                                                          ! A dummy value for the diameter of the objective of the instrument used by the observer.
