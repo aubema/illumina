@@ -254,6 +254,7 @@ c                                                                         ! a li
       real haer                                                           ! exponential vertical scale height of the background aerosol layer
       real distc,hcur,hcurmin                                             ! distance to any cell and curvature  correction for the earth curvature
       real bandw                                                          ! bandwidth of the spectral bin
+      real tabs                                                           ! TOA transmittance related to molecule absorption
       verbose=1                                                           ! Very little printout=0, Many printout = 1, even more=2
       diamobj=1.                                                          ! A dummy value for the diameter of the objective of the instrument used by the observer.
       volu=0.
@@ -462,7 +463,7 @@ c determine the 2nd scattering zone
         endif
 c determination of the vertical atmospheric transmittance
         call transtoa(lambda,bandw,taua,layaod,pressi,tranam,tranaa,      ! tranam and tranaa are the top of atmosphere transmittance (molecules and aerosols)
-     +tranal)
+     +tranal,tabs)
 
 c reading of the environment variables
 c reading of the elevation file
@@ -752,7 +753,7 @@ c computation of the flux direct reaching the line of sight voxel
 c computation of the solid angle 1m^2 at the observer as seen from the source
                     omega=1.*abs(cos(dang))/ddir_obs**2.
                     call transmitm(dzen,z_obs,z_s,ddir_obs,
-     +              transm,tranam)
+     +              transm,tranam,tabs)
                     call transmita(dzen,z_obs,z_s,ddir_obs,
      +              haer,transa,tranaa)
                     call transmitl(dzen,z_obs,z_s,ddir_obs,
@@ -811,7 +812,7 @@ c computation of the transmittance between the source and the ground surface
      +                      +(ry_s-ry_sr)**2.+
      +                      (z_s-z_sr)**2.)
                             call transmitm(angzen,z_s,
-     +                      z_sr,distd,transm,tranam)
+     +                      z_sr,distd,transm,tranam,tabs)
                             call transmita(angzen,z_s,
      +                      z_sr,distd,haer,transa,tranaa)
                             call transmitl(angzen,z_s,z_sr,distd,
@@ -958,7 +959,7 @@ c computation of the flux direct reaching the line of sight voxel
 c computation of the solid angle of the line of sight voxel seen from the source
                                 omega=1.*abs(cos(dang))/ddir_obs**2.
                                 call transmitm(dzen,z_obs,z_sr,ddir_obs,
-     +                          transm,tranam)
+     +                          transm,tranam,tabs)
                                 call transmita(dzen,z_obs,z_sr,ddir_obs,
      +                          haer,transa,tranaa)
                                 call transmitl(dzen,z_obs,z_sr,ddir_obs,
@@ -1161,7 +1162,7 @@ c sub-grid obstacles
                               endif
 c computation of the transmittance between the source and the line of sight
                               call transmitm(angzen,z_s,z_c,distd,
-     +                        transm,tranam)
+     +                        transm,tranam,tabs)
                               call transmita(angzen,z_s,z_c,distd,
      +                        haer,transa,tranaa)
                               call transmitl(angzen,z_s,z_c,distd,
@@ -1260,7 +1261,7 @@ c computation of the transmittance between the source and the ground surface
      +                                  +(ry_s-ry_sr)**2.+
      +                                  (z_s-z_sr)**2.)
                                         call transmitm(angzen,z_s,
-     +                                  z_sr,distd,transm,tranam)
+     +                                  z_sr,distd,transm,tranam,tabs)
                                         call transmita(angzen,z_s,
      +                                  z_sr,distd,haer,transa,tranaa)
                                         call transmitl(angzen,z_s,z_sr,
@@ -1414,7 +1415,7 @@ c sub-grid obstacles
 c computation of the transmittance between the reflection surface and the scattering voxel
             distd=sqrt((rx_dif-rx_sr)**2.+(ry_dif-ry_sr)**2.+
      +      (z_dif-z_sr)**2.)
-            call transmitm(angzen,z_sr,z_dif,distd,transm,tranam)
+            call transmitm(angzen,z_sr,z_dif,distd,transm,tranam,tabs)
             call transmita(angzen,z_sr,z_dif,distd,haer,transa,tranaa)
             call transmitl(angzen,z_sr,z_dif,
      +      distd,hlay,transl,tranal)
@@ -1464,7 +1465,7 @@ c subgrid obstacles
 c computing transmittance between the scattering voxel and the line of sight voxel
             distd=sqrt((rx_dif-rx_c)**2.+(ry_dif-ry_c)**2.+
      +      (z_dif-z_c)**2.)
-            call transmitm(angzen,z_dif,z_c,distd,transm,tranam)
+            call transmitm(angzen,z_dif,z_c,distd,transm,tranam,tabs)
             call transmita(angzen,z_dif,z_c,distd,haer,transa,tranaa)
             call transmitl(angzen,z_dif,z_c,
      +      distd,hlay,transl,tranal)
@@ -1530,7 +1531,7 @@ c computation of the transmittance between the source and the scattering voxel
      +        +(ry_s-ry_dif)**2.
      +        +(z_s-z_dif)**2.)
               call transmitm(angzen,z_s,z_dif,
-     +        distd,transm,tranam)
+     +        distd,transm,tranam,tabs)
               call transmita(angzen,z_s,z_dif,
      +        distd,haer,transa,tranaa)
               call transmitl(angzen,z_s,z_dif,
@@ -1590,7 +1591,7 @@ c Computing transmittance between the scattering voxel and the line of sight vox
      +        +(ry_c-ry_dif)**2.
      +        +(z_c-z_dif)**2.)
               call transmitm(angzen,z_dif,z_c,
-     +        distd,transm,tranam)
+     +        distd,transm,tranam,tabs)
               call transmita(angzen,z_dif,z_c,
      +        distd,haer,transa,tranaa)
               call transmitl(angzen,z_dif,z_c,
@@ -1694,7 +1695,7 @@ c obstacle
                                          endif
 c computation of the transmittance between the ground surface and the line of sight voxel
                                           call transmitm(angzen,z_sr,
-     +                                    z_c,distd,transm,tranam)
+     +                                    z_c,distd,transm,tranam,tabs)
                                           call transmita(angzen,z_sr,
      +                                    z_c,distd,haer,transa,tranaa)
                                           call transmitl(angzen,z_sr,
@@ -1816,7 +1817,8 @@ c computation of the transmittance between the line of sight voxel and the obser
                                     distd=sqrt((rx_c-rx_obs)**2.
      +                              +(ry_c-ry_obs)**2.
      +                              +(z_c-z_obs)**2.)
-                call transmitm(angzen,z_c,z_obs,distd,transm,tranam)
+                call transmitm(angzen,z_c,z_obs,distd,transm,tranam,
+     +          tabs)
                 call transmita(angzen,z_c,z_obs,distd,haer,transa,
      +          tranaa)
                 call transmitl(angzen,z_c,z_obs,
