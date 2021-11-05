@@ -680,9 +680,9 @@ c flux arrays (lumlp)
 c =================================
 c Calculation of the direct radiances
 c
+        if (verbose.ge.1) print*,' Calculating obtrusive light...'
         do stype=1,ntype                                                  ! beginning of the loop over the source types.
           if (totlu(stype).ne.0.) then                                    ! check if there are any flux in that source type otherwise skip this lamp
-            if (verbose.ge.1) print*,' Calculating obtrusive light...'
             if (verbose.ge.1) print*,' Turning on lamps',stype
             if (verbose.ge.1) write(2,*) ' Turning on lamps',
      +      stype
