@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+echo $(cat version): $(cat $1) > $1
