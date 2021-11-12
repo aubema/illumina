@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='illum',
-    version='2.1.21w45.5c-dev',
+    version='2.1.21w45.5d-dev',
     py_modules=[
         'main',
         'alt_scenario_maker',
@@ -34,7 +34,8 @@ setup(
         'pandas',
         'geopandas',
         'fiona',
-        'osmnx'
+        'osmnx',
+        'GitPython'
     ],
     entry_points='''
         [console_scripts]
