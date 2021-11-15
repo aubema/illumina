@@ -3,6 +3,7 @@
 # Preprocessing for Illumina
 #
 # Author : Alexandre Simoneau
+# modified by Hector Linares for AOD definition
 #
 # March 2021
 
@@ -12,6 +13,8 @@ import shutil, re, os, yaml
 from glob import glob
 import pytools as pt
 import MultiScaleData as MSD
+import sys
+
 
 from collections import defaultdict as ddict
 from make_zones import make_zones
@@ -179,36 +182,9 @@ def inputs():
 
 	mie_type = params['aerosol_profile']
 	RH = params['relative_humidity']
-	if "RH" in glob(mie_path+mie_type+"*.txt")[0]:
-		mie_type += "_RH%02d" % RH
 
-	mie_files = glob(mie_path+mie_type+"*.txt")
-	mie_files = { int(s.split('_')[-1][:-4]):s for s in mie_files }
-	mie_wl = np.asarray(sorted(mie_files.keys()))
-	wl2mie = np.asarray([min(mie_wl, key=lambda i: abs(i-j)) for j in x])
-	mie_type = mie_type.split('_')[0]
 
-	layer_type = params['layer_type']
-	if "RH" in glob(mie_path+layer_type+"*.txt")[0]:
-		layer_type += "_RH%02d" % RH
-	layer_files = glob(mie_path+layer_type+"*.txt")
-	layer_files = { int(s.split('_')[-1][:-4]):s for s in layer_files }
-	layer_type = layer_type.split('_')[0]
-
-	for i in range(len(wl2mie)):
-		name = dir_name+mie_type.strip('_')+"_%03d.txt"%x[i]
-		try:
-			shutil.copy2(os.path.abspath(mie_files[wl2mie[i]]),name)
-		except OSError as e:
-			if e[0] != 17:
-				raise
-
-		layer_name = dir_name+layer_type+"_%03d.txt"%x[i]
-		try:
-			shutil.copy2(os.path.abspath(layer_files[wl2mie[i]]),layer_name)
-		except OSError as e:
-			if e[0] != 17:
-				raise
+	import create_aerosol_file_integrated
 
 	shutil.copy("srtm.hdf5",dir_name)
 
