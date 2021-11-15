@@ -2,10 +2,11 @@
 
 import click
 from importlib import import_module
+import illum
 
 
 @click.group()
-@click.version_option("2.1.21w46.1b-dev", prog_name="Illumina model")
+@click.version_option(illum.__version__, prog_name="Illumina model")
 def illum():
     r"""Illumina model.
 
