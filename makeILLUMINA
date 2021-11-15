@@ -20,15 +20,22 @@
 #
 #    Contact: martin.aube@cegepsherbrooke.qc.ca
 #
-if [ ! -d bin ] 
+if [ ! -d bin ]
 then mkdir bin
 fi
+
+firstLine=`head -1 illum/__init__.py`
+version=${$firstLine:15:-1}
+
 F77="gfortran"
 folder=`pwd`
 chmod a+x make*
-# options de debuggage -Wall -fcheck=all -g -fbacktrace -ffpe-trap=zero 
+
+# options de debuggage -Wall -fcheck=all -g -fbacktrace -ffpe-trap=zero
 echo $F77" -Wunused-parameter -mcmodel=medium -O3 illumina.f zone_diffusion.f diffusion.f angle3points.f anglesolide.f transmita.f transmitm.f transmitl.f anglezenithal.f angleazimutal.f horizon.f cloudreflectance.f  twodin.f twodout.f transTOA.f curvature.f molabs.f -o bin/illumina"
+sed -i "s/__version__/$version/" illumina.f
 $F77 -Wunused-parameter -mcmodel=medium -O3 illumina.f zone_diffusion.f diffusion.f angle3points.f anglesolide.f transmita.f transmitm.f transmitl.f anglezenithal.f angleazimutal.f horizon.f cloudreflectance.f  twodin.f twodout.f transTOA.f curvature.f molabs.f -o bin/illumina
+sed -i "s/$version/__version__/" illumina.f
 echo $F77" ies2fctem.f -o bin/ies2fctem.exe"
 $F77 ies2fctem.f -o bin/ies2fctem.exe
 echo $F77" continue_illumina.f -o bin/continue_illumina"
@@ -43,14 +50,6 @@ echo $F77" blur.f twodin.f twodout.f -o bin/blur"
 $F77 blur.f twodin.f twodout.f -o bin/blur
 echo $F77" rad2lrad.f -o bin/rad2lrad"
 $F77 rad2lrad.f -o bin/rad2lrad
-# cd rand_map
-# echo "gcc -lm rand_pre.c -o ../bin/rand_pre"
-# gcc rand_pre.c -o ../bin/rand_pre -lm  
-# echo "gcc -lm rand_post.c -o ../bin/rand_post"
-# gcc rand_post.c -o ../bin/rand_post -lm  
-# echo "gcc -lm comp_reduc.c -o ../bin/comp_reduc"
-# gcc comp_reduc.c -o ../bin/comp_reduc -lm
-# cd ..
 echo $F77" readvalue.f twodin.f -o bin/readvalue"
 $F77 readvalue.f twodin.f -o bin/readvalue
 echo $F77" utils/mietool/MakeMieIn.f -o bin/MakeMieIn"
@@ -73,9 +72,5 @@ echo $F77" writevalueinpgm.f extrants2d.f -o bin/writevalue16bit"
 $F77 writevalue.f extrants2d.f -o bin/writevalue16bit
 echo $F77" intrusive.f twodin.f twodout.f -o bin/intrusive"
 $F77 intrusive.f twodin.f twodout.f -o bin/intrusive
-echo $F77" pgm16bittobin.f intrants2d.f twodout.f -o bin/pgm16bittobin"
-$F77 pgm16bittobin.f intrants2d.f twodout.f -o bin/pgm16bittobin
-echo $F77" bintopgm16bit.f twodin.f extrants2d.f -o bin/bintopgm16bit"
-$F77 bintopgm16bit.f twodin.f extrants2d.f -o bin/bintopgm16bit
 chmod a+x bin/*
 chmod a+x *.bash

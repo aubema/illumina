@@ -4,7 +4,7 @@ import illum
 setup(
     name='illum',
     version=illum.__version__,
-    package=["illum"]
+    packages=["illum"],
     install_requires=[
         'Click<8',
         'progressbar2',

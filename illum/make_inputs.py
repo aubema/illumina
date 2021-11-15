@@ -14,14 +14,14 @@ import re
 import os
 import yaml
 from glob import glob
-import pytools as pt
-import MultiScaleData as MSD
+from illum import pytools as pt
+from illum import MultiScaleData as MSD
 import sys
 
 
 from collections import defaultdict as ddict
-from make_zones import make_zones
-from make_lamps import make_lamps
+from illum.make_zones import make_zones
+from illum.make_lamps import make_lamps
 
 
 @click.command()
