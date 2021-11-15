@@ -252,6 +252,7 @@ c                                                                         ! a li
       real fdifl(181)                                                     ! scattering phase function of the particle layer
       real tranal                                                         ! top of atmos transmission of the particle layer
       real haer                                                           ! exponential vertical scale height of the background aerosol layer
+      real distc,hcur                                                     ! distance to any cell and curvature correction for the earth curvature
       verbose=1                                                           ! Very little printout=0, Many printout = 1, even more=2
       diamobj=1.                                                          ! A dummy value for the diameter of the objective of the instrument used by the observer.
       volu=0.
@@ -357,7 +358,7 @@ c  determine the Length of basenm
       pclgp=basenm(1:lenbase)//'_pcl.gplot'
 c opening output file
       open(unit=2,file=outfile,status='unknown')
-        write(2,*) "ILLUMINA version 2.1.21w39.4a-dev-aod"
+        write(2,*) "ILLUMINA version 2.1.21w46.1a-dev-aod"
         write(2,*) 'FILE USED:'
         write(2,*) mnaf,diffil
         print*,'Wavelength (nm):',lambda,
@@ -483,6 +484,14 @@ c computation of the tilt of the pixels along x and along y
               incliy(i,j)=atan((altsol(i,j+1)-altsol(i,j-1))/(2.          ! computation of the tilt along y of the surface
      1        *real(dy)))
             endif
+          enddo                                                           ! end of the loop over the rows (latitu) of the domain
+        enddo                                                             ! end of the loop over the column (longitude) of the domain
+c correct altsol for earth curvature (first order correction)
+        do i=1,nbx                                                        ! beginning of the loop over the column (longitude) of the domain.
+          do j=1,nby                                                      ! beginning of the loop over the rows (latitu) of the domain.
+             distc=sqrt((dx*real(i-x_obs))**2.+(dy*real(j-y_obs))**2.)
+             call curvature(distc,hcur)
+             altsol(i,j)=altsol(i,j)+hcur
           enddo                                                           ! end of the loop over the rows (latitu) of the domain
         enddo                                                             ! end of the loop over the column (longitude) of the domain
 c reading of the values of P(theta), height, luminosities and positions
@@ -735,7 +744,7 @@ c computation of the solid angle 1m^2 at the observer as seen from the source
                     call transmitm(dzen,z_obs,z_s,ddir_obs,
      +              transm,tranam)
                     call transmita(dzen,z_obs,z_s,ddir_obs,
-     +              transa,tranaa)
+     +              haer,transa,tranaa)
                     call transmitl(dzen,z_obs,z_s,ddir_obs,
      +              hlay,transl,tranal)
                     if (dang.lt.dfov) then                                ! check if the reflecting surface enter the field of view of the observer
@@ -794,7 +803,7 @@ c computation of the transmittance between the source and the ground surface
                             call transmitm(angzen,z_s,
      +                      z_sr,distd,transm,tranam)
                             call transmita(angzen,z_s,
-     +                      z_sr,distd,transa,tranaa)
+     +                      z_sr,distd,haer,transa,tranaa)
                             call transmitl(angzen,z_s,z_sr,distd,
      +                      hlay,transl,tranal)
 c computation of the solid angle of the reflecting cell seen from the source
@@ -941,7 +950,7 @@ c computation of the solid angle of the line of sight voxel seen from the source
                                 call transmitm(dzen,z_obs,z_sr,ddir_obs,
      +                          transm,tranam)
                                 call transmita(dzen,z_obs,z_sr,ddir_obs,
-     +                          transa,tranaa)
+     +                          haer,transa,tranaa)
                                 call transmitl(dzen,z_obs,z_sr,ddir_obs,
      +                          hlay,transl,tranal)
                                 if (dang.lt.dfov) then                    ! check if the reflecting surface enter the field of view of the observer
@@ -1144,7 +1153,7 @@ c computation of the transmittance between the source and the line of sight
                               call transmitm(angzen,z_s,z_c,distd,
      +                        transm,tranam)
                               call transmita(angzen,z_s,z_c,distd,
-     +                        transa,tranaa)
+     +                        haer,transa,tranaa)
                               call transmitl(angzen,z_s,z_c,distd,
      +                        hlay,transl,tranal)
 c computation of the solid angle of the line of sight voxel seen from the source
@@ -1243,7 +1252,7 @@ c computation of the transmittance between the source and the ground surface
                                         call transmitm(angzen,z_s,
      +                                  z_sr,distd,transm,tranam)
                                         call transmita(angzen,z_s,
-     +                                  z_sr,distd,transa,tranaa)
+     +                                  z_sr,distd,haer,transa,tranaa)
                                         call transmitl(angzen,z_s,z_sr,
      +                                  distd,hlay,transl,tranal)
 c computation of the solid angle of the reflecting cell seen from the source
@@ -1396,7 +1405,7 @@ c computation of the transmittance between the reflection surface and the scatte
             distd=sqrt((rx_dif-rx_sr)**2.+(ry_dif-ry_sr)**2.+
      +      (z_dif-z_sr)**2.)
             call transmitm(angzen,z_sr,z_dif,distd,transm,tranam)
-            call transmita(angzen,z_sr,z_dif,distd,transa,tranaa)
+            call transmita(angzen,z_sr,z_dif,distd,haer,transa,tranaa)
             call transmitl(angzen,z_sr,z_dif,
      +      distd,hlay,transl,tranal)
 c computation of the solid angle of the scattering voxel seen from the reflecting surface
@@ -1446,7 +1455,7 @@ c computing transmittance between the scattering voxel and the line of sight vox
             distd=sqrt((rx_dif-rx_c)**2.+(ry_dif-ry_c)**2.+
      +      (z_dif-z_c)**2.)
             call transmitm(angzen,z_dif,z_c,distd,transm,tranam)
-            call transmita(angzen,z_dif,z_c,distd,transa,tranaa)
+            call transmita(angzen,z_dif,z_c,distd,haer,transa,tranaa)
             call transmitl(angzen,z_dif,z_c,
      +      distd,hlay,transl,tranal)
 c computing the solid angle of the line of sight voxel as seen from the scattering voxel
@@ -1513,7 +1522,7 @@ c computation of the transmittance between the source and the scattering voxel
               call transmitm(angzen,z_s,z_dif,
      +        distd,transm,tranam)
               call transmita(angzen,z_s,z_dif,
-     +        distd,transa,tranaa)
+     +        distd,haer,transa,tranaa)
               call transmitl(angzen,z_s,z_dif,
      +        distd,hlay,transl,tranal)
 c computation of the Solid angle of the scattering unit voxel seen from the source
@@ -1573,7 +1582,7 @@ c Computing transmittance between the scattering voxel and the line of sight vox
               call transmitm(angzen,z_dif,z_c,
      +        distd,transm,tranam)
               call transmita(angzen,z_dif,z_c,
-     +        distd,transa,tranaa)
+     +        distd,haer,transa,tranaa)
               call transmitl(angzen,z_dif,z_c,
      +        distd,hlay,transl,tranal)
 c computing the solid angle of the line of sight voxel as seen from the scattering voxel
@@ -1677,7 +1686,7 @@ c computation of the transmittance between the ground surface and the line of si
                                           call transmitm(angzen,z_sr,
      +                                    z_c,distd,transm,tranam)
                                           call transmita(angzen,z_sr,
-     +                                    z_c,distd,transa,tranaa)
+     +                                    z_c,distd,haer,transa,tranaa)
                                           call transmitl(angzen,z_sr,
      +                                    z_c,distd,hlay,transl,tranal)
 c computation of the solid angle of the line of sight voxel seen from the reflecting cell
@@ -1798,7 +1807,8 @@ c computation of the transmittance between the line of sight voxel and the obser
      +                              +(ry_c-ry_obs)**2.
      +                              +(z_c-z_obs)**2.)
                 call transmitm(angzen,z_c,z_obs,distd,transm,tranam)
-                call transmita(angzen,z_c,z_obs,distd,transa,tranaa)
+                call transmita(angzen,z_c,z_obs,distd,haer,transa,
+     +          tranaa)
                 call transmitl(angzen,z_c,z_obs,
      +          distd,hlay,transl,tranal)
 c computation of the flux reaching the objective of the telescope from the line of sight voxel
