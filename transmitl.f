@@ -51,7 +51,7 @@ c
         transl=exp((log(tranal)/abs(cos(angz)))*(exp(-1.*z1/hlay)-
      +  exp(-1.*z2/hlay)))
       else
-        transl=exp((log(tranal))*exp(-1.*z1/hlay)*distd)  
+        transl=exp((log(tranal))*exp(-1.*z1/hlay)*distd/hlay)  
       endif
          if (transl.eq.0.) then
             print*,'ERREUR transl - no transmission',z_i,z_f,angz

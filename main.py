@@ -5,7 +5,7 @@ from importlib import import_module
 
 
 @click.group()
-@click.version_option("2.1.21w46.1a-dev-aod", prog_name="Illumina model")
+@click.version_option("2.1.21w46.1b-dev", prog_name="Illumina model")
 def illum():
     r"""Illumina model.
 
