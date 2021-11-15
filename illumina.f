@@ -360,7 +360,7 @@ c  determine the Length of basenm
       pclgp=basenm(1:lenbase)//'_pcl.gplot'
 c opening output file
       open(unit=2,file=outfile,status='unknown')
-        write(2,*) "ILLUMINA version 2.1.21w44.5a-MolAbs"
+        write(2,*) "ILLUMINA version 2.1.21w46.1a-MolAbs"
         write(2,*) 'FILE USED:'
         write(2,*) mnaf,diffil
         print*,'Wavelength (nm):',lambda,
@@ -503,8 +503,8 @@ c correct altsol for earth curvature (first order correction)
           do j=1,nby                                                      ! beginning of the loop over the rows (latitu) of the domain.
              altsol(i,j)=altsol(i,j)-hcurmin
           enddo                                                           ! end of the loop over the rows (latitu) of the domain
-        enddo         
-        
+        enddo
+
 c reading of the values of P(theta), height, luminosities and positions
 c of the sources, obstacle height and distance
         ohfile=basenm(1:lenbase)//'_obsth.bin'
