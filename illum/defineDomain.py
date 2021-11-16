@@ -1,29 +1,32 @@
 #!/usr/bin/env python3
 
+import math
+
 import click
+import numpy as np
 import pyproj
 import yaml
-import math
-import numpy as np
 
 
-def eng_format(x, unit=''):
+def eng_format(x, unit=""):
     # Credit: 200_success on StackOverflow
     # https://codereview.stackexchange.com/a/50971
     #
     # U+03BC is Greek lowercase mu
-    UNITS = [' ', ' k', ' M', ' G'] + \
-        ([None] * 10) + \
-        [' f', ' p', ' n', ' \u03bc', ' m']
+    UNITS = (
+        [" ", " k", " M", " G"]
+        + ([None] * 10)
+        + [" f", " p", " n", " \u03bc", " m"]
+    )
 
     power_of_1000 = int(math.floor(math.log10(x) // 3))
     exponent = 3 * power_of_1000
     prefix = UNITS[power_of_1000]
     if prefix is None:
-        prefix = '*10^%d ' % exponent
+        prefix = "*10^%d " % exponent
 
-    significand = x * 10**(-exponent)
-    return '%.2f%s%s' % (significand, prefix, unit)
+    significand = x * 10 ** (-exponent)
+    return "%.2f%s%s" % (significand, prefix, unit)
 
 
 def round_odd(n):
@@ -53,28 +56,38 @@ def domain():
         obs_lat = [obs_lat]
         obs_lon = [obs_lon]
 
-    center_lat = (max(obs_lat) + min(obs_lat)) / 2.
-    center_lon = (max(obs_lon) + min(obs_lon)) / 2.
+    center_lat = (max(obs_lat) + min(obs_lat)) / 2.0
+    center_lon = (max(obs_lon) + min(obs_lon)) / 2.0
 
     # Define projection
     if domain["srs"] == "auto":
-        default_srs = \
-            "epsg:32" + \
-            ("6" if center_lat >= 0 else "7") + \
-            "%02d" % (center_lon/6+31)  # WGS84/UTM
+        default_srs = (
+            "epsg:32"
+            + ("6" if center_lat >= 0 else "7")
+            + "%02d" % (center_lon / 6 + 31)
+        )  # WGS84/UTM
         domain["srs"] = default_srs
 
     wgs84 = pyproj.Proj("epsg:4326")
-    proj = pyproj.Proj(domain['srs'])
+    proj = pyproj.Proj(domain["srs"])
 
-    x0, y0 = pyproj.transform(wgs84, proj, center_lon, center_lat, always_xy=True)
+    x0, y0 = pyproj.transform(
+        wgs84, proj, center_lon, center_lat, always_xy=True
+    )
 
-    obs_x, obs_y = list(zip(*(pyproj.transform(wgs84, proj, lon, lat, always_xy=True)
-                              for lat, lon in zip(obs_lat, obs_lon))))
+    obs_x, obs_y = list(
+        zip(
+            *(
+                pyproj.transform(wgs84, proj, lon, lat, always_xy=True)
+                for lat, lon in zip(obs_lat, obs_lon)
+            )
+        )
+    )
 
-    domain['observers'] = \
-        [{'latitude': lat, 'longitude': lon, 'x': x, 'y': y}
-         for lat, lon, x, y in zip(obs_lat, obs_lon, obs_x, obs_y)]
+    domain["observers"] = [
+        {"latitude": lat, "longitude": lon, "x": x, "y": y}
+        for lat, lon, x, y in zip(obs_lat, obs_lon, obs_x, obs_y)
+    ]
 
     obs_x = np.array(obs_x)
     obs_y = np.array(obs_y)
@@ -82,28 +95,28 @@ def domain():
     obs_size_x = 2 * np.max(np.abs(obs_x - x0))
     obs_size_y = 2 * np.max(np.abs(obs_y - y0))
 
-    R = int(domain['nb_pixels']/2)
-    r = int((domain['nb_pixels'] / float(domain.pop('scale_factor'))) / 2)
-    scale = (R+0.5) / (r+0.5)
+    R = int(domain["nb_pixels"] / 2)
+    r = int((domain["nb_pixels"] / float(domain.pop("scale_factor"))) / 2)
+    scale = (R + 0.5) / (r + 0.5)
 
-    domain['nb_pixels'] = R
-    domain['nb_core'] = r
+    domain["nb_pixels"] = R
+    domain["nb_core"] = r
     domain["extents"] = list()
 
     for i in range(domain["nb_layers"]):
-        psize = domain["scale_min"] * scale**i
-        buff = min(255-R, domain['buffer']*1e3 // psize)
+        psize = domain["scale_min"] * scale ** i
+        buff = min(255 - R, domain["buffer"] * 1e3 // psize)
 
         print("Layer", i)
-        print("Pixel size:", eng_format(psize, 'm'))
-        print("Domain size:", eng_format(psize*(2*R+1), 'm'))
+        print("Pixel size:", eng_format(psize, "m"))
+        print("Domain size:", eng_format(psize * (2 * R + 1), "m"))
         print("")
 
-        n_obs_x = max(1., math.ceil(obs_size_x / psize))
-        n_obs_y = max(1., math.ceil(obs_size_y / psize))
+        n_obs_x = max(1.0, math.ceil(obs_size_x / psize))
+        n_obs_y = max(1.0, math.ceil(obs_size_y / psize))
 
-        layer_half_size_x = psize * (buff + R + n_obs_x/2.)
-        layer_half_size_y = psize * (buff + R + n_obs_y/2.)
+        layer_half_size_x = psize * (buff + R + n_obs_x / 2.0)
+        layer_half_size_y = psize * (buff + R + n_obs_y / 2.0)
 
         xmin = x0 - layer_half_size_x
         xmax = x0 + layer_half_size_x
@@ -122,7 +135,7 @@ def domain():
 
     domain.pop("buffer")
 
-    with open("domain.ini", 'w') as f:
+    with open("domain.ini", "w") as f:
         yaml.safe_dump(domain, f, default_flow_style=False)
 
     # print lon/lat bbox formatted for earthdata

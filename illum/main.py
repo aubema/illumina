@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
-import click
 from importlib import import_module
+
+import click
 import illum
 
 
@@ -58,7 +59,7 @@ functions = (
     (".extract-output-data", "extract"),
     (".init_run", "init"),
     (".alt_scenario_maker", "alternate"),
-    (".hdf_convert", "convert")
+    (".hdf_convert", "convert"),
 )
 
 for module_name, method in functions:

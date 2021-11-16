@@ -1,29 +1,29 @@
-from setuptools import setup
 import illum
+from setuptools import setup
 
 setup(
-    name='illum',
+    name="illum",
     version=illum.__version__,
     packages=["illum"],
     install_requires=[
-        'Click<8',
-        'progressbar2',
-        'pyproj',
-        'pyyaml',
-        'numpy',
-        'h5py',
-        'pillow',
-        'matplotlib',
-        'scipy',
-        'astropy',
-        'pandas',
-        'geopandas',
-        'fiona',
-        'osmnx',
-        'GitPython'
+        "astropy",
+        "Click<8",
+        "fiona",
+        "geopandas",
+        "GitPython",
+        "h5py",
+        "matplotlib",
+        "numpy",
+        "osmnx",
+        "pandas",
+        "pillow",
+        "progressbar2",
+        "pyproj",
+        "pyyaml",
+        "scipy",
     ],
-    entry_points='''
+    entry_points="""
         [console_scripts]
         illum=illum.main:illum
-    ''',
+    """,
 )

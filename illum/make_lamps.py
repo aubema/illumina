@@ -11,13 +11,25 @@ import numpy as np
 from illum import MultiScaleData as MSD
 
 
-def make_lamps(dir_name, n_bins, params, out_name,
-               x, lop, angles, wav, spct, viirs, refl, bool_array):
+def make_lamps(
+    dir_name,
+    n_bins,
+    params,
+    out_name,
+    x,
+    lop,
+    angles,
+    wav,
+    spct,
+    viirs,
+    refl,
+    bool_array,
+):
 
     print("Building inputs from discrete inventory.")
 
     # lamps distribution
-    inv_name = params['lamps_inventory']
+    inv_name = params["lamps_inventory"]
     lampsData = np.loadtxt(inv_name, usecols=list(range(7)))
     photometry = np.loadtxt(inv_name, usecols=[-2, -1], dtype=str)
     domain = MSD.from_domain("domain.ini")
@@ -39,14 +51,15 @@ def make_lamps(dir_name, n_bins, params, out_name,
     for l in range(n_bins):
         for s in sources:
             np.savetxt(
-                dir_name+"fctem_wl_%g_lamp_%s.dat" % (x[l], s),
-                np.concatenate([lop[s], angles]).reshape((2, -1)).T)
+                dir_name + "fctem_wl_%g_lamp_%s.dat" % (x[l], s),
+                np.concatenate([lop[s], angles]).reshape((2, -1)).T,
+            )
 
-    with open(dir_name+"lamps.lst", 'w') as zfile:
-        zfile.write('\n'.join(sources) + '\n')
+    with open(dir_name + "lamps.lst", "w") as zfile:
+        zfile.write("\n".join(sources) + "\n")
 
     geometry = dict()
-    for geo in ['obsth', 'obstd', 'obstf', 'altlp']:
+    for geo in ["obsth", "obstd", "obstf", "altlp"]:
         geometry[geo] = MSD.from_domain("domain.ini")
 
     lumlp = dict()
@@ -61,26 +74,24 @@ def make_lamps(dir_name, n_bins, params, out_name,
                 ind = inds[np.logical_and(cols == col, rows == row)]
                 lumens = lampsData[:, 2][ind]
 
-                for n, geo in zip(range(3, 7), ['obsth', 'obstd', 'obstf', 'altlp']):
+                for n, geo in zip(
+                    range(3, 7), ["obsth", "obstd", "obstf", "altlp"]
+                ):
                     geometry[geo][layer][row, col] = np.average(
-                        lampsData[:, n][ind],
-                        weights=lumens
+                        lampsData[:, n][ind], weights=lumens
                     )
 
                 local_sources = np.unique(photometry[ind][:, 1])
                 for s in local_sources:
                     mask = photometry[:, 1][ind] == s
-                    fctem = np.array([
-                        spct[type] for type in photometry[:, 0][ind][mask]
-                    ])
-                    fctem = np.sum(fctem*lumens[mask, None], 0)
-
-                    y = [np.mean(a) for a in
-                         np.array_split(
-                        fctem[bool_array],
-                        n_bins,
-                        -1
+                    fctem = np.array(
+                        [spct[type] for type in photometry[:, 0][ind][mask]]
                     )
+                    fctem = np.sum(fctem * lumens[mask, None], 0)
+
+                    y = [
+                        np.mean(a)
+                        for a in np.array_split(fctem[bool_array], n_bins, -1)
                     ]
 
                     for i, wl in enumerate(x):
@@ -89,8 +100,8 @@ def make_lamps(dir_name, n_bins, params, out_name,
     print("Saving data.")
 
     for geo, ds in geometry.items():
-        ds.save(dir_name+out_name+"_"+geo)
+        ds.save(dir_name + out_name + "_" + geo)
 
     for key, ds in lumlp.items():
         s, wl = key
-        ds.save(dir_name+"%s_%03d_lumlp_%s" % (out_name, wl, s))
+        ds.save(dir_name + "%s_%03d_lumlp_%s" % (out_name, wl, s))

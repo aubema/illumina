@@ -7,23 +7,25 @@
 #
 # March 2021
 
-import click
-from illum import MultiScaleData as MSD
-import sys
-import yaml
 import os
 import shutil
-from illum.pytools import save_bin
-from glob import glob
-from itertools import product as comb, count as itcount
-import numpy as np
+import sys
 from collections import ChainMap, OrderedDict
+from glob import glob
+from itertools import count as itcount
+from itertools import product as comb
+
+import click
+import numpy as np
+import yaml
+from illum import MultiScaleData as MSD
+from illum.pytools import save_bin
 from progressbar import progressbar
 
 
 def input_line(val, comment, n_space=30):
-    value_str = ' '.join(str(v) for v in val)
-    comment_str = ' ; '.join(comment)
+    value_str = " ".join(str(v) for v in val)
+    comment_str = " ; ".join(comment)
     return "%-*s ! %s" % (n_space, value_str, comment_str)
 
 
@@ -38,10 +40,21 @@ def MSDOpen(filename, cached={}):
 @click.command()
 @click.argument("input_path", type=click.Path(exists=True), default=".")
 @click.argument("batch_name", required=False)
-@click.option("-c", "--compact", is_flag=True, help="If given, will chain similar executions. "
-              "Reduces the overall number of runs at the cost of longuer individual executions.")
-@click.option("-N", "--batch_size", type=int, default=300, show_default=True,
-              help="Number of runs per produced batch file.")
+@click.option(
+    "-c",
+    "--compact",
+    is_flag=True,
+    help="If given, will chain similar executions. "
+    "Reduces the overall number of runs at the cost of longuer individual executions.",
+)
+@click.option(
+    "-N",
+    "--batch_size",
+    type=int,
+    default=300,
+    show_default=True,
+    help="Number of runs per produced batch file.",
+)
 def batches(input_path, compact, batch_size, batch_name=None):
     """Makes the execution batches.
 
@@ -56,12 +69,12 @@ def batches(input_path, compact, batch_size, batch_name=None):
         params = yaml.safe_load(f)
 
     if batch_name is not None:
-        params['batch_file_name'] = batch_name
+        params["batch_file_name"] = batch_name
 
-    for fname in glob("%s*" % params['batch_file_name']):
+    for fname in glob("%s*" % params["batch_file_name"]):
         os.remove(fname)
 
-    exp_name = params['exp_name']
+    exp_name = params["exp_name"]
 
     ds = MSD.Open(glob("*.hdf5")[0])
 
@@ -74,7 +87,9 @@ def batches(input_path, compact, batch_size, batch_name=None):
         for i in range(len(ds)):
             os.makedirs("obs_data/%6f_%6f/%d" % (lat, lon, i))
 
-    for i, fname in progressbar(enumerate(glob("*.hdf5"), 1), redirect_stdout=True):
+    for i, fname in progressbar(
+        enumerate(glob("*.hdf5"), 1), redirect_stdout=True
+    ):
         dataset = MSD.Open(fname)
         for clipped in dataset.split_observers():
             lat, lon = clipped.get_obs_pos()
@@ -84,25 +99,30 @@ def batches(input_path, compact, batch_size, batch_name=None):
                 clipped.set_buffer(0)
                 clipped.set_overlap(0)
             for i, dat in enumerate(clipped):
-                padded_dat = np.pad(dat, (512-dat.shape[0])//2, 'constant')
-                save_bin("obs_data/%6f_%6f/%i/%s" %
-                         (lat, lon, i, fname.rsplit('.', 1)[0]+'.bin'), padded_dat)
+                padded_dat = np.pad(dat, (512 - dat.shape[0]) // 2, "constant")
+                save_bin(
+                    "obs_data/%6f_%6f/%i/%s"
+                    % (lat, lon, i, fname.rsplit(".", 1)[0] + ".bin"),
+                    padded_dat,
+                )
             if "srtm" in fname:
                 for l in range(len(clipped)):
                     clipped[l][:] = 0
                 clipped.save("obs_data/%6f_%6f/blank" % (lat, lon))
 
     # Add wavelength and multiscale
-    params['wavelength'] = np.loadtxt("wav.lst", ndmin=1).tolist()
-    params['layer'] = list(range(len(ds)))
-    params['observer_coordinates'] = list(zip(*ds.get_obs_pos()))
+    params["wavelength"] = np.loadtxt("wav.lst", ndmin=1).tolist()
+    params["layer"] = list(range(len(ds)))
+    params["observer_coordinates"] = list(zip(*ds.get_obs_pos()))
 
-    bandwidth = (params['lambda_max'] - params['lambda_min']) / params['nb_bins']
+    bandwidth = (params["lambda_max"] - params["lambda_min"]) / params[
+        "nb_bins"
+    ]
 
-    wls = params['wavelength']
+    wls = params["wavelength"]
     refls = np.loadtxt("refl.lst", ndmin=1).tolist()
 
-    for pname in ['layer', 'observer_coordinates']:
+    for pname in ["layer", "observer_coordinates"]:
         if len(params[pname]) == 1:
             params[pname] = params[pname][0]
 
@@ -122,36 +142,54 @@ def batches(input_path, compact, batch_size, batch_name=None):
     multival = sorted(multival, key=len, reverse=True)  # Semi-arbitrary sort
     param_space = [params[k] for k in multival]
 
-    for i, param_vals in progressbar(enumerate(comb(*param_space), 1), redirect_stdout=True):
+    for i, param_vals in progressbar(
+        enumerate(comb(*param_space), 1), redirect_stdout=True
+    ):
         local_params = OrderedDict(zip(multival, param_vals))
         P = ChainMap(local_params, params)
-        if "azimuth_angle" in multival \
-                and P['elevation_angle'] == 90 \
-                and params['azimuth_angle'].index(P['azimuth_angle']) != 0:
+        if (
+            "azimuth_angle" in multival
+            and P["elevation_angle"] == 90
+            and params["azimuth_angle"].index(P["azimuth_angle"]) != 0
+        ):
             continue
 
         if os.path.isfile("brng.lst"):
-            obs_index = 0 if 'observer_coordinates' not in multival else \
-                params['observer_coordinates'].index(P['observer_coordinates'])
+            obs_index = (
+                0
+                if "observer_coordinates" not in multival
+                else params["observer_coordinates"].index(
+                    P["observer_coordinates"]
+                )
+            )
             bearing = brng[obs_index]
         else:
             bearing = 0
 
-        coords = "%6f_%6f" % P['observer_coordinates']
-        if 'observer_coordinates' in multival:
-            P['observer_coordinates'] = coords
+        coords = "%6f_%6f" % P["observer_coordinates"]
+        if "observer_coordinates" in multival:
+            P["observer_coordinates"] = coords
 
         if compact:
-            fold_name = dir_name + os.sep.join(
-                "%s_%s" % (k, v) for k, v in local_params.items()
-                if k in ["observer_coordinates", "wavelength", "layer"]
-            ) + os.sep
+            fold_name = (
+                dir_name
+                + os.sep.join(
+                    "%s_%s" % (k, v)
+                    for k, v in local_params.items()
+                    if k in ["observer_coordinates", "wavelength", "layer"]
+                )
+                + os.sep
+            )
         else:
-            fold_name = dir_name + os.sep.join(
-                "%s_%s" % (k, v) for k, v in local_params.items()
-            ) + os.sep
+            fold_name = (
+                dir_name
+                + os.sep.join(
+                    "%s_%s" % (k, v) for k, v in local_params.items()
+                )
+                + os.sep
+            )
 
-        unique_ID = '-'.join("%s_%s" % item for item in local_params.items())
+        unique_ID = "-".join("%s_%s" % item for item in local_params.items())
         wavelength = "%g" % P["wavelength"]
         layer = P["layer"]
         reflectance = refls[wls.index(P["wavelength"])]
@@ -159,136 +197,168 @@ def batches(input_path, compact, batch_size, batch_name=None):
         if not os.path.isdir(fold_name):
             os.makedirs(fold_name)
             # Linking files
-            mie_file = "%s_%s.txt" % (
-                params['aerosol_profile'],
-                wavelength)
+            mie_file = "%s_%s.txt" % (params["aerosol_profile"], wavelength)
             os.symlink(
-                os.path.relpath(mie_file, fold_name),
-                fold_name+"aerosol.txt"
+                os.path.relpath(mie_file, fold_name), fold_name + "aerosol.txt"
             )
-            layer_file = "%s_%s.txt" % (
-                params['layer_type'],
-                wavelength
-            )
+            layer_file = "%s_%s.txt" % (params["layer_type"], wavelength)
             os.symlink(
-                os.path.relpath(layer_file, fold_name),
-                fold_name+"layer.txt"
+                os.path.relpath(layer_file, fold_name), fold_name + "layer.txt"
             )
 
             os.symlink(
                 os.path.relpath("MolecularAbs.txt", fold_name),
-                fold_name+"MolecularAbs.txt"
+                fold_name + "MolecularAbs.txt",
             )
 
             for l, lamp in enumerate(lamps, 1):
                 os.symlink(
-                    os.path.relpath("fctem_wl_%s_lamp_%s.dat" % (wavelength, lamp), fold_name),
-                    fold_name+exp_name+"_fctem_%03d.dat" % l)
+                    os.path.relpath(
+                        "fctem_wl_%s_lamp_%s.dat" % (wavelength, lamp),
+                        fold_name,
+                    ),
+                    fold_name + exp_name + "_fctem_%03d.dat" % l,
+                )
 
-            ppath = os.environ['PATH'].split(os.pathsep)
-            illumpath = [s for s in ppath if "/illumina" in s and "/bin" in s][0]
+            ppath = os.environ["PATH"].split(os.pathsep)
+            illumpath = [s for s in ppath if "/illumina" in s and "/bin" in s][
+                0
+            ]
             os.symlink(
-                os.path.abspath(illumpath+"/illumina"),
-                fold_name+"illumina"
+                os.path.abspath(illumpath + "/illumina"),
+                fold_name + "illumina",
             )
 
             # Copying layer data
-            obs_fold = os.path.join(
-                "obs_data",
-                coords,
-                str(layer)
-            )
+            obs_fold = os.path.join("obs_data", coords, str(layer))
 
             os.symlink(
                 os.path.relpath(os.path.join(obs_fold, "srtm.bin"), fold_name),
-                fold_name+exp_name+"_topogra.bin"
+                fold_name + exp_name + "_topogra.bin",
             )
 
             os.symlink(
-                os.path.relpath(os.path.join(obs_fold, "origin.bin"), fold_name),
-                fold_name+"origin.bin"
+                os.path.relpath(
+                    os.path.join(obs_fold, "origin.bin"), fold_name
+                ),
+                fold_name + "origin.bin",
             )
 
             for name in ["obstd", "obsth", "obstf", "altlp"]:
                 os.symlink(
-                    os.path.relpath(os.path.join(obs_fold, "%s_%s.bin" %
-                                                 (exp_name, name)), fold_name),
-                    fold_name+"%s_%s.bin" %
-                    (exp_name, name)
+                    os.path.relpath(
+                        os.path.join(obs_fold, "%s_%s.bin" % (exp_name, name)),
+                        fold_name,
+                    ),
+                    fold_name + "%s_%s.bin" % (exp_name, name),
                 )
 
             for l, lamp in enumerate(lamps, 1):
                 os.symlink(
-                    os.path.relpath(os.path.join(obs_fold, "%s_%s_lumlp_%s.bin" %
-                                                 (exp_name, wavelength, lamp)), fold_name),
-                    fold_name+"%s_lumlp_%03d.bin" %
-                    (exp_name, l)
+                    os.path.relpath(
+                        os.path.join(
+                            obs_fold,
+                            "%s_%s_lumlp_%s.bin"
+                            % (exp_name, wavelength, lamp),
+                        ),
+                        fold_name,
+                    ),
+                    fold_name + "%s_lumlp_%03d.bin" % (exp_name, l),
                 )
 
         # Create illumina.in
         input_data = (
-            (('', "Input file for ILLUMINA"),),
+            (("", "Input file for ILLUMINA"),),
             ((exp_name, "Root file name"),),
-            ((ds.pixel_size(layer), "Cell size along X [m]"),
-             (ds.pixel_size(layer), "Cell size along Y [m]")),
+            (
+                (ds.pixel_size(layer), "Cell size along X [m]"),
+                (ds.pixel_size(layer), "Cell size along Y [m]"),
+            ),
             (("aerosol.txt", "Aerosol optical cross section file"),),
-            (("layer.txt", "Layer optical cross section file"),
-             (P['layer_aod'], "Layer aerosol optical depth at 500nm"),
-             (P['layer_alpha'], "Layer angstom coefficient"),
-             (P['layer_height'], "Layer scale height [m]")),
-            ((P['double_scattering']*1, "Double scattering activated"),),
-            ((P['single_scattering']*1, "Single scattering activated"),),
-            ((wavelength, "Wavelength [nm]"),
-             (bandwidth, "Bandwidth [nm]")),
+            (
+                ("layer.txt", "Layer optical cross section file"),
+                (P["layer_aod"], "Layer aerosol optical depth at 500nm"),
+                (P["layer_alpha"], "Layer angstom coefficient"),
+                (P["layer_height"], "Layer scale height [m]"),
+            ),
+            ((P["double_scattering"] * 1, "Double scattering activated"),),
+            ((P["single_scattering"] * 1, "Single scattering activated"),),
+            ((wavelength, "Wavelength [nm]"), (bandwidth, "Bandwidth [nm]")),
             ((reflectance, "Reflectance"),),
-            ((P['air_pressure'], "Ground level pressure [kPa]"),),
-            ((P['aerosol_optical_depth'], "Aerosol optical depth at 500nm"),
-             (P['angstrom_coefficient'], "Angstrom exponent"),
-             (P['aerosol_height'], "Aerosol scale height [m]")),
+            ((P["air_pressure"], "Ground level pressure [kPa]"),),
+            (
+                (P["aerosol_optical_depth"], "Aerosol optical depth at 500nm"),
+                (P["angstrom_coefficient"], "Angstrom exponent"),
+                (P["aerosol_height"], "Aerosol scale height [m]"),
+            ),
             ((len(lamps), "Number of source types"),),
-            ((P['stop_limit'], "Contribution threshold"),),
-            (('', ''),),
-            ((256, "Observer X position"),
-             (256, "Observer Y position"),
-             (P['observer_elevation'], "Observer elevation above ground [m]")),
-            (('', ''),),
-            ((P['elevation_angle'], "Elevation viewing angle"),
-             ((P['azimuth_angle']+bearing) % 360, "Azimuthal viewing angle")),
-            ((P['direct_fov'], 'Direct field of view'),),
-            (('', ''),),
-            (('', ''),),
-            (('', ''),),
-            ((P['reflection_radius'], "Radius around the light source where reflextions are computed"),),
-            ((P['cloud_model'], "Cloud model: "
-                "0=clear, "
-                "1=Thin Cirrus/Cirrostratus, "
-                "2=Thick Cirrus/Cirrostratus, "
-                "3=Altostratus/Altocumulus, "
-                "4=Cumulus/Cumulonimbus, "
-                "5=Stratocumulus"),
-             (P['cloud_base'], "Cloud base altitude [m]"),
-             (P['cloud_fraction'], "Cloud fraction")),
-            (('', ''),)
+            ((P["stop_limit"], "Contribution threshold"),),
+            (("", ""),),
+            (
+                (256, "Observer X position"),
+                (256, "Observer Y position"),
+                (
+                    P["observer_elevation"],
+                    "Observer elevation above ground [m]",
+                ),
+            ),
+            (("", ""),),
+            (
+                (P["elevation_angle"], "Elevation viewing angle"),
+                (
+                    (P["azimuth_angle"] + bearing) % 360,
+                    "Azimuthal viewing angle",
+                ),
+            ),
+            ((P["direct_fov"], "Direct field of view"),),
+            (("", ""),),
+            (("", ""),),
+            (("", ""),),
+            (
+                (
+                    P["reflection_radius"],
+                    "Radius around the light source where reflextions are computed",
+                ),
+            ),
+            (
+                (
+                    P["cloud_model"],
+                    "Cloud model: "
+                    "0=clear, "
+                    "1=Thin Cirrus/Cirrostratus, "
+                    "2=Thick Cirrus/Cirrostratus, "
+                    "3=Altostratus/Altocumulus, "
+                    "4=Cumulus/Cumulonimbus, "
+                    "5=Stratocumulus",
+                ),
+                (P["cloud_base"], "Cloud base altitude [m]"),
+                (P["cloud_fraction"], "Cloud fraction"),
+            ),
+            (("", ""),),
         )
 
-        with open(fold_name+unique_ID+".in", 'w') as f:
+        with open(fold_name + unique_ID + ".in", "w") as f:
             lines = (input_line(*zip(*line_data)) for line_data in input_data)
-            f.write('\n'.join(lines))
+            f.write("\n".join(lines))
 
         # Write execute script
-        if not os.path.isfile(fold_name+"execute"):
-            with open(fold_name+"execute", 'w') as f:
+        if not os.path.isfile(fold_name + "execute"):
+            with open(fold_name + "execute", "w") as f:
                 f.write("#!/bin/sh\n")
                 f.write("#SBATCH --job-name=Illumina\n")
-                f.write("#SBATCH --time=%d:00:00\n" %
-                        params["estimated_computing_time"])
+                f.write(
+                    "#SBATCH --time=%d:00:00\n"
+                    % params["estimated_computing_time"]
+                )
                 f.write("#SBATCH --mem=2G\n")
                 f.write("cd %s\n" % os.path.abspath(fold_name))
                 f.write("umask 0011\n")
-            os.chmod(fold_name+"execute", 0o777)
+            os.chmod(fold_name + "execute", 0o777)
 
             # Append execution to batch list
-            with open(f"{params['batch_file_name']}_{(count//batch_size)+1}", 'a') as f:
+            with open(
+                f"{params['batch_file_name']}_{(count//batch_size)+1}", "a"
+            ) as f:
                 f.write("cd %s\n" % os.path.abspath(fold_name))
                 f.write("sbatch ./execute\n")
                 f.write("sleep 0.05\n")
@@ -296,11 +366,14 @@ def batches(input_path, compact, batch_size, batch_name=None):
             count += 1
 
         # Add current parameters execution to execution script
-        with open(fold_name+"execute", 'a') as f:
+        with open(fold_name + "execute", "a") as f:
             f.write("cp %s.in illumina.in\n" % unique_ID)
             f.write("./illumina\n")
             f.write("mv %s.out %s_%s.out\n" % (exp_name, exp_name, unique_ID))
-            f.write("mv %s_pcl.bin %s_pcl_%s.bin\n" % (exp_name, exp_name, unique_ID))
+            f.write(
+                "mv %s_pcl.bin %s_pcl_%s.bin\n"
+                % (exp_name, exp_name, unique_ID)
+            )
 
     print("Final count:", count)
 

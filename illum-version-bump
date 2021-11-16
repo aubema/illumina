@@ -3,27 +3,34 @@
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument("-m", "--major", action='store_true',
-                    help="If present, bumps major version instead.")
+parser.add_argument(
+    "-m",
+    "--major",
+    action="store_true",
+    help="If present, bumps major version instead.",
+)
 p = parser.parse_args()
 
 with open("illum/__init__.py") as f:
-    line = f.read().split('\n')[0]
-    version = line.split('=')[1].strip().strip('"\'')
+    line = f.read().split("\n")[0]
+    version = line.split("=")[1].strip().strip("\"'")
 
-parts = version.split('.')
-id = 1-p.major
-parts[id] = str(int(parts[id])+1)
+parts = version.split(".")
+id = 1 - p.major
+parts[id] = str(int(parts[id]) + 1)
 
 print(f"New version number will be '{'.'.join(parts[:2])}'")
-while (res := input("Do you want to continue? (Enter y/n) ").lower()) not in {"y", "n"}:
+while (res := input("Do you want to continue? (Enter y/n) ").lower()) not in {
+    "y",
+    "n",
+}:
     pass
 
-if res == 'y':
+if res == "y":
     with open("illum/__init__.py") as f:
         content = f.read()
-    content = content.replace(version, '.'.join(parts))
-    with open("illum/__init__.py", 'w') as f:
+    content = content.replace(version, ".".join(parts))
+    with open("illum/__init__.py", "w") as f:
         f.write(content)
 else:
     print("Aborting.")
