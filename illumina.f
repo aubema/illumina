@@ -626,7 +626,7 @@ c flux arrays (lumlp)
               if (viirs(i,j).eq.1) then
                 lamplu(i,j,stype)=lamplu(i,j,stype)/(tranam*tranaa*
      +          tranal)
-                thetali=atan(drefle(i,j)/obsH(i,j))
+                thetali=atan2(drefle(i,j),obsH(i,j))
                 Fo=(1.-cos(70.*pi/180.))/(1.-ofill(i,j)*cos(thetali)+
      +          (ofill(i,j)-1.)*cos(70.*pi/180.))
                 lamplu(i,j,stype)=lamplu(i,j,stype)*Fo
