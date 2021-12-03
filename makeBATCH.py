@@ -91,6 +91,8 @@ def batches(input_path,compact,batch_size,batch_name=None):
     params['layer'] = list(range(len(ds)))
     params['observer_coordinates'] = list(zip(*ds.get_obs_pos()))
 
+    bandwidth = (params['lambda_max'] - params['lambda_min']) / params['nb_bins']
+
     wls = params['wavelength']
     refls = np.loadtxt("refl.lst",ndmin=1).tolist()
 
@@ -144,13 +146,12 @@ def batches(input_path,compact,batch_size,batch_name=None):
             ) + os.sep
 
         unique_ID = '-'.join( "%s_%s" % item for item in local_params.items() )
-        wavelength = "%03d" % P["wavelength"]
+        wavelength = "%g" % P["wavelength"]
         layer = P["layer"]
         reflectance = refls[wls.index(P["wavelength"])]
 
         if not os.path.isdir(fold_name):
             os.makedirs(fold_name)
-
             # Linking files
             mie_file = "%s_%s.txt" % (
                 params['aerosol_profile'],
@@ -159,7 +160,6 @@ def batches(input_path,compact,batch_size,batch_name=None):
                 os.path.relpath(mie_file,fold_name),
                 fold_name+"aerosol.txt"
             )
-
             layer_file = "%s_%s.txt" % (
                 params['layer_type'],
                 wavelength
@@ -167,6 +167,11 @@ def batches(input_path,compact,batch_size,batch_name=None):
             os.symlink(
                 os.path.relpath(layer_file,fold_name),
                 fold_name+"layer.txt"
+            )
+
+            os.symlink(
+                os.path.relpath("MolecularAbs.txt",fold_name),
+                fold_name+"MolecularAbs.txt"
             )
 
             for l,lamp in enumerate(lamps,1):
@@ -227,7 +232,8 @@ def batches(input_path,compact,batch_size,batch_name=None):
              (P['layer_height'], "Layer scale height [m]")),
             ((P['double_scattering']*1, "Double scattering activated" ),),
             ((P['single_scattering']*1, "Single scattering activated" ),),
-            ((wavelength, "Wavelength [nm]"),),
+            ((wavelength, "Wavelength [nm]"),
+             (bandwidth, "Bandwidth [nm]")),
             ((reflectance, "Reflectance"),),
             ((P['air_pressure'], "Ground level pressure [kPa]"),),
             ((P['aerosol_optical_depth'], "Aerosol optical depth at 500nm"),

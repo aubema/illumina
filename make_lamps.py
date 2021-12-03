@@ -38,7 +38,7 @@ def make_lamps(dir_name,n_bins,params,out_name,
     for l in range(n_bins):
     	for s in sources:
     		np.savetxt(
-    			dir_name+"fctem_wl_%03d_lamp_%s.dat" % (x[l],s),
+    			dir_name+"fctem_wl_%g_lamp_%s.dat" % (x[l],s),
     			np.concatenate([ lop[s],angles ]).reshape((2,-1)).T )
 
     with open(dir_name+"lamps.lst",'w') as zfile:

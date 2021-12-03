@@ -252,6 +252,9 @@ c                                                                         ! a li
       real fdifl(181)                                                     ! scattering phase function of the particle layer
       real tranal                                                         ! top of atmos transmission of the particle layer
       real haer                                                           ! exponential vertical scale height of the background aerosol layer
+      real distc,hcur,hcurmin                                             ! distance to any cell and curvature  correction for the earth curvature
+      real bandw                                                          ! bandwidth of the spectral bin
+      real tabs                                                           ! TOA transmittance related to molecule absorption
       verbose=1                                                           ! Very little printout=0, Many printout = 1, even more=2
       diamobj=1.                                                          ! A dummy value for the diameter of the objective of the instrument used by the observer.
       volu=0.
@@ -276,7 +279,7 @@ c reading of the fichier d'entree (illumina.in)
         read(1,*) layfile, layaod, layalp, hlay
         read(1,*) ssswit
         read(1,*) fsswit
-        read(1,*) lambda
+        read(1,*) lambda,bandw
         read(1,*) srefl
         read(1,*) pressi
         read(1,*) taua,alpha,haer
@@ -357,7 +360,7 @@ c  determine the Length of basenm
       pclgp=basenm(1:lenbase)//'_pcl.gplot'
 c opening output file
       open(unit=2,file=outfile,status='unknown')
-        write(2,*) "ILLUMINA version 2.1.21w38.1a"
+        write(2,*) "ILLUMINA version 2.1.21w47.5a-dev"
         write(2,*) 'FILE USED:'
         write(2,*) mnaf,diffil
         print*,'Wavelength (nm):',lambda,
@@ -459,7 +462,8 @@ c determine the 2nd scattering zone
           endif
         endif
 c determination of the vertical atmospheric transmittance
-        call transtoa(lambda,taua,layaod,pressi,tranam,tranaa,tranal)     ! tranam and tranaa are the top of atmosphere transmittance (molecules and aerosols)
+        call transtoa(lambda,bandw,taua,layaod,pressi,tranam,tranaa,      ! tranam and tranaa are the top of atmosphere transmittance (molecules and aerosols)
+     +tranal,tabs)
 
 c reading of the environment variables
 c reading of the elevation file
@@ -485,6 +489,22 @@ c computation of the tilt of the pixels along x and along y
             endif
           enddo                                                           ! end of the loop over the rows (latitu) of the domain
         enddo                                                             ! end of the loop over the column (longitude) of the domain
+c correct altsol for earth curvature (first order correction)
+        hcurmin=0.
+        do i=1,nbx                                                        ! beginning of the loop over the column (longitude) of the domain.
+          do j=1,nby                                                      ! beginning of the loop over the rows (latitu) of the domain.
+             distc=sqrt((dx*real(i-x_obs))**2.+(dy*real(j-y_obs))**2.)
+             call curvature(distc,hcur)
+             altsol(i,j)=altsol(i,j)+hcur
+             if (hcur.lt.hcurmin) hcurmin=hcur
+          enddo                                                           ! end of the loop over the rows (latitu) of the domain
+        enddo                                                             ! end of the loop over the column (longitude) of the domain
+        do i=1,nbx                                                        ! beginning of the loop over the column (longitude) of the domain.
+          do j=1,nby                                                      ! beginning of the loop over the rows (latitu) of the domain.
+             altsol(i,j)=altsol(i,j)-hcurmin
+          enddo                                                           ! end of the loop over the rows (latitu) of the domain
+        enddo
+
 c reading of the values of P(theta), height, luminosities and positions
 c of the sources, obstacle height and distance
         ohfile=basenm(1:lenbase)//'_obsth.bin'
@@ -660,6 +680,7 @@ c flux arrays (lumlp)
 c =================================
 c Calculation of the direct radiances
 c
+        if (verbose.ge.1) print*,' Calculating obtrusive light...'
         do stype=1,ntype                                                  ! beginning of the loop over the source types.
           if (totlu(stype).ne.0.) then                                    ! check if there are any flux in that source type otherwise skip this lamp
             if (verbose.ge.1) print*,' Turning on lamps',stype
@@ -733,7 +754,7 @@ c computation of the flux direct reaching the line of sight voxel
 c computation of the solid angle 1m^2 at the observer as seen from the source
                     omega=1.*abs(cos(dang))/ddir_obs**2.
                     call transmitm(dzen,z_obs,z_s,ddir_obs,
-     +              transm,tranam)
+     +              transm,tranam,tabs)
                     call transmita(dzen,z_obs,z_s,ddir_obs,
      +              haer,transa,tranaa)
                     call transmitl(dzen,z_obs,z_s,ddir_obs,
@@ -792,7 +813,7 @@ c computation of the transmittance between the source and the ground surface
      +                      +(ry_s-ry_sr)**2.+
      +                      (z_s-z_sr)**2.)
                             call transmitm(angzen,z_s,
-     +                      z_sr,distd,transm,tranam)
+     +                      z_sr,distd,transm,tranam,tabs)
                             call transmita(angzen,z_s,
      +                      z_sr,distd,haer,transa,tranaa)
                             call transmitl(angzen,z_s,z_sr,distd,
@@ -939,7 +960,7 @@ c computation of the flux direct reaching the line of sight voxel
 c computation of the solid angle of the line of sight voxel seen from the source
                                 omega=1.*abs(cos(dang))/ddir_obs**2.
                                 call transmitm(dzen,z_obs,z_sr,ddir_obs,
-     +                          transm,tranam)
+     +                          transm,tranam,tabs)
                                 call transmita(dzen,z_obs,z_sr,ddir_obs,
      +                          haer,transa,tranaa)
                                 call transmitl(dzen,z_obs,z_sr,ddir_obs,
@@ -1142,7 +1163,7 @@ c sub-grid obstacles
                               endif
 c computation of the transmittance between the source and the line of sight
                               call transmitm(angzen,z_s,z_c,distd,
-     +                        transm,tranam)
+     +                        transm,tranam,tabs)
                               call transmita(angzen,z_s,z_c,distd,
      +                        haer,transa,tranaa)
                               call transmitl(angzen,z_s,z_c,distd,
@@ -1241,7 +1262,7 @@ c computation of the transmittance between the source and the ground surface
      +                                  +(ry_s-ry_sr)**2.+
      +                                  (z_s-z_sr)**2.)
                                         call transmitm(angzen,z_s,
-     +                                  z_sr,distd,transm,tranam)
+     +                                  z_sr,distd,transm,tranam,tabs)
                                         call transmita(angzen,z_s,
      +                                  z_sr,distd,haer,transa,tranaa)
                                         call transmitl(angzen,z_s,z_sr,
@@ -1395,7 +1416,7 @@ c sub-grid obstacles
 c computation of the transmittance between the reflection surface and the scattering voxel
             distd=sqrt((rx_dif-rx_sr)**2.+(ry_dif-ry_sr)**2.+
      +      (z_dif-z_sr)**2.)
-            call transmitm(angzen,z_sr,z_dif,distd,transm,tranam)
+            call transmitm(angzen,z_sr,z_dif,distd,transm,tranam,tabs)
             call transmita(angzen,z_sr,z_dif,distd,haer,transa,tranaa)
             call transmitl(angzen,z_sr,z_dif,
      +      distd,hlay,transl,tranal)
@@ -1445,7 +1466,7 @@ c subgrid obstacles
 c computing transmittance between the scattering voxel and the line of sight voxel
             distd=sqrt((rx_dif-rx_c)**2.+(ry_dif-ry_c)**2.+
      +      (z_dif-z_c)**2.)
-            call transmitm(angzen,z_dif,z_c,distd,transm,tranam)
+            call transmitm(angzen,z_dif,z_c,distd,transm,tranam,tabs)
             call transmita(angzen,z_dif,z_c,distd,haer,transa,tranaa)
             call transmitl(angzen,z_dif,z_c,
      +      distd,hlay,transl,tranal)
@@ -1511,7 +1532,7 @@ c computation of the transmittance between the source and the scattering voxel
      +        +(ry_s-ry_dif)**2.
      +        +(z_s-z_dif)**2.)
               call transmitm(angzen,z_s,z_dif,
-     +        distd,transm,tranam)
+     +        distd,transm,tranam,tabs)
               call transmita(angzen,z_s,z_dif,
      +        distd,haer,transa,tranaa)
               call transmitl(angzen,z_s,z_dif,
@@ -1571,7 +1592,7 @@ c Computing transmittance between the scattering voxel and the line of sight vox
      +        +(ry_c-ry_dif)**2.
      +        +(z_c-z_dif)**2.)
               call transmitm(angzen,z_dif,z_c,
-     +        distd,transm,tranam)
+     +        distd,transm,tranam,tabs)
               call transmita(angzen,z_dif,z_c,
      +        distd,haer,transa,tranaa)
               call transmitl(angzen,z_dif,z_c,
@@ -1675,7 +1696,7 @@ c obstacle
                                          endif
 c computation of the transmittance between the ground surface and the line of sight voxel
                                           call transmitm(angzen,z_sr,
-     +                                    z_c,distd,transm,tranam)
+     +                                    z_c,distd,transm,tranam,tabs)
                                           call transmita(angzen,z_sr,
      +                                    z_c,distd,haer,transa,tranaa)
                                           call transmitl(angzen,z_sr,
@@ -1797,7 +1818,8 @@ c computation of the transmittance between the line of sight voxel and the obser
                                     distd=sqrt((rx_c-rx_obs)**2.
      +                              +(ry_c-ry_obs)**2.
      +                              +(z_c-z_obs)**2.)
-                call transmitm(angzen,z_c,z_obs,distd,transm,tranam)
+                call transmitm(angzen,z_c,z_obs,distd,transm,tranam,
+     +          tabs)
                 call transmita(angzen,z_c,z_obs,distd,haer,transa,
      +          tranaa)
                 call transmitl(angzen,z_c,z_obs,

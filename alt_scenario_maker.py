@@ -102,12 +102,15 @@ def alternate(name,zones,lights):
     for s in spct_files }
 
     # Make bins
-    x = np.loadtxt("Inputs/wav.lst",ndmin=1).tolist()
-    n_bins = len(x)
-    shutil.copy("Inputs/integration_limits.dat",dirname)
-    ilims = np.genfromtxt("Inputs/integration_limits.dat",skip_header=1)
-    dl = ilims[1:]-ilims[:-1]
-    bool_array = (ilims[0]<=wav)*(wav<ilims[-1])
+    n_bins = params['nb_bins']
+    lmin = params['lambda_min']
+    lmax = params['lambda_max']
+
+    limits = np.linspace(lmin,lmax,n_bins+1)
+    bool_array = (wav >= limits[:-1,None]) & (wav < limits[1:,None])
+    dl = (lmax-lmin)/n_bins
+
+    x = np.mean([limits[1:],limits[:-1]],0).tolist()
 
     ppath = os.environ['PATH'].split(os.pathsep)
     illumpath = [s for s in ppath if "illumina" in s and "bin" not in s][0]
@@ -144,13 +147,7 @@ def alternate(name,zones,lights):
         in params['reflectance'].items()
     )
 
-    reflect = [ np.mean(a) for a in \
-        np.array_split(
-            refl[bool_array],
-            n_bins,
-            -1
-        )
-    ]
+    reflect = [ np.mean(refl[mask]) for mask in bool_array ]
 
     with open(dirname+"/refl.lst",'w') as zfile:
         zfile.write('\n'.join( ["%.06g"%n for n in reflect])+'\n')
@@ -159,7 +156,7 @@ def alternate(name,zones,lights):
     #   ratio_ps = float(raw_input("    photopic/scotopic ratio for lamp power ? (0 <= p/(s+p) <= 1) : "))
     nspct = ratio_ps*photopic + (1-ratio_ps)*scotopic
     nspct = nspct/np.sum(nspct)
-    nspct = np.array(list(map(np.mean,np.array_split(nspct[bool_array],n_bins))))
+    nspct = [ np.mean(nspct[mask]) for mask in bool_array ]
 
     for aero_file in glob("Inputs/*.txt"):
         shutil.copy(aero_file,aero_file.replace("Inputs",dirname))
@@ -190,7 +187,7 @@ def alternate(name,zones,lights):
     shutil.copy("srtm.hdf5",dirname)
 
     with open(dirname+"/wav.lst",'w') as zfile:
-        zfile.write('\n'.join( ["%03d"%n for n in x])+'\n')
+        zfile.write('\n'.join(map(str,x)) + '\n')
 
     if params['zones_inventory'] is not None:
         dir_name = ".Inputs_zones/"
@@ -206,14 +203,14 @@ def alternate(name,zones,lights):
             ds = MSD.Open(fname)
             wl = int(fname.split('_')[1])
             for i, dat in enumerate(ds):
-                oldlumlp[i] += dat * nspct[x.index(wl)] * dl[x.index(wl)]
+                oldlumlp[i] += dat * nspct[x.index(wl)] * dl
 
         newlumlp = MSD.from_domain("domain.ini")
         for fname in glob(os.path.join(dir_name,"*lumlp*")):
             ds = MSD.Open(fname)
             wl = int(fname.split('_')[2])
             for i, dat in enumerate(ds):
-                newlumlp[i] += dat * nspct[x.index(wl)] * dl[x.index(wl)]
+                newlumlp[i] += dat * nspct[x.index(wl)] * dl
 
         ratio = MSD.from_domain("domain.ini")
         for i in range(len(ratio)):

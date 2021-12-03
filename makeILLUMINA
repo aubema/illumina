@@ -27,8 +27,8 @@ F77="gfortran"
 folder=`pwd`
 chmod a+x make*
 # options de debuggage -Wall -fcheck=all -g -fbacktrace -ffpe-trap=zero 
-echo $F77" -Wunused-parameter -mcmodel=medium -O3 illumina.f zone_diffusion.f diffusion.f angle3points.f anglesolide.f transmita.f transmitm.f transmitl.f anglezenithal.f angleazimutal.f horizon.f cloudreflectance.f  twodin.f twodout.f transTOA.f -o bin/illumina"
-$F77 -Wunused-parameter -mcmodel=medium -O3 illumina.f zone_diffusion.f diffusion.f angle3points.f anglesolide.f transmita.f transmitm.f transmitl.f anglezenithal.f angleazimutal.f horizon.f cloudreflectance.f  twodin.f twodout.f transTOA.f -o bin/illumina
+echo $F77" -Wunused-parameter -mcmodel=medium -O3 illumina.f zone_diffusion.f diffusion.f angle3points.f anglesolide.f transmita.f transmitm.f transmitl.f anglezenithal.f angleazimutal.f horizon.f cloudreflectance.f  twodin.f twodout.f transTOA.f curvature.f molabs.f -o bin/illumina"
+$F77 -Wunused-parameter -mcmodel=medium -O3 illumina.f zone_diffusion.f diffusion.f angle3points.f anglesolide.f transmita.f transmitm.f transmitl.f anglezenithal.f angleazimutal.f horizon.f cloudreflectance.f  twodin.f twodout.f transTOA.f curvature.f molabs.f -o bin/illumina
 echo $F77" ies2fctem.f -o bin/ies2fctem.exe"
 $F77 ies2fctem.f -o bin/ies2fctem.exe
 echo $F77" continue_illumina.f -o bin/continue_illumina"

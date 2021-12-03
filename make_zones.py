@@ -22,7 +22,7 @@ def make_zones(dir_name,inv_name,n_inv,n_bins,params,out_name,
 	for l in range(n_bins):
 		for s in sources:
 			np.savetxt(
-				dir_name+"fctem_wl_%03d_lamp_%s.dat" % (x[l],s),
+				dir_name+"fctem_wl_%g_lamp_%s.dat" % (x[l],s),
 				np.concatenate([ lop[s],angles ]).reshape((2,-1)).T )
 
 	with open(dir_name+"lamps.lst",'w') as zfile:
@@ -110,4 +110,4 @@ def make_zones(dir_name,inv_name,n_inv,n_bins,params,out_name,
 			new = MSD.from_domain("domain.ini")
 			for layer in range(len(new)):
 				new[layer] = phie[layer] * r[layer][i]
-			new.save(dir_name+"%s_%03d_lumlp_%s" % (out_name,x[n],s))
+			new.save(dir_name+"%s_%g_lumlp_%s" % (out_name,x[n],s))

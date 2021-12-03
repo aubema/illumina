@@ -1,9 +1,9 @@
 c calculation of the total vertical transmittance of the atmosphere
 c (aerosols and molecules separately
 c
-c pour utilisation avec Illumina 
+c pour utilisation avec Illumina
 c-----------------------------------------------------------------------
-c   
+c
 c    Copyright (C) 2021  Martin Aube
 c
 c    This program is free software: you can redistribute it and/or modify
@@ -21,12 +21,15 @@ c    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 c
 c    Contact: martin.aube@cegepsherbrooke.qc.ca
 
-      subroutine transtoa(lambm,taua,layaod,pressi,tranam,tranaa,tranal)
-      real m,lambm,taua,pressi,tranam,tranaa,tranal,layaod
-      m=(pressi/101.3)
-c  transmittance tiree de Kneizys et al. (1980)   
-      tranam=exp(-1.*m/(((lambm/1000.)**4.)*(115.6406-(1.335/((lambm/
-     +1000.)**2.)))))
+      subroutine transtoa(lambm,bandw,taua,layaod,pressi,tranam,tranaa
+     +,tranal,tabs)
+      real m,lambm,taua,pressi,tranam,tranaa,tranal,layaod,tabs,bandw
+      m=(pressi/101.325)
+c  transmittance taken from Bodhaine et al. (1999)
+      tranam=exp(-1.*m*0.0021520*(1.0455996-341.29061*(lambm/1000.)**
+     +-2.-0.90230850*(lambm/1000.)**2.)/(1.+0.0027059889*(lambm/1000.)
+     +**-2.-85.968563*(lambm/1000.)**2.))
+      call molabs(lambm,bandw,tabs)
       tranaa=exp(-1.*taua)
       tranal=exp(-1.*layaod)
       return
