@@ -646,7 +646,7 @@ c flux arrays (lumlp)
               if (viirs(i,j).eq.1) then
                 lamplu(i,j,stype)=lamplu(i,j,stype)/(tranam*tranaa*
      +          tranal)
-                thetali=atan(drefle(i,j)/obsH(i,j))
+                thetali=atan2(drefle(i,j),obsH(i,j))
                 Fo=(1.-cos(70.*pi/180.))/(1.-ofill(i,j)*cos(thetali)+
      +          (ofill(i,j)-1.)*cos(70.*pi/180.))
                 lamplu(i,j,stype)=lamplu(i,j,stype)*Fo
@@ -730,8 +730,8 @@ c ******************************************************************************
 c sub-grid obstacles
                   ff=0.
                   if (dho.gt.drefle(x_obs,y_obs)) then                    ! light path to observer larger than the mean free path -> subgrid obstacles
-                    angmin=pi/2.-atan((altsol(x_obs,y_obs)+
-     +              obsH(x_obs,y_obs)-z_obs)/drefle(x_obs,
+                    angmin=pi/2.-atan2((altsol(x_obs,y_obs)+
+     +              obsH(x_obs,y_obs)-z_obs),drefle(x_obs,
      +              y_obs))
                     if (dzen.lt.angmin) then                              ! condition sub-grid obstacles direct.
                       ff=0.
@@ -938,8 +938,8 @@ c ******************************************************************************
 c sub-grid obstacles
                               ff=0.
                               if (dho.gt.drefle(x_obs,y_obs)) then        ! light path to observer larger than the mean free path -> subgrid obstacles
-                                angmin=pi/2.-atan((altsol(x_obs,y_obs)+
-     +                          obsH(x_obs,y_obs)-z_obs)/drefle(x_obs,
+                                angmin=pi/2.-atan2((altsol(x_obs,y_obs)
+     +                          +obsH(x_obs,y_obs)-z_obs),drefle(x_obs,
      +                          y_obs))
                                 if (dzen.lt.angmin) then                  ! condition sub-grid obstacles direct.
                                   ff=0.
@@ -1153,8 +1153,8 @@ c computation of the horizon for the resolved shadows direct              ! hori
 c sub-grid obstacles
                               ff=0.
                               if (dho.gt.drefle(x_s,y_s)) then            ! light path to observer larger than the mean free path -> subgrid obstacles
-                                angmin=pi/2.-atan((altsol(x_s,y_s)+
-     +                          obsH(x_s,y_s)-z_s)/drefle(x_s,y_s))
+                                angmin=pi/2.-atan2((altsol(x_s,y_s)+
+     +                          obsH(x_s,y_s)-z_s),drefle(x_s,y_s))
                                 if (angzen.lt.angmin) then                ! condition sub-grid obstacles direct.
                                   ff=0.
                                 else
@@ -1406,7 +1406,7 @@ c horizon blocking not a matte because dif are closeby and some downward
 c sub-grid obstacles
             ff=0.
             if (dho.gt.drefle(x_sr,y_sr)) then                            ! light path to observer larger than the mean free path -> subgrid obstacles
-              angmin=pi/2.-atan(obsH(x_sr,y_sr)/drefle(x_sr,y_sr))
+              angmin=pi/2.-atan2(obsH(x_sr,y_sr),drefle(x_sr,y_sr))
               if (angzen.lt.angmin) then                                  ! condition obstacle reflechi->scattered
                 ff=0.
               else
@@ -1453,8 +1453,8 @@ c subgrid obstacles
               dho=sqrt((rx_dif-rx_c)**2.+(ry_dif-ry_c)**2.)
               ff=0.
               if (dho.gt.drefle(x_dif,y_dif)) then                        ! light path to observer larger than the mean free path -> subgrid obstacles
-                angmin=pi/2.-atan((obsH(x_dif,y_dif)+
-     +          altsol(x_dif,y_dif)-z_dif)/drefle(x_dif,y_dif))
+                angmin=pi/2.-atan2((obsH(x_dif,y_dif)+
+     +          altsol(x_dif,y_dif)-z_dif),drefle(x_dif,y_dif))
                 if (angzen.lt.angmin) then                                ! condition subgrid obstacle scattering -> line of sight
                   ff=0.
                 else
@@ -1519,8 +1519,8 @@ c shadow source-scattering voxel
      +        ry_dif,angazi)
 c horizon blocking not a matter because some path are downward and most of them closeby
               hh=1.
-              angmin=pi/2.-atan((obsH(x_s,y_s)+
-     +        altsol(x_s,y_s)-z_s)/drefle(x_s,
+              angmin=pi/2.-atan2((obsH(x_s,y_s)+
+     +        altsol(x_s,y_s)-z_s),drefle(x_s,
      +        y_s))
               if (angzen.lt.angmin) then                                  ! condition obstacle source->scattering.
                 ff=0.
@@ -1576,8 +1576,8 @@ c subgrid obstacles
                else
                  ff=0.
                  if (dho.gt.drefle(x_dif,y_dif)) then
-                   angmin=pi/2.-atan((obsH(x_dif,y_dif)
-     +             +altsol(x_dif,y_dif)-z_dif)/drefle(
+                   angmin=pi/2.-atan2((obsH(x_dif,y_dif)
+     +             +altsol(x_dif,y_dif)-z_dif),drefle(
      +             x_dif,y_dif))
                    if (angzen.lt.angmin) then                             ! condition obstacles scattering->line of sight
                      ff=0.
@@ -1686,8 +1686,8 @@ c obstacle
                                          ff=0.
                                          if (dho.gt.drefle(x_sr,y_sr))
      +                                   then
-                                           angmin=pi/2.-atan(obsH(x_sr,
-     +                                     y_sr)/drefle(x_sr,y_sr))
+                                           angmin=pi/2.-atan2(obsH(x_sr
+     +                                     ,y_sr),drefle(x_sr,y_sr))
                                            if (angzen.lt.angmin) then     ! condition obstacle reflected.
                                              ff=0.
                                            else
