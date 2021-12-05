@@ -360,7 +360,7 @@ c  determine the Length of basenm
       pclgp=basenm(1:lenbase)//'_pcl.gplot'
 c opening output file
       open(unit=2,file=outfile,status='unknown')
-        write(2,*) "ILLUMINA version 2.1.21w48.7a-dev"
+        write(2,*) "ILLUMINA version 2.1.21w48.7b-dev"
         write(2,*) 'FILE USED:'
         write(2,*) mnaf,diffil
         print*,'Wavelength (nm):',lambda,
@@ -647,7 +647,7 @@ c flux arrays (lumlp)
                 lamplu(i,j,stype)=lamplu(i,j,stype)/(tranam*tranaa*
      +          tranal)
                 thetali=atan2(drefle(i,j),obsH(i,j))
-                if (thetali .lt. 70.*pi/180.)
+                if (thetali .lt. 70.*pi/180.) then
                   Fo=(1.-cos(70.*pi/180.))/(1.-ofill(i,j)*cos(thetali)+
      +            (ofill(i,j)-1.)*cos(70.*pi/180.))
                   lamplu(i,j,stype)=lamplu(i,j,stype)*Fo
