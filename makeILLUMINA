@@ -38,25 +38,5 @@ $F77 -Wunused-parameter -mcmodel=medium -O3 kernel/illumina.f kernel/zone_diffus
 sed -i "s/$version/__version__/" kernel/illumina.f
 echo $F77" kernel/continue_illumina.f -o bin/continue_illumina"
 $F77 kernel/continue_illumina.f -o bin/continue_illumina
-echo $F77" kernel/CompareToMiro.f -o bin/CompareToMiro"
-$F77 kernel/CompareToMiro.f -o bin/CompareToMiro
-echo $F77" kernel/moypond.f kernel/twodin.f kernel/twodout.f -o bin/moypond"
-$F77 kernel/moypond.f kernel/twodin.f kernel/twodout.f -o bin/moypond
-echo $F77" kernel/blur.f kernel/twodin.f kernel/twodout.f -o bin/blur"
-$F77 kernel/blur.f kernel/twodin.f kernel/twodout.f -o bin/blur
-echo $F77" kernel/rad2lrad.f -o bin/rad2lrad"
-$F77 kernel/rad2lrad.f -o bin/rad2lrad
-echo $F77" kernel/readvalue.f kernel/twodin.f -o bin/readvalue"
-$F77 kernel/readvalue.f kernel/twodin.f -o bin/readvalue
-echo $F77" kernel/rad2polar.f -o bin/rad2polar"
-$F77 kernel/rad2polar.f -o bin/rad2polar
-echo $F77" kernel/combine.f kernel/twodin.f kernel/twodout.f -o bin/combine"
-$F77 kernel/combine.f kernel/twodin.f kernel/twodout.f -o bin/combine
-echo $F77" kernel/ratio.f kernel/twodin.f kernel/twodout.f -o bin/ratio"
-$F77 kernel/ratio.f kernel/twodin.f kernel/twodout.f -o bin/ratio
-echo $F77" kernel/substract.f kernel/twodin.f kernel/twodout.f -o bin/substract"
-$F77 kernel/substract.f kernel/twodin.f kernel/twodout.f -o bin/substract
-echo $F77" kernel/intrusive.f kernel/twodin.f kernel/twodout.f -o bin/intrusive"
-$F77 kernel/intrusive.f kernel/twodin.f kernel/twodout.f -o bin/intrusive
 chmod a+x bin/*
 chmod a+x *.bash
