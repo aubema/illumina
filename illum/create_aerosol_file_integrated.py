@@ -75,11 +75,11 @@ for contlayer, combination_type in enumerate(layer):
             )
             OPAC_filename = f"{mie_path}/OPAC_data/{type}{RH:02}"
             wl_prop = np.genfromtxt(
-                OPAC_filename, skip_header=60, skip_footer=120, comments=None
+                OPAC_filename, skip_header=17, skip_footer=120, comments=None
             )[:, 1:]
             pf_array = np.loadtxt(OPAC_filename)
             scat_angle = pf_array[:, 0]
-            pf_array = pf_array[:, 1:]
+            pf_array = pf_array[:, 1:].T
 
             ext_type[j] = np.interp(wl / 1000, wl_prop[:, 0], wl_prop[:, 1])
             scat_type[j] = np.interp(wl / 1000, wl_prop[:, 0], wl_prop[:, 2])
@@ -99,4 +99,4 @@ for contlayer, combination_type in enumerate(layer):
         with open("./Inputs/%s_%g.txt" % (combination_type, wl), "w+") as f:
             f.write(str(w_total) + " # single scatering albedo\n")
             f.write("ScatAngle PhaseFct\n")
-            np.savetxt(f, pf_norm, fmt="%g")
+            np.savetxt(f, np.stack([np.arange(181), pf_norm], 1), fmt="%g")
