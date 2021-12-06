@@ -6,10 +6,10 @@ import re
 
 repo = Repo('.')
 
-tracked_list = ["version","illumina.f","setup.py","main.py"]
+with open("illum/__init__.py") as f:
+    line = f.read().split('\n')[0]
+    old = line.split('=')[1].strip().strip('"\'')
 
-with open("version") as f:
-    old = f.read().strip()
 new = '.'.join(old.split('.')[:2])
 
 new += '.' + dt.now().strftime("%gw%V.%u")
@@ -20,10 +20,8 @@ branch = repo.active_branch.name
 if branch != "master":
     new += "-" + branch
 
-for fname in tracked_list:
-    with open(fname) as f:
-        file_content = f.read()
-    with open(fname,'w') as f:
-        f.write(file_content.replace(old,new))
-    repo.git.add(fname)
-
+with open("illum/__init__.py") as f:
+    file_content = f.read()
+with open("illum/__init__.py", 'w') as f:
+    f.write(file_content.replace(old, new))
+repo.git.add("illum/__init__.py")
