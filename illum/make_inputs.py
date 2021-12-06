@@ -20,6 +20,7 @@ import numpy as np
 import yaml
 from illum import MultiScaleData as MSD
 from illum import pytools as pt
+from illum.create_aerosol_file_integrated import create_aerosol_file_integrated
 from illum.make_lamps import make_lamps
 from illum.make_zones import make_zones
 
@@ -166,7 +167,7 @@ def inputs():
         dir_name,
     )
 
-    import create_aerosol_file_integrated
+    create_aerosol_file_integrated()
 
     shutil.copy("srtm.hdf5", dir_name)
 
