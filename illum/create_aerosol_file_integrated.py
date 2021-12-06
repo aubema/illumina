@@ -183,15 +183,10 @@ for combination_type in layer:
             pf_raw[i, 0] = i * math.pi / 180
             for j in range(len(aerosol_types)):
                 pf_raw[i, 1] = pf_raw[i, 1] + pf_type[i, j] * N[j]
-            norm_factor = (
-                norm_factor
-                + (1 / (4 * math.pi))
-                * 2
-                * math.pi
-                * pf_raw[i, 1]
-                * math.sin(pf_raw[i, 0])
-                * math.pi
-                / 180
+            norm_factor += (
+                (1 / (4 * math.pi))
+                * (2 * math.pi * pf_raw[i, 1])
+                * (math.sin(pf_raw[i, 0]) * math.pi / 180)
             )
         with open(
             "./Inputs/" + combination_type + "_" + str(int(wl)) + ".txt", "w+"
