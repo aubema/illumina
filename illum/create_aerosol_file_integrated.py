@@ -1,9 +1,13 @@
+#!/usr/bin/env python3
+
 import math
 import os
 import sys
+from collections import OrderedDict
 
 import illum
 import numpy as np
+import pandas as pd
 import yaml
 from scipy import interpolate
 
@@ -11,41 +15,37 @@ from scipy import interpolate
 illumpath = os.path.dirname(illum.__path__[0])
 mie_path = illumpath + "/Aerosol_optics/"
 
-with open("./inputs_params.in", "r") as finputs:
-    params = yaml.safe_load(finputs)
-    RH = params["relative_humidity"]
-    if RH == "0":
-        RH = "00"
-    layer = []
-    layer.append(params["aerosol_profile"])
-    layer.append(params["layer_type"])
+with open("inputs_params.in") as f:
+    params = yaml.safe_load(f)
+RH = params["relative_humidity"]
+layer = (params["aerosol_profile"], params["layer_type"])
 
-with open("./Inputs/integration_limits.dat", "r") as fwavelenght:
-    lines = fwavelenght.readlines()
-    bins = int(lines[0])
-aerosol_types = [
-    "inso",
-    "waso",
-    "soot",
-    "ssam",
-    "sscm",
-    "minm",
-    "miam",
-    "micm",
-    "mitr",
-    "suso",
-    "fogr",
-]
+bin_edges = np.linspace(
+    params["lambda_min"],
+    params["lambda_max"],
+    params["nb_bins"] + 1,
+)
+wavelengths = np.mean([bin_edges[1:], bin_edges[:-1]], 0)
+
+aerosol_types = OrderedDict(
+    inso="insoluble aerosol",
+    waso="water soluble aerosol",
+    soot="soot",
+    ssam="sea salt (acc)",
+    sscm="sea salt (coa)",
+    minm="mineral (suc)",
+    miam="mineral (acc)",
+    micm="mineral (coa)",
+    mitr="mineral transported",
+    suso="sulfate droplets",
+    fogr="fog",
+)
 contlayer = 0
 for combination_type in layer:
     N = np.array([0] * len(aerosol_types), dtype="float")
     for i in range(len(aerosol_types)):
         N[i] = 0
-    if (
-        combination_type == "Manual"
-        or combination_type == "MANUAL"
-        or combination_type == "manual"
-    ):
+    if combination_type.lower() == "manual":
         if contlayer == 0:
             print("Particle concentration of the first layer (manual)")
         elif contlayer == 1:
@@ -109,8 +109,7 @@ for combination_type in layer:
         )
         sys.exit()
     contlayer = contlayer + 1
-    for i in range(1, bins + 1):
-        wl = (float(lines[i]) + float(lines[i + 1])) / 2
+    for wl in wavelengths:
         # open files from each aerosol type
         j = 0
         ext_type = np.array([0] * len(aerosol_types), dtype="float")

@@ -161,15 +161,10 @@ def inputs():
     print("Linking mie files.")
 
     illumpath = os.path.dirname(illum.__path__[0])
-    mie_path = illumpath + "/Aerosol_optics/"
-
     shutil.copy2(
         os.path.abspath(illumpath + "/Molecular_optics/MolecularAbs.txt"),
         dir_name,
     )
-
-    mie_type = params["aerosol_profile"]
-    RH = params["relative_humidity"]
 
     import create_aerosol_file_integrated
 
