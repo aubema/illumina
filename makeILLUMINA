@@ -5,77 +5,58 @@
 #
 #    Copyright (C) 2012  Martin Aube
 #
-#    This program is free software: you can redistribute it and/or modify
+#    This program kernel/is free kernel/software: you can redistribute it and/or kernel/modify
 #    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
+#    kernel/the Free kernel/Software Foundation, either version 3 of the License, or
 #    (at your option) any later version.
 #
-#    This program is distributed in the hope that it will be useful,
+#    This program is distributed in the hope that it will be kernel/useful,
 #    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
+#    MERCHANTABILITY kernel/or Fkernel/ITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public kernel/License for more details.
 #
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 #    Contact: martin.aube@cegepsherbrooke.qc.ca
 #
-if [ ! -d bin ] 
+if [ ! -d bin ]
 then mkdir bin
 fi
+
+firstLine=`head -1 illum/__init__.py`
+version=${firstLine:15:-1}
+
 F77="gfortran"
 folder=`pwd`
 chmod a+x make*
-# options de debuggage -Wall -fcheck=all -g -fbacktrace -ffpe-trap=zero 
-echo $F77" -Wunused-parameter -mcmodel=medium -O3 illumina.f zone_diffusion.f diffusion.f angle3points.f anglesolide.f transmita.f transmitm.f transmitl.f anglezenithal.f angleazimutal.f horizon.f cloudreflectance.f  twodin.f twodout.f transTOA.f curvature.f molabs.f -o bin/illumina"
-$F77 -Wunused-parameter -mcmodel=medium -O3 illumina.f zone_diffusion.f diffusion.f angle3points.f anglesolide.f transmita.f transmitm.f transmitl.f anglezenithal.f angleazimutal.f horizon.f cloudreflectance.f  twodin.f twodout.f transTOA.f curvature.f molabs.f -o bin/illumina
-echo $F77" ies2fctem.f -o bin/ies2fctem.exe"
-$F77 ies2fctem.f -o bin/ies2fctem.exe
-echo $F77" continue_illumina.f -o bin/continue_illumina"
-$F77 continue_illumina.f -o bin/continue_illumina
-echo $F77" circular-integ.f twodin.f -o bin/circular-integ"
-$F77 circular-integ.f twodin.f -o bin/circular-integ
-echo $F77" CompareToMiro.f -o bin/CompareToMiro"
-$F77 CompareToMiro.f -o bin/CompareToMiro
-echo $F77" moypond.f twodin.f twodout.f -o bin/moypond"
-$F77 moypond.f twodin.f twodout.f -o bin/moypond
-echo $F77" blur.f twodin.f twodout.f -o bin/blur"
-$F77 blur.f twodin.f twodout.f -o bin/blur
-echo $F77" rad2lrad.f -o bin/rad2lrad"
-$F77 rad2lrad.f -o bin/rad2lrad
-# cd rand_map
-# echo "gcc -lm rand_pre.c -o ../bin/rand_pre"
-# gcc rand_pre.c -o ../bin/rand_pre -lm  
-# echo "gcc -lm rand_post.c -o ../bin/rand_post"
-# gcc rand_post.c -o ../bin/rand_post -lm  
-# echo "gcc -lm comp_reduc.c -o ../bin/comp_reduc"
-# gcc comp_reduc.c -o ../bin/comp_reduc -lm
-# cd ..
-echo $F77" readvalue.f twodin.f -o bin/readvalue"
-$F77 readvalue.f twodin.f -o bin/readvalue
-echo $F77" utils/mietool/MakeMieIn.f -o bin/MakeMieIn"
-$F77 utils/mietool/MakeMieIn.f -o bin/MakeMieIn
-echo $F77" utils/mietool/MakePSD.f -o bin/MakePSD"
-$F77 utils/mietool/MakePSD.f -o bin/MakePSD
-echo $F77" utils/mietool/cmbpsd.f -o bin/cmbpsd"
-$F77 utils/mietool/cmbpsd.f -o bin/cmbpsd
-echo $F77" utils/mietool/intermie.f -o bin/intermie"
-$F77 utils/mietool/intermie.f -o bin/intermie
-echo $F77" rad2polar.f -o bin/rad2polar"
-$F77 rad2polar.f -o bin/rad2polar
-echo $F77" combine.f twodin.f twodout.f -o bin/combine"
-$F77 combine.f twodin.f twodout.f -o bin/combine
-echo $F77" ratio.f twodin.f twodout.f -o bin/ratio"
-$F77 ratio.f twodin.f twodout.f -o bin/ratio
-echo $F77" substract.f twodin.f twodout.f -o bin/substract"
-$F77 substract.f twodin.f twodout.f -o bin/substract
-echo $F77" writevalueinpgm.f extrants2d.f -o bin/writevalue16bit"
-$F77 writevalue.f extrants2d.f -o bin/writevalue16bit
-echo $F77" intrusive.f twodin.f twodout.f -o bin/intrusive"
-$F77 intrusive.f twodin.f twodout.f -o bin/intrusive
-echo $F77" pgm16bittobin.f intrants2d.f twodout.f -o bin/pgm16bittobin"
-$F77 pgm16bittobin.f intrants2d.f twodout.f -o bin/pgm16bittobin
-echo $F77" bintopgm16bit.f twodin.f extrants2d.f -o bin/bintopgm16bit"
-$F77 bintopgm16bit.f twodin.f extrants2d.f -o bin/bintopgm16bit
+
+# options de debuggage -Wall -fcheck=all -g -fbacktrace -ffpe-trap=zero
+echo $F77" -Wunused-parameter -mcmodel=medium -O3 kernel/illumina.f kernel/zone_diffusion.f kernel/diffusion.f kernel/angle3points.f kernel/anglesolide.f kernel/transmita.f kernel/transmitm.f kernel/transmitl.f kernel/anglezenithal.f kernel/angleazimutal.f kernel/horizon.f kernel/cloudreflectance.f  kernel/twodin.f kernel/twodout.f kernel/transTOA.f kernel/curvature.f kernel/molabs.f -o bin/illumina"
+sed -i "s/__version__/$version/" kernel/illumina.f
+$F77 -Wunused-parameter -mcmodel=medium -O3 kernel/illumina.f kernel/zone_diffusion.f kernel/diffusion.f kernel/angle3points.f kernel/anglesolide.f kernel/transmita.f kernel/transmitm.f kernel/transmitl.f kernel/anglezenithal.f kernel/angleazimutal.f kernel/horizon.f kernel/cloudreflectance.f  kernel/twodin.f kernel/twodout.f kernel/transTOA.f kernel/curvature.f kernel/molabs.f -o bin/illumina
+sed -i "s/$version/__version__/" kernel/illumina.f
+echo $F77" kernel/continue_illumina.f -o bin/continue_illumina"
+$F77 kernel/continue_illumina.f -o bin/continue_illumina
+echo $F77" kernel/CompareToMiro.f -o bin/CompareToMiro"
+$F77 kernel/CompareToMiro.f -o bin/CompareToMiro
+echo $F77" kernel/moypond.f kernel/twodin.f kernel/twodout.f -o bin/moypond"
+$F77 kernel/moypond.f kernel/twodin.f kernel/twodout.f -o bin/moypond
+echo $F77" kernel/blur.f kernel/twodin.f kernel/twodout.f -o bin/blur"
+$F77 kernel/blur.f kernel/twodin.f kernel/twodout.f -o bin/blur
+echo $F77" kernel/rad2lrad.f -o bin/rad2lrad"
+$F77 kernel/rad2lrad.f -o bin/rad2lrad
+echo $F77" kernel/readvalue.f kernel/twodin.f -o bin/readvalue"
+$F77 kernel/readvalue.f kernel/twodin.f -o bin/readvalue
+echo $F77" kernel/rad2polar.f -o bin/rad2polar"
+$F77 kernel/rad2polar.f -o bin/rad2polar
+echo $F77" kernel/combine.f kernel/twodin.f kernel/twodout.f -o bin/combine"
+$F77 kernel/combine.f kernel/twodin.f kernel/twodout.f -o bin/combine
+echo $F77" kernel/ratio.f kernel/twodin.f kernel/twodout.f -o bin/ratio"
+$F77 kernel/ratio.f kernel/twodin.f kernel/twodout.f -o bin/ratio
+echo $F77" kernel/substract.f kernel/twodin.f kernel/twodout.f -o bin/substract"
+$F77 kernel/substract.f kernel/twodin.f kernel/twodout.f -o bin/substract
+echo $F77" kernel/intrusive.f kernel/twodin.f kernel/twodout.f -o bin/intrusive"
+$F77 kernel/intrusive.f kernel/twodin.f kernel/twodout.f -o bin/intrusive
 chmod a+x bin/*
 chmod a+x *.bash
