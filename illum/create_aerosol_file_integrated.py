@@ -2,13 +2,13 @@ import math
 import os
 import sys
 
+import illum
 import numpy as np
 import yaml
 from scipy import interpolate
 
 # READ DATA FROM INPUT FILES
-ppath = os.environ["PATH"].split(os.pathsep)
-illumpath = [s for s in ppath if "illumina" in s and "bin" not in s][0]
+illumpath = os.path.dirname(illum.__path__[0])
 mie_path = illumpath + "/Aerosol_optics/"
 
 with open("./inputs_params.in", "r") as finputs:

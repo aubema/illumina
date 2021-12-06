@@ -15,6 +15,7 @@ from collections import defaultdict as ddict
 from glob import glob
 
 import click
+import illum
 import numpy as np
 import yaml
 from illum import MultiScaleData as MSD
@@ -105,13 +106,6 @@ def inputs():
     # Spectral distribution (normalised with scotopric vision to 1)
     wav, viirs = np.loadtxt("Lights/viirs.dat", skiprows=1).T
     viirs /= np.max(viirs)
-    # viirs = pt.spct_norm(wav,viirs)
-    # norm_spectrum = pt.load_spct(
-    # 	wav,
-    # 	np.ones(wav.shape),
-    # 	"Lights/photopic.dat",
-    # 	1
-    # )
     wav, norm_spectrum = np.loadtxt("Lights/photopic.dat", skiprows=1).T
     norm_spectrum /= np.max(norm_spectrum)
 
@@ -166,8 +160,7 @@ def inputs():
 
     print("Linking mie files.")
 
-    ppath = os.environ["PATH"].split(os.pathsep)
-    illumpath = [s for s in ppath if "illumina" in s and "bin" not in s][0]
+    illumpath = os.path.dirname(illum.__path__[0])
     mie_path = illumpath + "/Aerosol_optics/"
 
     shutil.copy2(

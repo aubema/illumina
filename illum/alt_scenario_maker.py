@@ -7,6 +7,7 @@ from collections import defaultdict as ddict
 from glob import glob
 
 import click
+import illum
 import numpy as np
 import yaml
 from illum import MultiScaleData as MSD
@@ -129,8 +130,7 @@ def alternate(name, zones, lights):
 
     x = np.mean([limits[1:], limits[:-1]], 0).tolist()
 
-    ppath = os.environ["PATH"].split(os.pathsep)
-    illumpath = [s for s in ppath if "illumina" in s and "bin" not in s][0]
+    illumpath = os.path.dirname(illum.__path__[0])
 
     out_name = params["exp_name"]
 
