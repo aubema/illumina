@@ -33,15 +33,13 @@ c **    - Angular photometry of a lamp is considered uniform along the azimuth  
 c **    - Sub-grid obstacles considered (with the mean free path of light toward ground, mean obstacle height, and    **
 c **      obstacles transparency (filling factor)                                                                     **
 c **    - Molecules and aerosol optics (phase function, scattering probability, aerosol absorption)                   **
-c **      molecular absorption not consideres (given that we focus on the visible                                     **
-c **    - Exponential concentrations vertical profile (H aerosol= 2km, H molecules= 8km  )                            **
+c **    - Exponential concentrations vertical profile                                                                 **
 c **    - Accounting for heterogeneity luminaires number, luminaires heights, luminaire spectrum,                     **
 c **      angular photometry, obstacle properties                                                                     **
 c **    - Wavelength dependant                                                                                        **
 c **    - Cloud models (type and cloud base height) only the overhead clouds are considered with cloud fraction       **
 c **    - Support direct observation of a source                                                                      **
 c **    - Direct observation of the ground is implemented                                                             **
-c **    - Do not consider earth curvature (i.e. local/regional model)                                                 **
 c **                                                                                                                  **
 c **********************************************************************************************************************
 c

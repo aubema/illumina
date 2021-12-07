@@ -5,7 +5,6 @@ c
       wmin=lambda-bandw/2.
       wmax=lambda+bandw/2.
       tabs=0.
-      wlabs=0.
       wla=0.
       bwabs=0.
       open(unit=1,file='MolecularAbs.txt',status='old')
@@ -17,7 +16,7 @@ c
               bwabs=bwabs+bwa
            endif
         enddo
-        tabs=tabs/bwabs
+        if (bwabs.gt.0.) tabs=tabs/bwabs
       close(unit=1)
       return
       end
