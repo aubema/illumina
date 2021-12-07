@@ -29,17 +29,19 @@ def create_aerosol_file_integrated():
     wavelengths = np.mean([bin_edges[1:], bin_edges[:-1]], 0)
 
     aerosol_types = OrderedDict(
-        inso="insoluble aerosol",
-        waso="water soluble aerosol",
-        soot="soot",
-        ssam="sea salt (acc)",
-        sscm="sea salt (coa)",
-        minm="mineral (suc)",
-        miam="mineral (acc)",
-        micm="mineral (coa)",
-        mitr="mineral transported",
-        suso="sulfate droplets",
-        fogr="fog",
+        (
+            ("inso","insoluble aerosol"),
+            ("waso","water soluble aerosol"),
+            ("soot","soot"),
+            ("ssam","sea salt (acc)"),
+            ("sscm","sea salt (coa)"),
+            ("minm","mineral (suc)"),
+            ("miam","mineral (acc)"),
+            ("micm","mineral (coa)"),
+            ("mitr","mineral transported"),
+            ("suso","sulfate droplets"),
+            ("fogr","fog"),
+        )
     )
     N_types = len(aerosol_types)
 
@@ -101,7 +103,7 @@ def create_aerosol_file_integrated():
 
             # creating the variables of the specific combination of aerosols
             # single scattering albedo
-            w_total = np.sum(ext_type * N) / np.sum(scat_type * N)
+            w_total = np.sum(scat_type * N) / np.sum(ext_type * N)
 
             # phase function (angle)
             pf_norm = (
