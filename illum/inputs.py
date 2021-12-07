@@ -20,9 +20,8 @@ import numpy as np
 import yaml
 from illum import MultiScaleData as MSD
 from illum import pytools as pt
-from illum.create_aerosol_file_integrated import create_aerosol_file_integrated
-from illum.make_lamps import make_lamps
-from illum.make_zones import make_zones
+from illum.OPAC import OPAC
+from illum.inventory import from_lamps, from_zones
 
 
 @click.command()
@@ -83,7 +82,7 @@ def inputs():
 
     if params["road_orientation"]:
         print("Computing road orientation (Can be slow for large domains)")
-        from street_orientation import street_orientation
+        from illum.street_orientation import street_orientation
 
         with open("domain.ini") as f:
             domain_params = yaml.safe_load(f)
@@ -180,7 +179,7 @@ def inputs():
         n_inv = 7
         shutil.rmtree(dir_name, True)
         os.makedirs(dir_name)
-        make_zones(
+        from_zones(
             dir_name,
             inv_name,
             n_inv,
@@ -201,7 +200,7 @@ def inputs():
         dir_name = ".Inputs_lamps/"
         shutil.rmtree(dir_name, True)
         os.makedirs(dir_name)
-        make_lamps(
+        from_lamps(
             dir_name,
             n_bins,
             params,

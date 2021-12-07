@@ -11,8 +11,7 @@ import numpy as np
 import yaml
 from illum import MultiScaleData as MSD
 from illum import pytools as pt
-from illum.make_lamps import make_lamps
-from illum.make_zones import make_zones
+from illum.inventory import from_lamps, from_zones
 from scipy.interpolate import interp1d as interp
 
 
@@ -179,7 +178,7 @@ def alternate(name, zones, lights):
         n_inv = 7
         shutil.rmtree(dir_name, True)
         os.makedirs(dir_name)
-        make_zones(
+        from_zones(
             dir_name,
             inv_name,
             n_inv,
@@ -224,7 +223,7 @@ def alternate(name, zones, lights):
         dir_name = ".Inputs_lamps/"
         shutil.rmtree(dir_name, True)
         os.makedirs(dir_name)
-        make_lamps(
+        from_lamps(
             dir_name,
             n_bins,
             params,
