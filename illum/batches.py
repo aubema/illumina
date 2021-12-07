@@ -11,9 +11,9 @@ import os
 import shutil
 import sys
 from collections import ChainMap, OrderedDict
+from functools import partial
 from glob import glob
-from itertools import count as itcount
-from itertools import product as comb
+from itertools import product
 
 import click
 import numpy as np
@@ -21,6 +21,8 @@ import yaml
 from illum import MultiScaleData as MSD
 from illum.pytools import save_bin
 from progressbar import progressbar
+
+progress = partial(progressbar, redirect_stdout=True)
 
 
 def input_line(val, comment, n_space=30):
@@ -87,9 +89,7 @@ def batches(input_path, compact, batch_size, batch_name=None):
         for i in range(len(ds)):
             os.makedirs("obs_data/%6f_%6f/%d" % (lat, lon, i))
 
-    for i, fname in progressbar(
-        enumerate(glob("*.hdf5"), 1), redirect_stdout=True
-    ):
+    for i, fname in enumerate(progress(glob("*.hdf5")), 1):
         dataset = MSD.Open(fname)
         for clipped in dataset.split_observers():
             lat, lon = clipped.get_obs_pos()
@@ -142,9 +142,8 @@ def batches(input_path, compact, batch_size, batch_name=None):
     multival = sorted(multival, key=len, reverse=True)  # Semi-arbitrary sort
     param_space = [params[k] for k in multival]
 
-    for i, param_vals in progressbar(
-        enumerate(comb(*param_space), 1), redirect_stdout=True
-    ):
+    N = np.product([len(p) for p in param_space])
+    for param_vals in progress(product(*param_space), max_value=N):
         local_params = OrderedDict(zip(multival, param_vals))
         P = ChainMap(local_params, params)
         if (
