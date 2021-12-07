@@ -51,15 +51,15 @@ def illum():
 
 
 functions = (
-    (".defineDomain", "domain"),
-    (".Illuminutils", "warp"),
-    (".make_inputs", "inputs"),
-    (".makeBATCH", "batches"),
-    (".find-failed-runs", "failed"),
-    (".extract-output-data", "extract"),
-    (".init_run", "init"),
-    (".alt_scenario_maker", "alternate"),
-    (".hdf_convert", "convert"),
+    (".domain", "domain"),
+    (".warp", "warp"),
+    (".inputs", "inputs"),
+    (".batches", "batches"),
+    (".failed", "failed"),
+    (".extract", "extract"),
+    (".init", "init"),
+    (".alternate", "alternate"),
+    (".convert", "convert"),
 )
 
 for module_name, method in functions:

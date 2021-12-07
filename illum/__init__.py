@@ -1,3 +1,3 @@
-__version__ = "2.1.21w49.2d-dev"
+__version__ = "2.1.21w49.2e-dev-structure"
 
 from . import MultiScaleData, pytools
