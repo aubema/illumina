@@ -9,8 +9,10 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+from subprocess import call
 import yaml
 import sys, os, shutil
+#import illum
 #global variables
 switch1 = 0
 perc = []
@@ -329,8 +331,8 @@ class Ui_ILLUMINA(object):
             for line in inventory_line:
                 f.write(line)
         inventory_line = []
-        import defineDomain
-        import Illuminutils
+        call(["illum","domain"])
+        call(["illum","warp"])
         with open('inputs_params.in', 'r') as f:
             lines = f.readlines()
 
@@ -341,14 +343,15 @@ class Ui_ILLUMINA(object):
                 else:
                     f.write(line)
 
-        import make_inputs
+        call(["illum","inputs"])
         source = "./Inputs"
-        destination = "./"
-        os.remove('./Inputs/srtm.hdf5')
-        files = os.listdir(source)
-        for file in files:
-            shutil.move(f"{source}/{file}", destination)
-        import makeBATCH
+        os.chdir(source)
+        #destination = "./"
+        #os.remove('./Inputs/srtm.hdf5')
+        #files = os.listdir(source)
+        #for file in files:
+            #shutil.move(f"{source}/{file}", destination)
+        call(["illum","batches"])
 
     def defining_source(self):
         global switch1
