@@ -20,8 +20,8 @@ import numpy as np
 import yaml
 from illum import MultiScaleData as MSD
 from illum import pytools as pt
-from illum.OPAC import OPAC
 from illum.inventory import from_lamps, from_zones
+from illum.OPAC import OPAC
 
 
 @click.command()
