@@ -166,7 +166,7 @@ def inputs():
         dir_name,
     )
 
-    create_aerosol_file_integrated()
+    OPAC()
 
     shutil.copy("srtm.hdf5", dir_name)
 
