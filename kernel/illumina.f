@@ -650,10 +650,10 @@ c flux arrays (lumlp)
                 if (thetali .lt. 70.*pi/180.) then
                   Fo=(1.-cos(70.*pi/180.))/(1.-ofill(i,j)*cos(thetali)+
      +            (ofill(i,j)-1.)*cos(70.*pi/180.))
+                  lamplu(i,j,stype)=lamplu(i,j,stype)*Fo
                 else
                   Fo=1.
                 endif
-                lamplu(i,j,stype)=lamplu(i,j,stype)*Fo
               endif
               totlu(stype)=totlu(stype)+lamplu(i,j,stype)                 ! the total lamp flux should be non-null to proceed to the calculations
             enddo                                                         ! end of the loop over all cells along y.
