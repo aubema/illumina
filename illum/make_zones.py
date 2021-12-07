@@ -118,7 +118,7 @@ def make_zones(
 
     ratio = [
         np.tensordot(zones[..., ind], sinx, axes=([2], [0])).mean(-1)
-        for ind in np.array_split(np.where(bool_array)[0], n_bins)
+        for ind in bool_array
     ]
 
     for n in range(n_bins):

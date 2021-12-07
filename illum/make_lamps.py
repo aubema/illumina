@@ -89,10 +89,7 @@ def make_lamps(
                     )
                     fctem = np.sum(fctem * lumens[mask, None], 0)
 
-                    y = [
-                        np.mean(a)
-                        for a in np.array_split(fctem[bool_array], n_bins, -1)
-                    ]
+                    y = [np.mean(fctem[mask]) for mask in bool_array]
 
                     for i, wl in enumerate(x):
                         lumlp[s, wl][layer][row, col] = y[i]
