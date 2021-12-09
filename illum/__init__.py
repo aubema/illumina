@@ -1,3 +1,6 @@
-__version__ = "2.1.21w49.2i-dev"
+__version__ = "2.1.21w49.3a-dev"
 
-from . import MultiScaleData, pytools
+try:
+    from . import MultiScaleData, pytools
+except ModuleNotFoundError:
+    pass
