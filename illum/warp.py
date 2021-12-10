@@ -62,7 +62,7 @@ def prep_shp(infile, projection, extent):
         "tmp_select.shp",
         "/vsizip/" + os.path.abspath(infile),
     ]
-    cmd = map(str, cmd)
+    cmd = list(map(str, cmd))
     print("EXECUTING :", " ".join(cmd))
     call(cmd)
 
@@ -109,7 +109,7 @@ def rasterize(shpfile, projection, extent):
         shpfile,
         tmpfile,
     ]
-    cmd = map(str, cmd)
+    cmd = list(map(str, cmd))
     print("EXECUTING :", " ".join(cmd))
     call(cmd)
 
