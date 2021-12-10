@@ -12,6 +12,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from subprocess import call
 import yaml
 import sys, os, shutil
+from threading import Thread
 #import illum
 #global variables
 switch1 = 0
@@ -307,6 +308,19 @@ class Ui_ILLUMINA(object):
         global atm_type
         latitude = self.latitude_edit.text()
         longitude = self.longitude_edit.text()
+        cpus = 6 #fer boto per afegir el nombre de cpus
+        jobs = 3*1 #3 capes 1 bandwidth
+        if jobs//cpus==0:
+            jobs_batch=str(1)
+            num_batch=jobs
+        else:
+            if jobs%cpus==0:
+                jobs_batch=str(jobs//cpus)
+                num_batch=cpus
+            else:
+                jobs_batch=str(1+jobs//cpus)
+                num_batch=cpus
+        
         # date = self.date_edit.text()
         # date_day = date.split('/')[0]
         # date_month = date.split('/')[1]
@@ -344,14 +358,26 @@ class Ui_ILLUMINA(object):
                     f.write(line)
 
         call(["illum","inputs"])
-        source = "./Inputs"
-        os.chdir(source)
-        #destination = "./"
-        #os.remove('./Inputs/srtm.hdf5')
-        #files = os.listdir(source)
-        #for file in files:
-            #shutil.move(f"{source}/{file}", destination)
-        call(["illum","batches"])
+        pathparent = os.getcwd()
+        pathinputs= "./Inputs"
+        os.chdir(pathinputs)
+        call(["illum","batches","-N",jobs_batch])
+
+        threads = []
+        for i in range(num_batch):
+            a=#Thread(call(["bash","batch_"+str(i+1)]))
+            threads.append(a)
+        for t in threads:
+            print(t)
+            t.start()
+        for t in threads:
+            t.join()
+            
+        os.chdir(pathparent)
+        with open("results_prova.txt","w") as f:
+            call(["illum","extract"],stdout=f)
+        sys.exit()
+            
 
     def defining_source(self):
         global switch1
@@ -365,9 +391,9 @@ class Ui_ILLUMINA(object):
         radius = str(70)
         type = self.comboBox_type.currentText()
         if type == 'City':
-            hobs = str(0)
-            dobs = str(6)
-            fobs = str(0)
+            hobs = str(10)
+            dobs = str(12)
+            fobs = str(0.6)
             hlamp = str(6)
         elif type == 'Rural':
             hobs = str(5)
