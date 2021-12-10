@@ -40,7 +40,7 @@ def warp_files(srcfiles, projection, extent):
         *srcfiles,
         tmpfile,
     ]
-    cmd = map(str, cmd)
+    cmd = list(map(str, cmd))
     print("EXECUTING :", " ".join(cmd))
     call(cmd)
 
