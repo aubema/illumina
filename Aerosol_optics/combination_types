@@ -1,0 +1,42 @@
+CC:
+    inso: 0.15
+    waso: 2600
+CA:
+    inso: 0.4
+    waso: 7000
+    soot: 8300
+CP:
+    inso: 0.6
+    waso: 15700
+    soot: 34300
+U:
+    inso: 1.5
+    waso: 28000
+    soot: 130000
+D:
+    waso: 2000
+    minm: 269.5
+    miam: 30.5
+    micm: 0.142
+MC:
+    waso: 1500
+    ssam: 20
+    sscm: 3.2e-3
+MP:
+    waso: 3800
+    ssam: 20
+    sscm: 3.2e-3
+    soot: 5180
+MT:
+    waso: 590
+    ssam: 10
+    sscm: 1.3e-3
+ART:
+    waso: 1300
+    inso: 0.01
+    ssam: 1.9
+    soot: 5300
+ANT:
+    suso: 42.9
+    ssam: 0.047
+    mitr: 0.0053
