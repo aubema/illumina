@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+firstLine=`head -1 illum/__init__.py`
+version=${firstLine:15:-1}
+
+echo $version: $(cat $1) > $1

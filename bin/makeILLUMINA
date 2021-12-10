@@ -1,0 +1,42 @@
+#!/bin/bash
+#  Script de compilation du projet ILLUMINA
+#  2021
+#
+#
+#    Copyright (C) 2012  Martin Aube
+#
+#    This program kernel/is free kernel/software: you can redistribute it and/or kernel/modify
+#    it under the terms of the GNU General Public License as published by
+#    kernel/the Free kernel/Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be kernel/useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY kernel/or Fkernel/ITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public kernel/License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#    Contact: martin.aube@cegepsherbrooke.qc.ca
+#
+if [ ! -d bin ]
+then mkdir bin
+fi
+
+firstLine=`head -1 illum/__init__.py`
+version=${firstLine:15:-1}
+
+F77="gfortran"
+folder=`pwd`
+chmod a+x make*
+
+# options de debuggage -Wall -fcheck=all -g -fbacktrace -ffpe-trap=zero
+echo $F77" -Wunused-parameter -mcmodel=medium -O3 kernel/illumina.f kernel/zone_diffusion.f kernel/diffusion.f kernel/angle3points.f kernel/anglesolide.f kernel/transmita.f kernel/transmitm.f kernel/transmitl.f kernel/anglezenithal.f kernel/angleazimutal.f kernel/horizon.f kernel/cloudreflectance.f  kernel/twodin.f kernel/twodout.f kernel/transTOA.f kernel/curvature.f kernel/molabs.f -o bin/illumina"
+sed -i "s/__version__/$version/" kernel/illumina.f
+$F77 -Wunused-parameter -mcmodel=medium -O3 kernel/illumina.f kernel/zone_diffusion.f kernel/diffusion.f kernel/angle3points.f kernel/anglesolide.f kernel/transmita.f kernel/transmitm.f kernel/transmitl.f kernel/anglezenithal.f kernel/angleazimutal.f kernel/horizon.f kernel/cloudreflectance.f  kernel/twodin.f kernel/twodout.f kernel/transTOA.f kernel/curvature.f kernel/molabs.f -o bin/illumina
+sed -i "s/$version/__version__/" kernel/illumina.f
+echo $F77" kernel/continue_illumina.f -o bin/continue_illumina"
+$F77 kernel/continue_illumina.f -o bin/continue_illumina
+chmod a+x bin/*
+chmod a+x *.bash
