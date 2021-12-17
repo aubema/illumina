@@ -334,7 +334,7 @@ class Ui_ILLUMINA(object):
             f.write('longitude: ' + longitude + '\n')
             f.write('srs: auto\n')
             f.write('scale_factor: 3\n')
-            f.write('nb_pixels: 10\n')
+            f.write('nb_pixels: 20\n') #10
             f.write('nb_layers: 3\n')
             f.write('scale_min: 1000\n')
             f.write('buffer: 10')
@@ -363,18 +363,25 @@ class Ui_ILLUMINA(object):
         os.chdir(pathinputs)
         call(["illum","batches","-N",jobs_batch])
 
+        def calling_threads(number):
+            call(["bash","batch_"+number])
+
         threads = []
         for i in range(num_batch):
-            a=#Thread(call(["bash","batch_"+str(i+1)]))
-            threads.append(a)
+            x=Thread(target=calling_threads,args=(str(i+1)))
+            #call(["bash","batch_"+str(i+1)])
+            print(i)
+            x.start()
+            threads.append(x)
+            """
         for t in threads:
             print(t)
-            t.start()
+            t.start()"""
+
         for t in threads:
-            t.join()
-            
+            t.join() 
         os.chdir(pathparent)
-        with open("results_prova.txt","w") as f:
+        with open("results_prova2.txt","w") as f:
             call(["illum","extract"],stdout=f)
         sys.exit()
             
@@ -391,9 +398,9 @@ class Ui_ILLUMINA(object):
         radius = str(70)
         type = self.comboBox_type.currentText()
         if type == 'City':
-            hobs = str(10)
+            hobs = str(8)
             dobs = str(12)
-            fobs = str(0.6)
+            fobs = str(0)
             hlamp = str(6)
         elif type == 'Rural':
             hobs = str(5)
