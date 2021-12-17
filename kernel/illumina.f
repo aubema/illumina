@@ -488,20 +488,20 @@ c computation of the tilt of the pixels along x and along y
           enddo                                                           ! end of the loop over the rows (latitu) of the domain
         enddo                                                             ! end of the loop over the column (longitude) of the domain
 c correct altsol for earth curvature (first order correction)
-        hcurmin=0.
-        do i=1,nbx                                                        ! beginning of the loop over the column (longitude) of the domain.
-          do j=1,nby                                                      ! beginning of the loop over the rows (latitu) of the domain.
-             distc=sqrt((dx*real(i-x_obs))**2.+(dy*real(j-y_obs))**2.)
-             call curvature(distc,hcur)
-             altsol(i,j)=altsol(i,j)+hcur
-             if (hcur.lt.hcurmin) hcurmin=hcur
-          enddo                                                           ! end of the loop over the rows (latitu) of the domain
-        enddo                                                             ! end of the loop over the column (longitude) of the domain
-        do i=1,nbx                                                        ! beginning of the loop over the column (longitude) of the domain.
-          do j=1,nby                                                      ! beginning of the loop over the rows (latitu) of the domain.
-             altsol(i,j)=altsol(i,j)-hcurmin
-          enddo                                                           ! end of the loop over the rows (latitu) of the domain
-        enddo
+c        hcurmin=0.
+c        do i=1,nbx                                                        ! beginning of the loop over the column (longitude) of the domain.
+c          do j=1,nby                                                      ! beginning of the loop over the rows (latitu) of the domain.
+c             distc=sqrt((dx*real(i-x_obs))**2.+(dy*real(j-y_obs))**2.)
+c             call curvature(distc,hcur)
+c             altsol(i,j)=altsol(i,j)+hcur
+c             if (hcur.lt.hcurmin) hcurmin=hcur
+c          enddo                                                           ! end of the loop over the rows (latitu) of the domain
+c        enddo                                                             ! end of the loop over the column (longitude) of the domain
+c        do i=1,nbx                                                        ! beginning of the loop over the column (longitude) of the domain.
+c          do j=1,nby                                                      ! beginning of the loop over the rows (latitu) of the domain.
+c             altsol(i,j)=altsol(i,j)-hcurmin
+c          enddo                                                           ! end of the loop over the rows (latitu) of the domain
+c        enddo
 
 c reading of the values of P(theta), height, luminosities and positions
 c of the sources, obstacle height and distance
