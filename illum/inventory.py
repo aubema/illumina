@@ -6,8 +6,9 @@
 #
 # December 2021
 
-import illum.pytools as pt
 import numpy as np
+
+import illum.pytools as pt
 from illum import MultiScaleData as MSD
 
 
@@ -30,8 +31,8 @@ def from_lamps(
 
     # lamps distribution
     inv_name = params["lamps_inventory"]
-    lampsData = np.loadtxt(inv_name, usecols=list(range(7)))
-    photometry = np.loadtxt(inv_name, usecols=[-2, -1], dtype=str)
+    lampsData = np.loadtxt(inv_name, usecols=list(range(7)), ndmin=2)
+    photometry = np.loadtxt(inv_name, usecols=[-2, -1], dtype=str, ndmin=2)
     domain = MSD.from_domain("domain.ini")
 
     sources = np.unique(photometry[:, 1])
