@@ -919,7 +919,7 @@ c ******************************************************************************
      +                        ry_sr,angazi)
                               if (dzen.gt.pi/4.) then                     ! 45deg. it is unlikely to have a 1km high mountain less than 1
                                 call horizon(x_obs,y_obs,z_obs,dx,dy,
-     +                          altsol,angazi,zhoriz,dh)
+     +                          altsol,curv,angazi,zhoriz,dh)
                                 if (dh.le.dho) then
                                   if (dzen-zhoriz.lt.0.00001) then        ! shadow the path line of sight-source is not below the horizon => we compute
                                     hh=1.
@@ -1004,7 +1004,7 @@ c temporaire !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
  1110   format(I4,1x,I4,1x,I4)
         fctcld=0.
         ftocap=0.                                                         ! Initialisation of the value of flux received by the sensor
-        call horizon(x_obs,y_obs,z_obs,dx,dy,altsol,angaz1,zhoriz,        ! calculating the distance before the line of sight beeing blocked by topography
+        call horizon(x_obs,y_obs,z_obs,dx,dy,altsol,curv,angaz1,zhoriz,        ! calculating the distance before the line of sight beeing blocked by topography
      +  dhmax)
         rx_c=real(x_obs)*dx-ix*scal/2.
         ry_c=real(y_obs)*dx-iy*scal/2.
@@ -1134,7 +1134,7 @@ c computation of the horizon for the resolved shadows direct              ! hori
      +                        ry_c,angazi)
                               if (angzen.gt.pi/4.) then                   ! 45deg. it is unlikely to have a 1km high mountain less than 1
                                 call horizon(x_s,y_s,z_s,dx,dy,altsol,
-     +                          angazi,zhoriz,dh)
+     +                          curv,angazi,zhoriz,dh)
                                 if (dh.le.dho) then
                                   if (angzen-zhoriz.lt.0.00001) then      ! shadow the path line of sight-source is not below the horizon => we compute
                                     hh=1.
@@ -1657,7 +1657,7 @@ c verify if there is shadow between sr and line of sight voxel
                                         dho=sqrt((rx_sr-rx_c)**2.
      +                                  +(ry_sr-ry_c)**2.)
                                         if (angzen.gt.pi/4.) then         ! 45deg. it is unlikely to have a 1km high mountain less than 1
-        call horizon(x_sr,y_sr,z_sr,dx,dy,altsol,angazi,zhoriz,dh)
+        call horizon(x_sr,y_sr,z_sr,dx,dy,altsol,curv,angazi,zhoriz,dh)
                                           if (dh.le.dho) then
                                             if (angzen-zhoriz.lt.
      +                                      0.00001) then                 ! the path line of sight-reflec is not below the horizon => we compute
