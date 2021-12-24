@@ -48,7 +48,7 @@ c
         nx=nint(posx/dx)
         ny=nint(posy/dy)
         if ((nx.eq.x).and.(ny.eq.y)) then                                  ! to forbid division by zero
-           if (z.gt.altsol(nx,ny)+curv(nx,ny)) then
+           if (z.gt.altsol(nx,ny)) then
               zout=pi
               d=0.
            else
@@ -57,8 +57,8 @@ c
            endif
         else
         dout=sqrt(dx**2.*real((nx-x))**2.+dy**2.*real((ny-y))**2.)       
-        zout=pi/2.-atan((altsol(nx,ny)+curv(nx,ny)-z)/dout)
-        if (altsol(nx,ny)+curv(nx,ny).eq.z) then
+        zout=pi/2.-atan((altsol(nx,ny)-z)/dout)
+        if (altsol(nx,ny).eq.z) then
            zout=pi/2.-0.0001*pi/180.                                      ! bug for zhoriz=pi, anyway in the real world pi is almost impossible 
         endif        
         if (zout.lt.zhoriz) then
