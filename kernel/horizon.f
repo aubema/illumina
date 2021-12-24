@@ -25,11 +25,12 @@ c
 c    Contact: martin.aube@cegepsherbrooke.qc.ca
 c
 c
-      subroutine horizon(x,y,z,dx,dy,altsol,anga,zhoriz,d) 
+      subroutine horizon(x,y,z,dx,dy,altsol,curv,anga,zhoriz,d) 
       integer width                                                       ! Matrix dimension in Length/width and height
       parameter (width=512)      
       integer x,y,nx,ny
       real dx,dy,altsol(width,width),anga,zout,pi,angaz1,ix,iy
+      real curv(width,width)                                              ! Earth curvature terrain
       real posx,posy,scalef,zhoriz,z,d,dout
       pi=3.141592654
       angaz1=anga
@@ -47,7 +48,7 @@ c
         nx=nint(posx/dx)
         ny=nint(posy/dy)
         if ((nx.eq.x).and.(ny.eq.y)) then                                  ! to forbid division by zero
-           if (z.gt.altsol(nx,ny)) then
+           if (z.gt.altsol(nx,ny)+curv(nx,ny)) then
               zout=pi
               d=0.
            else
@@ -56,8 +57,8 @@ c
            endif
         else
         dout=sqrt(dx**2.*real((nx-x))**2.+dy**2.*real((ny-y))**2.)       
-        zout=pi/2.-atan((altsol(nx,ny)-z)/dout)
-        if (altsol(nx,ny).eq.z) then
+        zout=pi/2.-atan((altsol(nx,ny)+curv(nx,ny)-z)/dout)
+        if (altsol(nx,ny)+curv(nx,ny).eq.z) then
            zout=pi/2.-0.0001*pi/180.                                      ! bug for zhoriz=pi, anyway in the real world pi is almost impossible 
         endif        
         if (zout.lt.zhoriz) then

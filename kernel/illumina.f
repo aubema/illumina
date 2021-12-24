@@ -92,6 +92,7 @@ c
       integer nbx,nby                                                     ! Number of pixels in the modeling domain
       real val2d(width,width)                                             ! Temporary input array 2d
       real altsol(width,width)                                            ! Ground elevation (meter)
+      real curv(width,width)                                              ! Earth curvature terrain
       real srefl                                                          ! Ground reflectance
       integer stype                                                       ! Source type or zone index
       character*72 pafile,lufile,alfile,ohfile,odfile,offile              ! Files related to light sources and obstacles (photometric function of the sources (sr-1), flux (W), height (m), obstacles c                                                               ! height (m), obstacle distance (m), obstacle filling factor (0-1).
@@ -487,21 +488,15 @@ c computation of the tilt of the pixels along x and along y
             endif
           enddo                                                           ! end of the loop over the rows (latitu) of the domain
         enddo                                                             ! end of the loop over the column (longitude) of the domain
-c correct altsol for earth curvature (first order correction)
-c        hcurmin=0.
-c        do i=1,nbx                                                        ! beginning of the loop over the column (longitude) of the domain.
-c          do j=1,nby                                                      ! beginning of the loop over the rows (latitu) of the domain.
-c             distc=sqrt((dx*real(i-x_obs))**2.+(dy*real(j-y_obs))**2.)
-c             call curvature(distc,hcur)
-c             altsol(i,j)=altsol(i,j)+hcur
-c             if (hcur.lt.hcurmin) hcurmin=hcur
-c          enddo                                                           ! end of the loop over the rows (latitu) of the domain
-c        enddo                                                             ! end of the loop over the column (longitude) of the domain
-c        do i=1,nbx                                                        ! beginning of the loop over the column (longitude) of the domain.
-c          do j=1,nby                                                      ! beginning of the loop over the rows (latitu) of the domain.
-c             altsol(i,j)=altsol(i,j)-hcurmin
-c          enddo                                                           ! end of the loop over the rows (latitu) of the domain
-c        enddo
+c earth curvature (first order correction)
+        do i=1,nbx                                                        ! beginning of the loop over the column (longitude) of the domain.
+          do j=1,nby                                                      ! beginning of the loop over the rows (latitu) of the domain.
+             distc=sqrt((dx*real(i-x_obs))**2.+(dy*real(j-y_obs))**2.)
+             call curvature(distc,hcur)
+             curv(i,j)=hcur
+          enddo                                                           ! end of the loop over the rows (latitu) of the domain
+        enddo                                                             ! end of the loop over the column (longitude) of the domain
+
 
 c reading of the values of P(theta), height, luminosities and positions
 c of the sources, obstacle height and distance
@@ -716,7 +711,7 @@ c ******************************************************************************
      +            ry_s,angazi)
                   if (dzen.gt.pi/4.) then                                 ! 45deg. it is unlikely to have a 1km high mountain less than 1
                     call horizon(x_obs,y_obs,z_obs,dx,dy,
-     +              altsol,angazi,zhoriz,dh)
+     +              altsol,curv,angazi,zhoriz,dh)
                     if (dh.le.dho) then
                       if (dzen-zhoriz.lt.0.00001) then                    ! shadow the path line of sight-source is not below the horizon => we compute
                         hh=1.
