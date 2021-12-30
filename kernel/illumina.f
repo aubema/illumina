@@ -203,7 +203,7 @@ c                                                                         ! a li
       real fctcld                                                         ! total flux from cloud at the sensor level
       real totlu(nzon)                                                    ! total flux of a source type
       real stoplim                                                        ! Stop computation when the new voxel contribution is less than 1/stoplim of the cumulated flux
-      real ff,hh                                                          ! temporary obstacle filling factor and horizon blocking factor
+      real ff,ff2,hh                                                          ! temporary obstacle filling factor and horizon blocking factor
       real cloudbase,cloudtop,cloudhei                                    ! cloud base and top altitude (m), cloud layer avg height (m)
       real distd                                                          ! distance to compute the scattering probability
       real volu                                                           ! volume of a voxel
@@ -260,6 +260,7 @@ c                                                                         ! a li
       zero=0.
       un=1.
       ff=0.
+      ff2=0.
       step=1
       ncible=1024
       stepdi=1
@@ -736,6 +737,31 @@ c sub-grid obstacles
                       ff=ofill(x_obs,y_obs)
                     endif
                   endif                                                   ! end light path to the observer larger than mean free path
+                  
+ 
+ 
+ 
+                  
+                  call anglezenithal(rx_s,ry_s,z_s                        ! zenithal angle source-observer
+     +            ,rx_obs,ry_obs,z_obs,dzen)                  
+                  ff2=0.
+                  if (dho.gt.drefle(x_s,y_s)+drefle(x_obs,y_obs)) then                        ! light path from source larger than the mean free path -> subgrid obstacles
+                    angmin=pi/2.-atan2((altsol(x_s,y_s)+
+     +              obsH(x_s,y_s)-z_s),drefle(x_s,
+     +              y_s))
+                    if (dzen.lt.angmin) then                              ! condition sub-grid obstacles direct.
+                      ff2=0.
+                    else
+                      ff2=ofill(x_s,y_s)
+                    endif
+                  endif                                                   ! end light path to the observer larger than mean free path                  
+                  call anglezenithal(rx_obs,ry_obs,z_obs                  ! zenithal angle source-observer
+     +            ,rx_s,ry_s,z_s,dzen)                  
+                  
+                  
+                  
+                  
+                  
 c projection angle of line to the lamp and the viewing angle
                   call angle3points (rx_s,ry_s,z_s,rx_obs,                ! scattering angle.
      +            ry_obs,z_obs,rx,ry,rz,dang)
@@ -758,11 +784,11 @@ c computation of the solid angle 1m^2 at the observer as seen from the source
      +              hlay,transl,tranal)
                     if (dang.lt.dfov) then                                ! check if the reflecting surface enter the field of view of the observer
                       direct=direct+lamplu(x_s,y_s,stype)*
-     +                transa*transm*transl*P_dir*omega*(1.-ff)*hh
-     +                /(pi*dfov**2.)                                      ! correction for obstacle filling factor
+     +                transa*transm*transl*P_dir*omega*(1.-ff)*(1-ff2)
+     +                *hh/(pi*dfov**2.)                                      ! correction for obstacle filling factor
                     endif
                     irdirect=irdirect+lamplu(x_s,y_s,stype)*
-     +              transa*transm*transl*P_dir*omega*(1.-ff)*hh           ! correction for obstacle filling factor
+     +              transa*transm*transl*P_dir*omega*(1.-ff)*(1-ff2)*hh    ! correction for obstacle filling factor
                   endif
                 endif
 c
@@ -944,6 +970,27 @@ c sub-grid obstacles
                                   ff=ofill(x_obs,y_obs)
                                 endif
                               endif                                       ! end light path to the observer larger than mean free path
+                              
+                              
+                              
+                  call anglezenithal(rx_sr,ry_sr,z_sr                     ! zenithal angle surface-observer
+     +            ,rx_obs,ry_obs,z_obs,dzen)                  
+                  ff2=0.
+                  if (dho.gt.drefle(x_sr,y_sr)+drefle(x_obs,y_obs)) then                      ! light path from reflecting surface larger than the mean free path -> subgrid obstacles
+                    angmin=pi/2.-atan2((altsol(x_sr,y_sr)+
+     +              obsH(x_sr,y_sr)-z_sr),drefle(x_sr,
+     +              y_sr))
+                    if (dzen.lt.angmin) then                              ! condition sub-grid obstacles direct.
+                      ff2=0.
+                    else
+                      ff2=ofill(x_sr,y_sr)
+                    endif
+                  endif                                                   ! end light path to the observer larger than mean free path                                                
+                              call anglezenithal(rx_obs,ry_obs,z_obs      ! zenithal angle source-observer
+     +                        ,rx_sr,ry_sr,z_sr,dzen)                              
+                              
+                              
+                              
 c projection angle of line to the lamp and the viewing angle
                               call angle3points (rx_sr,ry_sr,z_sr,        ! scattering angle.
      +                        rx_obs,ry_obs,z_obs,rx,ry,rz,dang)
@@ -964,10 +1011,11 @@ c computation of the solid angle of the line of sight voxel seen from the source
      +                          hlay,transl,tranal)
                                 if (dang.lt.dfov) then                    ! check if the reflecting surface enter the field of view of the observer
                                   rdirect=rdirect+irefl1*omega*transa*
-     +                            transm*transl*hh*(1.-ff)/(pi*dfov**2.)
+     +                            transm*transl*hh*(1.-ff)*(1.-ff2)
+     +                            /(pi*dfov**2.)
                                 endif
                                 irrdirect=irrdirect+irefl1*omega*transa*
-     +                          transm*transl*hh*(1.-ff)
+     +                          transm*transl*hh*(1.-ff)*(1.-ff2)
                               endif
 
                             endif
