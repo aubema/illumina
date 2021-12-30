@@ -15,9 +15,11 @@ from collections import defaultdict as ddict
 from glob import glob
 
 import click
-import illum
 import numpy as np
 import yaml
+from scipy.interpolate import griddata
+
+import illum
 from illum import MultiScaleData as MSD
 from illum import pytools as pt
 from illum.inventory import from_lamps, from_zones
@@ -33,7 +35,7 @@ def inputs():
     dir_name = "Inputs/"
     shutil.rmtree(dir_name, True)
     os.makedirs(dir_name)
-    shutil.copy("inputs_params.in", "Inputs/inputs_params.in")
+    shutil.copy("inputs_params.in", dir_name + "inputs_params.in")
 
     with open("inputs_params.in") as f:
         params = yaml.safe_load(f)
@@ -246,5 +248,24 @@ def inputs():
         origin.save("Inputs/origin")
     shutil.rmtree(".Inputs_lamps", True)
     shutil.rmtree(".Inputs_zones", True)
+
+    # Interpolation of the obstacles properties
+    defined = MSD.Open(dir_name + "origin.hdf5")
+    lights_file = dir_name + out_name + "_lights.hdf5"
+    if os.path.isfile(lights_file):
+        lights = MSD.Open(lights_file)
+        for i, layer in enumerate(lights):
+            defined[i] += layer
+
+    for geo in ["obsth", "obstd", "obstf", "altlp"]:
+        geometry = MSD.Open(dir_name + out_name + "_" + geo + ".hdf5")
+        for i, mask in enumerate(defined):
+            geometry[i] = griddata(
+                points=np.where(mask),
+                values=geometry[i][mask.astype(bool)],
+                xi=tuple(np.ogrid[0 : mask.shape[0], 0 : mask.shape[1]]),
+                method="nearest",
+            )
+        geometry.save(dir_name + out_name + "_" + geo)
 
     print("Done.")

@@ -60,7 +60,7 @@ def from_lamps(
         zfile.write("\n".join(sources) + "\n")
 
     geometry = dict()
-    for geo in ["obsth", "obstd", "obstf", "altlp"]:
+    for geo in ["obsth", "obstd", "obstf", "altlp", "lights"]:
         geometry[geo] = MSD.from_domain("domain.ini")
 
     lumlp = dict()
@@ -81,6 +81,7 @@ def from_lamps(
                     geometry[geo][layer][row, col] = np.average(
                         lampsData[:, n][ind], weights=lumens
                     )
+                geometry["lights"][layer][row, col] = 1
 
                 local_sources = np.unique(photometry[ind][:, 1])
                 for s in local_sources:
