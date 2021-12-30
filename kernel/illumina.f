@@ -784,11 +784,11 @@ c computation of the solid angle 1m^2 at the observer as seen from the source
      +              hlay,transl,tranal)
                     if (dang.lt.dfov) then                                ! check if the reflecting surface enter the field of view of the observer
                       direct=direct+lamplu(x_s,y_s,stype)*
-     +                transa*transm*transl*P_dir*omega*(1.-ff)*(1-ff2)
+     +                transa*transm*transl*P_dir*omega*(1.-ff)*(1.-ff2)
      +                *hh/(pi*dfov**2.)                                      ! correction for obstacle filling factor
                     endif
                     irdirect=irdirect+lamplu(x_s,y_s,stype)*
-     +              transa*transm*transl*P_dir*omega*(1.-ff)*(1-ff2)*hh    ! correction for obstacle filling factor
+     +              transa*transm*transl*P_dir*omega*(1.-ff)*(1.-ff2)*hh    ! correction for obstacle filling factor
                   endif
                 endif
 c
