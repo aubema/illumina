@@ -216,6 +216,7 @@ def inputs():
             refl,
             bool_array,
         )
+    dir_name = "Inputs/"
 
     print("Unifying inputs.")
 
