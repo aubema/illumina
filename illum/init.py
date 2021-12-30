@@ -5,14 +5,14 @@ import shutil
 from glob import glob
 
 import click
+import illum
 
 
 @click.command()
 def init():
     """Initialize an execution folder."""
     print("Initializing Illumina execution folder.")
-    ppath = os.environ["PATH"].split(os.pathsep)
-    illumpath = [s for s in ppath if "illumina" in s and "bin" not in s][0]
+    illumpath = os.path.dirname(illum.__path__[0])
 
     if not os.path.exists("Lights"):
         shutil.copytree(illumpath + "/Example/Lights", "Lights")
