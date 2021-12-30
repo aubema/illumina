@@ -254,6 +254,7 @@ c                                                                         ! a li
       real distc,hcur                                                     ! distance to any cell and curvature  correction for the earth curvature
       real bandw                                                          ! bandwidth of the spectral bin
       real tabs                                                           ! TOA transmittance related to molecule absorption
+      integer obsobs                                                      ! flag to activate the direct light obstacle blocking aroud the observer.
       verbose=1                                                           ! Very little printout=0, Many printout = 1, even more=2
       diamobj=1.                                                          ! A dummy value for the diameter of the objective of the instrument used by the observer.
       volu=0.
@@ -287,7 +288,7 @@ c reading of the fichier d'entree (illumina.in)
         read(1,*) stoplim
         read(1,*)
         read(1,*) x_obs,y_obs,z_o
-        read(1,*)
+        read(1,*) obsobs
         read(1,*) angvis,azim
         read(1,*) dfov
         read(1,*)
@@ -725,6 +726,8 @@ c ******************************************************************************
                   else
                     hh=1.
                   endif
+                  
+               if (obsobs.eq.1) then
 c sub-grid obstacles
                   ff=0.
                   if (dho.gt.drefle(x_obs,y_obs)+drefle(x_s,y_s)) then    ! light path to observer larger than the mean free path -> subgrid obstacles
@@ -737,6 +740,7 @@ c sub-grid obstacles
                       ff=ofill(x_obs,y_obs)
                     endif
                   endif                                                   ! end light path to the observer larger than mean free path
+               endif
                   
  
  
@@ -959,6 +963,7 @@ c ******************************************************************************
                                 hh=1.
                               endif
 c sub-grid obstacles
+               if (obsobs.eq.1) then
                               ff=0.
                               if (dho.gt.drefle(x_obs,y_obs)+
      +                        drefle(x_sr,y_sr)) then                     ! light path to observer larger than the mean free path -> subgrid obstacles
@@ -971,6 +976,7 @@ c sub-grid obstacles
                                   ff=ofill(x_obs,y_obs)
                                 endif
                               endif                                       ! end light path to the observer larger than mean free path
+               endif
                               
                               
                               
