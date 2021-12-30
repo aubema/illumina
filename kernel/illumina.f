@@ -727,7 +727,7 @@ c ******************************************************************************
                   endif
 c sub-grid obstacles
                   ff=0.
-                  if (dho.gt.drefle(x_obs,y_obs)) then                    ! light path to observer larger than the mean free path -> subgrid obstacles
+                  if (dho.gt.drefle(x_obs,y_obs)+drefle(x_s,y_s)) then    ! light path to observer larger than the mean free path -> subgrid obstacles
                     angmin=pi/2.-atan2((altsol(x_obs,y_obs)+
      +              obsH(x_obs,y_obs)-z_obs),drefle(x_obs,
      +              y_obs))
@@ -745,7 +745,7 @@ c sub-grid obstacles
                   call anglezenithal(rx_s,ry_s,z_s                        ! zenithal angle source-observer
      +            ,rx_obs,ry_obs,z_obs,dzen)                  
                   ff2=0.
-                  if (dho.gt.drefle(x_s,y_s)+drefle(x_obs,y_obs)) then                        ! light path from source larger than the mean free path -> subgrid obstacles
+                  if (dho.gt.drefle(x_s,y_s)) then                        ! light path from source larger than the mean free path -> subgrid obstacles
                     angmin=pi/2.-atan2((altsol(x_s,y_s)+
      +              obsH(x_s,y_s)-z_s),drefle(x_s,
      +              y_s))
@@ -960,7 +960,8 @@ c ******************************************************************************
                               endif
 c sub-grid obstacles
                               ff=0.
-                              if (dho.gt.drefle(x_obs,y_obs)) then        ! light path to observer larger than the mean free path -> subgrid obstacles
+                              if (dho.gt.drefle(x_obs,y_obs)+
+     +                        drefle(x_sr,y_sr)) then                     ! light path to observer larger than the mean free path -> subgrid obstacles
                                 angmin=pi/2.-atan2((altsol(x_obs,y_obs)
      +                          +obsH(x_obs,y_obs)-z_obs),drefle(x_obs,
      +                          y_obs))
@@ -976,7 +977,7 @@ c sub-grid obstacles
                   call anglezenithal(rx_sr,ry_sr,z_sr                     ! zenithal angle surface-observer
      +            ,rx_obs,ry_obs,z_obs,dzen)                  
                   ff2=0.
-                  if (dho.gt.drefle(x_sr,y_sr)+drefle(x_obs,y_obs)) then                      ! light path from reflecting surface larger than the mean free path -> subgrid obstacles
+                  if (dho.gt.drefle(x_sr,y_sr)) then                      ! light path from reflecting surface larger than the mean free path -> subgrid obstacles
                     angmin=pi/2.-atan2((altsol(x_sr,y_sr)+
      +              obsH(x_sr,y_sr)-z_sr),drefle(x_sr,
      +              y_sr))
