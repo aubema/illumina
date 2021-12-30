@@ -18,9 +18,10 @@ from itertools import product
 import click
 import numpy as np
 import yaml
+from progressbar import progressbar
+
 from illum import MultiScaleData as MSD
 from illum.pytools import save_bin
-from progressbar import progressbar
 
 progress = partial(progressbar, redirect_stdout=True)
 
@@ -301,7 +302,7 @@ def batches(input_path, compact, batch_size, batch_name=None):
                     "Observer elevation above ground [m]",
                 ),
             ),
-            (("", ""),),
+            ((P["observer_obstacles"] * 1, "Obstacles around observer"),),
             (
                 (P["elevation_angle"], "Elevation viewing angle"),
                 (
