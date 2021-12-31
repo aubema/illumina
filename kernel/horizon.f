@@ -30,7 +30,7 @@ c
       parameter (width=512)
       integer x,y,nx,ny
       real dx,dy,altsol(width,width),anga,zout,pi,angaz1,ix,iy
-      real hcur                                              ! Earth curvature terrain
+      real hcur,distc                                                           ! Earth curvature terrain
       real posx,posy,scalef,zhoriz,z,d,dout
       pi=3.141592654
       angaz1=anga
@@ -59,7 +59,7 @@ c earth curvature (first order correction)
               d=0.
            endif
         else
-        dout=sqrt(dx**2.*real((nx-x))**2.+dy**2.*real((ny-y))**2.)
+        dout=distc
         zout=pi/2.-atan((altsol(nx,ny)-hcur-z)/dout)
         if (altsol(nx,ny)-hcur.eq.z) then
            zout=pi/2.-0.0001*pi/180.                                      ! bug for zhoriz=pi, anyway in the real world pi is almost impossible
