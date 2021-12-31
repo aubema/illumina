@@ -92,7 +92,6 @@ c
       integer nbx,nby                                                     ! Number of pixels in the modeling domain
       real val2d(width,width)                                             ! Temporary input array 2d
       real altsol(width,width)                                            ! Ground elevation (meter)
-      real curv(width,width)                                              ! Earth curvature terrain
       real srefl                                                          ! Ground reflectance
       integer stype                                                       ! Source type or zone index
       character*72 pafile,lufile,alfile,ohfile,odfile,offile              ! Files related to light sources and obstacles (photometric function of the sources (sr-1), flux (W), height (m), obstacles c                                                               ! height (m), obstacle distance (m), obstacle filling factor (0-1).
