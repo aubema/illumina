@@ -47,7 +47,7 @@ c
         posy=posy+iy*scalef
         nx=nint(posx/dx)
         ny=nint(posy/dy)
-        c earth curvature (first order correction)
+c earth curvature (first order correction)
         distc=sqrt((dx*real(nx-x))**2.+(dy*real(ny-y))**2.)
         call curvature(distc,hcur)
         if ((nx.eq.x).and.(ny.eq.y)) then                                  ! to forbid division by zero
