@@ -715,10 +715,9 @@ c ******************************************************************************
                   else
                     hh=1.
                   endif
-                  
+               ff=0.   
                if (obsobs.eq.1) then
 c sub-grid obstacles
-                  ff=0.
                   if (dho.gt.drefle(x_obs,y_obs)+drefle(x_s,y_s)) then    ! light path to observer larger than the mean free path -> subgrid obstacles
                     angmin=pi/2.-atan2((altsol(x_obs,y_obs)+
      +              obsH(x_obs,y_obs)-z_obs),drefle(x_obs,
@@ -952,8 +951,8 @@ c ******************************************************************************
                                 hh=1.
                               endif
 c sub-grid obstacles
+               ff=0.
                if (obsobs.eq.1) then
-                              ff=0.
                               if (dho.gt.drefle(x_obs,y_obs)+
      +                        drefle(x_sr,y_sr)) then                     ! light path to observer larger than the mean free path -> subgrid obstacles
                                 angmin=pi/2.-atan2((altsol(x_obs,y_obs)
