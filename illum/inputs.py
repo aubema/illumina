@@ -8,22 +8,18 @@
 # March 2021
 
 import os
-import re
 import shutil
-import sys
-from collections import defaultdict as ddict
 from glob import glob
 
 import click
+import illum
 import numpy as np
 import yaml
-from scipy.interpolate import griddata
-
-import illum
 from illum import MultiScaleData as MSD
 from illum import pytools as pt
 from illum.inventory import from_lamps, from_zones
 from illum.OPAC import OPAC
+from scipy.interpolate import griddata
 
 
 @click.command()
@@ -62,21 +58,21 @@ def inputs():
             zones_ind.set_circle((dat[0], dat[1]), dat[2] * 1000, i)
 
         failed = set()
-        for l, coords in enumerate(lamps, 1):
+        for j, coords in enumerate(lamps, 1):
             for i in range(len(circles)):
                 try:
                     col, row = circles._get_col_row(coords, i)
                     if circles[i][row, col] and col >= 0 and row >= 0:
                         zon_ind = zones_ind[i][row, col]
-                        failed.add((l, coords[0], coords[1], zon_ind))
+                        failed.add((j, coords[0], coords[1], zon_ind))
                 except IndexError:
                     continue
 
         if len(failed):
-            for l, lat, lon, zon_ind in sorted(failed):
+            for i, lat, lon, zon_ind in sorted(failed):
                 print(
                     "WARNING: Lamp #%d (%.06g,%.06g) falls within non-null zone #%d"
-                    % (l, lat, lon, zon_ind)
+                    % (i, lat, lon, zon_ind)
                 )
             raise SystemExit()
 

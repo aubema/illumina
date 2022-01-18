@@ -9,7 +9,6 @@
 
 import os
 import shutil
-import sys
 from collections import ChainMap, OrderedDict
 from functools import partial
 from glob import glob
@@ -18,10 +17,9 @@ from itertools import product
 import click
 import numpy as np
 import yaml
-from progressbar import progressbar
-
 from illum import MultiScaleData as MSD
 from illum.pytools import save_bin
+from progressbar import progressbar
 
 progress = partial(progressbar, redirect_stdout=True)
 
@@ -47,8 +45,8 @@ def MSDOpen(filename, cached={}):
     "-c",
     "--compact",
     is_flag=True,
-    help="If given, will chain similar executions. "
-    "Reduces the overall number of runs at the cost of longuer individual executions.",
+    help="If given, will chain similar executions. Reduces the overall number "
+    "of runs at the cost of longuer individual executions.",
 )
 @click.option(
     "-N",
@@ -107,8 +105,8 @@ def batches(input_path, compact, batch_size, batch_name=None):
                     padded_dat,
                 )
             if "srtm" in fname:
-                for l in range(len(clipped)):
-                    clipped[l][:] = 0
+                for j in range(len(clipped)):
+                    clipped[j][:] = 0
                 clipped.save("obs_data/%6f_%6f/blank" % (lat, lon))
 
     # Add wavelength and multiscale
@@ -211,13 +209,13 @@ def batches(input_path, compact, batch_size, batch_name=None):
                 fold_name + "MolecularAbs.txt",
             )
 
-            for l, lamp in enumerate(lamps, 1):
+            for i, lamp in enumerate(lamps, 1):
                 os.symlink(
                     os.path.relpath(
                         "fctem_wl_%s_lamp_%s.dat" % (wavelength, lamp),
                         fold_name,
                     ),
-                    fold_name + exp_name + "_fctem_%03d.dat" % l,
+                    fold_name + exp_name + "_fctem_%03d.dat" % i,
                 )
 
             ppath = os.environ["PATH"].split(os.pathsep)
@@ -253,7 +251,7 @@ def batches(input_path, compact, batch_size, batch_name=None):
                     fold_name + "%s_%s.bin" % (exp_name, name),
                 )
 
-            for l, lamp in enumerate(lamps, 1):
+            for i, lamp in enumerate(lamps, 1):
                 os.symlink(
                     os.path.relpath(
                         os.path.join(
@@ -263,7 +261,7 @@ def batches(input_path, compact, batch_size, batch_name=None):
                         ),
                         fold_name,
                     ),
-                    fold_name + "%s_lumlp_%03d.bin" % (exp_name, l),
+                    fold_name + "%s_lumlp_%03d.bin" % (exp_name, i),
                 )
 
         # Create illumina.in
@@ -317,7 +315,7 @@ def batches(input_path, compact, batch_size, batch_name=None):
             (
                 (
                     P["reflection_radius"],
-                    "Radius around the light source where reflextions are computed",
+                    "Radius around light sources where reflextions are computed",
                 ),
             ),
             (

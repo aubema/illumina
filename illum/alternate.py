@@ -2,8 +2,6 @@
 
 import os
 import shutil
-import sys
-from collections import defaultdict as ddict
 from glob import glob
 
 import click
@@ -35,7 +33,7 @@ def alternate(name, zones, lights):
     This scenatio will be based on the content of the `Inputs` folder and
     will be placed in a folder named `Inputs_NAME`.
     """
-    if zones == None and lights == None:
+    if zones is None and lights is None:
         print("ERROR: At least one of 'zones' and 'lights' must be provided.")
         raise SystemExit
 
@@ -67,21 +65,21 @@ def alternate(name, zones, lights):
             zones_ind.set_circle((dat[0], dat[1]), dat[2] * 1000, i)
 
         failed = set()
-        for l, coords in enumerate(lamps, 1):
+        for j, coords in enumerate(lamps, 1):
             for i in range(len(circles)):
                 try:
                     col, row = circles._get_col_row(coords, i)
                     if circles[i][row, col] and col >= 0 and row >= 0:
                         zon_ind = zones_ind[i][row, col]
-                        failed.add((l, coords[0], coords[1], zon_ind))
+                        failed.add((j, coords[0], coords[1], zon_ind))
                 except IndexError:
                     continue
 
         if len(failed):
-            for l, lat, lon, zon_ind in sorted(failed):
+            for i, lat, lon, zon_ind in sorted(failed):
                 print(
                     "WARNING: Lamp #%d (%.06g,%.06g) falls within non-null zone #%d"
-                    % (l, lat, lon, zon_ind)
+                    % (i, lat, lon, zon_ind)
                 )
             raise SystemExit()
 
@@ -105,7 +103,6 @@ def alternate(name, zones, lights):
     scotopic = pt.load_spct(wav, np.ones(wav.shape), "Lights/scotopic.dat", 1)
     photopic = pt.load_spct(wav, np.ones(wav.shape), "Lights/photopic.dat", 1)
 
-    # ratio_ps = float(raw_input("    photopic/scotopic ratio ? (0 <= p/(s+p) <= 1) : "))
     ratio_ps = 1.0
     norm_spectrum = ratio_ps * photopic + (1 - ratio_ps) * scotopic
 
@@ -159,7 +156,6 @@ def alternate(name, zones, lights):
         zfile.write("\n".join(["%.06g" % n for n in reflect]) + "\n")
 
     # Photopic/scotopic spectrum
-    #   ratio_ps = float(raw_input("    photopic/scotopic ratio for lamp power ? (0 <= p/(s+p) <= 1) : "))
     nspct = ratio_ps * photopic + (1 - ratio_ps) * scotopic
     nspct = nspct / np.sum(nspct)
     nspct = [np.mean(nspct[mask]) for mask in bool_array]
