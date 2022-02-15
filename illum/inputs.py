@@ -12,14 +12,15 @@ import shutil
 from glob import glob
 
 import click
-import illum
 import numpy as np
 import yaml
+from scipy.interpolate import griddata
+
+import illum
 from illum import MultiScaleData as MSD
 from illum import pytools as pt
 from illum.inventory import from_lamps, from_zones
 from illum.OPAC import OPAC
-from scipy.interpolate import griddata
 
 
 @click.command()
@@ -115,16 +116,21 @@ def inputs():
         for s in spct_files
     }
 
-    print("Splitting in a few wavelengths.")
+    print("Splitting in wavelengths bins.")
 
-    n_bins = params["nb_bins"]
-    lmin = params["lambda_min"]
-    lmax = params["lambda_max"]
+    if os.path.isfile("spectral_bands.dat"):
+        bins = np.loadtxt("spectral_bands.dat", delimiter=",")
+        n_bins = bins.shape[0]
+    else:
+        n_bins = params["nb_bins"]
+        lmin = params["lambda_min"]
+        lmax = params["lambda_max"]
 
-    limits = np.linspace(lmin, lmax, n_bins + 1)
-    bool_array = (wav >= limits[:-1, None]) & (wav < limits[1:, None])
+        limits = np.linspace(lmin, lmax, n_bins + 1)
+        bins = np.stack([limits[:-1], limits[1:]], axis=1)
 
-    x = np.mean([limits[1:], limits[:-1]], 0)
+    bool_array = (wav >= bins[:, 0:1]) & (wav < bins[:, 1:2])
+    x = bins.mean(1)
 
     print("Interpolating reflectance.")
 
