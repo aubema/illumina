@@ -12,15 +12,14 @@ import shutil
 from glob import glob
 
 import click
+import illum
 import numpy as np
 import yaml
-from scipy.interpolate import griddata
-
-import illum
 from illum import MultiScaleData as MSD
 from illum import pytools as pt
 from illum.inventory import from_lamps, from_zones
 from illum.OPAC import OPAC
+from scipy.interpolate import griddata
 
 
 @click.command()
@@ -170,7 +169,7 @@ def inputs():
         dir_name,
     )
 
-    OPAC()
+    OPAC(x)
 
     shutil.copy("srtm.hdf5", dir_name)
 

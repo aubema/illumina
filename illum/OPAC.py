@@ -11,7 +11,7 @@ from illum.pytools import LOP_norm
 from scipy import interpolate
 
 
-def OPAC():
+def OPAC(wavelenghts):
     # READ DATA FROM INPUT FILES
     illumpath = os.path.dirname(illum.__path__[0])
     mie_path = illumpath + "/Aerosol_optics/"
@@ -19,13 +19,6 @@ def OPAC():
     with open("inputs_params.in") as f:
         params = yaml.safe_load(f)
     layer = (params["aerosol_profile"], params["layer_type"])
-
-    bin_edges = np.linspace(
-        params["lambda_min"],
-        params["lambda_max"],
-        params["nb_bins"] + 1,
-    )
-    wavelengths = np.mean([bin_edges[1:], bin_edges[:-1]], 0)
 
     aerosol_types = OrderedDict(
         (
