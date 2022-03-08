@@ -3,18 +3,19 @@ exp_name: Hawaii
 zones_inventory: inventory.txt
 lamps_inventory:
 nb_bins: 9
-lambda_min: 470               # [nm]
+lambda_min: 470                # [nm]
 lambda_max: 740                # [nm]
 reflectance:
     asphalt: 0.8
     grass: 0.2
     snow: 0
-aerosol_profile: U     # Aerosol profile. 'CC','CA','CP','U','D'.'MC','MP','ART','ANT','Manual'. See aerosol_guide.txt
-layer_type: CC               # Additional layer. Same choices as aerosol_profile. Set 'layer_aod' to 0 to disable.
+aerosol_profile: U             # Aerosol profile. 'CC','CA','CP','U','D'.'MC','MP','ART','ANT','Manual'. See aerosol_guide.txt
+layer_type: CC                 # Additional layer. Same choices as aerosol_profile. Set 'layer_aod' to 0 to disable.
 relative_humidity: 80
 estimated_computing_time: 1    # estimated computing time per case [h]
 batch_file_name: batch
 road_orientation: False        # The final azimuth angles will be determined with azimuth_angle (see below) relative to the direction between the observer and the nearest point of the nearest road instead of relative to the north. (WARNING: Can be slow for large domains)
+observer_obstacles: False      # Model the blocking effect of obstacles around the observer
 # parameters after here can be lists
 observer_elevation: 10         # elevation above ground level [m]
 air_pressure: 101.3            # lowest domain level atmospheric pressure [kPa]

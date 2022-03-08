@@ -2,17 +2,16 @@
 
 import os
 import shutil
-import sys
-from collections import defaultdict as ddict
 from glob import glob
 
 import click
 import numpy as np
 import yaml
+from scipy.interpolate import interp1d as interp
+
 from illum import MultiScaleData as MSD
 from illum import pytools as pt
 from illum.inventory import from_lamps, from_zones
-from scipy.interpolate import interp1d as interp
 
 
 @click.command()
@@ -35,7 +34,7 @@ def alternate(name, zones, lights):
     This scenatio will be based on the content of the `Inputs` folder and
     will be placed in a folder named `Inputs_NAME`.
     """
-    if zones == None and lights == None:
+    if zones is None and lights is None:
         print("ERROR: At least one of 'zones' and 'lights' must be provided.")
         raise SystemExit
 
@@ -67,21 +66,21 @@ def alternate(name, zones, lights):
             zones_ind.set_circle((dat[0], dat[1]), dat[2] * 1000, i)
 
         failed = set()
-        for l, coords in enumerate(lamps, 1):
+        for j, coords in enumerate(lamps, 1):
             for i in range(len(circles)):
                 try:
                     col, row = circles._get_col_row(coords, i)
                     if circles[i][row, col] and col >= 0 and row >= 0:
                         zon_ind = zones_ind[i][row, col]
-                        failed.add((l, coords[0], coords[1], zon_ind))
+                        failed.add((j, coords[0], coords[1], zon_ind))
                 except IndexError:
                     continue
 
         if len(failed):
-            for l, lat, lon, zon_ind in sorted(failed):
+            for i, lat, lon, zon_ind in sorted(failed):
                 print(
                     "WARNING: Lamp #%d (%.06g,%.06g) falls within non-null zone #%d"
-                    % (l, lat, lon, zon_ind)
+                    % (i, lat, lon, zon_ind)
                 )
             raise SystemExit()
 
@@ -105,7 +104,6 @@ def alternate(name, zones, lights):
     scotopic = pt.load_spct(wav, np.ones(wav.shape), "Lights/scotopic.dat", 1)
     photopic = pt.load_spct(wav, np.ones(wav.shape), "Lights/photopic.dat", 1)
 
-    # ratio_ps = float(raw_input("    photopic/scotopic ratio ? (0 <= p/(s+p) <= 1) : "))
     ratio_ps = 1.0
     norm_spectrum = ratio_ps * photopic + (1 - ratio_ps) * scotopic
 
@@ -118,15 +116,19 @@ def alternate(name, zones, lights):
     }
 
     # Make bins
-    n_bins = params["nb_bins"]
-    lmin = params["lambda_min"]
-    lmax = params["lambda_max"]
+    if os.path.isfile("spectral_bands.dat"):
+        bins = np.loadtxt("spectral_bands.dat", delimiter=",")
+        n_bins = bins.shape[0]
+    else:
+        n_bins = params["nb_bins"]
+        lmin = params["lambda_min"]
+        lmax = params["lambda_max"]
 
-    limits = np.linspace(lmin, lmax, n_bins + 1)
-    bool_array = (wav >= limits[:-1, None]) & (wav < limits[1:, None])
-    dl = (lmax - lmin) / n_bins
+        limits = np.linspace(lmin, lmax, n_bins + 1)
+        bins = np.stack([limits[:-1], limits[1:]], axis=1)
 
-    x = np.mean([limits[1:], limits[:-1]], 0).tolist()
+    bool_array = (wav >= bins[:, 0:1]) & (wav < bins[:, 1:2])
+    x = bins.mean(1).tolist()
 
     out_name = params["exp_name"]
 
@@ -159,7 +161,6 @@ def alternate(name, zones, lights):
         zfile.write("\n".join(["%.06g" % n for n in reflect]) + "\n")
 
     # Photopic/scotopic spectrum
-    #   ratio_ps = float(raw_input("    photopic/scotopic ratio for lamp power ? (0 <= p/(s+p) <= 1) : "))
     nspct = ratio_ps * photopic + (1 - ratio_ps) * scotopic
     nspct = nspct / np.sum(nspct)
     nspct = [np.mean(nspct[mask]) for mask in bool_array]

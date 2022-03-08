@@ -41,7 +41,8 @@ def MSDOpen(filename, cached={}):
     "--params",
     multiple=True,
     nargs=2,
-    help="Parameter name,value pair to extract. Can be provided more than once.",
+    help="Parameter name,value pair to extract."
+    " Can be provided more than once.",
 )
 @click.option(
     "-f",
@@ -105,12 +106,12 @@ def extract(exec_dir, contrib, params, full):
 
             with open(os.sep.join([dirpath, oname])) as f:
                 lines = f.readlines()
-            idx_results = np.where(["==" in l for l in lines])[0][-1] + 1
+            idx_results = np.where(["==" in line for line in lines])[0][-1] + 1
 
             val = float(lines[-1])
             if full:
                 vals = np.array(
-                    [float(l) for l in lines[idx_results + 1 :: 2]]
+                    [float(line) for line in lines[idx_results + 1 :: 2]]
                 )
                 outputs[regex_layer.sub("", params_name)] += vals
             else:
@@ -138,9 +139,6 @@ def extract(exec_dir, contrib, params, full):
 
                     contributions[key] = copy(MSDOpen(blank))
 
-                pix_size = (
-                    contributions[key].pixel_size(n_layer) / 1000.0
-                ) ** 2  # in km^2
                 if oname == basename + ".out":
                     pcl_name = [s for s in filenames if "pcl.bin" in s][0]
                 else:

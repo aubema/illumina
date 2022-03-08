@@ -45,7 +45,8 @@ def illum():
 
 
     One may want to convert the custom HDF5 format used by Illumina to a more
-    standard format for use with GIS programs. This can be acheived with `convert`.
+    standard format for use with GIS programs.
+    This can be acheived with `convert`.
     """
     pass  # Entry point
 

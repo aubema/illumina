@@ -1,4 +1,4 @@
-c  adding earth curvature to the topography
+c  adding molecular absorption
 c
       subroutine molabs(lambda,bandw,tabs)
       real lambda,bandw,tabs,wmax,wmin,wla,ta,bwa,bwabs

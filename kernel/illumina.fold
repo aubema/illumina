@@ -202,7 +202,7 @@ c                                                                         ! a li
       real fctcld                                                         ! total flux from cloud at the sensor level
       real totlu(nzon)                                                    ! total flux of a source type
       real stoplim                                                        ! Stop computation when the new voxel contribution is less than 1/stoplim of the cumulated flux
-      real ff,ff2,hh                                                          ! temporary obstacle filling factor and horizon blocking factor
+      real ff,hh                                                          ! temporary obstacle filling factor and horizon blocking factor
       real cloudbase,cloudtop,cloudhei                                    ! cloud base and top altitude (m), cloud layer avg height (m)
       real distd                                                          ! distance to compute the scattering probability
       real volu                                                           ! volume of a voxel
@@ -250,17 +250,15 @@ c                                                                         ! a li
       real fdifl(181)                                                     ! scattering phase function of the particle layer
       real tranal                                                         ! top of atmos transmission of the particle layer
       real haer                                                           ! exponential vertical scale height of the background aerosol layer
-      real distc,hcur                                                     ! distance to any cell and curvature  correction for the earth curvature
+      real distc,hcur,hcurmin                                             ! distance to any cell and curvature  correction for the earth curvature
       real bandw                                                          ! bandwidth of the spectral bin
       real tabs                                                           ! TOA transmittance related to molecule absorption
-      integer obsobs                                                      ! flag to activate the direct light obstacle blocking aroud the observer.
       verbose=1                                                           ! Very little printout=0, Many printout = 1, even more=2
       diamobj=1.                                                          ! A dummy value for the diameter of the objective of the instrument used by the observer.
       volu=0.
       zero=0.
       un=1.
       ff=0.
-      ff2=0.
       step=1
       ncible=1024
       stepdi=1
@@ -287,7 +285,7 @@ c reading of the fichier d'entree (illumina.in)
         read(1,*) stoplim
         read(1,*)
         read(1,*) x_obs,y_obs,z_o
-        read(1,*) obsobs
+        read(1,*)
         read(1,*) angvis,azim
         read(1,*) dfov
         read(1,*)
@@ -489,6 +487,22 @@ c computation of the tilt of the pixels along x and along y
             endif
           enddo                                                           ! end of the loop over the rows (latitu) of the domain
         enddo                                                             ! end of the loop over the column (longitude) of the domain
+c correct altsol for earth curvature (first order correction)
+c        hcurmin=0.
+c        do i=1,nbx                                                        ! beginning of the loop over the column (longitude) of the domain.
+c          do j=1,nby                                                      ! beginning of the loop over the rows (latitu) of the domain.
+c             distc=sqrt((dx*real(i-x_obs))**2.+(dy*real(j-y_obs))**2.)
+c             call curvature(distc,hcur)
+c             altsol(i,j)=altsol(i,j)+hcur
+c             if (hcur.lt.hcurmin) hcurmin=hcur
+c          enddo                                                           ! end of the loop over the rows (latitu) of the domain
+c        enddo                                                             ! end of the loop over the column (longitude) of the domain
+c        do i=1,nbx                                                        ! beginning of the loop over the column (longitude) of the domain.
+c          do j=1,nby                                                      ! beginning of the loop over the rows (latitu) of the domain.
+c             altsol(i,j)=altsol(i,j)-hcurmin
+c          enddo                                                           ! end of the loop over the rows (latitu) of the domain
+c        enddo
+
 c reading of the values of P(theta), height, luminosities and positions
 c of the sources, obstacle height and distance
         ohfile=basenm(1:lenbase)//'_obsth.bin'
@@ -715,10 +729,9 @@ c ******************************************************************************
                   else
                     hh=1.
                   endif
-               ff=0.   
-               if (obsobs.eq.1) then
 c sub-grid obstacles
-                  if (dho.gt.drefle(x_obs,y_obs)+drefle(x_s,y_s)) then    ! light path to observer larger than the mean free path -> subgrid obstacles
+                  ff=0.
+                  if (dho.gt.drefle(x_obs,y_obs)) then                    ! light path to observer larger than the mean free path -> subgrid obstacles
                     angmin=pi/2.-atan2((altsol(x_obs,y_obs)+
      +              obsH(x_obs,y_obs)-z_obs),drefle(x_obs,
      +              y_obs))
@@ -728,32 +741,6 @@ c sub-grid obstacles
                       ff=ofill(x_obs,y_obs)
                     endif
                   endif                                                   ! end light path to the observer larger than mean free path
-               endif
-                  
- 
- 
- 
-                  
-                  call anglezenithal(rx_s,ry_s,z_s                        ! zenithal angle source-observer
-     +            ,rx_obs,ry_obs,z_obs,dzen)                  
-                  ff2=0.
-                  if (dho.gt.drefle(x_s,y_s)) then                        ! light path from source larger than the mean free path -> subgrid obstacles
-                    angmin=pi/2.-atan2((altsol(x_s,y_s)+
-     +              obsH(x_s,y_s)-z_s),drefle(x_s,
-     +              y_s))
-                    if (dzen.lt.angmin) then                              ! condition sub-grid obstacles direct.
-                      ff2=0.
-                    else
-                      ff2=ofill(x_s,y_s)
-                    endif
-                  endif                                                   ! end light path to the observer larger than mean free path                  
-                  call anglezenithal(rx_obs,ry_obs,z_obs                  ! zenithal angle source-observer
-     +            ,rx_s,ry_s,z_s,dzen)                  
-                  
-                  
-                  
-                  
-                  
 c projection angle of line to the lamp and the viewing angle
                   call angle3points (rx_s,ry_s,z_s,rx_obs,                ! scattering angle.
      +            ry_obs,z_obs,rx,ry,rz,dang)
@@ -776,11 +763,11 @@ c computation of the solid angle 1m^2 at the observer as seen from the source
      +              hlay,transl,tranal)
                     if (dang.lt.dfov) then                                ! check if the reflecting surface enter the field of view of the observer
                       direct=direct+lamplu(x_s,y_s,stype)*
-     +                transa*transm*transl*P_dir*omega*(1.-ff)*(1.-ff2)
-     +                *hh/(pi*dfov**2.)                                      ! correction for obstacle filling factor
+     +                transa*transm*transl*P_dir*omega*(1.-ff)*hh
+     +                /(pi*dfov**2.)                                      ! correction for obstacle filling factor
                     endif
                     irdirect=irdirect+lamplu(x_s,y_s,stype)*
-     +              transa*transm*transl*P_dir*omega*(1.-ff)*(1.-ff2)*hh    ! correction for obstacle filling factor
+     +              transa*transm*transl*P_dir*omega*(1.-ff)*hh           ! correction for obstacle filling factor
                   endif
                 endif
 c
@@ -951,10 +938,8 @@ c ******************************************************************************
                                 hh=1.
                               endif
 c sub-grid obstacles
-               ff=0.
-               if (obsobs.eq.1) then
-                              if (dho.gt.drefle(x_obs,y_obs)+
-     +                        drefle(x_sr,y_sr)) then                     ! light path to observer larger than the mean free path -> subgrid obstacles
+                              ff=0.
+                              if (dho.gt.drefle(x_obs,y_obs)) then        ! light path to observer larger than the mean free path -> subgrid obstacles
                                 angmin=pi/2.-atan2((altsol(x_obs,y_obs)
      +                          +obsH(x_obs,y_obs)-z_obs),drefle(x_obs,
      +                          y_obs))
@@ -964,28 +949,6 @@ c sub-grid obstacles
                                   ff=ofill(x_obs,y_obs)
                                 endif
                               endif                                       ! end light path to the observer larger than mean free path
-               endif
-                              
-                              
-                              
-                  call anglezenithal(rx_sr,ry_sr,z_sr                     ! zenithal angle surface-observer
-     +            ,rx_obs,ry_obs,z_obs,dzen)                  
-                  ff2=0.
-                  if (dho.gt.drefle(x_sr,y_sr)) then                      ! light path from reflecting surface larger than the mean free path -> subgrid obstacles
-                    angmin=pi/2.-atan2((altsol(x_sr,y_sr)+
-     +              obsH(x_sr,y_sr)-z_sr),drefle(x_sr,
-     +              y_sr))
-                    if (dzen.lt.angmin) then                              ! condition sub-grid obstacles direct.
-                      ff2=0.
-                    else
-                      ff2=ofill(x_sr,y_sr)
-                    endif
-                  endif                                                   ! end light path to the observer larger than mean free path                                                
-                              call anglezenithal(rx_obs,ry_obs,z_obs      ! zenithal angle source-observer
-     +                        ,rx_sr,ry_sr,z_sr,dzen)                              
-                              
-                              
-                              
 c projection angle of line to the lamp and the viewing angle
                               call angle3points (rx_sr,ry_sr,z_sr,        ! scattering angle.
      +                        rx_obs,ry_obs,z_obs,rx,ry,rz,dang)
@@ -1006,11 +969,10 @@ c computation of the solid angle of the line of sight voxel seen from the source
      +                          hlay,transl,tranal)
                                 if (dang.lt.dfov) then                    ! check if the reflecting surface enter the field of view of the observer
                                   rdirect=rdirect+irefl1*omega*transa*
-     +                            transm*transl*hh*(1.-ff)*(1.-ff2)
-     +                            /(pi*dfov**2.)
+     +                            transm*transl*hh*(1.-ff)/(pi*dfov**2.)
                                 endif
                                 irrdirect=irrdirect+irefl1*omega*transa*
-     +                          transm*transl*hh*(1.-ff)*(1.-ff2)
+     +                          transm*transl*hh*(1.-ff)
                               endif
 
                             endif
