@@ -174,7 +174,7 @@ def inputs():
     shutil.copy("srtm.hdf5", dir_name)
 
     with open(dir_name + "/wav.lst", "w") as zfile:
-        zfile.write("\n".join(map(str, x)) + "\n")
+        zfile.write("".join("%g\n" % w for w in x))
 
     if params["zones_inventory"] is not None:
         dir_name = ".Inputs_zones/"

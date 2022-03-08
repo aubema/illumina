@@ -11,7 +11,7 @@ from illum.pytools import LOP_norm
 from scipy import interpolate
 
 
-def OPAC(wavelenghts):
+def OPAC(wavelengths):
     # READ DATA FROM INPUT FILES
     illumpath = os.path.dirname(illum.__path__[0])
     mie_path = illumpath + "/Aerosol_optics/"

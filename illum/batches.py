@@ -15,6 +15,7 @@ from glob import glob
 from itertools import product
 
 import click
+import illum
 import numpy as np
 import yaml
 from illum import MultiScaleData as MSD
@@ -218,12 +219,9 @@ def batches(input_path, compact, batch_size, batch_name=None):
                     fold_name + exp_name + "_fctem_%03d.dat" % i,
                 )
 
-            ppath = os.environ["PATH"].split(os.pathsep)
-            illumpath = [s for s in ppath if "/illumina" in s and "/bin" in s][
-                0
-            ]
+            illumpath = os.path.dirname(illum.__path__[0])
             os.symlink(
-                os.path.abspath(illumpath + "/illumina"),
+                os.path.abspath(illumpath + "/bin/illumina"),
                 fold_name + "illumina",
             )
 
