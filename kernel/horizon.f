@@ -27,7 +27,7 @@ c
 c
       subroutine horizon(x,y,z,dx,dy,altsol,anga,zhoriz,d)
       integer width                                                       ! Matrix dimension in Length/width and height
-      parameter (width=512)
+      parameter (width=27)
       integer x,y,nx,ny
       real dx,dy,altsol(width,width),anga,zout,pi,angaz1,ix,iy
       real hcur,distc                                                           ! Earth curvature terrain

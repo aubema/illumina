@@ -105,7 +105,7 @@ def domain():
 
     for i in range(domain["nb_layers"]):
         psize = domain["scale_min"] * scale ** i
-        buff = min(255 - R, domain["buffer"] * 1e3 // psize)
+        buff = ["buffer"] * 1e3 // psize
 
         print("Layer", i)
         print("Pixel size:", eng_format(psize, "m"))
