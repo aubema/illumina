@@ -262,11 +262,15 @@ def inputs():
     for geo in ["obsth", "obstd", "obstf", "altlp"]:
         geometry = MSD.Open(dir_name + out_name + "_" + geo + ".hdf5")
         for i, mask in enumerate(defined):
-            geometry[i] = griddata(
-                points=np.where(mask),
-                values=geometry[i][mask.astype(bool)],
-                xi=tuple(np.ogrid[0 : mask.shape[0], 0 : mask.shape[1]]),
-                method="nearest",
+            geometry[i] = (
+                griddata(
+                    points=np.where(mask),
+                    values=geometry[i][mask.astype(bool)],
+                    xi=tuple(np.ogrid[0 : mask.shape[0], 0 : mask.shape[1]]),
+                    method="nearest",
+                )
+                if mask.any()
+                else np.zeros_like(geometry[i])
             )
         geometry.save(dir_name + out_name + "_" + geo)
 
