@@ -32,11 +32,8 @@ folder=`pwd`
 chmod a+x make*
 
 # options de debuggage -Wall -fcheck=all -g -fbacktrace -ffpe-trap=zero
-echo $F77" -Wunused-parameter -mcmodel=medium -O3 kernel/illumina.f kernel/zone_diffusion.f kernel/diffusion.f kernel/angle3points.f kernel/anglesolide.f kernel/transmita.f kernel/transmitm.f kernel/transmitl.f kernel/anglezenithal.f kernel/angleazimutal.f kernel/horizon.f kernel/cloudreflectance.f  kernel/twodin.f kernel/twodout.f kernel/transTOA.f kernel/curvature.f kernel/molabs.f -o bin/illumina"
-sed -i "s/__version__/$version/" kernel/illumina.f
-$F77 -Wunused-parameter -mcmodel=medium -O3 kernel/illumina.f kernel/zone_diffusion.f kernel/diffusion.f kernel/angle3points.f kernel/anglesolide.f kernel/transmita.f kernel/transmitm.f kernel/transmitl.f kernel/anglezenithal.f kernel/angleazimutal.f kernel/horizon.f kernel/cloudreflectance.f  kernel/twodin.f kernel/twodout.f kernel/transTOA.f kernel/curvature.f kernel/molabs.f -o bin/illumina
-sed -i "s/$version/__version__/" kernel/illumina.f
-echo $F77" kernel/continue_illumina.f -o bin/continue_illumina"
-$F77 kernel/continue_illumina.f -o bin/continue_illumina
+echo $F77" -Wunused-parameter -mcmodel=medium -O3 kernel/illum-health.f kernel/angle3points.f kernel/anglesolide.f kernel/anglezenithal.f kernel/angleazimutal.f kernel/horizon.f kernel/twodin.f -o bin/illumina-health"
+$F77 -Wunused-parameter -mcmodel=medium -O3 kernel/illum-health.f kernel/angle3points.f kernel/anglesolide.f kernel/anglezenithal.f kernel/angleazimutal.f kernel/horizon.f kernel/twodin.f -o bin/illumina-health
+sed -i "s/$version/__version__/" kernel/illumina-health.f
 chmod a+x bin/*
 chmod a+x *.bash
