@@ -113,7 +113,6 @@ c
       real flrefl                                                         ! flux reaching a reflecting surface (watts).
       real irefl,irefl1                                                   ! intensity leaving a reflecting surface toward the line of sight voxel.
       real dis_obs                                                        ! Distance between the line of sight and the observer.
-      real omefov                                                         ! Solid angle of the spectrometer slit.
       real angvis,azim                                                    ! viewing angles of the sensor.
 c                                                                         ! Useful for the calculation of the lambertian reflectance.
       real nbang                                                          ! for the averaging of the photometric function
@@ -154,14 +153,11 @@ c                                                                         ! a li
       real dzen                                                           ! zenith angle of the source-observer line
       real ddir_obs                                                       ! distance between the source and the observer
       real rx,ry,rz                                                       ! driving vector for the calculation of the projection angle for direct radiance. It is 20km long
-      real dfov                                                           ! field of view in degrees for the calculation of the direct radiance this number will be a kind of smoothing effect. The angular grid resolution to create a direct radiance panorama should be finer than that number
       real Fo                                                             ! flux correction factor for obstacles
       integer gndty(width,width)                                          ! ground type flag  0=observer, 1=building facade, 2=street, 3=other
       character*72 gifile                                                 ! name of the ground type flag file
       real dh0,dhmax                                                      ! horizontal distance along the line of sight and maximum distance before beeing blocked by topography
-      character*72 layfile                                                ! filename of the optical properties of the particle layer
       real layaod                                                         ! 500 nm aod of the particle layer
-      real layalp                                                         ! spectral exponent of the aod for the particle layer
       real hlay                                                           ! exponential vertical scale height of the particle layer
       real haer                                                           ! exponential vertical scale height of the background aerosol layer
       real bandw                                                          ! bandwidth of the spectral bin
@@ -184,7 +180,6 @@ c reading of the fichier d'entree (illumina.in)
         read(1,*)
         read(1,*) basenm
         read(1,*) dx,dy
-        read(1,*) layfile, layaod, layalp, hlay
         read(1,*) taua,alpha,haer
         read(1,*) lambda,bandw
         read(1,*) srefl,brefl,orefl
@@ -192,18 +187,11 @@ c reading of the fichier d'entree (illumina.in)
         read(1,*) ntype
         read(1,*) z_o             IL FAUT FAIRE UNE BOUCLE SUR TOUT LE DOMAINE ET CALCULER LES POS OBSERVATEUR QUAND gndty()=0
         read(1,*) obsobs
-        read(1,*) angvis,azim
-        read(1,*) dfov
+        read(1,*) azim            CET ANGLE SERA DANS UNE MATRICE azim()
         read(1,*) reflsiz         IL FAUT REMPLACER CETTE VARIABLE PAR drefl()   
       close(1)
-      if (angvis.gt.90.) then
-         print*,'Error: elevation angle larger than 90 deg'
-         stop
-      endif
-      if (angvis.lt.-90.) then
-         print*,'Error: elevation angle smaller than -90 deg'
-         stop
-      endif
+c windows pointing toward horizon
+      angvis=0.
 c conversion of the geographical viewing angles toward the cartesian
 c angle we assume that the angle in the file illumina.in
 c is consistent with the geographical definition
@@ -219,7 +207,6 @@ c cartesian, azim=0 toward east, 90 toward north, 180 toward west etc
       ix = ( sin((pi/2.)-angvi1) ) * (cos(angaz1))                        ! viewing vector components
       iy = ( sin((pi/2.)-angvi1) ) * (sin(angaz1))
       iz = (sin(angvi1))
-      dfov=(dfov*pi/180.)/2.
       siz=2500.
       scal=19.
       scalo=scal
@@ -235,13 +222,11 @@ c choice
       omemax=1./((10.)**2.)
       if (verbose.gt.0) then
         print*,'Pixel size = ',dx,' x ',dy
-        print*,'Maximum radius for reflection = ',reflsiz
       endif
 c computing the actual AOD at the wavelength lambda
       if (verbose.ge.1) print*,'500nm AOD=',taua,'500nm angstrom coeff.=
      +',alpha
       taua=taua*(lambda/500.)**(-1.*alpha)
-      layaod=layaod*(lambda/500.)**(-1.*layalp)
 c  determine the Length of basenm
       lenbase=index(basenm,' ')-1
       mnaf=basenm(1:lenbase)//'_topogra.bin'                              ! determine the names of input and output files
@@ -261,7 +246,7 @@ c opening output file
      +from east)',azim
         print*,'Elevation angle:',angvis,' azim angle (counterclockwise
      +from east)',azim
-c Initialisation of the arrays and variables
+c Initialisation of arrays and variables
         if (verbose.ge.1) print*,'Initializing variables...'
         iun=0
         ideux=1
@@ -458,7 +443,6 @@ c computation of the tilt of the pixels along x and along y
           enddo                                                           ! end of the loop over the rows (latitu) of the domain
         enddo                                                             ! end of the loop over the column (longitude) of the domain
         dy=dx
-        omefov=0.00000001                                                 ! solid angle of the spectrometer slit on the sky. Here we only need a small value
         z_obs=z_o+altsol(x_obs,y_obs)                                     ! z_obs = the local observer elevation plus the height of observation above ground (z_o)
         rx_obs=real(x_obs)*dx
         ry_obs=real(y_obs)*dy
@@ -474,6 +458,7 @@ c computation of the tilt of the pixels along x and along y
 
 
         layaod=0.
+        hlay=2000.
 c determination of the vertical atmospheric transmittance
         call transtoa(lambda,bandw,taua,layaod,pressi,tranam,tranaa,      ! tranam and tranaa are the top of atmosphere transmittance (molecules and aerosols)
      +tranal,tabs)
@@ -578,11 +563,6 @@ c computation of the solid angle 1m^2 at the observer as seen from the source
      +            haer,transa,tranaa)
                   call transmitl(dzen,z_obs,z_s,ddir_obs,
      +            hlay,transl,tranal)
-                  if (dang.lt.dfov) then                                  ! check if the reflecting surface enter the field of view of the observer
-                     direct=direct+lamplu(x_s,y_s,stype)*
-     +               transa*transm*transl*P_dir*omega*(1.-ff)*(1.-ff2)
-     +               *hh/(pi*dfov**2.)                                    ! correction for obstacle filling factor
-                  endif
                   irdirect=irdirect+lamplu(x_s,y_s,stype)*
      +            transa*transm*transl*P_dir*omega*(1.-ff)*(1.-ff2)*hh    ! correction for obstacle filling factor
                endif
@@ -805,12 +785,6 @@ c computation of the solid angle of the line of sight voxel seen from the source
                                 call transmita(dzen,z_obs,z_sr,ddir_obs,
      +                          haer,transa,tranaa)
                                 call transmitl(dzen,z_obs,z_sr,ddir_obs,
-     +                          hlay,transl,tranal)
-                                if (dang.lt.dfov) then                    ! check if the reflecting surface enter the field of view of the observer
-                                  rdirect=rdirect+irefl1*omega*transa*
-     +                            transm*transl*hh*(1.-ff)*(1.-ff2)
-     +                            /(pi*dfov**2.)
-                                endif
                                 irrdirect=irrdirect+irefl1*omega*transa*
      +                          transm*transl*hh*(1.-ff)*(1.-ff2)
                               endif
