@@ -190,11 +190,11 @@ c reading of the fichier d'entree (illumina.in)
         read(1,*) srefl,brefl,orefl
         read(1,*) pressi
         read(1,*) ntype
-        read(1,*) z_o
+        read(1,*) z_o             IL FAUT FAIRE UNE BOUCLE SUR TOUT LE DOMAINE ET CALCULER LES POS OBSERVATEUR QUAND gndty()=0
         read(1,*) obsobs
         read(1,*) angvis,azim
         read(1,*) dfov
-        read(1,*) reflsiz
+        read(1,*) reflsiz         IL FAUT REMPLACER CETTE VARIABLE PAR drefl()   
       close(1)
       if (angvis.gt.90.) then
          print*,'Error: elevation angle larger than 90 deg'
