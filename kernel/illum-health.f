@@ -146,7 +146,8 @@ c                                                                         ! a li
       integer nvol                                                        ! number of cell for second scat calc un full resolution
       real diamobj                                                        ! instrument objective diameter
       integer i,j,k,id,jd
-      real tranam,tranaa                                                  ! atmospheric transmittancess of a path (molecular, aerosol)
+      real tranam,tranaa,tranal                                           ! TOA atmospheric transmittancess of a path (molecular, aerosol, layer)
+      real transa,transl,transm
       real zhoriz                                                         ! zenith angle of the horizon
       real direct                                                         ! direct radiance from sources on a surface normal to the line of sight (no scattering)
       real rdirect                                                        ! direct radiance from a reflecting surface on a surface normal to the line of sight (no scattering)
@@ -168,7 +169,6 @@ c                                                                         ! a li
       real hlay                                                           ! exponential vertical scale height of the particle layer
       real secdil                                                         ! scattering/extinction ratio for the particle layer
       real fdifl(181)                                                     ! scattering phase function of the particle layer
-      real tranal                                                         ! top of atmos transmission of the particle layer
       real haer                                                           ! exponential vertical scale height of the background aerosol layer
       real bandw                                                          ! bandwidth of the spectral bin
       real tabs                                                           ! TOA transmittance related to molecule absorption
@@ -186,31 +186,21 @@ c                                                                         ! a li
       endif
 c reading of the fichier d'entree (illumina.in)
       print*,'Reading illum-health.in input file'
-      open(unit=1,file='illumina.in',status='old')
+      open(unit=1,file='illum-health.in',status='old')
         read(1,*)
         read(1,*) basenm
         read(1,*) dx,dy
-        read(1,*) diffil
         read(1,*) layfile, layaod, layalp, hlay
-        read(1,*) 
-        read(1,*) 
+        read(1,*) taua,alpha,haer
         read(1,*) lambda,bandw
         read(1,*) srefl,brefl,orefl
         read(1,*) pressi
-        read(1,*) taua,alpha,haer
         read(1,*) ntype
-        read(1,*) 
-        read(1,*)
-        read(1,*) x_obs,y_obs,z_o
+        read(1,*) z_o
         read(1,*) obsobs
         read(1,*) angvis,azim
         read(1,*) dfov
-        read(1,*)
-        read(1,*)
-        read(1,*)
         read(1,*) reflsiz
-        read(1,*) 
-        read(1,*)
       close(1)
       if (angvis.gt.90.) then
          print*,'Error: elevation angle larger than 90 deg'
@@ -266,7 +256,7 @@ c opening output file
       open(unit=2,file=outfile,status='unknown')
         write(2,*) "ILLUMINA version __version__"
         write(2,*) 'FILE USED:'
-        write(2,*) mnaf,diffil
+        write(2,*) mnaf
         print*,'Wavelength (nm):',lambda,
      +       ' Aerosol optical depth:',taua
         write(2,*) 'Wavelength (nm):',lambda,
