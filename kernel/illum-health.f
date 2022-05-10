@@ -457,20 +457,6 @@ c reading luminosity files
  336      do i=1,nbx                                                      ! beginning of the loop over all cells along x.
             do j=1,nby                                                    ! beginning of the loop over all cells along y.
               lamplu(i,j,stype)=val2d(i,j)                                ! remplir the array of the lamp type: stype
-c Atmospheric correction and obstacles masking corrections to the lamp
-c flux arrays (lumlp)
-              if (viirs(i,j).eq.1) then
-                lamplu(i,j,stype)=lamplu(i,j,stype)/(tranam*tranaa*
-     +          tranal)
-                thetali=atan2(drefle(i,j),obsH(i,j))
-                if (thetali .lt. 70.*pi/180.) then
-                  Fo=(1.-cos(70.*pi/180.))/(1.-ofill(i,j)*cos(thetali)+
-     +            (ofill(i,j)-1.)*cos(70.*pi/180.))
-                  lamplu(i,j,stype)=lamplu(i,j,stype)*Fo
-                else
-                  Fo=1.
-                endif
-              endif
               totlu(stype)=totlu(stype)+lamplu(i,j,stype)                 ! the total lamp flux should be non-null to proceed to the calculations
             enddo                                                         ! end of the loop over all cells along y.
           enddo                                                           ! end of the loop over all cells along x.
@@ -491,8 +477,10 @@ c flux arrays (lumlp)
 
 
 
-
-
+        layaod=0.
+c determination of the vertical atmospheric transmittance
+        call transtoa(lambda,bandw,taua,layaod,pressi,tranam,tranaa,      ! tranam and tranaa are the top of atmosphere transmittance (molecules and aerosols)
+     +tranal,tabs)
         direct=0.                                                         ! initialize the total direct radiance from sources to observer
         rdirect=0.                                                        ! initialize the total reflected radiance from surface to observer
         irdirect=0.                                                       ! initialize the total direct irradiance from sources to observer
@@ -508,6 +496,11 @@ c
      +      stype
             do x_s=imin(stype),imax(stype)                                ! beginning of the loop over the column (longitude the) of the domain.
             do y_s=jmin(stype),jmax(stype)                                ! beginning of the loop over the rows (latitud) of the domain.
+              intdir=0.
+              itotind=0.
+              itodif=0.
+              itotrd=0.
+              isourc=0.
               rx_s=real(x_s)*dx
               ry_s=real(y_s)*dy
               if (lamplu(x_s,y_s,stype) .ne. 0.) then                     ! if the luminosite of the case is null, the program ignore this case.
@@ -542,7 +535,7 @@ c ******************************************************************************
                   else
                     hh=1.
                   endif
-               ff=0.
+               ff=0.   
                if (obsobs.eq.1) then
 c sub-grid obstacles
                   if (dho.gt.drefle(x_obs,y_obs)+drefle(x_s,y_s)) then    ! light path to observer larger than the mean free path -> subgrid obstacles
@@ -556,13 +549,13 @@ c sub-grid obstacles
                     endif
                   endif                                                   ! end light path to the observer larger than mean free path
                endif
-
-
-
-
-
+                  
+ 
+ 
+ 
+                  
                   call anglezenithal(rx_s,ry_s,z_s                        ! zenithal angle source-observer
-     +            ,rx_obs,ry_obs,z_obs,dzen)
+     +            ,rx_obs,ry_obs,z_obs,dzen)                  
                   ff2=0.
                   if (dho.gt.drefle(x_s,y_s)) then                        ! light path from source larger than the mean free path -> subgrid obstacles
                     angmin=pi/2.-atan2((altsol(x_s,y_s)+
@@ -573,16 +566,16 @@ c sub-grid obstacles
                     else
                       ff2=ofill(x_s,y_s)
                     endif
-                  endif                                                   ! end light path to the observer larger than mean free path
+                  endif                                                   ! end light path to the observer larger than mean free path                  
                   call anglezenithal(rx_obs,ry_obs,z_obs                  ! zenithal angle source-observer
-     +            ,rx_s,ry_s,z_s,dzen)
-
-
-
-
-
+     +            ,rx_s,ry_s,z_s,dzen)                  
+                  
+                  
+                  
+                  
+                  
 c projection angle of line to the lamp and the viewing angle
-                  call angle3points (rx_s,ry_s,z_s,rx_obs,                
+                  call angle3points (rx_s,ry_s,z_s,rx_obs,                ! scattering angle.
      +            ry_obs,z_obs,rx,ry,rz,dang)
                   dang=pi-dang
 c computation of the solid angle of the line of sight voxel seen from the source
@@ -612,7 +605,7 @@ c computation of the solid angle 1m^2 at the observer as seen from the source
                 endif
 c
 c **********************************************************************************
-c * computation of the direct light toward the observer by the ground and facade reflection   *
+c * computation of the direct light toward the observer by the ground reflection   *
 c **********************************************************************************
 c
                 xsrmi=x_s-boxx
@@ -792,11 +785,11 @@ c sub-grid obstacles
                                 endif
                               endif                                       ! end light path to the observer larger than mean free path
                endif
-
-
-
+                              
+                              
+                              
                   call anglezenithal(rx_sr,ry_sr,z_sr                     ! zenithal angle surface-observer
-     +            ,rx_obs,ry_obs,z_obs,dzen)
+     +            ,rx_obs,ry_obs,z_obs,dzen)                  
                   ff2=0.
                   if (dho.gt.drefle(x_sr,y_sr)) then                      ! light path from reflecting surface larger than the mean free path -> subgrid obstacles
                     angmin=pi/2.-atan2((altsol(x_sr,y_sr)+
@@ -807,14 +800,14 @@ c sub-grid obstacles
                     else
                       ff2=ofill(x_sr,y_sr)
                     endif
-                  endif                                                   ! end light path to the observer larger than mean free path
+                  endif                                                   ! end light path to the observer larger than mean free path                                                
                               call anglezenithal(rx_obs,ry_obs,z_obs      ! zenithal angle source-observer
-     +                        ,rx_sr,ry_sr,z_sr,dzen)
-
-
-
+     +                        ,rx_sr,ry_sr,z_sr,dzen)                              
+                              
+                              
+                              
 c projection angle of line to the lamp and the viewing angle
-                              call angle3points (rx_sr,ry_sr,z_sr,       
+                              call angle3points (rx_sr,ry_sr,z_sr,        ! scattering angle.
      +                        rx_obs,ry_obs,z_obs,rx,ry,rz,dang)
                               dang=pi-dang
 
