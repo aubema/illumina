@@ -409,15 +409,16 @@ c reading luminosity files
 c distribute reflectance values and adding fake buildings
         do i=1,nbx                                                        ! beginning of the loop over all cells along x.
           do j=1,nby                                                      ! beginning of the loop over all cells along y.
-            if (gndty(i,j).eq.3) then     
-               reflec(i,j)=orefl
-            elseif (gndty(i,j).eq.2) then   
-               reflec(i,j)=srefl
-            elseif (gndty(i,j).eq.1) then
+            if (gndty(i,j).eq.2) then                                     !  0=building front
+               reflec(i,j)=srefl                                          !  1=building top              111
+            elseif (gndty(i,j).eq.1) then                                 !  2=street                    111
+               reflec(i,j)=srefl                                          !  3=building rear            01113
+               altsol(i,j)=altsol(i,j)+obsH(i,j)                          !  4=other                    01113
+            elseif ((gndty(i,j).eq.0).or.(gndty(i,j).eq.3)) then          ! fake building profile   222201113444444444
                reflec(i,j)=brefl
-               altsol(i,j)=altsol(i,j)+obsH(i,j)
-            else
-               reflec(i,j)=brefl            
+               altsol(i,j)=altsol(i,j)+obsH(i,j)/2.
+            else 
+               reflec(i,j)=orefl
             endif                    
           enddo                                                           ! end of the loop over all cells along y.
         enddo
@@ -442,6 +443,7 @@ c computation of the tilt of the pixels along x and along y
             endif
           enddo                                                           ! end of the loop over the rows (latitu) of the domain
         enddo                                                             ! end of the loop over the column (longitude) of the domain
+
         dy=dx
         z_obs=z_o+altsol(x_obs,y_obs)                                     ! z_obs = the local observer elevation plus the height of observation above ground (z_o)
         rx_obs=real(x_obs)*dx
