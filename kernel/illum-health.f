@@ -441,6 +441,12 @@ c computation of the tilt of the pixels along x and along y
               incliy(i,j)=atan((altsol(i,j+1)-altsol(i,j-1))/(2.          ! computation of the tilt along y of the surface
      1        *real(dy)))
             endif
+            
+            
+            AJOUTER UNE EXCEPTION DE METTRE INCLIN A ZERO LORSQUE GNDTY=2
+            OU AU LIEU DE CHANGER ALTSOL FAIRE LES EXCEPTION GNDTY DANS LE CALCUL DE INCLIN
+            
+            
           enddo                                                           ! end of the loop over the rows (latitu) of the domain
         enddo                                                             ! end of the loop over the column (longitude) of the domain
 
