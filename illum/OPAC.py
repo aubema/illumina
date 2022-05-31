@@ -7,13 +7,12 @@ from collections import OrderedDict
 
 import illum
 import numpy as np
-import pandas as pd
 import yaml
 from illum.pytools import LOP_norm
 from scipy import interpolate
 
 
-def OPAC():
+def OPAC(wavelengths):
     # READ DATA FROM INPUT FILES
     illumpath = os.path.dirname(illum.__path__[0])
     mie_path = illumpath + "/Aerosol_optics/"
@@ -22,36 +21,19 @@ def OPAC():
         params = yaml.safe_load(f)
     layer = (params["aerosol_profile"], params["layer_type"])
 
-    if os.path.isfile("spectral_bands.dat"):
-        bins = np.loadtxt("spectral_bands.dat", delimiter=",")
-        n_bins = bins.shape[0]
-        bin_edges=np.zeros(n_bins+1)
-        for index,value in enumerate(bins):
-            bin_edges[index]=value[0]
-            if index==n_bins-1:
-                bin_edges[index+1]=value[1]
-        
-    else:
-        bin_edges = np.linspace(
-            params["lambda_min"],
-            params["lambda_max"],
-            params["nb_bins"] + 1,
-        )
-    wavelengths = np.mean([bin_edges[1:], bin_edges[:-1]], 0)
-
     aerosol_types = OrderedDict(
         (
-            ("inso","insoluble aerosol"),
-            ("waso","water soluble aerosol"),
-            ("soot","soot"),
-            ("ssam","sea salt (acc)"),
-            ("sscm","sea salt (coa)"),
-            ("minm","mineral (suc)"),
-            ("miam","mineral (acc)"),
-            ("micm","mineral (coa)"),
-            ("mitr","mineral transported"),
-            ("suso","sulfate droplets"),
-            ("fogr","fog"),
+            ("inso", "insoluble aerosol"),
+            ("waso", "water soluble aerosol"),
+            ("soot", "soot"),
+            ("ssam", "sea salt (acc)"),
+            ("sscm", "sea salt (coa)"),
+            ("minm", "mineral (suc)"),
+            ("miam", "mineral (acc)"),
+            ("micm", "mineral (coa)"),
+            ("mitr", "mineral transported"),
+            ("suso", "sulfate droplets"),
+            ("fogr", "fog"),
         )
     )
     N_types = len(aerosol_types)

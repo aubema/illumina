@@ -15,8 +15,8 @@ from illum import MultiScaleData as MSD
 def convert(filename, outname, vector, log, area):
     """Convert an Illumina HDF file to a georeferenced format.
 
-    Converts FILENAME to OUTNAME.EXT where ext is defined based on the output format.
-    The output format is either vector (GeoJSON) or raster (Tiff).
+    Converts FILENAME to OUTNAME.EXT where ext is defined based on the output
+    format. The output format is either vector (GeoJSON) or raster (Tiff).
     """
     hdf = MSD.Open(filename)
     hdf.set_buffer(-1)
@@ -29,19 +29,19 @@ def convert(filename, outname, vector, log, area):
         srs = osr.SpatialReference()
         srs.ImportFromEPSG(int(hdf._attrs["srs"].split(":")[1]))
 
-        for l, data in enumerate(hdf):
-            pix_size = hdf._attrs["layers"][l]["pixel_size"]
-            b = hdf._attrs["layers"][l]["buffer"]
-            xmin = hdf._attrs["layers"][l]["xmin"] + b * pix_size
-            ymax = hdf._attrs["layers"][l]["ymax"] - b * pix_size
+        for i, data in enumerate(hdf):
+            pix_size = hdf._attrs["layers"][i]["pixel_size"]
+            b = hdf._attrs["layers"][i]["buffer"]
+            xmin = hdf._attrs["layers"][i]["xmin"] + b * pix_size
+            ymax = hdf._attrs["layers"][i]["ymax"] - b * pix_size
             if b != 0:
                 data = data[b:-b, b:-b]
             if area:
-                data /= (hdf.pixel_size(l) / 1000.0) ** 2
+                data /= (hdf.pixel_size(i) / 1000.0) ** 2
             if log:
                 data = np.log10(data)
             ds = driver.Create(
-                outname + "_%d.tif" % l,
+                outname + "_%d.tif" % i,
                 data.shape[1],
                 data.shape[0],
                 1,
@@ -54,17 +54,17 @@ def convert(filename, outname, vector, log, area):
 
     elif vector:
         points = {"x": [], "y": [], "val": []}
-        for l, data in enumerate(hdf):
-            xmin = hdf._attrs["layers"][l]["xmin"]
-            ymax = hdf._attrs["layers"][l]["ymax"]
-            pix_size = hdf._attrs["layers"][l]["pixel_size"]
+        for i, data in enumerate(hdf):
+            xmin = hdf._attrs["layers"][i]["xmin"]
+            ymax = hdf._attrs["layers"][i]["ymax"]
+            pix_size = hdf._attrs["layers"][i]["pixel_size"]
 
-            pts = np.where(hdf[l] != -1)
+            pts = np.where(hdf[i] != -1)
             points["x"].extend((pts[1] + 0.5) * pix_size + xmin)
             points["y"].extend(ymax - (pts[0] + 0.5) * pix_size)
-            data = hdf[l][hdf[l] != -1]
+            data = hdf[i][hdf[i] != -1]
             if area:
-                data /= (hdf.pixel_size(l) / 1000.0) ** 2
+                data /= (hdf.pixel_size(i) / 1000.0) ** 2
             if log:
                 data = np.log10(data)
             points["val"].extend(data)

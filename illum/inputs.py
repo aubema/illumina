@@ -21,6 +21,7 @@ from illum import MultiScaleData as MSD
 from illum import pytools as pt
 from illum.inventory import from_lamps, from_zones
 from illum.OPAC import OPAC
+from scipy.interpolate import griddata
 
 
 @click.command()
@@ -169,12 +170,12 @@ def inputs():
         dir_name,
     )
 
-    OPAC()
+    OPAC(x)
 
     shutil.copy("srtm.hdf5", dir_name)
 
     with open(dir_name + "/wav.lst", "w") as zfile:
-        zfile.write("\n".join(map(str, x)) + "\n")
+        zfile.write("".join("%g\n" % w for w in x))
 
     
 
@@ -264,11 +265,15 @@ def inputs():
     for geo in ["obsth", "obstd", "obstf", "altlp"]:
         geometry = MSD.Open(dir_name + out_name + "_" + geo + ".hdf5")
         for i, mask in enumerate(defined):
-            geometry[i] = griddata(
-                points=np.where(mask),
-                values=geometry[i][mask.astype(bool)],
-                xi=tuple(np.ogrid[0 : mask.shape[0], 0 : mask.shape[1]]),
-                method="nearest",
+            geometry[i] = (
+                griddata(
+                    points=np.where(mask),
+                    values=geometry[i][mask.astype(bool)],
+                    xi=tuple(np.ogrid[0 : mask.shape[0], 0 : mask.shape[1]]),
+                    method="nearest",
+                )
+                if mask.any()
+                else np.zeros_like(geometry[i])
             )
         geometry.save(dir_name + out_name + "_" + geo)
 

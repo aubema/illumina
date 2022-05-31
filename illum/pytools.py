@@ -42,7 +42,8 @@ def SPD_norm(wav, norm_spct, x, factor=683.002):
 
 
 def spct_norm(wav, x):
-    """Normalises 'x' using the two first elements of 'wav' as the integration step."""
+    """Normalises 'x' using the two first elements of 'wav'as the integration
+    step."""
     dlambda = wav[1] - wav[0]
     return safe_divide(x, _np.sum(x) * dlambda)
 
@@ -105,8 +106,9 @@ def make_zones(theta, lop, wl, spct, ivtr, sources):
 def load_pgm(filename):
     """Opens a PGM file.
 
-    Returns the header dictionnary, the image parameters and the data as a 3-ple.
-    The image parameters are a list of the height, the width and the resolution."""
+    Returns the header dictionnary, the image parameters and the data as a
+    3-ple. The image parameters are a list of the height, the width and the
+    resolution."""
     with open(filename) as file:
         data = file.read().split("\n")[:-1]
 
@@ -178,7 +180,8 @@ def load_fits(filename):
 def save_fits(axis, data, filename):
     """Save an array to a fits file. Must be at least 2D.
 
-    axis : a list of 2-tuple containing the base value and the increment for each axis.
+    axis : a list of 2-tuple containing the base value and the increment for
+           each axis.
     data : data array. The dimensions must be ordered (...,z,y,x)
     filename : name of the file to create
     """
@@ -287,13 +290,18 @@ def plot_allsky(phi, r, data, n=100, **kwargs):
                  will be represented as an RGB plot.
       n        : Supersampling. If 'interp' is not 'None', it will be applied
                  to both axis. (Used to make the plot round)
-      interp   : Interpolation method. Can be 'None', 'linear', 'cubic' or 'quintic'
-      autogain : If True, the data will be stretched to have a max of 1 (def. False)
+      interp   : Interpolation method. Can be 'None', 'linear', 'cubic' or
+                 'quintic'
+      autogain : If True, the data will be stretched to have a max of 1
+                 (def. False)
       title    : Figure title
-      clabel   : Colorbar label. If defined, will draw a colorbar (2D data only)
+      clabel   : Colorbar label. If defined, will draw a colorbar (2D data
+                 only)
       fname    : File name. If defined, will save the figure and close it.
-      cmap     : Colormap to use (2D data only). See matplotlib doc for options.
-      labels   : Labels to add to the figure. {'label':position (deg)} dictionnary.
+      cmap     : Colormap to use (2D data only). See matplotlib doc for
+                 options.
+      labels   : Labels to add to the figure. {'label':position (deg)}
+                 dictionnary.
       log      : Logaritmic color scale (def. False)
       vmin     : Minimal value of the colorscale (2D data only).
       vmax     : Maximal value of the colorscale (2D data only).

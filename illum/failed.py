@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 
-import errno
 import fnmatch
 import os
-import re
 from glob import glob
 
 import click
@@ -20,7 +18,7 @@ def recursive_glob(rootdir=".", pattern="*"):
     "-e",
     "--executable",
     is_flag=True,
-    help="If given, will return the executable code to rerun the failed executions.",
+    help="If given, returns the executable code to rerun failed executions.",
 )
 def failed(executable):
     "Find failed ILLUMINA executions."

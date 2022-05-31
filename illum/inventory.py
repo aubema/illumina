@@ -6,9 +6,8 @@
 #
 # December 2021
 
-import numpy as np
-
 import illum.pytools as pt
+import numpy as np
 from illum import MultiScaleData as MSD
 
 
@@ -49,10 +48,10 @@ def from_lamps(
 
     print("Calculating the generalized lamps.")
 
-    for l in range(n_bins):
+    for n in range(n_bins):
         for s in sources:
             np.savetxt(
-                dir_name + "fctem_wl_%g_lamp_%s.dat" % (x[l], s),
+                dir_name + "fctem_wl_%g_lamp_%s.dat" % (x[n], s),
                 np.concatenate([lop[s], angles]).reshape((2, -1)).T,
             )
 
@@ -60,7 +59,7 @@ def from_lamps(
         zfile.write("\n".join(sources) + "\n")
 
     geometry = dict()
-    for geo in ["obsth", "obstd", "obstf", "altlp"]:
+    for geo in ["obsth", "obstd", "obstf", "altlp", "lights"]:
         geometry[geo] = MSD.from_domain("domain.ini")
 
     lumlp = dict()
@@ -81,6 +80,7 @@ def from_lamps(
                     geometry[geo][layer][row, col] = np.average(
                         lampsData[:, n][ind], weights=lumens
                     )
+                geometry["lights"][layer][row, col] = 1
 
                 local_sources = np.unique(photometry[ind][:, 1])
                 for s in local_sources:
@@ -128,10 +128,10 @@ def from_zones(
 
     sources = np.unique([lamp[2] for zd in zonData for lamp in zd])
 
-    for l in range(n_bins):
+    for n in range(n_bins):
         for s in sources:
             np.savetxt(
-                dir_name + "fctem_wl_%g_lamp_%s.dat" % (x[l], s),
+                dir_name + "fctem_wl_%g_lamp_%s.dat" % (x[n], s),
                 np.concatenate([lop[s], angles]).reshape((2, -1)).T,
             )
 

@@ -22,7 +22,6 @@ from h5py import File as _HDFile
 class MultiScaleData:
     def __init__(self, params, data=None):
         if data is None:
-            n_layers = params["nb_layers"]
             data = [
                 _np.zeros(
                     (
@@ -170,25 +169,25 @@ class MultiScaleData:
         lon = self._attrs["obs_lon"][obs_id]
 
         new = MultiScaleData(self._attrs)
-        for l in range(len(new)):
-            b = self._attrs["layers"][l]["buffer"]
-            xc, yc = new._get_col_row((lat, lon), l)
-            new[l] = self[l][
+        for i in range(len(new)):
+            b = self._attrs["layers"][i]["buffer"]
+            xc, yc = new._get_col_row((lat, lon), i)
+            new[i] = self[i][
                 yc - n - b : yc + n + b + 1, xc - n - b : xc + n + b + 1
             ].copy()
 
-            pix_size = new._attrs["layers"][l]["pixel_size"]
-            ny, nx = self[l].shape
-            new._attrs["layers"][l]["xmin"] += (xc - n - b) * pix_size
-            new._attrs["layers"][l]["xmax"] -= (
+            pix_size = new._attrs["layers"][i]["pixel_size"]
+            ny, nx = self[i].shape
+            new._attrs["layers"][i]["xmin"] += (xc - n - b) * pix_size
+            new._attrs["layers"][i]["xmax"] -= (
                 nx - (xc + n + b + 1)
             ) * pix_size
-            new._attrs["layers"][l]["ymin"] += (yc - n - b) * pix_size
-            new._attrs["layers"][l]["ymax"] -= (
+            new._attrs["layers"][i]["ymin"] += (yc - n - b) * pix_size
+            new._attrs["layers"][i]["ymax"] -= (
                 ny - (yc + n + b + 1)
             ) * pix_size
-            new._attrs["layers"][l]["observer_size_x"] = 1
-            new._attrs["layers"][l]["observer_size_y"] = 1
+            new._attrs["layers"][i]["observer_size_x"] = 1
+            new._attrs["layers"][i]["observer_size_y"] = 1
 
         new._attrs["obs_x"] = [x]
         new._attrs["obs_y"] = [y]
@@ -271,11 +270,18 @@ def plot(ds, n_layer=None, log=False, area=False, **options):
             norm = 1.0
         if "vmin" not in options:
             options["vmin"] = min(
-                _np.array([_np.min(l[l != 0] if log else l) for l in ds])
+                _np.array(
+                    [
+                        _np.min(layer[layer != 0] if log else layer)
+                        for layer in ds
+                    ]
+                )
                 / norm
             )
         if "vmax" not in options:
-            options["vmax"] = max(_np.array([_np.max(l) for l in ds]) / norm)
+            options["vmax"] = max(
+                _np.array([_np.max(layer) for layer in ds]) / norm
+            )
 
         if log:
             options["norm"] = _colors.LogNorm(
@@ -300,7 +306,7 @@ def plot(ds, n_layer=None, log=False, area=False, **options):
 
 
 def scatter(ds, fmt=".", n_layer=None, area=False, **options):
-    R, I = [], []
+    R, Y = [], []
 
     for i, layer in list(enumerate(ds[:n_layer])):
         layer = layer.copy()
@@ -319,14 +325,14 @@ def scatter(ds, fmt=".", n_layer=None, area=False, **options):
         L = layer[buff : n - buff, buff : n - buff]
 
         R.append(r[L != 0])
-        I.append(L[L != 0])
+        Y.append(L[L != 0])
 
     R = _np.concatenate(R).flatten()
-    I = _np.concatenate(I).flatten()
+    Y = _np.concatenate(Y).flatten()
 
-    _plt.plot(R, I, fmt, **options)
+    _plt.plot(R, Y, fmt, **options)
 
-    return R, I
+    return R, Y
 
 
 def from_domain(params, data=None):

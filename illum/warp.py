@@ -5,7 +5,6 @@ from glob import glob
 from subprocess import call
 
 import click
-import h5py
 import numpy as np
 import yaml
 from illum import MultiScaleData as MSD
@@ -180,10 +179,10 @@ def warp(output_name=None, infiles=[]):
         If used, VIIRS data in a volder named 'VIIRS-DNB'.
         If VIIRS data is used, the 'hydropolys.zip' file.
 
-    Can also be used on specific files, in wich case an output name and
-    a list of files to process must be given (the use of bash wildcards is encouraged).
+    Can also be used on specific files, in wich case an output name and a list
+    of files to process must be given (the use of bash wildcards is encouraged)
     """
-    if output_name != None and len(infiles) == 0:
+    if output_name is not None and len(infiles) == 0:
         print(
             "ERROR: If an output name is given, "
             "files to process must also be provided."
@@ -273,8 +272,8 @@ def warp(output_name=None, infiles=[]):
                     for extent in params["extents"]
                 ]
                 save(params, corr, "VIIRS_background")
-                for l in range(len(data)):
-                    data[l] -= corr[l]
+                for i, c in enumerate(corr):
+                    data[i] -= c
 
             save(params, data, "stable_lights")
 
