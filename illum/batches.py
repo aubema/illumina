@@ -359,15 +359,16 @@ def batches(input_path, compact, batch_size, batch_name=None):
                 f"{params['batch_file_name']}_{(count//batch_size)+1}", "a"
             ) as f:
                 f.write("cd %s\n" % os.path.abspath(fold_name))
-                f.write("sbatch ./execute\n")
+                f.write(" ./execute\n") #sbatch
                 f.write("sleep 0.05\n")
-
+                
             count += 1
 
         # Add current parameters execution to execution script
         with open(fold_name + "execute", "a") as f:
             f.write("cp %s.in illumina.in\n" % unique_ID)
             f.write("./illumina\n")
+            f.write(">finished.txt\n")
             f.write("mv %s.out %s_%s.out\n" % (exp_name, exp_name, unique_ID))
             f.write(
                 "mv %s_pcl.bin %s_pcl_%s.bin\n"

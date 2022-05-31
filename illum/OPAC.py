@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 
 import os
@@ -21,11 +22,21 @@ def OPAC():
         params = yaml.safe_load(f)
     layer = (params["aerosol_profile"], params["layer_type"])
 
-    bin_edges = np.linspace(
-        params["lambda_min"],
-        params["lambda_max"],
-        params["nb_bins"] + 1,
-    )
+    if os.path.isfile("spectral_bands.dat"):
+        bins = np.loadtxt("spectral_bands.dat", delimiter=",")
+        n_bins = bins.shape[0]
+        bin_edges=np.zeros(n_bins+1)
+        for index,value in enumerate(bins):
+            bin_edges[index]=value[0]
+            if index==n_bins-1:
+                bin_edges[index+1]=value[1]
+        
+    else:
+        bin_edges = np.linspace(
+            params["lambda_min"],
+            params["lambda_max"],
+            params["nb_bins"] + 1,
+        )
     wavelengths = np.mean([bin_edges[1:], bin_edges[:-1]], 0)
 
     aerosol_types = OrderedDict(

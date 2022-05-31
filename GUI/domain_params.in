@@ -1,0 +1,8 @@
+latitude: 45
+longitude: -71
+srs: auto
+scale_factor: 1.666666
+nb_pixels: 17
+nb_layers: 5
+scale_min: 750
+buffer: 10

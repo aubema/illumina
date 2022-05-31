@@ -8,15 +8,16 @@
 # March 2021
 
 import os
+import re
 import shutil
+import sys
+from collections import defaultdict as ddict
 from glob import glob
 
 import click
+import illum
 import numpy as np
 import yaml
-from scipy.interpolate import griddata
-
-import illum
 from illum import MultiScaleData as MSD
 from illum import pytools as pt
 from illum.inventory import from_lamps, from_zones
@@ -32,7 +33,7 @@ def inputs():
     dir_name = "Inputs/"
     shutil.rmtree(dir_name, True)
     os.makedirs(dir_name)
-    shutil.copy("inputs_params.in", dir_name + "inputs_params.in")
+    shutil.copy("inputs_params.in", "Inputs/inputs_params.in")
 
     with open("inputs_params.in") as f:
         params = yaml.safe_load(f)
@@ -59,21 +60,21 @@ def inputs():
             zones_ind.set_circle((dat[0], dat[1]), dat[2] * 1000, i)
 
         failed = set()
-        for j, coords in enumerate(lamps, 1):
+        for l, coords in enumerate(lamps, 1):
             for i in range(len(circles)):
                 try:
                     col, row = circles._get_col_row(coords, i)
                     if circles[i][row, col] and col >= 0 and row >= 0:
                         zon_ind = zones_ind[i][row, col]
-                        failed.add((j, coords[0], coords[1], zon_ind))
+                        failed.add((l, coords[0], coords[1], zon_ind))
                 except IndexError:
                     continue
 
         if len(failed):
-            for i, lat, lon, zon_ind in sorted(failed):
+            for l, lat, lon, zon_ind in sorted(failed):
                 print(
                     "WARNING: Lamp #%d (%.06g,%.06g) falls within non-null zone #%d"
-                    % (i, lat, lon, zon_ind)
+                    % (l, lat, lon, zon_ind)
                 )
             raise SystemExit()
 
@@ -116,20 +117,16 @@ def inputs():
         for s in spct_files
     }
 
-    print("Splitting in wavelengths bins.")
+    print("Splitting in a few wavelengths.")
 
-    if os.path.isfile("spectral_bands.dat"):
-        bins = np.loadtxt("spectral_bands.dat", delimiter=",")
-        n_bins = bins.shape[0]
-    else:
-        n_bins = params["nb_bins"]
-        lmin = params["lambda_min"]
-        lmax = params["lambda_max"]
+    n_bins = params["nb_bins"]
+    lmin = params["lambda_min"]
+    lmax = params["lambda_max"]
 
-        limits = np.linspace(lmin, lmax, n_bins + 1)
-        bins = np.stack([limits[:-1], limits[1:]], axis=1)
-    bool_array = (wav >= bins[:, 0:1]) & (wav < bins[:, 1:2])
-    x = bins.mean(1)
+    limits = np.linspace(lmin, lmax, n_bins + 1)
+    bool_array = (wav >= limits[:-1, None]) & (wav < limits[1:, None])
+
+    x = np.mean([limits[1:], limits[:-1]], 0)
 
     print("Interpolating reflectance.")
 
@@ -176,8 +173,6 @@ def inputs():
     with open(dir_name + "/wav.lst", "w") as zfile:
         zfile.write("\n".join(map(str, x)) + "\n")
 
-    
-
     if params["zones_inventory"] is not None:
         dir_name = ".Inputs_zones/"
         inv_name = params["zones_inventory"]
@@ -219,7 +214,6 @@ def inputs():
             refl,
             bool_array,
         )
-    dir_name = "Inputs/"
 
     print("Unifying inputs.")
 
@@ -252,24 +246,5 @@ def inputs():
         origin.save("Inputs/origin")
     shutil.rmtree(".Inputs_lamps", True)
     shutil.rmtree(".Inputs_zones", True)
-
-    # Interpolation of the obstacles properties
-    defined = MSD.Open(dir_name + "origin.hdf5")
-    lights_file = dir_name + out_name + "_lights.hdf5"
-    if os.path.isfile(lights_file):
-        lights = MSD.Open(lights_file)
-        for i, layer in enumerate(lights):
-            defined[i] += layer
-
-    for geo in ["obsth", "obstd", "obstf", "altlp"]:
-        geometry = MSD.Open(dir_name + out_name + "_" + geo + ".hdf5")
-        for i, mask in enumerate(defined):
-            geometry[i] = griddata(
-                points=np.where(mask),
-                values=geometry[i][mask.astype(bool)],
-                xi=tuple(np.ogrid[0 : mask.shape[0], 0 : mask.shape[1]]),
-                method="nearest",
-            )
-        geometry.save(dir_name + out_name + "_" + geo)
 
     print("Done.")

@@ -1,52 +1,60 @@
 #!/usr/bin/env python3
-#
-# Preprocessing for Illumina
-#
-# Author : Alexandre Simoneau
-# modified by Hector Linares for AOD definition
-#
-# March 2021
 
 import os
 import shutil
+import sys
+from collections import defaultdict as ddict
 from glob import glob
 
 import click
 import numpy as np
 import yaml
-from scipy.interpolate import griddata
-
-import illum
 from illum import MultiScaleData as MSD
 from illum import pytools as pt
 from illum.inventory import from_lamps, from_zones
-from illum.OPAC import OPAC
+from scipy.interpolate import interp1d as interp
 
 
 @click.command()
-def inputs():
-    """Prepares the executions inputs."""
+@click.argument("name")
+@click.option(
+    "-z",
+    "--zones",
+    type=click.Path(exists=True),
+    help="New zones inventory filename.",
+)
+@click.option(
+    "-l",
+    "--lights",
+    type=click.Path(exists=True),
+    help="New discrete lights inventory filename.",
+)
+def alternate(name, zones, lights):
+    """Generates an alternate scenario at constant lumen.
 
-    print("Preparing the inputs for the experiment.")
+    This scenatio will be based on the content of the `Inputs` folder and
+    will be placed in a folder named `Inputs_NAME`.
+    """
+    if zones == None and lights == None:
+        print("ERROR: At least one of 'zones' and 'lights' must be provided.")
+        raise SystemExit
 
-    dir_name = "Inputs/"
-    shutil.rmtree(dir_name, True)
-    os.makedirs(dir_name)
-    shutil.copy("inputs_params.in", dir_name + "inputs_params.in")
+    dirname = "Inputs_%s/" % name
+
+    if os.path.exists(dirname):
+        shutil.rmtree(dirname)
+    os.makedirs(dirname)
 
     with open("inputs_params.in") as f:
         params = yaml.safe_load(f)
 
-    if (
-        params["zones_inventory"] is not None
-        and params["lamps_inventory"] is not None
-    ):
+    if zones is not None and lights is not None:
 
         print("Validating the inventories.")
 
-        lamps = np.loadtxt(params["lamps_inventory"], usecols=[0, 1])
+        lamps = np.loadtxt(lights, usecols=[0, 1])
         zones = np.loadtxt(params["zones_inventory"], usecols=[0, 1, 2])
-        zonData = pt.parse_inventory(params["zones_inventory"], 7)
+        zonData = pt.parse_inventory(zones, 0)
 
         hasLights = [sum(x[0] for x in z) != 0 for z in zonData]
 
@@ -59,38 +67,27 @@ def inputs():
             zones_ind.set_circle((dat[0], dat[1]), dat[2] * 1000, i)
 
         failed = set()
-        for j, coords in enumerate(lamps, 1):
+        for l, coords in enumerate(lamps, 1):
             for i in range(len(circles)):
                 try:
                     col, row = circles._get_col_row(coords, i)
                     if circles[i][row, col] and col >= 0 and row >= 0:
                         zon_ind = zones_ind[i][row, col]
-                        failed.add((j, coords[0], coords[1], zon_ind))
+                        failed.add((l, coords[0], coords[1], zon_ind))
                 except IndexError:
                     continue
 
         if len(failed):
-            for i, lat, lon, zon_ind in sorted(failed):
+            for l, lat, lon, zon_ind in sorted(failed):
                 print(
                     "WARNING: Lamp #%d (%.06g,%.06g) falls within non-null zone #%d"
-                    % (i, lat, lon, zon_ind)
+                    % (l, lat, lon, zon_ind)
                 )
             raise SystemExit()
 
-    out_name = params["exp_name"]
+    shutil.copy("Inputs/inputs_params.in", dirname)
 
-    if params["road_orientation"]:
-        print("Computing road orientation (Can be slow for large domains)")
-        from illum.street_orientation import street_orientation
-
-        with open("domain.ini") as f:
-            domain_params = yaml.safe_load(f)
-        srs = domain_params["srs"]
-        lats, lons = MSD.from_domain("domain.ini").get_obs_pos()
-        bearings = street_orientation(lats, lons, srs)
-        np.savetxt(dir_name + "/brng.lst", bearings, fmt="%g")
-
-    print("Loading photometry files.")
+    print("\nLoading data...")
 
     # Angular distribution (normalised to 1)
     lop_files = glob("Lights/*.lop")
@@ -104,9 +101,13 @@ def inputs():
 
     # Spectral distribution (normalised with scotopric vision to 1)
     wav, viirs = np.loadtxt("Lights/viirs.dat", skiprows=1).T
-    viirs /= np.max(viirs)
-    wav, norm_spectrum = np.loadtxt("Lights/photopic.dat", skiprows=1).T
-    norm_spectrum /= np.max(norm_spectrum)
+    viirs = pt.spct_norm(wav, viirs)
+    scotopic = pt.load_spct(wav, np.ones(wav.shape), "Lights/scotopic.dat", 1)
+    photopic = pt.load_spct(wav, np.ones(wav.shape), "Lights/photopic.dat", 1)
+
+    # ratio_ps = float(raw_input("    photopic/scotopic ratio ? (0 <= p/(s+p) <= 1) : "))
+    ratio_ps = 1.0
+    norm_spectrum = ratio_ps * photopic + (1 - ratio_ps) * scotopic
 
     spct_files = glob("Lights/*.spct")
     spct = {
@@ -116,34 +117,30 @@ def inputs():
         for s in spct_files
     }
 
-    print("Splitting in wavelengths bins.")
+    # Make bins
+    n_bins = params["nb_bins"]
+    lmin = params["lambda_min"]
+    lmax = params["lambda_max"]
 
-    if os.path.isfile("spectral_bands.dat"):
-        bins = np.loadtxt("spectral_bands.dat", delimiter=",")
-        n_bins = bins.shape[0]
-    else:
-        n_bins = params["nb_bins"]
-        lmin = params["lambda_min"]
-        lmax = params["lambda_max"]
+    limits = np.linspace(lmin, lmax, n_bins + 1)
+    bool_array = (wav >= limits[:-1, None]) & (wav < limits[1:, None])
+    dl = (lmax - lmin) / n_bins
 
-        limits = np.linspace(lmin, lmax, n_bins + 1)
-        bins = np.stack([limits[:-1], limits[1:]], axis=1)
-    bool_array = (wav >= bins[:, 0:1]) & (wav < bins[:, 1:2])
-    x = bins.mean(1)
+    x = np.mean([limits[1:], limits[:-1]], 0).tolist()
 
-    print("Interpolating reflectance.")
+    out_name = params["exp_name"]
 
-    aster_files = glob("Lights/*.aster")
-    aster = {
+    asper_files = glob("Lights/*.aster")
+    asper = {
         os.path.basename(s).split(".", 1)[0]: np.loadtxt(s)
-        for s in aster_files
+        for s in asper_files
     }
 
-    for type in aster:
-        wl, refl = aster[type].T
+    for type in asper:
+        wl, refl = asper[type].T
         wl *= 1000.0
         refl /= 100.0
-        aster[type] = np.interp(wav, wl, refl)
+        asper[type] = interp(wl, refl, bounds_error=False, fill_value=0.0)(wav)
 
     sum_coeffs = sum(
         params["reflectance"][type] for type in params["reflectance"]
@@ -152,31 +149,28 @@ def inputs():
         sum_coeffs = 1.0
 
     refl = sum(
-        aster[type] * coeff / sum_coeffs
+        asper[type] * coeff / sum_coeffs
         for type, coeff in params["reflectance"].items()
     )
 
     reflect = [np.mean(refl[mask]) for mask in bool_array]
 
-    with open(dir_name + "/refl.lst", "w") as zfile:
+    with open(dirname + "/refl.lst", "w") as zfile:
         zfile.write("\n".join(["%.06g" % n for n in reflect]) + "\n")
 
-    print("Linking mie files.")
+    # Photopic/scotopic spectrum
+    #   ratio_ps = float(raw_input("    photopic/scotopic ratio for lamp power ? (0 <= p/(s+p) <= 1) : "))
+    nspct = ratio_ps * photopic + (1 - ratio_ps) * scotopic
+    nspct = nspct / np.sum(nspct)
+    nspct = [np.mean(nspct[mask]) for mask in bool_array]
 
-    illumpath = os.path.dirname(illum.__path__[0])
-    shutil.copy2(
-        os.path.abspath(illumpath + "/Molecular_optics/MolecularAbs.txt"),
-        dir_name,
-    )
+    for aero_file in glob("Inputs/*.txt"):
+        shutil.copy(aero_file, aero_file.replace("Inputs", dirname))
 
-    OPAC()
+    shutil.copy("srtm.hdf5", dirname)
 
-    shutil.copy("srtm.hdf5", dir_name)
-
-    with open(dir_name + "/wav.lst", "w") as zfile:
+    with open(dirname + "/wav.lst", "w") as zfile:
         zfile.write("\n".join(map(str, x)) + "\n")
-
-    
 
     if params["zones_inventory"] is not None:
         dir_name = ".Inputs_zones/"
@@ -201,6 +195,30 @@ def inputs():
             bool_array,
         )
 
+        oldlumlp = MSD.from_domain("domain.ini")
+        for fname in glob("Inputs/*lumlp*"):
+            ds = MSD.Open(fname)
+            wl = int(fname.split("_")[1])
+            for i, dat in enumerate(ds):
+                oldlumlp[i] += dat * nspct[x.index(wl)] * dl
+
+        newlumlp = MSD.from_domain("domain.ini")
+        for fname in glob(os.path.join(dir_name, "*lumlp*")):
+            ds = MSD.Open(fname)
+            wl = int(fname.split("_")[2])
+            for i, dat in enumerate(ds):
+                newlumlp[i] += dat * nspct[x.index(wl)] * dl
+
+        ratio = MSD.from_domain("domain.ini")
+        for i in range(len(ratio)):
+            ratio[i] = pt.safe_divide(oldlumlp[i], newlumlp[i])
+
+        for fname in glob(os.path.join(dir_name, "*lumlp*")):
+            ds = MSD.Open(fname)
+            for i, dat in enumerate(ratio):
+                ds[i] *= dat
+            ds.save(fname)
+
     if params["lamps_inventory"] is not None:
         dir_name = ".Inputs_lamps/"
         shutil.rmtree(dir_name, True)
@@ -219,57 +237,37 @@ def inputs():
             refl,
             bool_array,
         )
-    dir_name = "Inputs/"
 
     print("Unifying inputs.")
 
     lfiles = {fname.split(os.sep)[-1] for fname in glob(".Inputs_lamps/*")}
     zfiles = {fname.split(os.sep)[-1] for fname in glob(".Inputs_zones/*")}
     for fname in lfiles - zfiles:
-        shutil.move(os.path.join(".Inputs_lamps", fname), "Inputs")
+        shutil.move(os.path.join(".Inputs_lamps", fname), dirname)
     for fname in zfiles - lfiles:
-        shutil.move(os.path.join(".Inputs_zones", fname), "Inputs")
+        shutil.move(os.path.join(".Inputs_zones", fname), dirname)
     for fname in zfiles & lfiles:
         if "fctem" in fname:
-            shutil.move(os.path.join(".Inputs_lamps", fname), "Inputs")
+            shutil.move(os.path.join(".Inputs_lamps", fname), dirname)
         elif fname.endswith(".lst"):
             with open(os.path.join(".Inputs_lamps", fname)) as f:
                 ldat = f.readlines()
             with open(os.path.join(".Inputs_zones", fname)) as f:
                 zdat = f.readlines()
-            with open(os.path.join("Inputs", fname), "w") as f:
+            with open(os.path.join(dirname, fname), "w") as f:
                 f.write("".join(sorted(set(ldat + zdat))))
         elif fname.endswith(".hdf5"):
             ldat = MSD.Open(os.path.join(".Inputs_lamps", fname))
             zdat = MSD.Open(os.path.join(".Inputs_zones", fname))
             for i, dat in enumerate(ldat):
                 zdat[i][dat != 0] = dat[dat != 0]
-            zdat.save(os.path.join("Inputs", fname))
+            zdat.save(os.path.join(dirname, fname))
         else:
             print("WARNING: File %s not merged properly." % fname)
     if "origin.hdf5" not in zfiles:
         origin = MSD.from_domain("domain.ini")
-        origin.save("Inputs/origin")
+        origin.save(dirname + "/origin")
     shutil.rmtree(".Inputs_lamps", True)
     shutil.rmtree(".Inputs_zones", True)
-
-    # Interpolation of the obstacles properties
-    defined = MSD.Open(dir_name + "origin.hdf5")
-    lights_file = dir_name + out_name + "_lights.hdf5"
-    if os.path.isfile(lights_file):
-        lights = MSD.Open(lights_file)
-        for i, layer in enumerate(lights):
-            defined[i] += layer
-
-    for geo in ["obsth", "obstd", "obstf", "altlp"]:
-        geometry = MSD.Open(dir_name + out_name + "_" + geo + ".hdf5")
-        for i, mask in enumerate(defined):
-            geometry[i] = griddata(
-                points=np.where(mask),
-                values=geometry[i][mask.astype(bool)],
-                xi=tuple(np.ogrid[0 : mask.shape[0], 0 : mask.shape[1]]),
-                method="nearest",
-            )
-        geometry.save(dir_name + out_name + "_" + geo)
 
     print("Done.")

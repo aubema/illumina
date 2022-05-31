@@ -214,7 +214,7 @@ def warp(output_name=None, infiles=[]):
             print("WARNING: Could not find GHSL.zip file.")
             print("If you don't intend to use it, you can safely ignore this.")
 
-        files = sorted(glob("SRTM/*.hgt"))
+        files = sorted(glob("SRTM/*.tiff"))#hgt
         if not len(files):
             print("ERROR: Could not find SRTM file(s), aborting.")
             raise SystemExit

@@ -1,4 +1,4 @@
-__version__ = "2.2.21w49.5d-dev"
+__version__ = "2.2.22w22.2c-GUI"
 
 try:
     from . import MultiScaleData, pytools
