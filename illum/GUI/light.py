@@ -298,7 +298,7 @@ class Ui_LIGHT(Ui_ILLUMINA):
         wl_filt = wl[index_min:index_max]
         sens_filt = (sens[index_min:index_max]) / 100  # % to frac
 
-        bins = np.loadtxt("spectral_bands.dat", delimiter=",")
+        bins = np.loadtxt(self.datapath + "/spectral_bands.dat", delimiter=",")
         n_bins = bins.shape[0]
         limits = np.zeros(n_bins + 1)
         for index, value in enumerate(bins):

@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 
+import os
 from collections import OrderedDict
 
+import illum
 import numpy as np
 import yaml
 
-mie_path = "/home/hlinares/git/illumina/Aerosol_optics/"
+mie_path = os.path.dirname(illum.__path__[0]) + "Aerosol_optics/"
 aerosol_types = OrderedDict(
     (
         ("inso", "insoluble aerosol"),
@@ -118,6 +120,6 @@ for layer in layers:
                     ac = (ac542 + ac614) * 0.5
                     rows.append(layer + str(RH0) + ": " + str(ac) + "\n")
 
-with open("AC_std_values.txt", "w") as f:
+with open(mie_path + "../GUI_data/AC_std_values.txt", "w") as f:
     for row in rows:
         f.write(row)
