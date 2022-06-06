@@ -200,7 +200,7 @@ class Ui_LIGHT(Ui_ILLUMINA):
                 f"Distance between lamps and obstacles: {dobs}\n"
             )
             + "Inventory of light sources:\n"
-            + "".join(
+            + "\n".join(
                 f"{float(p)*pnorm:.4g}% {t} {u}"
                 for p, t, u in zip(self.perc, self.tech, self.ulor)
             )
@@ -260,9 +260,12 @@ class Ui_LIGHT(Ui_ILLUMINA):
             for f in os.listdir(output_path):
                 os.remove(os.path.join(output_path, f))
             path = f"{self.pathparent}/illum_conf.xml"
-            call(f"java -jar Gambons.jar -cf {path}".split())
-            csv_file = glob("*.csv")
-            with open(os.path.join(output_path, csv_file[0])) as f:
+            call(
+                f"java -jar {self.datapath}/GambonsV2/Gambons.jar "
+                f"-cf {path}".split()
+            )
+            csv_file = glob(os.path.join(output_path, "*.csv"))[0]
+            with open(csv_file) as f:
                 csvreader = csv.reader(f)
                 next(csvreader)
                 rows = []
