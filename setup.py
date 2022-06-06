@@ -19,6 +19,7 @@ setup(
         "pillow",
         "progressbar2",
         "pyproj",
+        "PyQt5",
         "pyyaml",
         "scipy",
     ],
