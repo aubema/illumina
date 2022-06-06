@@ -2,16 +2,20 @@
 
 import csv
 import os
-import shutil
 import sys
 import time
 import zipfile
+from contextlib import suppress
 from glob import glob
 from subprocess import call
 from threading import Thread
+from urllib.request import urlopen
 
 import click
+import illum
 import numpy as np
+import progressbar
+import requests
 import yaml
 from PyQt5.QtWidgets import QApplication, QDialog
 
@@ -37,12 +41,16 @@ class Ui_LIGHT(Ui_ILLUMINA):
         self.inventory_line = []
         self.atm_type = ""
         self.num_batch = 0
-        self.pathparent = os.getcwd()
         self.jobs = 5 * 2  # 5 capes i 2 bandwidth
+        self.illumpath = os.path.dirname(illum.__path__[0])
+        self.datapath = os.path.join(self.illumpath, "GUI_data")
+        self.pathparent = os.getcwd()
 
     def defining_exp(self):
         self.log_edit.setPlainText("Defining experiment")
         self.log_edit.repaint()
+
+        call(["illum", "init"])
 
         lat = self.latitude_edit.text()
         long = self.longitude_edit.text()
@@ -98,34 +106,27 @@ class Ui_LIGHT(Ui_ILLUMINA):
         ]
         name_month = array_months[int(date_month) - 1]
 
-        # managing viirs file
-        files = glob("./VIIRS-DNB/*")
-        for f in files:
-            os.remove(f)
-        name_viirs = glob(f"VIIRS_database/SVDNB_npp_2020{date_month}*")
-
-        shutil.copyfile(
-            name_viirs[0], "VIIRS-DNB/" + name_viirs[0].split("/")[1]
-        )
-
-        # managing srtm files
-        files = glob("./SRTM/*")
-        for f in files:
-            os.remove(f)
-
-        with zipfile.ZipFile("SRTM.zip", "r") as zipObj:
-            zipObj.extractall("SRTM")
+        # managing files
+        viirs = glob(f"{self.datapath}/VIIRS_database/*{date_month}*")[0]
+        with suppress(FileExistsError):
+            os.makedirs("VIIRS-DNB")
+        with suppress(FileExistsError):
+            os.symlink(viirs, "VIIRS-DNB/" + os.path.basename(viirs))
+        with suppress(FileExistsError):
+            os.symlink(f"{self.datapath}/SRTM", "SRTM")
+        with suppress(FileExistsError):
+            os.symlink(f"{self.datapath}/hydropolys.zip", "hydropolys.zip")
 
         with open("domain_params.in", "w") as f:
             f.write(
-                f"latitude: {lat}"
-                f"longitude: {long}"
-                "srs: auto"
-                "scale_factor: 1.666666"
-                "nb_pixels: 17"
-                "nb_layers: 5"
-                "scale_min: 750"
-                "buffer: 10"
+                f"latitude: {lat}\n"
+                f"longitude: {long}\n"
+                "srs: auto\n"
+                "scale_factor: 1.666666\n"
+                "nb_pixels: 17\n"
+                "nb_layers: 5\n"
+                "scale_min: 750\n"
+                "buffer: 10\n"
             )
         # global self.inventory_line
         if os.path.isfile("inventory.txt"):
@@ -148,9 +149,9 @@ class Ui_LIGHT(Ui_ILLUMINA):
         self.progressBar.setValue(50)
 
         # Remove SRTM files to free memory
-        files = glob("./SRTM/*")
-        for f in files:
-            os.remove(f)
+        # files = glob("./SRTM/*")
+        # for f in files:
+        #     os.remove(f)
 
         self.atm_type = self.comboBox_atm.currentText()
         RH = self.comboBox_rh.currentText()
@@ -159,7 +160,7 @@ class Ui_LIGHT(Ui_ILLUMINA):
         ac = self.box_alpha.text()
         aeh = self.box_aeh.text()
 
-        with open("inputs_params_original.in", "r") as f:
+        with open(self.datapath + "/inputs_params.in", "r") as f:
             ip = yaml.safe_load(f)
         if os.path.isfile("inputs_params.in"):
             os.remove("inputs_params.in")
@@ -253,7 +254,7 @@ class Ui_LIGHT(Ui_ILLUMINA):
             self.log_edit.setPlainText("Computing natural brightness")
             gambons_inputs()
 
-            pathgambons = "./GambonsV2"
+            pathgambons = self.datapath + "/GambonsV2"
             os.chdir(pathgambons)
             output_path = "./output"
             for f in os.listdir(output_path):
@@ -330,7 +331,7 @@ class Ui_LIGHT(Ui_ILLUMINA):
 
         # Write results file
         inv_text = "".join(
-            f"{p}% {t} with {u}% ULOR\n"
+            f"\n    {p}% {t} with {u}% ULOR"
             for p, t, u in zip(self.perc, self.tech, self.ulor)
         )
 
@@ -387,9 +388,9 @@ class Ui_LIGHT(Ui_ILLUMINA):
         self.atm_type = self.comboBox_atm.currentText()
         RH = self.comboBox_rh.currentText()
 
-        with open("AoD_std_values.txt") as f:
+        with open(self.datapath + "/AoD_std_values.txt") as f:
             aod = yaml.safe_load(f)
-        with open("AC_std_values.txt") as f:
+        with open(self.datapath + "/AC_std_values.txt") as f:
             ac = yaml.safe_load(f)
         atm_type = self.atm_type.split(" ")[0]
         if atm_type == "D":
@@ -412,9 +413,62 @@ class AppWindow(QDialog):
         self.show()
 
 
+def progress_download(url, outname=None, block_size=1024 ** 2):
+    site = urlopen(url)
+    meta = site.info()
+    response = requests.get(url, stream=True)
+    bytes = int(meta["Content-Length"])
+
+    if outname is None:
+        outname = os.path.basename(url)
+
+    print(url)
+    print(outname)
+
+    pbar = progressbar.DataTransferBar(max_value=bytes).start()
+    with open(outname, "wb") as f:
+        for i, data in enumerate(response.iter_content(block_size)):
+            pbar.update(block_size * i)
+            f.write(data)
+    pbar.finish()
+
+
+def download_data():
+    # Download needed data
+    illumpath = os.path.dirname(illum.__path__[0])
+    base_url = "http://dome.obsand.org:2080/wiki/html/"
+
+    def ensure_downloaded(name):
+        if not os.path.exists(
+            os.path.join(illumpath, "GUI_data", os.path.basename(name))
+        ):
+            zipped = name.endswith(".zip")
+            if not zipped:
+                name += ".zip"
+            basename = os.path.basename(name)
+            path = os.path.join(illumpath, "GUI_data", basename)
+            print(f"`{basename}`")
+            progress_download(base_url + name, path)
+
+            if not zipped:
+                with zipfile.ZipFile(path, "r") as zipObj:
+                    zipObj.extractall(path[:-4])
+
+                os.remove(path)
+
+    print("Downloading necessary data. It may take several minutes.")
+    ensure_downloaded("illumina_light/SRTM")
+    ensure_downloaded("illumina_light/GambonsV2")
+    ensure_downloaded("illumina_light/VIIRS_database")
+    ensure_downloaded("hydropolys.zip")
+
+    print("Done.")
+
+
 @click.command()
 def light():
     """Executes the Illumina Light GUI."""
+    download_data()
     app = QApplication(sys.argv)
     w = AppWindow()
     w.show()

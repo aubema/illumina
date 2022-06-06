@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python3
 
 import os
@@ -70,7 +69,7 @@ def OPAC(wavelengths):
                     if type in ["waso", "ssam", "sscm", "suso"]
                     else 0
                 )
-                OPAC_filename = f"{mie_path}/OPAC_data/{type}{RH:02}"
+                OPAC_filename = f"{mie_path}/OPAC_data/{type}{RH:02.0f}"
                 wl_prop = np.genfromtxt(
                     OPAC_filename,
                     skip_header=17,
