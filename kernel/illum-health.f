@@ -182,10 +182,9 @@ c reading of the fichier d'entree (illumina.in)
         read(1,*) lambda,bandw
         read(1,*) srefl,brefl,orefl
         read(1,*) pressi
-        read(1,*) z_o             IL FAUT FAIRE UNE BOUCLE SUR TOUT LE DOMAINE ET CALCULER LES POS OBSERVATEUR QUAND gndty()=0
+        read(1,*) z_o
         read(1,*) obsobs
-        read(1,*) azim            CET ANGLE SERA DANS UNE MATRICE azim()
-        read(1,*) reflsiz         IL FAUT REMPLACER CETTE VARIABLE PAR drefl()   
+        read(1,*) reflsiz         IL FAUT CREER UNE MATRICE drefl() AYANT CETTE VALEUR SAUF SUR LA RUE JE CROIS. PENSER A LA REFLEXION SUR LE MURS. PEUT-ON FIXER UNE VALEUR?
       close(1)
 c windows pointing toward horizon
       angvis=0.
@@ -319,7 +318,6 @@ c cartesian, azim=0 toward east, 90 toward north, 180 toward west etc
             if (azim(i,j).ge.360.) azim(i,j)=azim(i,j)-360.
           enddo                                                           ! end of the loop over all cells along y.
         enddo        
-        
 c Some preliminary tasks
         do stype=1,ntype                                                  ! beginning of the loop over ntype types of sources.
           imin(stype)=nbx
@@ -402,8 +400,6 @@ c reading luminosity files
             enddo                                                         ! end of the loop over all cells along y.
           enddo                                                           ! end of the loop over all cells along x.
         enddo
-        
-                                                                          ! end of the loop 1 over the ntype types of sources.
 c distribute reflectance values and adding fake buildings
           do i=1,nbx                                                        ! beginning of the loop over all cells along x.
             do j=1,nby                                                      ! beginning of the loop over all cells along y.
@@ -421,7 +417,6 @@ c distribute reflectance values and adding fake buildings
               endif                    
             enddo                                                           ! end of the loop over all cells along y.
           enddo
-        
 c computation of the basic tilt of the pixels along x and along y
 c
 c  0=building front
@@ -782,9 +777,6 @@ c sub-grid obstacles
                                   endif
                                 endif                                       ! end light path to the observer larger than mean free path
                               endif
-                              
-                              
-                              
                               call anglezenithal(rx_sr,ry_sr,z_sr                     ! zenithal angle surface-observer
      +                        ,rx_obs,ry_obs,z_obs,dzen)                  
                               ff2=0.
@@ -800,9 +792,6 @@ c sub-grid obstacles
                               endif                                                   ! end light path to the observer larger than mean free path                                                
                               call anglezenithal(rx_obs,ry_obs,z_obs      ! zenithal angle source-observer
      +                        ,rx_sr,ry_sr,z_sr,dzen)                              
-                              
-                              
-                              
 c projection angle of line to the lamp and the viewing angle
                               call angle3points (rx_sr,ry_sr,z_sr,        ! scattering angle.
      +                        rx_obs,ry_obs,z_obs,rx,ry,rz,dang)
@@ -836,17 +825,8 @@ c computation of the solid angle of the line of sight voxel seen from the source
           endif
 c end loop stype
         enddo
-c
-c End of calculation of the direct radiances
-c =================================
-
-
-
-
-
         if (verbose.ge.1) print*,'Direct irradiance from sources 
      +(W/m**2/nm) at (',oi,',',oj,'):',irradi(oi,oj)
-
 c end of loop over every observer      
           enddo
         enddo
