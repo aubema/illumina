@@ -32,8 +32,8 @@ folder=`pwd`
 chmod a+x make*
 
 # options de debuggage -Wall -fcheck=all -g -fbacktrace -ffpe-trap=zero
-echo $F77" -Wunused-parameter -mcmodel=medium -O3 kernel/illum-health.f kernel/angle3points.f kernel/anglesolide.f kernel/anglezenithal.f kernel/angleazimutal.f kernel/horizon.f kernel/twodin.f -o bin/illumina-health"
-$F77 -Wunused-parameter -mcmodel=medium -O3 kernel/illum-health.f kernel/angle3points.f kernel/anglesolide.f kernel/anglezenithal.f kernel/angleazimutal.f kernel/horizon.f kernel/twodin.f -o bin/illumina-health
-sed -i "s/$version/__version__/" kernel/illumina-health.f
+echo $F77" -Wunused-parameter -mcmodel=medium -O3 kernel/illum-health.f90 kernel/angle3points.f kernel/anglesolide.f kernel/anglezenithal.f kernel/angleazimutal.f kernel/horizon.f kernel/twodin.f -o bin/illumina-health"
+$F77 -Wunused-parameter -mcmodel=medium -O3 kernel/illum-health.f90 kernel/angle3points.f kernel/anglesolide.f kernel/anglezenithal.f kernel/angleazimutal.f kernel/horizon.f kernel/twodin.f -o bin/illumina-health
+sed -i "s/$version/__version__/" kernel/illumina-health.f90
 chmod a+x bin/*
 chmod a+x *.bash
