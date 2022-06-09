@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import csv
 import os
 import sys
 import time
@@ -12,12 +11,14 @@ from threading import Thread
 from urllib.request import urlopen
 
 import click
-import illum
 import numpy as np
+import pandas as pd
 import progressbar
 import requests
 import yaml
 from PyQt5.QtWidgets import QApplication, QDialog
+
+import illum
 
 from .gambons_inputs import gambons_inputs
 from .light_ui import Ui_ILLUMINA
@@ -148,11 +149,6 @@ class Ui_LIGHT(Ui_ILLUMINA):
         call(["illum", "warp"])
         self.progressBar.setValue(50)
 
-        # Remove SRTM files to free memory
-        # files = glob("./SRTM/*")
-        # for f in files:
-        #     os.remove(f)
-
         self.atm_type = self.comboBox_atm.currentText()
         RH = self.comboBox_rh.currentText()
 
@@ -209,7 +205,6 @@ class Ui_LIGHT(Ui_ILLUMINA):
         self.progressBar.setValue(0)
 
     def run_simulation(self):
-
         self.log_edit.setPlainText(
             "Running the simulation.\nIt might take several minutes."
         )
@@ -256,7 +251,7 @@ class Ui_LIGHT(Ui_ILLUMINA):
 
             pathgambons = self.datapath + "/GambonsV2"
             os.chdir(pathgambons)
-            output_path = "./output"
+            output_path = os.path.abspath("./output")
             for f in os.listdir(output_path):
                 os.remove(os.path.join(output_path, f))
             path = f"{self.pathparent}/illum_conf.xml"
@@ -264,25 +259,24 @@ class Ui_LIGHT(Ui_ILLUMINA):
                 f"java -jar {self.datapath}/GambonsV2/Gambons.jar "
                 f"-cf {path}".split()
             )
+            os.chdir(self.pathparent)
             csv_file = glob(os.path.join(output_path, "*.csv"))[0]
-            with open(csv_file) as f:
-                csvreader = csv.reader(f)
-                next(csvreader)
-                rows = []
-                radiance_V_nat = []
-                for row in csvreader:
-                    rows.append(row)
-                    if float(rows[-1][1]) == 0.2500:
-                        radiance_V_nat.append(float((rows[-1][2])))
-            mag_V_nat = mag_ref - 2.5 * np.log10(
-                np.mean(radiance_V_nat) / radiance_ref
+            gambons_output = pd.read_csv(
+                csv_file, names=["az", "alt", "L", "mag"], skiprows=1
+            )
+            radiance_V_nat = gambons_output.L[
+                gambons_output.alt == gambons_output.alt.min()
+            ].mean()
+            mag_V_nat = mag_ref - 2.5 * np.log10(radiance_V_nat / radiance_ref)
+            os.rename(
+                glob(os.path.join(output_path, "*.png"))[0],
+                "natural_sky.png",
             )
         self.progressBar.setValue(100)
 
         # extracting results
         self.log_edit.setPlainText("Simulation finished\nExtracting results")
         self.log_edit.repaint()
-        os.chdir(self.pathparent)
         with open("results_artificial_temp.txt", "w") as f:
             call(["illum", "extract"], stdout=f)
 
@@ -327,15 +321,16 @@ class Ui_LIGHT(Ui_ILLUMINA):
             log += f"Natural sky brightness: {mag_V_nat:.2f} mag/arcsec\n"
             log += f"Total sky brightness: {mag_V_tot:.2f} mag/arcsec\n"
         else:
-            mag_V_nat = "Not computed"
+            mag_V_nat = np.nan
             mag_V_tot = mag_V_art
 
         self.log_edit.setPlainText(log)
 
         # Write results file
+        pnorm = 100 / sum(map(float, self.perc))
         inv_text = "".join(
             f"\n    {p}% {t} with {u}% ULOR"
-            for p, t, u in zip(self.perc, self.tech, self.ulor)
+            for p, t, u in zip(self.perc * pnorm, self.tech, self.ulor)
         )
 
         output = (
@@ -351,10 +346,13 @@ class Ui_LIGHT(Ui_ILLUMINA):
             ("Bulding's number of stories", self.hobs_edit.text(), "m"),
             ("Aerosol type", self.comboBox_atm.currentText().split(" ")[0]),
             ("Relative humidity,", self.comboBox_rh.currentText(), "%"),
-            ("Total radiance", str(round(mag_V_tot, 2)), "mag/arcsec²"),
             ("Artificial radiance", str(round(mag_V_art, 2)), "mag/arcsec²"),
-            ("Natural radiance", str(round(mag_V_nat, 2)), "mag/arcsec²"),
         )
+        if self.natural_light.isChecked():
+            output += (
+                ("Natural radiance", str(round(mag_V_nat, 2)), "mag/arcsec²"),
+                ("Total radiance", str(round(mag_V_tot, 2)), "mag/arcsec²"),
+            )
 
         with open(f"Results_experiment_{self.name_edit.text()}.txt", "w") as f:
             for elem in output:
