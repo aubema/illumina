@@ -63,7 +63,7 @@ program illumhealth                           ! Beginning
   real pvalto                                       !
   
   real, dimension(:,:,:), allocatable :: pval       ! pval(181,181,ntype)
-  real, dimension(:,:,:), allocatable :: pvalno     ! pvalno(181,181,ntype) values of the angular photometry functions 1sr_axis=azim, 2nd=zenith 
+  real, dimension(:,:,:), allocatable :: pvalno     ! pvalno(181,181,ntype) values of the angular photometry functions 1sr(x)_axis=zenith, 2nd(y)_axis=azimuth
   real, dimension(:,:,:), allocatable :: lamplu     ! lamplu(width,width,ntype)  Source fluxes
   real, dimension(:,:), allocatable ::  val2d       ! val2d(width,width)  Temporary input array 2d
   real, dimension(:,:), allocatable ::  altsol      ! altsol(width,width)  Ground elevation (meter)
@@ -107,9 +107,9 @@ program illumhealth                           ! Beginning
   INTEGER x_s,y_s,x_sr,y_sr ! Positions of the source, the reflecting surface
   real z_s,z_sr,z_dif       ! Heights of the source, the reflecting surface, and the scattering voxel (metre).
   real rx_s,ry_s,rx_sr,ry_sr
-  real angzen,ouvang        ! Zenithal angle between two voxels (radians) and opening angle of the solid angle in degrees.
+  real angzen,ouvang        ! Zenithal angle between points (radians) and opening angle of the solid angle in degrees.
   INTEGER anglez            ! Emitting zenithal angle from the luminaire.
-  INTEGER anglep            ! Emitting azimuth angle from the luminaire
+  INTEGER anglea            ! Emitting azimuth angle from the luminaire
   real P_dir,P_indir        ! photometri! function of the light sources (direct,reflected)
   real*8 xc,yc,zc,xn,yn,zn  ! Position (meter) of the elements (starting point, final point) for the calculation of the solid angle.
   real*8 r1x,r1y,r1z,r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z ! Components of the vectors used in the solid angle calculation routine.
@@ -118,11 +118,9 @@ program illumhealth                           ! Beginning
   real epsilx,epsily        ! tilt of the ground pixel
   real flrefl               ! flux reaching a reflecting surface (watts).
   real irefl,irefl1         ! intensity leaving a reflecting surface toward the line of sight voxel.
-  real angvis,azim          ! viewing angles of the sensor.
   real nbang                ! for the averaging of the photometri! function
 
-
-  INTEGER naz,na,nap,np
+  INTEGER nzp,nz,nap,na
   character*3 lampno        ! lamp number string
 
   real angazi               ! azimuth angle between two points in rad, max dist for the horizon determination
@@ -131,7 +129,15 @@ program illumhealth                           ! Beginning
 
   real ff,ff2,hh            ! temporary obstacle filling factor and horizon blocking factor
   real distd                ! distance to compute the scattering probability
-  real angvi1,angaz1,angze1 ! viewing angles in radian
+  real angazor              ! viewing azimuth angles in radian
+  real angzeor              ! horizontal zenith angle (normal to a window)
+  real angazsr              ! azimuth angle between a source and the nearest road
+  real angzeos              ! zenith angle between an observer and a source
+  real angazos              ! azimith angle between an observer and a source
+  real angazssr             ! azimuth angle between source and surface
+  real angazosr             ! azimuth angle between observer and surface
+  real angzessr             ! zenith angle between source and surface
+  real angzeosr             ! zenith angle between observer and surface
   real ix,iy,iz             ! base vector of the viewing (length=1)
   real azcl1,azcl2          ! zenith angle from the (source, refl surface, or scattering voxel) to line of path and observer to line p.
   real dh,dho               ! distance of the horizon limit
@@ -143,10 +149,7 @@ program illumhealth                           ! Beginning
   real zhoriz               ! zenith angle of the horizon
 
   real dang                 ! Angle between the line of sight and the direction of a source
-  real dzen                 ! zenith angle of the source-observer line
   real ddir_obs             ! distance between the source and the observer
-  real rx,ry,rz             ! driving vector for the calculation of the projection angle for direct radiance. It is 20km long
-
   character*72 gifile       ! name of the ground type flag file
   real dh0,dhmax            ! horizontal distance along the line of sight and maximum distance before beeing blocked by topography
   real layaod               ! 500 nm aod of the particle layer
@@ -160,6 +163,7 @@ program illumhealth                           ! Beginning
   ff=0.
   ff2=0.
   step=1
+  angazo=90.                ! the window is pointing horizontally
   if (verbose.ge.1) then
      print*,'Starting ILLUMINA computations...'
   endif
@@ -198,9 +202,7 @@ program illumhealth                           ! Beginning
   allocate ( jmax(ntype) )
   allocate ( totlu(ntype) )
   !     windows pointing toward horizon
-  angvis=0.
-  angvi1 = (pi*angvis)/180.
-  angze1 = pi/2.-angvi1
+  angzeor = pi/2.
   !     max distance to consider the reflexion in meter
   reflsiz=30.
   boxx=nint(reflsiz/dx)     ! Number of column to consider left/right of the source for the reflection.
@@ -212,7 +214,6 @@ program illumhealth                           ! Beginning
   if (verbose.ge.1) print*,'500nm AOD=',taua,'500nm angstrom coeff.=',alpha
   taua=taua*(lambda/500.)**(-1.*alpha)
   print*,'Wavelength (nm):',lambda,' Aerosol optical depth:',taua
-  print*,'Elevation angle:',angvis,' azim angle (counterclockwise from east)',azim
   !     Initialisation of arrays and variables
   if (verbose.ge.1) print*,'Initializing variables...'
   do i=1,width
@@ -305,10 +306,12 @@ program illumhealth                           ! Beginning
      lufile=basenm(1:lenbase)//'_lumlp_'//lampno//'.bin' ! setting the file name of the luminosite of the cases.
      !     reading photometry files
      open(UNIT=1, FILE=pafile,status='OLD') ! opening file pa#.dat, angular photometry.
+     ! each line (j) is a new azimuth starting at 0 deg (perpendicular to the street) and ending at 180 deg (behind)
+     ! on each line we have the zenith angle (i) beginning at 0 (zenith) end ending at 180 (nadir)
      do i=1,181
         do j=1,181          ! beginning of the loop for the 181 data points
            read(1,*) pval(i,j,stype) ! reading of the data in the array pval.
-           pvalto=pvalto+pval(i,j,stype)*2.*sin(real(j-1)*dtheta)*dtheta**2.  ! units of 1/sr.
+           pvalto=pvalto+pval(i,j,stype)*2.*sin(real(i-1)*dtheta)*dtheta**2.  ! units of 1/sr.
         enddo
      enddo                  ! end of the loop over the 181 donnees of the fichier pa#.dat.
      close(1)               ! closing file pa#.dat, angular photometry.
@@ -396,7 +399,7 @@ program illumhealth                           ! Beginning
   enddo
   !     computation of the basi! tilt of the pixels along x and along y
   !
-  !     0=building front
+  !     0=building front and observer
   !     1=building top               111
   !     2=street                     111
   !     3=building rear             01113
@@ -437,7 +440,9 @@ program illumhealth                           ! Beginning
         endif
      enddo                  ! end of the loop over the rows (latitu) of the domain
   enddo                     ! end of the loop over the column (longitude) of the domain
-  deallocate ( altsob )  
+  deallocate ( altsob )
+  !     determination of the vertical atmospheri! transmittance
+  call transtoa(lambda,bandw,taua,layaod,pressi,tranam,tranaa,tranal,tabs)
   largx=dx*real(nbx)        ! computation of the Width along x of the case.
   largy=dy*real(nby)        ! computation of the Width along y of the case.
   !     remove 2nd aerosol layer
@@ -448,19 +453,17 @@ program illumhealth                           ! Beginning
      do oj=1,nby
         !     only calculate if it is an observer position
         if (gndty(oi,oj).eq.0) then
-           !     convert to radians
-           angaz1 = (pi*azims(oi,oj))/180.
-           ix = ( sin((pi/2.)-angvi1) ) * (cos(angaz1)) ! viewing vector components
-           iy = ( sin((pi/2.)-angvi1) ) * (sin(angaz1))
-           iz = (sin(angvi1))
+           angazor = (pi*azims(oi,oj))/180.        ! angle to the road  from an observer (gndty=0)
+           ix = (sin((angzeor))*(cos(angazor))      ! viewing vector components
+           iy = (sin((angzeor))*(sin(angazor))      ! looking horizontally toward street from the observer position
+           iz = (cos(angzeor))
            x_obs=oi
            y_obs=oj
            z_obs=z_o+altsol(x_obs,y_obs)
            rx_obs=real(x_obs)*dx
            ry_obs=real(y_obs)*dy
            if (z_obs.eq.0.) z_obs=0.001
-           !     determination of the vertical atmospheri! transmittance
-           call transtoa(lambda,bandw,taua,layaod,pressi,tranam,tranaa,tranal,tabs)
+
            irradi(oi,oj)=0. ! initialize the total direct irradiance from sources to observer
            !     ==============================
            !     Calculation of the direct radiances
@@ -482,18 +485,18 @@ program illumhealth                           ! Beginning
                           !     calculation of the direct radiance of sources falling on a surface perpendicular
                           !     to the viewing angle Units of W/nm/m2/sr
                           !     *********************************************************************************************************
-                          !     defining a line of sight wit a point located far away
-                          rx=rx_obs+20000.*ix
-                          ry=ry_obs+20000.*iy
-                          rz=z_obs+20000.*iz
                           dho=sqrt((rx_obs-rx_s)**2.+(ry_obs-ry_s)**2.)
                           if ((dho.gt.0.).and.(z_s.ne.z_obs)) then  ! if same horizontal position we cannot have same z elevation
-                             call anglezenithal(rx_obs,ry_obs,z_obs,rx_s,ry_s,z_s,dzen)
-                             call angleazimutal(rx_obs,ry_obs,rx_s,ry_s,angazi)
-                             if (dzen.gt.pi/4.) then ! 45deg. it is unlikely to have a 1km high mountain less than 1
-                                call horizon(width,x_obs,y_obs,z_obs,dx,dy,altsol,angazi,zhoriz,dh)
+                             ! azimuth source to road
+                             angazsr=azims(x_s,y_s)
+                             call angleazimutal(rx_s,ry_obs,rx_s,ry_s,angazos)                             
+                             ! azimuth and zenith from obsever to source
+                             call anglezenithal(rx_obs,ry_obs,z_obs,rx_s,ry_s,z_s,angzeos)
+                             call angleazimutal(rx_obs,ry_obs,rx_s,ry_s,angazos)
+                             if (angzeos.gt.pi/4.) then ! 45deg. it is unlikely to have a 1km high mountain less than 1
+                                call horizon(width,x_obs,y_obs,z_obs,dx,dy,altsol,angazos,zhoriz,dh)
                                 if (dh.le.dho) then
-                                   if (dzen-zhoriz.lt.0.00001) then ! shadow the path line of sight-source is not below the horizon => we compute
+                                   if (angzeos-zhoriz.lt.0.00001) then ! shadow the path line of sight-source is not below the horizon => we compute
                                       hh=1.
                                    else
                                       hh=0.
@@ -505,20 +508,18 @@ program illumhealth                           ! Beginning
                                 hh=1.
                              endif
                              !     projection angle of line to the lamp and the viewing angle
-                             call angle3points (rx_s,ry_s,z_s,rx_obs,ry_obs,z_obs,rx,ry,rz,dang)
+                             call angle3points (rx_s,ry_s,z_s,rx_obs,ry_obs,z_obs,ix,iy,iz,dang)
                              dang=pi-dang
-                             !     computation of the solid angle of the line of sight voxel seen from the source
-                             anglez=nint(180.*(pi-dzen)/pi)+1
-                             anglep=nint(180.*(pi-abs(angazi-angaz1))/pi)+1
-                             P_dir=pvalno(anglep,anglez,stype)
-                             !     computation of the flux direct reaching the line of sight voxel
+                             anglez=nint(180.*(pi-angzeos)/pi)+1           ! index of zenith angle from source to observer
+                             anglea=nint(180.*(pi-angazos+angazsr)/pi)+1   ! relative azimuth between the obs-source and the direction of the nearest street from the source
+                             P_dir=pvalno(anglez,anglea,stype)
                              if ((cos(dang).gt.0.).and.(dang.lt.pi/2.)) then
                                 ddir_obs=sqrt((rx_obs-rx_s)**2.+(ry_obs-ry_s)**2.+(z_obs-z_s)**2.)
                                 !     computation of the solid angle 1m^2 at the observer as seen from the source
                                 omega=1.*abs(cos(dang))/ddir_obs**2.
-                                call transmitm(dzen,z_obs,z_s,ddir_obs,transm,tranam,tabs)
-                                call transmita(dzen,z_obs,z_s,ddir_obs,haer,transa,tranaa)
-                                call transmitl(dzen,z_obs,z_s,ddir_obs,hlay,transl,tranal)
+                                call transmitm(angzeos,z_obs,z_s,ddir_obs,transm,tranam,tabs)
+                                call transmita(angzeos,z_obs,z_s,ddir_obs,haer,transa,tranaa)
+                                call transmitl(angzeos,z_obs,z_s,ddir_obs,hlay,transl,tranal)
                                 irradi(oi,oj)=irradi(oi,oj)+lamplu(x_s,y_s,stype)*transa*transm*transl*P_dir*omega &
                                 *(1.-ff)*(1.-ff2)*hh
                              endif
@@ -554,13 +555,13 @@ program illumhealth                           ! Beginning
                                          haut=-(rx_s-rx_sr)*tan(inclix(x_sr,y_sr))-(ry_s-ry_sr)*tan(incliy(x_sr,y_sr))+z_s-z_sr
                                          if (haut .gt. 0.) then ! Condition: the ground cell is lighted from above
                                             !     computation of the zenithal angle between the source and the surface reflectance
-                                            call anglezenithal(rx_s,ry_s,z_s,rx_sr,ry_sr,z_sr,angzen)
-                                            call angleazimutal(rx_s,ry_s,rx_sr,ry_sr,angazi)
+                                            call anglezenithal(rx_s,ry_s,z_s,rx_sr,ry_sr,z_sr,angzessr)
+                                            call angleazimutal(rx_s,ry_s,rx_sr,ry_sr,angazssr)
                                             !     computation of the transmittance between the source and the ground surface
                                             distd=sqrt((rx_s-rx_sr)**2.+(ry_s-ry_sr)**2.+(z_s-z_sr)**2.)
-                                            call transmitm(angzen,z_s,z_sr,distd,transm,tranam,tabs)
-                                            call transmita(angzen,z_s,z_sr,distd,haer,transa,tranaa)
-                                            call transmitl(angzen,z_s,z_sr,distd,hlay,transl,tranal)
+                                            call transmitm(angzessr,z_s,z_sr,distd,transm,tranam,tabs)
+                                            call transmita(angzessr,z_s,z_sr,distd,haer,transa,tranaa)
+                                            call transmitl(angzessr,z_s,z_sr,distd,hlay,transl,tranal)
                                             !     computation of the solid angle of the reflecting cell seen from the source
                                             xc=dble(x_sr)*dble(dx) ! Position in meters of the observer voxel (longitude).
                                             yc=dble(y_sr)*dble(dy) ! Position in meters of the observer voxel (latitu).
@@ -610,32 +611,32 @@ program illumhealth                           ! Beginning
                                             ! P_dir for le cas of grans solid angles the , pvalno varie significativement sur +- ouvang.
                                             ouvang=sqrt(omega/pi) ! Angle in radian.
                                             ouvang=ouvang*180./pi ! Angle in degrees.
-                                            !     computation of the photometri! function of the light fixture toward the reflection surface
-                                            anglez=nint(180.*angzen/pi)
-                                            anglep=nint(180.*(pi-abs(angazi-angaz1))/pi)+1
+                                            !     computation of the photometric function of the light fixture toward the reflection surface
+                                            anglez=nint(180.*angzessr/pi)
+                                            anglea=nint(180.*(pi-(2.*pi-angazssr)+angazsr)/pi)+1
                                             if (anglez.lt.0) anglez=-anglez
                                             if (anglez.gt.180) anglez=360-anglez
                                             anglez=anglez+1 ! Transform the angle in integer degree into the position in the array.
-                                            if (anglep.lt.0) anglep=-anglep
-                                            if (anglep.gt.180) anglep=360-anglep
-                                            anglep=anglep+1 ! Transform the angle in integer degree into the position in the array.
+                                            if (anglea.lt.0) anglea=-anglea
+                                            if (anglea.gt.180) anglea=360-anglea
+                                            anglea=anglea+1 ! Transform the angle in integer degree into the position in the array.
                                             !     average +- ouvang
-                                            naz=0
+                                            nzp=0
                                             nap=0
                                             nbang=0.
                                             P_indir=0.
-                                            do na=-nint(ouvang),nint(ouvang)
-                                               naz=anglez+na
+                                            do nz=-nint(ouvang),nint(ouvang)
+                                               nzp=anglez+nz
                                                do np=-nint(ouvang),nint(ouvang)
-                                                  nap=anglep+np
-                                                  if (naz.lt.0) naz=-naz
-                                                  if (naz.gt.181) naz=362-naz ! symetri! function
-                                                  if (naz.eq.0) naz=1
+                                                  nap=anglea+na
+                                                  if (nzp.lt.0) nzp=-nzp
+                                                  if (nzp.gt.181) nzp=362-nzp ! symetri! function
+                                                  if (nzp.eq.0) nzp=1
                                                   if (nap.lt.0) nap=-nap
                                                   if (nap.gt.181) nap=362-nap ! symetri! function
                                                   if (nap.eq.0) nap=1
-                                                  P_indir=P_indir+pvalno(nap,naz,stype)*abs(sin(pi*real(naz)/180.))/2.
-                                                  nbang=nbang+1.*abs(sin(pi*real(naz)/180.))/2.
+                                                  P_indir=P_indir+pvalno(nzp,nap,stype)*abs(sin(pi*real(nzp)/180.))/2.
+                                                  nbang=nbang+1.*abs(sin(pi*real(nzp)/180.))/2.
                                                enddo
                                             enddo
                                             P_indir=P_indir/nbang
@@ -645,12 +646,12 @@ program illumhealth                           ! Beginning
                                             irefl1=flrefl*reflec(i,j)/pi ! The factor 1/pi comes from the normalisation of the fonction
                                             dho=sqrt((rx_obs-rx_sr)**2.+(ry_obs-ry_sr)**2.)
                                             if ((dho.gt.0.).and.(z_s.ne.z_obs)) then
-                                               call anglezenithal(rx_obs,ry_obs,z_obs,rx_sr,ry_sr,z_sr,dzen)
-                                               call angleazimutal(rx_obs,ry_obs,rx_sr,ry_sr,angazi)
-                                               if (dzen.gt.pi/4.) then ! 45deg. it is unlikely to have a 1km high mountain less than 1
-                                                  call horizon(width,x_obs,y_obs,z_obs,dx,dy,altsol,angazi,zhoriz,dh)
+                                               call anglezenithal(rx_obs,ry_obs,z_obs,rx_sr,ry_sr,z_sr,angzeosr)
+                                               call angleazimutal(rx_obs,ry_obs,rx_sr,ry_sr,angazosr)
+                                               if (angzen.gt.pi/4.) then ! 45deg. it is unlikely to have a 1km high mountain less than 1
+                                                  call horizon(width,x_obs,y_obs,z_obs,dx,dy,altsol,angazosr,zhoriz,dh)
                                                   if (dh.le.dho) then
-                                                     if (dzen-zhoriz.lt.0.00001) then ! shadow the path line of sight-source is not below the horizon => we compute
+                                                     if (angzeosr-zhoriz.lt.0.00001) then ! shadow the path line of sight-source is not below the horizon => we compute
                                                         hh=1.
                                                      else
                                                         hh=0.
@@ -669,9 +670,9 @@ program illumhealth                           ! Beginning
                                                   ddir_obs=sqrt((rx_obs-rx_sr)**2.+(ry_obs-ry_sr)**2.+(z_obs-z_sr)**2.)
                                                   !     computation of the solid angle of the line of sight voxel seen from the source
                                                   omega=1.*abs(cos(dang))/ddir_obs**2.
-                                                  call transmitm(dzen,z_obs,z_sr,ddir_obs,transm,tranam,tabs)
-                                                  call transmita(dzen,z_obs,z_sr,ddir_obs,haer,transa,tranaa)
-                                                  call transmitl(dzen,z_obs,z_sr,ddir_obs,hlay,transl,tranal)
+                                                  call transmitm(angzeosr,z_obs,z_sr,ddir_obs,transm,tranam,tabs)
+                                                  call transmita(angzeosr,z_obs,z_sr,ddir_obs,haer,transa,tranaa)
+                                                  call transmitl(angzeosr,z_obs,z_sr,ddir_obs,hlay,transl,tranal)
                                                   irradi(oi,oj)=irradi(oi,oj)+irefl1*omega*transa*transm*transl*hh*(1.-ff)*(1.-ff2)
                                                endif
                                             endif
