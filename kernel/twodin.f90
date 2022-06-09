@@ -1,10 +1,10 @@
-       subroutine twodin(nbx,nby,filename,bindata)
+       subroutine twodin(nbx,nby,filename,bindata,width)
        integer width                                                      ! Matrix dimension in Length/width and height
-       parameter (width=27)
-c read double precision array in binary
+       CHARACTER*72 filename
+! read double precision array in binary
        integer nbx,nby,i,j
-       real bindata(width,width)
-       character*72 filename
+       real, dimension(:,:), allocatable ::  bindata
+       allocate ( bindata(width,width) )
        open(unit=1,form='unformatted',file=filename,action='read')
          read(1) nbx,nby
          if ((nbx.gt.width).or.(nby.gt.width)) then
@@ -20,5 +20,6 @@ c read double precision array in binary
             enddo
          enddo
        close(unit=1)
+       deallocate ( bindata )
        return
        end

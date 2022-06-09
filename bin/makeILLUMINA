@@ -32,8 +32,8 @@ folder=`pwd`
 chmod a+x make*
 
 # options de debuggage -Wall -fcheck=all -g -fbacktrace -ffpe-trap=zero
-echo $F77" -Wunused-parameter -mcmodel=medium -O3 kernel/illum-health.f90 kernel/angle3points.f kernel/anglesolide.f kernel/anglezenithal.f kernel/angleazimutal.f kernel/horizon.f kernel/twodin.f -o bin/illumina-health"
-$F77 -Wunused-parameter -mcmodel=medium -O3 kernel/illum-health.f90 kernel/angle3points.f kernel/anglesolide.f kernel/anglezenithal.f kernel/angleazimutal.f kernel/horizon.f kernel/twodin.f kernel/transTOA.f kernel/transmitm.f kernel/transmita.f kernel/transmitl.f kernel/molabs.f kernel/curvature.f -o bin/illum-health
+echo $F77" -Wunused-parameter -mcmodel=medium -O3 kernel/illum-health.f90 kernel/angle3points.f kernel/anglesolide.f kernel/anglezenithal.f kernel/angleazimutal.f kernel/horizon.f90 kernel/twodin.f90 kernel/transTOA.f kernel/transmitm.f kernel/transmita.f kernel/transmitl.f kernel/molabs.f kernel/curvature.f -o bin/illum-health"
+$F77 -Wunused-parameter -mcmodel=medium -O3 kernel/illum-health.f90 kernel/angle3points.f kernel/anglesolide.f kernel/anglezenithal.f kernel/angleazimutal.f kernel/horizon.f90 kernel/twodin.f90 kernel/transTOA.f kernel/transmitm.f kernel/transmita.f kernel/transmitl.f kernel/molabs.f kernel/curvature.f -o bin/illum-health
 # sed -i "s/$version/__version__/" kernel/illum-health.f90
 chmod a+x bin/*
 chmod a+x *.bash

@@ -45,54 +45,73 @@
 !
 !
 !
-program illumhealth          ! Beginning
+program illumhealth                           ! Beginning
   implicit none
   !
   !     Variables declaration
   !
-  integer width,ntype       ! ntype Nb of light source types (different combination of spectrum and uplight)
+  INTEGER width,ntype                               ! ntype Nb of light source types (different combination of spectrum and uplight)
   !     Matrix dimensions
-  parameter (width=1024,ntype=36)
+  ! parameter (width=1024,ntype=36)
   real pi
-  integer verbose           ! verbose = 1 to have more print out, 0 for silent
+  INTEGER verbose                                   ! verbose = 1 to have more print out, 0 for silent
   parameter (pi=3.141592654)
-  character*72 mnaf         ! Terrain elevation file
-  character*72 outfile      ! Results file
-  character*72 basenm       ! Base name of files
-  integer lenbase           ! Length of the Base name of the experiment
-  real lambda,pressi,dobs(width,width) ! Wavelength (nanometer), atmospheri! pressure (kPa), mean free path to the ground (meter).
-  real reflsiz              ! Size of the reflecting surface
-  real largx                ! Width (x axis) of the modeling domain (meter)
-  real largy                ! Length (y axis) of the modeling domain (meter)
-  integer nbx,nby           ! Number of pixels in the modeling domain
-  real val2d(width,width)   ! Temporary input array 2d
-  real altsol(width,width)  ! Ground elevation (meter)
-  real altsob(width,width)  ! Elevation including buildings
-  real reflec(width,width)  ! reflectance
-  real srefl,brefl,orefl    ! Street reflectance , Building facades reflectance , Other reflectance
-  integer stype             ! Source type or zone index
+  character*72 mnaf                                 ! Terrain elevation file
+  character*72 outfile                              ! Results file
+  character*72 basenm                               ! Base name of files
+  INTEGER lenbase                                   ! Length of the Base name of the experiment
+  real lambda,pressi                                ! Wavelength (nanometer), atmospheri! pressure (kPa)
+  real pvalto                                       !
+  
+  real, dimension(:,:,:), allocatable :: pval       ! pval(181,181,ntype)
+  real, dimension(:,:,:), allocatable :: pvalno     ! pvalno(181,181,ntype) values of the angular photometry functions 1sr_axis=azim, 2nd=zenith 
+  real, dimension(:,:,:), allocatable :: lamplu     ! lamplu(width,width,ntype)  Source fluxes
+  real, dimension(:,:), allocatable :: obsD         ! obsD(width,width)  mean free path to the ground (meter)
+  real, dimension(:,:), allocatable ::  val2d       ! val2d(width,width)  Temporary input array 2d
+  real, dimension(:,:), allocatable ::  altsol      ! altsol(width,width)  Ground elevation (meter)
+  real, dimension(:,:), allocatable ::  altsob      ! altsob(width,width)  Elevation including buildings
+  real, dimension(:,:), allocatable ::  reflec      ! reflec(width,width)  reflectance  
+  real, dimension(:,:), allocatable ::  lampal      ! lampal(width,width) Height of the light sources relative to the ground (meter)
+  real, dimension(:,:), allocatable ::  inclix      ! inclix(width,width)  tilt of the ground pixel along x (radian)
+  real, dimension(:,:), allocatable ::  incliy      ! incliy(width,width)  tilt of the ground pixel along y (radian)  
+  real, dimension(:,:), allocatable ::  obsH        ! obsH(width,width)  averaged height of the sub-grid obstacles
+  real, dimension(:,:), allocatable ::  ofill       ! ofill(width,width)  fill factor giving the probability to hit an obstacle when pointing in its direction real 0-1
+  real, dimension(:,:), allocatable ::  irradi      ! irradi(width,width)  direct irradiance on a surface normal to the line of sight (no scattering)
+  INTEGER, dimension(:,:), allocatable ::  gndty    ! gndty(width,width)  ground type flag  0=observer, 1=building facade, 2=street, 3=other
+  real, dimension(:,:), allocatable ::  azims       ! azims(width,width)  azimuth toward nearest point on a street
+  INTEGER, dimension(:), allocatable ::  imin       ! imin(ntype)
+  INTEGER, dimension(:), allocatable :: imax        ! imax(ntype)
+  INTEGER, dimension(:), allocatable :: jmin        ! jmin(ntype)
+  INTEGER, dimension(:), allocatable :: jmax        ! jmax(ntype)     x and y limits containing a type of lamp
+  real, dimension(:), allocatable :: totlu          ! totlu(ntype)   total flux of a source type
+  
+  
+  real angmin                                 ! minimum angle
+  real reflsiz                                ! Size of the reflecting surface
+  real largx                                  ! Width (x axis) of the modeling domain (meter)
+  real largy                                  ! Length (y axis) of the modeling domain (meter)
+  INTEGER nbx,nby                             ! Number of pixels in the modeling domain
+
+  real srefl,brefl,orefl                      ! Street reflectance , Building facades reflectance , Other reflectance
+  INTEGER stype                               ! Source type or zone index
   character*72 pafile,lufile,alfile,ohfile,odfile,offile,azfile 
   ! Files related to light sources and obstacles (photometri
   ! function of the sources (sr-1), flux (W), height (m), obstacles           
   ! height (m), obstacle distance (m), obstacle filling factor (0-1).
-  real lamplu(width,width,ntype) ! Source fluxes
-  real lampal(width,width)  ! Height of the light sources relative to the ground (meter)
-  real pval(181,181,ntype),pvalto,pvalno(181,181,ntype) ! Values of the angular photometry functions (unnormalized, integral, normalized) premier axe=azim, 2e=zenith
+
   real dtheta               ! Angle increment of the photometri! function of the sources
   real dx,dy,dxp,dyp        ! Width of the voxel (meter)
-  integer boxx,boxy         ! reflection window size (pixels)
-  real inclix(width,width)  ! tilt of the ground pixel along x (radian)
-  real incliy(width,width)  ! tilt of the ground pixel along y (radian)
-  integer x_obs,y_obs       ! Position of the observer (INTEGER)
+  INTEGER boxx,boxy         ! reflection window size (pixels)
+  INTEGER x_obs,y_obs       ! Position of the observer (INTEGER)
   real rx_obs,ry_obs
   real z_o                  ! observer height relative to the ground (meter)
   real z_obs                ! Height of the observer (meter) to the vertical grid scale
-  integer x_s,y_s,x_sr,y_sr ! Positions of the source, the reflecting surface
+  INTEGER x_s,y_s,x_sr,y_sr ! Positions of the source, the reflecting surface
   real z_s,z_sr,z_dif       ! Heights of the source, the reflecting surface, and the scattering voxel (metre).
   real rx_s,ry_s,rx_sr,ry_sr
   real angzen,ouvang        ! Zenithal angle between two voxels (radians) and opening angle of the solid angle in degrees.
-  integer anglez            ! Emitting zenithal angle from the luminaire.
-  integer anglep            ! Emitting azimuth angle from the luminaire
+  INTEGER anglez            ! Emitting zenithal angle from the luminaire.
+  INTEGER anglep            ! Emitting azimuth angle from the luminaire
   real P_dir,P_indir        ! photometri! function of the light sources (direct,reflected)
   real*8 xc,yc,zc,xn,yn,zn  ! Position (meter) of the elements (starting point, final point) for the calculation of the solid angle.
   real*8 r1x,r1y,r1z,r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z ! Components of the vectors used in the solid angle calculation routine.
@@ -102,37 +121,34 @@ program illumhealth          ! Beginning
   real flrefl               ! flux reaching a reflecting surface (watts).
   real irefl,irefl1         ! intensity leaving a reflecting surface toward the line of sight voxel.
   real angvis,azim          ! viewing angles of the sensor.
-  !     ! Useful for the calculation of the lambertian reflectance.
   real nbang                ! for the averaging of the photometri! function
-  real obsH(width,width),angmin ! averaged height of the sub-grid obstacles, minimum angle under wich
-  !     ! a light ray cannot propagate because it is blocked by a sub-grid obstable
-  real ofill(width,width)   ! fill factor giving the probability to hit an obstacle when pointing in its direction real 0-1
-  integer naz,na,nap,np
+
+
+  INTEGER naz,na,nap,np
   character*3 lampno        ! lamp number string
-  integer imin(ntype),imax(ntype),jmin(ntype),jmax(ntype) ! x and y limits containing a type of lamp
+
   real angazi               ! azimuth angle between two points in rad, max dist for the horizon determination
   real latitu               ! approximate latitude of the domain center
-  integer xsrmi,xsrma,ysrmi,ysrma ! limits of the loop valeur for the reflecting surfaces
-  real totlu(ntype)         ! total flux of a source type
+  INTEGER xsrmi,xsrma,ysrmi,ysrma ! limits of the loop valeur for the reflecting surfaces
+
   real ff,ff2,hh            ! temporary obstacle filling factor and horizon blocking factor
   real distd                ! distance to compute the scattering probability
   real angvi1,angaz1,angze1 ! viewing angles in radian
   real ix,iy,iz             ! base vector of the viewing (length=1)
   real azcl1,azcl2          ! zenith angle from the (source, refl surface, or scattering voxel) to line of path and observer to line p.
   real dh,dho               ! distance of the horizon limit
-  integer n2nd              ! desired number of voxel in the calculation of the 2nd scattering
-  integer step              ! skiping 2nd scat on 1 dim
-  integer i,j,k,id,jd
+  INTEGER n2nd              ! desired number of voxel in the calculation of the 2nd scattering
+  INTEGER step              ! skiping 2nd scat on 1 dim
+  INTEGER i,j,k,id,jd
   real tranam,tranaa,tranal ! TOA atmospheri! transmittancess of a path (molecular, aerosol, layer)
   real transa,transl,transm
   real zhoriz               ! zenith angle of the horizon
-  real irradi(width,width)  ! direct irradiance on a surface normal to the line of sight (no scattering)
+
   real dang                 ! Angle between the line of sight and the direction of a source
   real dzen                 ! zenith angle of the source-observer line
   real ddir_obs             ! distance between the source and the observer
   real rx,ry,rz             ! driving vector for the calculation of the projection angle for direct radiance. It is 20km long
-  integer gndty(width,width) ! ground type flag  0=observer, 1=building facade, 2=street, 3=other
-  real azims(width,width)   ! azimuth toward nearest point on a street.
+
   character*72 gifile       ! name of the ground type flag file
   real dh0,dhmax            ! horizontal distance along the line of sight and maximum distance before beeing blocked by topography
   real layaod               ! 500 nm aod of the particle layer
@@ -140,7 +156,7 @@ program illumhealth          ! Beginning
   real haer                 ! exponential vertical scale height of the background aerosol layer
   real bandw                ! bandwidth of the spectral bin
   real tabs                 ! TOA transmittance related to molecule absorption
-  integer oi,oj             ! scanning position of observers
+  INTEGER oi,oj             ! scanning position of observers
   real taua,alpha           ! aerosol layer optical properties
   verbose=1                 ! Very little printout=0, Many printout = 1, even more=2
   ff=0.
@@ -149,18 +165,46 @@ program illumhealth          ! Beginning
   if (verbose.ge.1) then
      print*,'Starting ILLUMINA computations...'
   endif
-  !     reading of the fichier d'entree (illumina.in)
+  !     reading of the input file (illum_health.in)
   print*,'Reading illum-health.in input file'
   open(unit=1,file='illum-health.in',status='old')
   read(1,*)
   read(1,*) basenm
   read(1,*) dx,dy
+  read(1,*) ntype
+  read(1,*) width
   read(1,*) taua,alpha,haer
   read(1,*) lambda,bandw
   read(1,*) srefl,brefl,orefl
   read(1,*) pressi
   read(1,*) z_o
   close(1)
+  ! allocate arrays 
+  allocate ( pval(181,181,ntype) )
+  allocate ( pvalno(181,181,ntype) )
+  allocate ( lamplu(width,width,ntype) )
+  allocate ( obsD(width,width) )
+  allocate ( val2d(width,width) )
+  allocate ( altsol(width,width) )
+  allocate ( altsob(width,width) )
+  allocate ( reflec(width,width) )
+  allocate ( lampal(width,width) )
+  allocate ( inclix(width,width) )
+  allocate ( incliy(width,width) )
+  allocate ( obsH(width,width) )
+  allocate ( ofill(width,width) )
+  allocate ( irradi(width,width) )
+  allocate ( gndty(width,width) )
+  allocate ( azims(width,width) )
+  allocate ( imin(ntype) )
+  allocate ( imax(ntype) )
+  allocate ( jmin(ntype) )
+  allocate ( jmax(ntype) )
+  allocate ( totlu(ntype) )
+  
+  
+  
+  
   !     windows pointing toward horizon
   angvis=0.
   angvi1 = (pi*angvis)/180.
@@ -222,45 +266,45 @@ program illumhealth          ! Beginning
   gifile='groundtype.bin'
   dtheta=.017453293
   !     reading of the elevation file
-  call twodin(nbx,nby,mnaf,altsol)
+  call twodin(nbx,nby,mnaf,altsol,width)
   !     reading lamp heights
-  call twodin(nbx,nby,alfile,val2d)
+  call twodin(nbx,nby,alfile,val2d,width)
   do i=1,nbx                ! beginning of the loop over all cells along x.
      do j=1,nby             ! beginning of the loop over all cells along y.
         lampal(i,j)=val2d(i,j) ! filling of the array for the lamp stype
      enddo                  ! end of the loop over all cells along y.
   enddo                     ! end of the loop over all cells along x.
   !     reading subgrid obstacles average height
-  call twodin(nbx,nby,ohfile,val2d)
+  call twodin(nbx,nby,ohfile,val2d,width)
   do i=1,nbx                ! beginning of the loop over all cells along x.
      do j=1,nby             ! beginning of the loop over all cells along y.
         obsH(i,j)=val2d(i,j) ! filling of the array
      enddo                  ! end of the loop over all cells along y.
   enddo
   !     reading subgrid obstacles average distance
-  call twodin(nbx,nby,odfile,val2d)
+  call twodin(nbx,nby,odfile,val2d,width)
   do i=1,nbx                ! beginning of the loop over all cells along x.
      do j=1,nby             ! beginning of the loop over all cells along y.
-        dobs(i,j)=val2d(i,j)/2.
-        if (dobs(i,j).eq.0.) dobs(i,j)=dx ! when outside a zone, block to the size of the cell (typically 1km)
+        obsD(i,j)=val2d(i,j)/2.
+        if (obsD(i,j).eq.0.) obsD(i,j)=dx ! when outside a zone, block to the size of the cell (typically 1km)
      enddo                  ! end of the loop over all cells along y.
   enddo
   !     reading subgrid obstacles filling factor
-  call twodin(nbx,nby,offile,val2d)
+  call twodin(nbx,nby,offile,val2d,width)
   do i=1,nbx                ! beginning of the loop over all cells along x.
      do j=1,nby             ! beginning of the loop over all cells along y.
         ofill(i,j)=val2d(i,j) ! Filling of the array 0-1
      enddo                  ! end of the loop over all cells along y.
   enddo
   !     reading ground type flag
-  call twodin(nbx,nby,gifile,val2d)
+  call twodin(nbx,nby,gifile,val2d,width)
   do i=1,nbx                ! beginning of the loop over all cells along x.
      do j=1,nby             ! beginning of the loop over all cells along y.
         gndty(i,j)=nint(val2d(i,j)) ! ground type flag flag array 0 or 1
      enddo                  ! end of the loop over all cells along y.
   enddo
   !     reading azimuth
-  call twodin(nbx,nby,azfile,val2d)
+  call twodin(nbx,nby,azfile,val2d,width)
   do i=1,nbx                ! beginning of the loop over all cells along x.
      do j=1,nby             ! beginning of the loop over all cells along y.
         azims(i,j)=val2d(i,j) ! Filling of the array 0-1
@@ -300,7 +344,7 @@ program illumhealth          ! Beginning
         enddo
      enddo
      !     reading luminosity files
-     call twodin(nbx,nby,lufile,val2d)
+     call twodin(nbx,nby,lufile,val2d,width)
      do i=1,nbx             ! beginning of the loop over all cells along x.
         do j=1,nby          ! beginning of the loop over all cells along y.
            if (val2d(i,j).lt.0.) then ! searching of negative fluxes
@@ -469,7 +513,7 @@ program illumhealth          ! Beginning
                              call anglezenithal(rx_obs,ry_obs,z_obs,rx_s,ry_s,z_s,dzen)
                              call angleazimutal(rx_obs,ry_obs,rx_s,ry_s,angazi)
                              if (dzen.gt.pi/4.) then ! 45deg. it is unlikely to have a 1km high mountain less than 1
-                                call horizon(x_obs,y_obs,z_obs,dx,dy,altsol,angazi,zhoriz,dh)
+                                call horizon(width,x_obs,y_obs,z_obs,dx,dy,altsol,angazi,zhoriz,dh)
                                 if (dh.le.dho) then
                                    if (dzen-zhoriz.lt.0.00001) then ! shadow the path line of sight-source is not below the horizon => we compute
                                       hh=1.
@@ -484,8 +528,8 @@ program illumhealth          ! Beginning
                              endif
                              ff=0.
                              !     sub-grid obstacles
-                             if (dho.gt.dobs(x_obs,y_obs)+dobs(x_s,y_s)) then ! light path to observer larger than the mean free path -> subgrid obstacles
-                                angmin=pi/2.-atan2((altsol(x_obs,y_obs)+obsH(x_obs,y_obs)-z_obs),dobs(x_obs,y_obs))
+                             if (dho.gt.obsD(x_obs,y_obs)+obsD(x_s,y_s)) then ! light path to observer larger than the mean free path -> subgrid obstacles
+                                angmin=pi/2.-atan2((altsol(x_obs,y_obs)+obsH(x_obs,y_obs)-z_obs),obsD(x_obs,y_obs))
                                 if (dzen.lt.angmin) then ! condition sub-grid obstacles direct.
                                    ff=0.
                                 else
@@ -494,8 +538,8 @@ program illumhealth          ! Beginning
                              endif ! end light path to the observer larger than mean free path
                              call anglezenithal(rx_s,ry_s,z_s,rx_obs,ry_obs,z_obs,dzen)
                              ff2=0.
-                             if (dho.gt.dobs(x_s,y_s)) then ! light path from source larger than the mean free path -> subgrid obstacles
-                                angmin=pi/2.-atan2((altsol(x_s,y_s)+obsH(x_s,y_s)-z_s),dobs(x_s,y_s))
+                             if (dho.gt.obsD(x_s,y_s)) then ! light path from source larger than the mean free path -> subgrid obstacles
+                                angmin=pi/2.-atan2((altsol(x_s,y_s)+obsH(x_s,y_s)-z_s),obsD(x_s,y_s))
                                 if (dzen.lt.angmin) then ! condition sub-grid obstacles direct.
                                    ff2=0.
                                 else
@@ -647,7 +691,7 @@ program illumhealth          ! Beginning
                                                call anglezenithal(rx_obs,ry_obs,z_obs,rx_sr,ry_sr,z_sr,dzen)
                                                call angleazimutal(rx_obs,ry_obs,rx_sr,ry_sr,angazi)
                                                if (dzen.gt.pi/4.) then ! 45deg. it is unlikely to have a 1km high mountain less than 1
-                                                  call horizon(x_obs,y_obs,z_obs,dx,dy,altsol,angazi,zhoriz,dh)
+                                                  call horizon(width,x_obs,y_obs,z_obs,dx,dy,altsol,angazi,zhoriz,dh)
                                                   if (dh.le.dho) then
                                                      if (dzen-zhoriz.lt.0.00001) then ! shadow the path line of sight-source is not below the horizon => we compute
                                                         hh=1.
@@ -662,9 +706,9 @@ program illumhealth          ! Beginning
                                                endif
                                                !     sub-grid obstacles
                                                ff=0.
-                                               if (dho.gt.dobs(x_obs,y_obs)+dobs(x_sr,y_sr)) then ! light path to observer larger than the mean free path -> subgrid obstacles
+                                               if (dho.gt.obsD(x_obs,y_obs)+obsD(x_sr,y_sr)) then ! light path to observer larger than the mean free path -> subgrid obstacles
                                                   angmin=pi/2.-atan2((altsol(x_obs,y_obs)+obsH(x_obs,y_obs)-z_obs), &
-                                                  dobs(x_obs,y_obs))
+                                                  obsD(x_obs,y_obs))
                                                   if (dzen.lt.angmin) then ! condition sub-grid obstacles direct.
                                                      ff=0.
                                                   else
@@ -673,8 +717,8 @@ program illumhealth          ! Beginning
                                                endif ! end light path to the observer larger than mean free path
                                                call anglezenithal(rx_sr,ry_sr,z_sr,rx_obs,ry_obs,z_obs,dzen)
                                                ff2=0.
-                                               if (dho.gt.dobs(x_sr,y_sr)) then ! light path from reflecting surface larger than the mean free path -> subgrid obstacles
-                                                  angmin=pi/2.-atan2((altsol(x_sr,y_sr)+obsH(x_sr,y_sr)-z_sr),dobs(x_sr,y_sr))
+                                               if (dho.gt.obsD(x_sr,y_sr)) then ! light path from reflecting surface larger than the mean free path -> subgrid obstacles
+                                                  angmin=pi/2.-atan2((altsol(x_sr,y_sr)+obsH(x_sr,y_sr)-z_sr),obsD(x_sr,y_sr))
                                                   if (dzen.lt.angmin) then ! condition sub-grid obstacles direct.
                                                      ff2=0.
                                                   else
@@ -711,14 +755,35 @@ program illumhealth          ! Beginning
            if (verbose.ge.1) print*,'Direct irradiance from sources (W/m**2/nm) at (',oi,',',oj,'):',irradi(oi,oj)
      enddo !     end of loop over every observer
   enddo
-     !     save the irradiance file
-     open(unit=2,form='unformatted',file=outfile,action='write')
+  !     save the irradiance file
+  open(unit=2,form='unformatted',file=outfile,action='write')
      write(2) nbx,nby
      do j=nby,1,-1
         do i=1,nbx
            write(2) irradi(i,j)
         enddo
      enddo
-     close(unit=1)
-     stop
+  close(unit=1)
+  deallocate ( pval )
+  deallocate ( pvalno )
+  deallocate ( lamplu )
+  deallocate ( obsD )
+  deallocate ( val2d )
+  deallocate ( altsol )
+  deallocate ( altsob )
+  deallocate ( reflec )
+  deallocate ( lampal )
+  deallocate ( inclix )
+  deallocate ( incliy )
+  deallocate ( obsH )
+  deallocate ( ofill )
+  deallocate ( irradi )
+  deallocate ( gndty )
+  deallocate ( azims )
+  deallocate ( imin )
+  deallocate ( imax )
+  deallocate ( jmin )
+  deallocate ( jmax )
+  deallocate ( totlu )
+  stop
 end program illumhealth
