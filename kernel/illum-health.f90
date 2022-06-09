@@ -343,6 +343,8 @@ program illumhealth                           ! Beginning
            if (pvalto.ne.0.) pvalno(i,j,stype)=pval(i,j,stype)/pvalto ! Normalisation of the photometri! function.
         enddo
      enddo
+     deallocate ( pval )
+     
      !     reading luminosity files
      call twodin(nbx,nby,lufile,val2d,width)
      do i=1,nbx             ! beginning of the loop over all cells along x.
@@ -400,6 +402,7 @@ program illumhealth                           ! Beginning
         enddo               ! end of the loop over all cells along y.
      enddo                  ! end of the loop over all cells along x.
   enddo  ! enddo stype
+  deallocate ( val2d )
   !     distribute reflectance values and adding fake buildings
   do i=1,nbx                ! beginning of the loop over all cells along x.
      do j=1,nby             ! beginning of the loop over all cells along y.
@@ -460,6 +463,7 @@ program illumhealth                           ! Beginning
         endif
      enddo                  ! end of the loop over the rows (latitu) of the domain
   enddo                     ! end of the loop over the column (longitude) of the domain
+  deallocate ( altsob )  
   largx=dx*real(nbx)        ! computation of the Width along x of the case.
   largy=dy*real(nby)        ! computation of the Width along y of the case.
   !     remove 2nd aerosol layer
@@ -755,6 +759,23 @@ program illumhealth                           ! Beginning
            if (verbose.ge.1) print*,'Direct irradiance from sources (W/m**2/nm) at (',oi,',',oj,'):',irradi(oi,oj)
      enddo !     end of loop over every observer
   enddo
+  deallocate ( pvalno )  
+  deallocate ( lamplu )
+  deallocate ( obsD )
+  deallocate ( altsol )
+  deallocate ( reflec )
+  deallocate ( lampal )
+  deallocate ( inclix )
+  deallocate ( incliy )
+  deallocate ( obsH )
+  deallocate ( ofill )
+  deallocate ( gndty )
+  deallocate ( azims )
+  deallocate ( imin )
+  deallocate ( imax )
+  deallocate ( jmin )
+  deallocate ( jmax )
+  deallocate ( totlu )
   !     save the irradiance file
   open(unit=2,form='unformatted',file=outfile,action='write')
      write(2) nbx,nby
@@ -764,26 +785,6 @@ program illumhealth                           ! Beginning
         enddo
      enddo
   close(unit=1)
-  deallocate ( pval )
-  deallocate ( pvalno )
-  deallocate ( lamplu )
-  deallocate ( obsD )
-  deallocate ( val2d )
-  deallocate ( altsol )
-  deallocate ( altsob )
-  deallocate ( reflec )
-  deallocate ( lampal )
-  deallocate ( inclix )
-  deallocate ( incliy )
-  deallocate ( obsH )
-  deallocate ( ofill )
   deallocate ( irradi )
-  deallocate ( gndty )
-  deallocate ( azims )
-  deallocate ( imin )
-  deallocate ( imax )
-  deallocate ( jmin )
-  deallocate ( jmax )
-  deallocate ( totlu )
   stop
 end program illumhealth
