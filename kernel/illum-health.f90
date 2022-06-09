@@ -163,7 +163,7 @@ program illumhealth                           ! Beginning
   ff=0.
   ff2=0.
   step=1
-  angazo=90.                ! the window is pointing horizontally
+  angazor=90.                ! the window is pointing horizontally
   if (verbose.ge.1) then
      print*,'Starting ILLUMINA computations...'
   endif
@@ -453,10 +453,10 @@ program illumhealth                           ! Beginning
      do oj=1,nby
         !     only calculate if it is an observer position
         if (gndty(oi,oj).eq.0) then
-           angazor = (pi*azims(oi,oj))/180.        ! angle to the road  from an observer (gndty=0)
-           ix = (sin((angzeor))*(cos(angazor))      ! viewing vector components
-           iy = (sin((angzeor))*(sin(angazor))      ! looking horizontally toward street from the observer position
-           iz = (cos(angzeor))
+           angazor = (pi*azims(oi,oj))/180.         ! angle to the road  from an observer (gndty=0)
+           ix = sin(angzeor)*cos(angazor)           ! viewing vector components
+           iy = sin(angzeor)*sin(angazor)           ! looking horizontally toward street from the observer position
+           iz = cos(angzeor)
            x_obs=oi
            y_obs=oj
            z_obs=z_o+altsol(x_obs,y_obs)
@@ -633,7 +633,7 @@ program illumhealth                           ! Beginning
                                             P_indir=0.
                                             do nz=-nint(ouvang),nint(ouvang)
                                                nzp=anglez+nz
-                                               do np=-nint(ouvang),nint(ouvang)
+                                               do na=-nint(ouvang),nint(ouvang)
                                                   nap=anglea+na
                                                   if (nzp.lt.0) nzp=-nzp
                                                   if (nzp.gt.181) nzp=362-nzp ! symetri! function
@@ -669,7 +669,7 @@ program illumhealth                           ! Beginning
                                                   hh=1.
                                                endif
                                                !     projection angle of line to the lamp and the viewing angle
-                                               call angle3points (rx_sr,ry_sr,z_sr,rx_obs,ry_obs,z_obs,rx,ry,rz,dang)
+                                               call angle3points (rx_sr,ry_sr,z_sr,rx_obs,ry_obs,z_obs,ix,iy,iz,dang)
                                                dang=pi-dang
                                                !     computation of the flux direct reaching the line of sight voxel
                                                if ((cos(dang).gt.0.).and.(dang.lt.pi/2.)) then
