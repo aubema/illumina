@@ -512,6 +512,12 @@ program illumhealth                           ! Beginning
                              dang=pi-dang
                              anglez=nint(180.*(pi-angzeos)/pi)+1           ! index of zenith angle from source to observer
                              anglea=nint(180.*(pi-angazos+angazsr)/pi)+1   ! relative azimuth between the obs-source and the direction of the nearest street from the source
+                             if (anglez.lt.0) anglez=-anglez
+                             if (anglez.gt.181) anglez=362-anglez ! symetric function
+                             if (anglez.eq.0) anglez=1
+                             if (anglea.lt.0) anglea=-anglea
+                             if (anglea.gt.181) anglea=362-anglea ! symetric function
+                             if (anglea.eq.0) anglea=1
                              P_dir=pvalno(anglez,anglea,stype)
                              if ((cos(dang).gt.0.).and.(dang.lt.pi/2.)) then
                                 ddir_obs=sqrt((rx_obs-rx_s)**2.+(ry_obs-ry_s)**2.+(z_obs-z_s)**2.)
