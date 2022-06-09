@@ -15,8 +15,7 @@
 !     **    - Lambertian reflexion on the ground                                                                          **
 !     **    - Terrain slope considered (apparent surface and shadows)                                                     **
 !     **    - Angular photometry of a lamp is considered assuming ies file orientation aligned with nearest street        **
-!     **    - Sub-grid obstacles considered (with the mean free path of light toward ground, mean obstacle height, and    **
-!     **      obstacles transparency (filling factor) The typical mean free path is the distance between two streets      **
+!     **    - Buildings considered (based on distances to the nearest street and averaged building heights per zones)     **
 !     **    - Accounting for heterogeneity luminaires number, luminaires heights, luminaire spectrum,                     **
 !     **      angular photometry, obstacle properties                                                                     **
 !     **    - Wavelength dependant                                                                                        **
@@ -66,7 +65,6 @@ program illumhealth                           ! Beginning
   real, dimension(:,:,:), allocatable :: pval       ! pval(181,181,ntype)
   real, dimension(:,:,:), allocatable :: pvalno     ! pvalno(181,181,ntype) values of the angular photometry functions 1sr_axis=azim, 2nd=zenith 
   real, dimension(:,:,:), allocatable :: lamplu     ! lamplu(width,width,ntype)  Source fluxes
-  real, dimension(:,:), allocatable :: obsD         ! obsD(width,width)  mean free path to the ground (meter)
   real, dimension(:,:), allocatable ::  val2d       ! val2d(width,width)  Temporary input array 2d
   real, dimension(:,:), allocatable ::  altsol      ! altsol(width,width)  Ground elevation (meter)
   real, dimension(:,:), allocatable ::  altsob      ! altsob(width,width)  Elevation including buildings
@@ -74,7 +72,7 @@ program illumhealth                           ! Beginning
   real, dimension(:,:), allocatable ::  lampal      ! lampal(width,width) Height of the light sources relative to the ground (meter)
   real, dimension(:,:), allocatable ::  inclix      ! inclix(width,width)  tilt of the ground pixel along x (radian)
   real, dimension(:,:), allocatable ::  incliy      ! incliy(width,width)  tilt of the ground pixel along y (radian)  
-  real, dimension(:,:), allocatable ::  obsH        ! obsH(width,width)  averaged height of the sub-grid obstacles
+  real, dimension(:,:), allocatable ::  obsH        ! obsH(width,width)  averaged height of the buildings
   real, dimension(:,:), allocatable ::  ofill       ! ofill(width,width)  fill factor giving the probability to hit an obstacle when pointing in its direction real 0-1
   real, dimension(:,:), allocatable ::  irradi      ! irradi(width,width)  direct irradiance on a surface normal to the line of sight (no scattering)
   INTEGER, dimension(:,:), allocatable ::  gndty    ! gndty(width,width)  ground type flag  0=observer, 1=building facade, 2=street, 3=other
@@ -183,7 +181,6 @@ program illumhealth                           ! Beginning
   allocate ( pval(181,181,ntype) )
   allocate ( pvalno(181,181,ntype) )
   allocate ( lamplu(width,width,ntype) )
-  allocate ( obsD(width,width) )
   allocate ( val2d(width,width) )
   allocate ( altsol(width,width) )
   allocate ( altsob(width,width) )
@@ -192,7 +189,6 @@ program illumhealth                           ! Beginning
   allocate ( inclix(width,width) )
   allocate ( incliy(width,width) )
   allocate ( obsH(width,width) )
-  allocate ( ofill(width,width) )
   allocate ( irradi(width,width) )
   allocate ( gndty(width,width) )
   allocate ( azims(width,width) )
@@ -201,10 +197,6 @@ program illumhealth                           ! Beginning
   allocate ( jmin(ntype) )
   allocate ( jmax(ntype) )
   allocate ( totlu(ntype) )
-  
-  
-  
-  
   !     windows pointing toward horizon
   angvis=0.
   angvi1 = (pi*angvis)/180.
@@ -230,7 +222,6 @@ program illumhealth                           ! Beginning
         altsob(i,j)=0.
         obsH(i,j)=0.
         gndty(i,j)=0
-        ofill(i,j)=0.
         inclix(i,j)=0.
         incliy(i,j)=0.
         azims(i,j)=0.
@@ -259,9 +250,7 @@ program illumhealth                           ! Beginning
   outfile=basenm(1:lenbase)//'.bin'
   mnaf=basenm(1:lenbase)//'_topogra.bin' ! determine the names of input and output files
   ohfile=basenm(1:lenbase)//'_obsth.bin'
-  odfile=basenm(1:lenbase)//'_obstd.bin'
   alfile=basenm(1:lenbase)//'_altlp.bin' ! setting the file name of height of the sources lumineuse.
-  offile=basenm(1:lenbase)//'_obstf.bin'
   azfile=basenm(1:lenbase)//'_azimu.bin'
   gifile='groundtype.bin'
   dtheta=.017453293
@@ -274,26 +263,11 @@ program illumhealth                           ! Beginning
         lampal(i,j)=val2d(i,j) ! filling of the array for the lamp stype
      enddo                  ! end of the loop over all cells along y.
   enddo                     ! end of the loop over all cells along x.
-  !     reading subgrid obstacles average height
+  !     reading buildings average height
   call twodin(nbx,nby,ohfile,val2d,width)
   do i=1,nbx                ! beginning of the loop over all cells along x.
      do j=1,nby             ! beginning of the loop over all cells along y.
         obsH(i,j)=val2d(i,j) ! filling of the array
-     enddo                  ! end of the loop over all cells along y.
-  enddo
-  !     reading subgrid obstacles average distance
-  call twodin(nbx,nby,odfile,val2d,width)
-  do i=1,nbx                ! beginning of the loop over all cells along x.
-     do j=1,nby             ! beginning of the loop over all cells along y.
-        obsD(i,j)=val2d(i,j)/2.
-        if (obsD(i,j).eq.0.) obsD(i,j)=dx ! when outside a zone, block to the size of the cell (typically 1km)
-     enddo                  ! end of the loop over all cells along y.
-  enddo
-  !     reading subgrid obstacles filling factor
-  call twodin(nbx,nby,offile,val2d,width)
-  do i=1,nbx                ! beginning of the loop over all cells along x.
-     do j=1,nby             ! beginning of the loop over all cells along y.
-        ofill(i,j)=val2d(i,j) ! Filling of the array 0-1
      enddo                  ! end of the loop over all cells along y.
   enddo
   !     reading ground type flag
@@ -530,27 +504,6 @@ program illumhealth                           ! Beginning
                              else
                                 hh=1.
                              endif
-                             ff=0.
-                             !     sub-grid obstacles
-                             if (dho.gt.obsD(x_obs,y_obs)+obsD(x_s,y_s)) then ! light path to observer larger than the mean free path -> subgrid obstacles
-                                angmin=pi/2.-atan2((altsol(x_obs,y_obs)+obsH(x_obs,y_obs)-z_obs),obsD(x_obs,y_obs))
-                                if (dzen.lt.angmin) then ! condition sub-grid obstacles direct.
-                                   ff=0.
-                                else
-                                   ff=ofill(x_obs,y_obs)
-                                endif
-                             endif ! end light path to the observer larger than mean free path
-                             call anglezenithal(rx_s,ry_s,z_s,rx_obs,ry_obs,z_obs,dzen)
-                             ff2=0.
-                             if (dho.gt.obsD(x_s,y_s)) then ! light path from source larger than the mean free path -> subgrid obstacles
-                                angmin=pi/2.-atan2((altsol(x_s,y_s)+obsH(x_s,y_s)-z_s),obsD(x_s,y_s))
-                                if (dzen.lt.angmin) then ! condition sub-grid obstacles direct.
-                                   ff2=0.
-                                else
-                                   ff2=ofill(x_s,y_s)
-                                endif
-                             endif ! end light path to the observer larger than mean free path
-                             call anglezenithal(rx_obs,ry_obs,z_obs,rx_s,ry_s,z_s,dzen)
                              !     projection angle of line to the lamp and the viewing angle
                              call angle3points (rx_s,ry_s,z_s,rx_obs,ry_obs,z_obs,rx,ry,rz,dang)
                              dang=pi-dang
@@ -708,28 +661,6 @@ program illumhealth                           ! Beginning
                                                else
                                                   hh=1.
                                                endif
-                                               !     sub-grid obstacles
-                                               ff=0.
-                                               if (dho.gt.obsD(x_obs,y_obs)+obsD(x_sr,y_sr)) then ! light path to observer larger than the mean free path -> subgrid obstacles
-                                                  angmin=pi/2.-atan2((altsol(x_obs,y_obs)+obsH(x_obs,y_obs)-z_obs), &
-                                                  obsD(x_obs,y_obs))
-                                                  if (dzen.lt.angmin) then ! condition sub-grid obstacles direct.
-                                                     ff=0.
-                                                  else
-                                                     ff=ofill(x_obs,y_obs)
-                                                  endif
-                                               endif ! end light path to the observer larger than mean free path
-                                               call anglezenithal(rx_sr,ry_sr,z_sr,rx_obs,ry_obs,z_obs,dzen)
-                                               ff2=0.
-                                               if (dho.gt.obsD(x_sr,y_sr)) then ! light path from reflecting surface larger than the mean free path -> subgrid obstacles
-                                                  angmin=pi/2.-atan2((altsol(x_sr,y_sr)+obsH(x_sr,y_sr)-z_sr),obsD(x_sr,y_sr))
-                                                  if (dzen.lt.angmin) then ! condition sub-grid obstacles direct.
-                                                     ff2=0.
-                                                  else
-                                                     ff2=ofill(x_sr,y_sr)
-                                                  endif
-                                               endif ! end light path to the observer larger than mean free path
-                                               call anglezenithal(rx_obs,ry_obs,z_obs,rx_sr,ry_sr,z_sr,dzen)
                                                !     projection angle of line to the lamp and the viewing angle
                                                call angle3points (rx_sr,ry_sr,z_sr,rx_obs,ry_obs,z_obs,rx,ry,rz,dang)
                                                dang=pi-dang
@@ -761,14 +692,12 @@ program illumhealth                           ! Beginning
   enddo
   deallocate ( pvalno )  
   deallocate ( lamplu )
-  deallocate ( obsD )
   deallocate ( altsol )
   deallocate ( reflec )
   deallocate ( lampal )
   deallocate ( inclix )
   deallocate ( incliy )
   deallocate ( obsH )
-  deallocate ( ofill )
   deallocate ( gndty )
   deallocate ( azims )
   deallocate ( imin )

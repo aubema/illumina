@@ -1,4 +1,4 @@
-__version__ = "2.2.22w23.3f-illum-health"
+__version__ = "2.2.22w23.4a-illum-health"
 
 try:
     from . import MultiScaleData, pytools
