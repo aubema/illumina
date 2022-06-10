@@ -6,19 +6,18 @@ import time
 import zipfile
 from contextlib import suppress
 from glob import glob
-from subprocess import call
+from subprocess import call, check_output
 from threading import Thread
 from urllib.request import urlopen
 
 import click
+import illum
 import numpy as np
 import pandas as pd
 import progressbar
 import requests
 import yaml
 from PyQt5.QtWidgets import QApplication, QDialog
-
-import illum
 
 from .gambons_inputs import gambons_inputs
 from .light_ui import Ui_ILLUMINA
@@ -277,40 +276,38 @@ class Ui_LIGHT(Ui_ILLUMINA):
         # extracting results
         self.log_edit.setPlainText("Simulation finished\nExtracting results")
         self.log_edit.repaint()
-        with open("results_artificial_temp.txt", "w") as f:
-            call(["illum", "extract"], stdout=f)
-
-        with open("results_artificial_temp.txt") as f:
-            lines = f.readlines()
-        os.remove("results_artificial_temp.txt")
-        radiance = []
-        central_wl = []
-
-        for line in lines:
-            radiance.append(float(line.split()[1]))
-            central_wl.append(float((line.split()[0]).split("_")[-1]))
+        lines = check_output(["illum", "extract", "-c"])
+        lines = sorted(lines.decode().strip().split("\n"))
+        central_wl, radiance = zip(
+            *[
+                [float(elem.split("_")[-1]) for elem in line.split()]
+                for line in lines
+            ]
+        )
         wl, sens = np.loadtxt("Lights/JC_V.dat", skiprows=1).T
-        index_min = np.where(wl == 470)[0][0]
-        index_max = np.where(wl == 740.5)[0][0]
-        wl_filt = wl[index_min:index_max]
-        sens_filt = (sens[index_min:index_max]) / 100  # % to frac
+        mask = (wl >= 470) & (wl <= 740)
+        wl_filt = wl[mask]
+        sens_filt = sens[mask] / 100  # % to frac
 
         bins = np.loadtxt(self.datapath + "/spectral_bands.dat", delimiter=",")
-        n_bins = bins.shape[0]
-        limits = np.zeros(n_bins + 1)
-        for index, value in enumerate(bins):
-            limits[index] = value[0]
-            if index == n_bins - 1:
-                limits[index + 1] = value[1]
-        bool_array = (wl_filt >= limits[:-1, None]) & (
-            wl_filt < limits[1:, None]
+        bool_array = (wl_filt >= bins[:, 0, None]) & (
+            wl_filt < bins[:, 1, None]
         )
         avg_value = [np.mean(sens_filt[mask]) for mask in bool_array]
-        radiance_V_art = 0
-        for i in range(len(limits) - 1):
-            radiance_V_art += (
-                avg_value[i] * radiance[i] * (limits[i + 1] - limits[i])
-            )
+        radiance_V_art = np.sum(
+            np.prod([radiance, avg_value, bins[:, 1] - bins[:, 0]], 0)
+        )
+
+        contrib_filenames = [
+            glob(f"*wavelength_{wl:.1f}.hdf5")[0] for wl in central_wl
+        ]
+        contrib = illum.MultiScaleData.from_domain("domain.ini")
+        for n, fname in enumerate(contrib_filenames):
+            ds = illum.MultiScaleData.Open(fname)
+            for i, layer in enumerate(ds):
+                contrib[i] += layer * avg_value[n]
+            os.remove(fname)
+        contrib.save("contribution_map")
 
         mag_V_art = mag_ref - 2.5 * np.log10(radiance_V_art / radiance_ref)
 
