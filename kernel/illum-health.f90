@@ -146,7 +146,6 @@ program illumhealth                           ! Beginning
 
   real dang                 ! Angle between the line of sight and the direction of a source
   real ddir_obs             ! distance between the source and the observer
-  character*72 gifile       ! name of the ground type flag file
   real dh0,dhmax            ! horizontal distance along the line of sight and maximum distance before beeing blocked by topography
   real layaod               ! 500 nm aod of the particle layer
   real hlay                 ! exponential vertical scale height of the particle layer
