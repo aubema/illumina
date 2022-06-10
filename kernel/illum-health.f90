@@ -313,36 +313,10 @@ program illumhealth                           ! Beginning
   do i=1,nbx             ! searching of the smallest rectangle containing the zone
      do j=1,nby          ! of non-null luminosity to speedup the calculation
         if (val2d(i,j).ne.0.) then
-           if (i-1.lt.imin) imin=i-2
-           if (imin.lt.1) imin=1
-           goto 333
-        endif
-     enddo
-  enddo
-333 do i=nbx,1,-1
-     do j=1,nby
-        if (val2d(i,j).ne.0.) then
-           if (i+1.gt.imax) imax=i+2
-           if (imax.gt.nbx) imax=nbx
-           goto 334
-        endif
-     enddo
-  enddo
-334 do j=1,nby
-     do i=1,nbx
-        if (val2d(i,j).ne.0.) then
-           if (j-1.lt.jmin) jmin=j-2
-           if (jmin.lt.1) jmin=1
-           goto 335
-        endif
-     enddo
-  enddo
-335 do j=nby,1,-1
-     do i=1,nbx
-        if (val2d(i,j).ne.0.) then
-           if (j+1.gt.jmax) jmax=j+2
-           if (jmax.gt.nby) jmax=nby
-           goto 336
+           if (i.lt.imin) imin=i
+           if (i.gt.imax) imax=i  
+           if (j.lt.jmin) jmin=j
+           if (j.gt.jmax) jmax=i           
         endif
      enddo
   enddo
@@ -350,7 +324,7 @@ program illumhealth                           ! Beginning
   if (imin.lt.1) imin=1
   if (jmax.gt.nbx) jmax=nby
   if (imax.gt.nbx) imax=nbx
-336 do i=1,nbx             ! beginning of the loop over all cells along x.
+  do i=1,nbx             ! beginning of the loop over all cells along x.
      do j=1,nby          ! beginning of the loop over all cells along y.
         lamplu(i,j)=val2d(i,j) ! filling lamp power array
         totlu=totlu+lamplu(i,j) ! the total lamp flux should be non-null to proceed to the calculations
@@ -412,7 +386,7 @@ program illumhealth                           ! Beginning
   !     fake building profile                  000012223444444444
   do i=1,nbx                ! beginning of the loop over the column (longitude) of the domain.
      do j=1,nby             ! beginning of the loop over the rows (latitu) of the domain.
-        if (gndty(i,j).eq.0) then
+        if (gndty(i,j).eq.0) then  ! on street keep the inclinaison without the buildings    
            if (i.eq.1) then ! specific case close to the border of the domain (vertical side left).
               inclix(i,j)=atan((altsol(i+1,j)-altsol(i,j))/real(dx)) ! computation of the tilt along x of the surface.
            elseif (i.eq.nbx) then ! specifi! case close to the border of the domain (vertical side right).
@@ -427,7 +401,7 @@ program illumhealth                           ! Beginning
            else
               incliy(i,j)=atan((altsol(i,j+1)-altsol(i,j-1))/(2.*real(dy)))
            endif
-        else
+        else  ! all other case we include the buildings to calculate the inclinaison in particular to reproduce the facades surfaces for the reflexion
            if (i.eq.1) then
               inclix(i,j)=atan((altsob(i+1,j)-altsob(i,j))/real(dx))
            elseif (i.eq.nbx) then
