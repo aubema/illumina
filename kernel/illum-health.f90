@@ -64,7 +64,7 @@ program illumhealth                           ! Beginning
   
   real, dimension(:,:,:), allocatable :: pval       ! pval(181,181,ntype)
   real, dimension(:,:,:), allocatable :: pvalno     ! pvalno(181,181,ntype) values of the angular photometry functions 1sr(x)_axis=zenith, 2nd(y)_axis=azimuth
-  real, dimension(:,:,:), allocatable :: lamplu     ! lamplu(width,width,ntype)  Source fluxes
+  real, dimension(:,:), allocatable :: lamplu       ! lamplu(width,width)  Source fluxes
   real, dimension(:,:), allocatable ::  val2d       ! val2d(width,width)  Temporary input array 2d
   real, dimension(:,:), allocatable ::  altsol      ! altsol(width,width)  Ground elevation (meter)
   real, dimension(:,:), allocatable ::  altsob      ! altsob(width,width)  Elevation including buildings
@@ -75,15 +75,11 @@ program illumhealth                           ! Beginning
   real, dimension(:,:), allocatable ::  obsH        ! obsH(width,width)  averaged height of the buildings
   real, dimension(:,:), allocatable ::  ofill       ! ofill(width,width)  fill factor giving the probability to hit an obstacle when pointing in its direction real 0-1
   real, dimension(:,:), allocatable ::  irradi      ! irradi(width,width)  direct irradiance on a surface normal to the line of sight (no scattering)
-  INTEGER, dimension(:,:), allocatable ::  gndty    ! gndty(width,width)  ground type flag  0=observer, 1=building facade, 2=street, 3=other
+  INTEGER, dimension(:,:), allocatable ::  gndty    ! gndty(width,width)  ground type flag  0=street 1=observer/building facade, 2=building top , 3=rear facace, 4=other
+  INTEGER, dimension(:,:), allocatable ::  lmpty    ! lmpty(width,width)  5 lamp types according to the 5 spectral classes from Alejandro
   real, dimension(:,:), allocatable ::  azims       ! azims(width,width)  azimuth toward nearest point on a street
-  INTEGER, dimension(:), allocatable ::  imin       ! imin(ntype)
-  INTEGER, dimension(:), allocatable :: imax        ! imax(ntype)
-  INTEGER, dimension(:), allocatable :: jmin        ! jmin(ntype)
-  INTEGER, dimension(:), allocatable :: jmax        ! jmax(ntype)     x and y limits containing a type of lamp
-  real, dimension(:), allocatable :: totlu          ! totlu(ntype)   total flux of a source type
-  
-  
+  integer imin,imax,jmin,jmax                       ! x and y limits containing lamps
+  real totlu                                        ! total lamp power over the domain
   real angmin                                 ! minimum angle
   real reflsiz                                ! Size of the reflecting surface
   real largx                                  ! Width (x axis) of the modeling domain (meter)
@@ -92,7 +88,7 @@ program illumhealth                           ! Beginning
 
   real srefl,brefl,orefl                      ! Street reflectance , Building facades reflectance , Other reflectance
   INTEGER stype                               ! Source type or zone index
-  character*72 pafile,lufile,alfile,ohfile,odfile,offile,azfile 
+  character*72 pafile,lufile,alfile,ohfile,odfile,offile,azfile,lifile,gifile 
   ! Files related to light sources and obstacles (photometri
   ! function of the sources (sr-1), flux (W), height (m), obstacles           
   ! height (m), obstacle distance (m), obstacle filling factor (0-1).
@@ -163,6 +159,7 @@ program illumhealth                           ! Beginning
   ff=0.
   ff2=0.
   step=1
+  ntype=5
   angazor=90.                ! the window is pointing horizontally
   if (verbose.ge.1) then
      print*,'Starting ILLUMINA computations...'
@@ -184,7 +181,7 @@ program illumhealth                           ! Beginning
   ! allocate arrays 
   allocate ( pval(181,181,ntype) )
   allocate ( pvalno(181,181,ntype) )
-  allocate ( lamplu(width,width,ntype) )
+  allocate ( lamplu(width,width) )  
   allocate ( val2d(width,width) )
   allocate ( altsol(width,width) )
   allocate ( altsob(width,width) )
@@ -196,11 +193,8 @@ program illumhealth                           ! Beginning
   allocate ( irradi(width,width) )
   allocate ( gndty(width,width) )
   allocate ( azims(width,width) )
-  allocate ( imin(ntype) )
-  allocate ( imax(ntype) )
-  allocate ( jmin(ntype) )
-  allocate ( jmax(ntype) )
-  allocate ( totlu(ntype) )
+  allocate ( lmpty(width,width) )
+
   !     windows pointing toward horizon
   angzeor = pi/2.
   !     max distance to consider the reflexion in meter
@@ -223,13 +217,12 @@ program illumhealth                           ! Beginning
         altsob(i,j)=0.
         obsH(i,j)=0.
         gndty(i,j)=0
+        lmpty(i,j)=0
         inclix(i,j)=0.
         incliy(i,j)=0.
         azims(i,j)=0.
         lampal(i,j)=0.
-        do k=1,ntype
-           lamplu(i,j,k)=0.
-        enddo
+        lamplu(i,j)=0.
      enddo
   enddo
   do i=1,181
@@ -253,7 +246,9 @@ program illumhealth                           ! Beginning
   ohfile=basenm(1:lenbase)//'_obsth.bin'
   alfile=basenm(1:lenbase)//'_altlp.bin' ! setting the file name of height of the sources lumineuse.
   azfile=basenm(1:lenbase)//'_azimu.bin'
-  gifile='groundtype.bin'
+  lifile=basenm(1:lenbase)//'lmpty.bin' 
+  gifile=basenm(1:lenbase)//'gndty.bin'
+  lufile=basenm(1:lenbase)//'_lumlp_.bin' ! setting the file name of the luminosite of the cases.
   dtheta=.017453293
   !     reading of the elevation file
   call twodin(nbx,nby,mnaf,altsol,width)
@@ -278,6 +273,14 @@ program illumhealth                           ! Beginning
         gndty(i,j)=nint(val2d(i,j)) ! ground type flag flag array 0 or 1
      enddo                  ! end of the loop over all cells along y.
   enddo
+  !     reading lamp type flag
+  call twodin(nbx,nby,lifile,val2d,width)
+  do i=1,nbx                ! beginning of the loop over all cells along x.
+     do j=1,nby             ! beginning of the loop over all cells along y.
+        lmpty(i,j)=nint(val2d(i,j)) ! ground type flag flag array 0 or 1
+     enddo                  ! end of the loop over all cells along y.
+  enddo  
+  
   !     reading azimuth
   call twodin(nbx,nby,azfile,val2d,width)
   do i=1,nbx                ! beginning of the loop over all cells along x.
@@ -294,16 +297,76 @@ program illumhealth                           ! Beginning
         if (azims(i,j).ge.360.) azims(i,j)=azims(i,j)-360.
      enddo                  ! end of the loop over all cells along y.
   enddo
-  !     Some preliminary tasks
+  !     reading luminosity files
+  imin=nbx
+  jmin=nby
+  imax=1
+  jmax=1
+  call twodin(nbx,nby,lufile,val2d,width)
+  do i=1,nbx             ! beginning of the loop over all cells along x.
+     do j=1,nby          ! beginning of the loop over all cells along y.
+        if (val2d(i,j).lt.0.) then ! searching of negative fluxes
+           print*,'***Negative lamp flux!, stopping execution'
+           stop
+        endif
+     enddo               ! end of the loop over all cells along y.
+  enddo
+  do i=1,nbx             ! searching of the smallest rectangle containing the zone
+     do j=1,nby          ! of non-null luminosity to speedup the calculation
+        if (val2d(i,j).ne.0.) then
+           if (i-1.lt.imin) imin=i-2
+           if (imin.lt.1) imin=1
+           goto 333
+        endif
+     enddo
+  enddo
+333 do i=nbx,1,-1
+     do j=1,nby
+        if (val2d(i,j).ne.0.) then
+           if (i+1.gt.imax) imax=i+2
+           if (imax.gt.nbx) imax=nbx
+           goto 334
+        endif
+     enddo
+  enddo
+334 do j=1,nby
+     do i=1,nbx
+        if (val2d(i,j).ne.0.) then
+           if (j-1.lt.jmin) jmin=j-2
+           if (jmin.lt.1) jmin=1
+           goto 335
+        endif
+     enddo
+  enddo
+335 do j=nby,1,-1
+     do i=1,nbx
+        if (val2d(i,j).ne.0.) then
+           if (j+1.gt.jmax) jmax=j+2
+           if (jmax.gt.nby) jmax=nby
+           goto 336
+        endif
+     enddo
+  enddo
+  if (jmin.lt.1) jmin=1
+  if (imin.lt.1) imin=1
+  if (jmax.gt.nbx) jmax=nby
+  if (imax.gt.nbx) imax=nbx
+336 do i=1,nbx             ! beginning of the loop over all cells along x.
+     do j=1,nby          ! beginning of the loop over all cells along y.
+        lamplu(i,j)=val2d(i,j) ! filling lamp power array
+        totlu=totlu+lamplu(i,j) ! the total lamp flux should be non-null to proceed to the calculations
+     enddo               ! end of the loop over all cells along y.
+  enddo                  ! end of the loop over all cells along x.  
+  
+  
+  
+  
+  ! loading photometry files
   do stype=1,ntype          ! beginning of the loop over ntype types of sources.
-     imin(stype)=nbx
-     jmin(stype)=nby
-     imax(stype)=1
-     jmax(stype)=1
      pvalto=0.
-     write(lampno, '(I3.3)' ) stype ! support of ntype different sources (3 digits)
+     write(lampno, '(I1.1)' ) stype ! support of ntype different sources (1 digit)
      pafile=basenm(1:lenbase)//'_fctem_'//lampno//'.dat' ! setting the file name of angular photometry.
-     lufile=basenm(1:lenbase)//'_lumlp_'//lampno//'.bin' ! setting the file name of the luminosite of the cases.
+
      !     reading photometry files
      open(UNIT=1, FILE=pafile,status='OLD') ! opening file pa#.dat, angular photometry.
      ! each line (j) is a new azimuth starting at 0 deg (perpendicular to the street) and ending at 180 deg (behind)
@@ -320,75 +383,18 @@ program illumhealth                           ! Beginning
            if (pvalto.ne.0.) pvalno(i,j,stype)=pval(i,j,stype)/pvalto ! Normalisation of the photometri! function.
         enddo
      enddo
-     deallocate ( pval )
-     
-     !     reading luminosity files
-     call twodin(nbx,nby,lufile,val2d,width)
-     do i=1,nbx             ! beginning of the loop over all cells along x.
-        do j=1,nby          ! beginning of the loop over all cells along y.
-           if (val2d(i,j).lt.0.) then ! searching of negative fluxes
-              print*,'***Negative lamp flux!, stopping execution'
-              stop
-           endif
-        enddo               ! end of the loop over all cells along y.
-     enddo
-     do i=1,nbx             ! searching of the smallest rectangle containing the zone
-        do j=1,nby          ! of non-null luminosity to speedup the calculation
-           if (val2d(i,j).ne.0.) then
-              if (i-1.lt.imin(stype)) imin(stype)=i-2
-              if (imin(stype).lt.1) imin(stype)=1
-              goto 333
-           endif
-        enddo
-     enddo
-     imin(stype)=1
-333  do i=nbx,1,-1
-        do j=1,nby
-           if (val2d(i,j).ne.0.) then
-              if (i+1.gt.imax(stype)) imax(stype)=i+2
-              if (imax(stype).gt.nbx) imax(stype)=nbx
-              goto 334
-           endif
-        enddo
-     enddo
-     imax(stype)=1
-334  do j=1,nby
-        do i=1,nbx
-           if (val2d(i,j).ne.0.) then
-              if (j-1.lt.jmin(stype)) jmin(stype)=j-2
-              if (jmin(stype).lt.1) jmin(stype)=1
-              goto 335
-           endif
-        enddo
-     enddo
-     jmin(stype)=1
-335  do j=nby,1,-1
-        do i=1,nbx
-           if (val2d(i,j).ne.0.) then
-              if (j+1.gt.jmax(stype)) jmax(stype)=j+2
-              if (jmax(stype).gt.nby) jmax(stype)=nby
-              goto 336
-           endif
-        enddo
-     enddo
-     jmax(stype)=1
-336  do i=1,nbx             ! beginning of the loop over all cells along x.
-        do j=1,nby          ! beginning of the loop over all cells along y.
-           lamplu(i,j,stype)=val2d(i,j) ! remplir the array of the lamp type: stype
-           totlu(stype)=totlu(stype)+lamplu(i,j,stype) ! the total lamp flux should be non-null to proceed to the calculations
-        enddo               ! end of the loop over all cells along y.
-     enddo                  ! end of the loop over all cells along x.
   enddo  ! enddo stype
+  deallocate ( pval )
   deallocate ( val2d )
   !     distribute reflectance values and adding fake buildings
   do i=1,nbx                ! beginning of the loop over all cells along x.
      do j=1,nby             ! beginning of the loop over all cells along y.
-        if (gndty(i,j).eq.2) then
+        if (gndty(i,j).eq.0) then
            reflec(i,j)=srefl
-        elseif (gndty(i,j).eq.1) then
+        elseif (gndty(i,j).eq.2) then
            reflec(i,j)=srefl
            altsob(i,j)=altsol(i,j)+obsH(i,j)
-        elseif ((gndty(i,j).eq.0).or.(gndty(i,j).eq.3)) then
+        elseif ((gndty(i,j).eq.1).or.(gndty(i,j).eq.3)) then
            reflec(i,j)=brefl
            altsob(i,j)=altsol(i,j)+obsH(i,j)/2.
         else
@@ -407,8 +413,8 @@ program illumhealth                           ! Beginning
   !     fake building profile                  000012223444444444
   do i=1,nbx                ! beginning of the loop over the column (longitude) of the domain.
      do j=1,nby             ! beginning of the loop over the rows (latitu) of the domain.
-        if (gndty(i,j).eq.2) then
-           if (i.eq.1) then ! specifi! case close to the border of the domain (vertical side left).
+        if (gndty(i,j).eq.0) then
+           if (i.eq.1) then ! specific case close to the border of the domain (vertical side left).
               inclix(i,j)=atan((altsol(i+1,j)-altsol(i,j))/real(dx)) ! computation of the tilt along x of the surface.
            elseif (i.eq.nbx) then ! specifi! case close to the border of the domain (vertical side right).
               inclix(i,j)=atan((altsol(i-1,j)-altsol(i,j))/(real(dx))) ! computation of the tilt along x of the surface.
@@ -441,7 +447,7 @@ program illumhealth                           ! Beginning
      enddo                  ! end of the loop over the rows (latitu) of the domain
   enddo                     ! end of the loop over the column (longitude) of the domain
   deallocate ( altsob )
-  !     determination of the vertical atmospheri! transmittance
+  !     determination of the vertical atmospheric transmittance
   call transtoa(lambda,bandw,taua,layaod,pressi,tranam,tranaa,tranal,tabs)
   largx=dx*real(nbx)        ! computation of the Width along x of the case.
   largy=dy*real(nby)        ! computation of the Width along y of the case.
@@ -452,8 +458,8 @@ program illumhealth                           ! Beginning
   do oi=1,nbx
      do oj=1,nby
         !     only calculate if it is an observer position
-        if (gndty(oi,oj).eq.0) then
-           angazor = (pi*azims(oi,oj))/180.         ! angle to the road  from an observer (gndty=0)
+        if (gndty(oi,oj).eq.1) then
+           angazor = (pi*azims(oi,oj))/180.         ! angle to the road  from an observer (gndty=1)
            ix = sin(angzeor)*cos(angazor)           ! viewing vector components
            iy = sin(angzeor)*sin(angazor)           ! looking horizontally toward street from the observer position
            iz = cos(angzeor)
@@ -470,15 +476,13 @@ program illumhealth                           ! Beginning
            !
            if (verbose.ge.1) print*,' Calculating obtrusive light...'
            !     loop over source types
-           do stype=1,ntype
               !     Is any flux in that lamp type?
-              if (totlu(stype).ne.0.) then
-                 if (verbose.ge.1) print*,' Turning on lamps',stype
-                 do x_s=imin(stype),imax(stype) ! beginning of the loop over the column (longitude the) of the domain.
-                    do y_s=jmin(stype),jmax(stype) ! beginning of the loop over the rows (latitud) of the domain.
+              if (totlu.ne.0.) then
+                 do x_s=imin,imax ! beginning of the loop over the column (longitude the) of the domain.
+                    do y_s=jmin,jmax ! beginning of the loop over the rows (latitud) of the domain.
                        rx_s=real(x_s)*dx
                        ry_s=real(y_s)*dy
-                       if (lamplu(x_s,y_s,stype).ne.0.) then ! if the luminosite of the case is null, the program ignore this case.
+                       if (lamplu(x_s,y_s).ne.0.) then ! if the luminosite of the case is null, the program ignore this case.
                           z_s=(altsol(x_s,y_s)+lampal(x_s,y_s)) ! Definition of the position (metre) vertical of the source.
                           !
                           !     *********************************************************************************************************
@@ -518,7 +522,7 @@ program illumhealth                           ! Beginning
                              if (anglea.lt.0) anglea=-anglea
                              if (anglea.gt.181) anglea=362-anglea ! symetric function
                              if (anglea.eq.0) anglea=1
-                             P_dir=pvalno(anglez,anglea,stype)
+                             P_dir=pvalno(anglez,anglea,lmpty(x_s,y_s))
                              if ((cos(dang).gt.0.).and.(dang.lt.pi/2.)) then
                                 ddir_obs=sqrt((rx_obs-rx_s)**2.+(ry_obs-ry_s)**2.+(z_obs-z_s)**2.)
                                 !     computation of the solid angle 1m^2 at the observer as seen from the source
@@ -526,7 +530,7 @@ program illumhealth                           ! Beginning
                                 call transmitm(angzeos,z_obs,z_s,ddir_obs,transm,tranam,tabs)
                                 call transmita(angzeos,z_obs,z_s,ddir_obs,haer,transa,tranaa)
                                 call transmitl(angzeos,z_obs,z_s,ddir_obs,hlay,transl,tranal)
-                                irradi(oi,oj)=irradi(oi,oj)+lamplu(x_s,y_s,stype)*transa*transm*transl*P_dir*omega &
+                                irradi(oi,oj)=irradi(oi,oj)+lamplu(x_s,y_s)*transa*transm*transl*P_dir*omega &
                                 *(1.-ff)*(1.-ff2)*hh
                              endif
                              !
@@ -641,13 +645,13 @@ program illumhealth                           ! Beginning
                                                   if (nap.lt.0) nap=-nap
                                                   if (nap.gt.181) nap=362-nap ! symetri! function
                                                   if (nap.eq.0) nap=1
-                                                  P_indir=P_indir+pvalno(nzp,nap,stype)*abs(sin(pi*real(nzp)/180.))/2.
+                                                  P_indir=P_indir+pvalno(nzp,nap,lmpty(x_s,y_s))*abs(sin(pi*real(nzp)/180.))/2.
                                                   nbang=nbang+1.*abs(sin(pi*real(nzp)/180.))/2.
                                                enddo
                                             enddo
                                             P_indir=P_indir/nbang
                                             !     computation of the flux reaching the reflecting surface
-                                            flrefl=lamplu(x_s,y_s,stype)*P_indir*omega*transm*transa*transl
+                                            flrefl=lamplu(x_s,y_s)*P_indir*omega*transm*transa*transl
                                             !     computation of the reflected intensity leaving the ground surface
                                             irefl1=flrefl*reflec(i,j)/pi ! The factor 1/pi comes from the normalisation of the fonction
                                             dho=sqrt((rx_obs-rx_sr)**2.+(ry_obs-ry_sr)**2.)
@@ -689,10 +693,9 @@ program illumhealth                           ! Beginning
                              enddo
                           endif ! source and observer not at the same exact position
                        endif   !     end if lamplu ne 0
-                    enddo ! loop over source of stype
-                 enddo  ! loop over source of stype
+                    enddo ! loop over sources
+                 enddo  ! loop over sources
               endif !     end if totlu ne 0
-           enddo !     end loop styp
         endif !     end if for gntty=0
            if (verbose.ge.1) print*,'Direct irradiance from sources (W/m**2/nm) at (',oi,',',oj,'):',irradi(oi,oj)
      enddo !     end of loop over every observer
@@ -706,12 +709,9 @@ program illumhealth                           ! Beginning
   deallocate ( incliy )
   deallocate ( obsH )
   deallocate ( gndty )
+  deallocate ( lmpty )
   deallocate ( azims )
-  deallocate ( imin )
-  deallocate ( imax )
-  deallocate ( jmin )
-  deallocate ( jmax )
-  deallocate ( totlu )
+
   !     save the irradiance file
   open(unit=2,form='unformatted',file=outfile,action='write')
      write(2) nbx,nby
