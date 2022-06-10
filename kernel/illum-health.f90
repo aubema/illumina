@@ -399,12 +399,12 @@ program illumhealth                           ! Beginning
   enddo
   !     computation of the basi! tilt of the pixels along x and along y
   !
-  !     0=building front and observer
-  !     1=building top               111
-  !     2=street                     111
-  !     3=building rear             01113
-  !     4=other                     01113
-  !     fake building profile   222201113444444444
+  !     0=street 
+  !     1=building front and observer               222
+  !     2=building top                              222
+  !     3=building rear                            12223
+  !     4=other                                    12223
+  !     fake building profile                  000012223444444444
   do i=1,nbx                ! beginning of the loop over the column (longitude) of the domain.
      do j=1,nby             ! beginning of the loop over the rows (latitu) of the domain.
         if (gndty(i,j).eq.2) then
@@ -612,7 +612,7 @@ program illumhealth                           ! Beginning
                                                print*,'ERROR: Solid angle of the reflecting surface < 0.'
                                                stop
                                             endif
-                                            !  estimation of the half of the underlying angle of the solid angle
+                                            ! estimation of the half of the underlying angle of the solid angle
                                             ! this angle servira a obtenir un meilleur isime (moyenne) of
                                             ! P_dir for le cas of grans solid angles the , pvalno varie significativement sur +- ouvang.
                                             ouvang=sqrt(omega/pi) ! Angle in radian.
