@@ -12,14 +12,15 @@ parser.add_argument(
 p = parser.parse_args()
 
 with open("illum/__init__.py") as f:
-    line = f.read().split("\n")[0]
-    version = line.split("=")[1].strip().strip("\"'")
+    content = f.read()
+line = content.split("\n")[0]
+version = line.split("=")[1].strip().strip("\"'")
 
 parts = version.split(".")
-id = 1 - p.major
-parts[id] = str(int(parts[id]) + 1)
+parts[1 - p.major] = str(int(parts[1 - p.major]) + 1)
+parts[2] = "0"
 
-print(f"New version number will be '{'.'.join(parts[:2])}'")
+print(f"New version number will be '{'.'.join(parts[:3])}'")
 while (res := input("Do you want to continue? (Enter y/n) ").lower()) not in {
     "y",
     "n",
@@ -27,10 +28,7 @@ while (res := input("Do you want to continue? (Enter y/n) ").lower()) not in {
     pass
 
 if res == "y":
-    with open("illum/__init__.py") as f:
-        content = f.read()
-    content = content.replace(version, ".".join(parts))
     with open("illum/__init__.py", "w") as f:
-        f.write(content)
+        f.write(content.replace(version, ".".join(parts)))
 else:
     print("Aborting.")
