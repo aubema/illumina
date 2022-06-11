@@ -1,27 +1,23 @@
 #!/usr/bin/env python
 
 from datetime import datetime as dt
+
 from git import Repo
-import re
 
-repo = Repo('.')
-
-with open("illum/__init__.py") as f:
-    line = f.read().split('\n')[0]
-    old = line.split('=')[1].strip().strip('"\'')
-
-new = '.'.join(old.split('.')[:2])
-
-new += '.' + dt.now().strftime("%gw%V.%u")
-new += 'a' if new != old.split('-')[0][:-1] \
-    else chr(ord(old.split('-')[0][-1])+1)
-
-branch = repo.active_branch.name
-if branch != "master":
-    new += "-" + branch
+repo = Repo(".")
 
 with open("illum/__init__.py") as f:
-    file_content = f.read()
-with open("illum/__init__.py", 'w') as f:
-    f.write(file_content.replace(old, new))
+    content = f.read()
+line = content.split("\n")[0]
+version = line.split("=")[1].strip().strip("\"'")
+
+parts = version.split(".")[:3]
+
+if repo.active_branch.name == "master":
+    parts[2] = str(int(parts[2]) + 1)
+else:
+    parts.append(dt.utcnow().strftime("%Y%m%d.%H%M%S%f")[:-4])
+
+with open("illum/__init__.py", "w") as f:
+    f.write(content.replace(version, ".".join(parts)))
 repo.git.add("illum/__init__.py")
