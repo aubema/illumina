@@ -1,5 +1,11 @@
+from subprocess import check_output
+
 import illum
 from setuptools import setup
+
+gdal_version = (
+    check_output(["gdalinfo", "--version"]).decode().split(",")[0].split()[1]
+)
 
 setup(
     name="illum",
@@ -9,6 +15,7 @@ setup(
         "astropy",
         "Click<8",
         "fiona",
+        "gdal==" + gdal_version,
         "geopandas",
         "GitPython",
         "h5py",
