@@ -50,7 +50,7 @@ def MSDOpen(filename, cached={}):
     is_flag=True,
     help="If present, will extract all available outputs.",
 )
-def extract(exec_dir, contrib, params, full):
+def CLI_extract(exec_dir, contrib, params, full):
     """Extract Illumina outputs.
 
     Will walk the EXEC_DIR to locate and extract illumina outputs.
@@ -59,6 +59,10 @@ def extract(exec_dir, contrib, params, full):
 
     If not given, EXEC_DIR will default to the current directory.
     """
+    extract(exec_dir, contrib, params, full)
+
+
+def extract(exec_dir, contrib=False, params=(), full=False):
     regex_layer = re.compile(r"-layer_(\d+)")
     regex_coords = re.compile(r"observer_coordinates_(-?\d+\.\d+_-?\d+\.\d+)")
 

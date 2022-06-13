@@ -23,6 +23,10 @@ from scipy.interpolate import griddata
 
 
 @click.command()
+def CLI_inputs():
+    inputs()
+
+
 def inputs():
     """Prepares the executions inputs."""
 

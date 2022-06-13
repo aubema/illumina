@@ -9,6 +9,10 @@ import illum
 
 
 @click.command()
+def CLI_init():
+    init()
+
+
 def init():
     """Initialize an execution folder."""
     print("Initializing Illumina execution folder.")

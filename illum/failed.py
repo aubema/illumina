@@ -20,7 +20,11 @@ def recursive_glob(rootdir=".", pattern="*"):
     is_flag=True,
     help="If given, returns the executable code to rerun failed executions.",
 )
-def failed(executable):
+def CLI_failed(executable):
+    failed(executable)
+
+
+def failed(executable=False):
     "Find failed ILLUMINA executions."
     if executable:
 

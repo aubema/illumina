@@ -34,14 +34,17 @@ def round_odd(n):
 
 
 @click.command()
-def domain():
+def CLI_domain():
     """Defines the simulation domain.
 
     Reads domain definition parameters from 'domain_params.in'.
 
     Outputs the definition in 'domain.ini'.
     """
+    domain()
 
+
+def domain():
     with open("domain_params.in") as f:
         domain = yaml.safe_load(f)
 
