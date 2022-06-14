@@ -68,7 +68,7 @@ def CLI_batches(input_path, compact, batch_size, batch_name=None):
     batches(input_path, compact, batch_size, batch_name)
 
 
-def batches(input_path=".", compact=True, batch_size=300, batch_name=None):
+def batches(input_path=".", compact=False, batch_size=300, batch_name=None):
     os.chdir(input_path)
 
     with open("inputs_params.in") as f:
