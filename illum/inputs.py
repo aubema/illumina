@@ -24,11 +24,11 @@ from scipy.interpolate import griddata
 
 @click.command(name="inputs")
 def CLI_inputs():
+    """Prepares the executions inputs."""
     inputs()
 
 
 def inputs():
-    """Prepares the executions inputs."""
 
     print("Preparing the inputs for the experiment.")
 
