@@ -1,4 +1,4 @@
-__version__ = "2.2.0.20220617.00241185"
+__version__ = "2.2.0.20220617.00252214"
 
 try:
     from . import MultiScaleData, pytools
