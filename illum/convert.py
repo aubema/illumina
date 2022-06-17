@@ -6,7 +6,7 @@ import numpy as np
 from illum import MultiScaleData as MSD
 
 
-@click.command()
+@click.command(name="convert")
 @click.option("--vector/--raster", "-v/-r", default=True, help="Output type.")
 @click.option("-log", is_flag=True, help="Logarithmic scale (base 10)")
 @click.option("-area", is_flag=True, help="Normalized by pixel area (in km²)")

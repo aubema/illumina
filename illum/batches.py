@@ -39,7 +39,7 @@ def MSDOpen(filename, cached={}):
     return ds
 
 
-@click.command()
+@click.command(name="batches")
 @click.argument("input_path", type=click.Path(exists=True), default=".")
 @click.argument("batch_name", required=False)
 @click.option(

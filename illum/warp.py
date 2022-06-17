@@ -164,7 +164,7 @@ def convert_correction_data(srcfiles):
         )
 
 
-@click.command()
+@click.command(name="warp")
 @click.argument("output_name", required=False)
 @click.argument("infiles", required=False, nargs=-1)
 def CLI_warp(output_name=None, infiles=[]):

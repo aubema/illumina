@@ -33,7 +33,7 @@ def round_odd(n):
     return int(n - n % 2 + 1)
 
 
-@click.command()
+@click.command(name="domain")
 def CLI_domain():
     """Defines the simulation domain.
 

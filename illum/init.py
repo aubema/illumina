@@ -8,7 +8,7 @@ import click
 import illum
 
 
-@click.command()
+@click.command(name="init")
 def CLI_init():
     init()
 

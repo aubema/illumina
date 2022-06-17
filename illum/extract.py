@@ -28,7 +28,7 @@ def MSDOpen(filename, cached={}):
     return ds
 
 
-@click.command()
+@click.command(name="extract")
 @click.argument("exec_dir", default=".", type=click.Path(exists=True))
 @click.option(
     "-c",

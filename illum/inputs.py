@@ -22,7 +22,7 @@ from illum.OPAC import OPAC
 from scipy.interpolate import griddata
 
 
-@click.command()
+@click.command(name="inputs")
 def CLI_inputs():
     inputs()
 

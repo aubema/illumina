@@ -13,7 +13,7 @@ def recursive_glob(rootdir=".", pattern="*"):
             yield os.path.join(root, filename)
 
 
-@click.command()
+@click.command(name="failed")
 @click.option(
     "-e",
     "--executable",

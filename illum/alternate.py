@@ -13,7 +13,7 @@ from illum.inventory import from_lamps, from_zones
 from scipy.interpolate import interp1d as interp
 
 
-@click.command()
+@click.command(name="alternate")
 @click.argument("name")
 @click.option(
     "-z",
