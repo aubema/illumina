@@ -200,7 +200,7 @@ class Ui_LIGHT(Ui_ILLUMINA):
             )
             + "Inventory of light sources:\n"
             + "\n".join(
-                f"{float(p)*pnorm:.4g}% {t} {u}"
+                f"{p*pnorm:.4g}% {t} {u}"
                 for p, t, u in zip(self.perc, self.tech, self.ulor)
             )
         )
@@ -328,9 +328,9 @@ class Ui_LIGHT(Ui_ILLUMINA):
         self.log_edit.setPlainText(log)
 
         # Write results file
-        pnorm = 100 / sum(map(float, self.perc))
+        pnorm = 100 / sum(self.perc)
         inv_text = "".join(
-            f"\n    {float(p)*pnorm:.4g}% {t} with {u}% ULOR"
+            f"\n    {p*pnorm:.4g}% {t} with {u}% ULOR"
             for p, t, u in zip(self.perc, self.tech, self.ulor)
         )
 
@@ -367,7 +367,11 @@ class Ui_LIGHT(Ui_ILLUMINA):
             self.perc = []
             self.tech = []
             self.ulor = []
-        self.perc.append(self.perc_edit.text())
+        try:
+            perc = float(self.perc_edit.text())
+        except ValueError:
+            perc = 0.0
+        self.perc.append(perc)
         self.tech.append(self.comboBox_tech.currentText())
         self.ulor.append(self.comboBox_ulor.currentText())
         self.switch1 = 1
