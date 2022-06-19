@@ -126,7 +126,7 @@ class Ui_LIGHT(Ui_ILLUMINA):
                 f"latitude: {lat}\n"
                 f"longitude: {long}\n"
                 "srs: auto\n"
-                "scale_factor: 1.666666\n"
+                "scale_factor: 2\n"
                 "nb_pixels: 17\n"
                 "nb_layers: 5\n"
                 "scale_min: 750\n"
