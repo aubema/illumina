@@ -330,8 +330,8 @@ class Ui_LIGHT(Ui_ILLUMINA):
         # Write results file
         pnorm = 100 / sum(map(float, self.perc))
         inv_text = "".join(
-            f"\n    {p}% {t} with {u}% ULOR"
-            for p, t, u in zip(self.perc * pnorm, self.tech, self.ulor)
+            f"\n    {p * pnorm}% {t} with {u}% ULOR"
+            for p, t, u in zip(self.perc, self.tech, self.ulor)
         )
 
         output = (
