@@ -116,6 +116,10 @@ class Ui_LIGHT(Ui_ILLUMINA):
             os.symlink(f"{self.datapath}/SRTM", "SRTM")
         with suppress(FileExistsError):
             os.symlink(f"{self.datapath}/hydropolys.zip", "hydropolys.zip")
+        with suppress(FileExistsError):
+            os.symlink(
+                f"{self.datapath}/spectral_bands.dat", "spectral_bands.dat"
+            )
 
         with open("domain_params.in", "w") as f:
             f.write(
