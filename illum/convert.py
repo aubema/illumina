@@ -6,18 +6,22 @@ import numpy as np
 from illum import MultiScaleData as MSD
 
 
-@click.command()
+@click.command(name="convert")
 @click.option("--vector/--raster", "-v/-r", default=True, help="Output type.")
 @click.option("-log", is_flag=True, help="Logarithmic scale (base 10)")
 @click.option("-area", is_flag=True, help="Normalized by pixel area (in km²)")
 @click.argument("filename", type=click.Path(exists=True))
 @click.argument("outname")
-def convert(filename, outname, vector, log, area):
+def CLI_convert(filename, outname, vector, log, area):
     """Convert an Illumina HDF file to a georeferenced format.
 
     Converts FILENAME to OUTNAME.EXT where ext is defined based on the output
     format. The output format is either vector (GeoJSON) or raster (Tiff).
     """
+    convert(filename, outname, vector, log, area)
+
+
+def convert(filename, outname, vector=True, log=False, area=False):
     hdf = MSD.Open(filename)
     hdf.set_buffer(-1)
     hdf.set_overlap(-1)

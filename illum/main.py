@@ -13,7 +13,7 @@ def illum():
 
     See 'illum COMMAND --help' to read about specific subcommand.
     The user's guide is available at:
-    https://lx02.cegepsherbrooke.qc.ca/~aubema/index.php/Prof/IlluminaGuide2021
+    http://dome.obsand.org:2080/wiki/pmwiki.php/Prof/IlluminaGuidev22
 
     Below is detailled the typical use case:
 

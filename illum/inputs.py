@@ -24,9 +24,13 @@ from illum.OPAC import OPAC
 from scipy.interpolate import griddata
 
 
-@click.command()
-def inputs():
+@click.command(name="inputs")
+def CLI_inputs():
     """Prepares the executions inputs."""
+    inputs()
+
+
+def inputs():
 
     print("Preparing the inputs for the experiment.")
 

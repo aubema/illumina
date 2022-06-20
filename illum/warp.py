@@ -164,10 +164,10 @@ def convert_correction_data(srcfiles):
         )
 
 
-@click.command()
+@click.command(name="warp")
 @click.argument("output_name", required=False)
 @click.argument("infiles", required=False, nargs=-1)
-def warp(output_name=None, infiles=[]):
+def CLI_warp(output_name=None, infiles=[]):
     """Warps the satellite imagery.
 
     Warps the satellite imagery based on the domain defined in
@@ -182,6 +182,10 @@ def warp(output_name=None, infiles=[]):
     Can also be used on specific files, in wich case an output name and a list
     of files to process must be given (the use of bash wildcards is encouraged)
     """
+    warp(output_name, infiles)
+
+
+def warp(output_name=None, infiles=[]):
     if output_name is not None and len(infiles) == 0:
         print(
             "ERROR: If an output name is given, "
