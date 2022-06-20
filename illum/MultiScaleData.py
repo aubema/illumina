@@ -267,9 +267,8 @@ def plot(ds, n_layer=None, log=False, area=False, **options):
         if "vmax" in options
         else max(_np.max(layer) for layer in ds)
     )
-
     normOptions = (
-        dict(norm=_colors.LogNorm(vmin=vmin, vmax=vmax))
+        dict(norm=_colors.LogNorm(vmin=vmin, vmax=vmax, clip=True))
         if log
         else dict(vmin=vmin, vmax=vmax)
     )
@@ -278,11 +277,7 @@ def plot(ds, n_layer=None, log=False, area=False, **options):
         layer = layer.copy()
         n = layer.shape[0]
         buff = ds._attrs["layers"][i]["buffer"]
-
         psize = ds.pixel_size(i) / 1000.0
-        if area:
-            layer /= psize ** 2
-
         N = psize * (n / 2 - buff)
 
         _plt.imshow(
