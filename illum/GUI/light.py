@@ -315,9 +315,9 @@ class Ui_LIGHT(Ui_ILLUMINA):
         contrib.save("contribution_map")
 
         plt.ion()
-        contrib.plot(cmap="inferno", area=True)
+        contrib.plot(cmap="inferno", area=True, log=True)
         plt.colorbar().set_label(
-            "Contribution to artificial sky brightness [W/sr/km$^2$]"
+            "Contribution to artificial sky brightness [W/sr/m$^2$/km$^2$]"
         )
         plt.savefig("contribution_map.png")
 
