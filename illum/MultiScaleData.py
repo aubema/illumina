@@ -251,46 +251,39 @@ def OpenCached(filename, cached={}):
 def plot(ds, n_layer=None, log=False, area=False, **options):
     _plt.gca().set_aspect(1)
 
+    ds = ds.copy()
+
+    if area:
+        for i in range(len(ds)):
+            ds[i] /= (ds.pixel_size(i) / 1000) ** 2
+
+    vmin = (
+        options.pop("vmin")
+        if "vmin" in options
+        else min(_np.min(layer[layer > 0] if log else layer) for layer in ds)
+    )
+    vmax = (
+        options.pop("vmax")
+        if "vmax" in options
+        else max(_np.max(layer) for layer in ds)
+    )
+    normOptions = (
+        dict(norm=_colors.LogNorm(vmin=vmin, vmax=vmax, clip=True))
+        if log
+        else dict(vmin=vmin, vmax=vmax)
+    )
+
     for i, layer in reversed(list(enumerate(ds[:n_layer]))):
         layer = layer.copy()
         n = layer.shape[0]
         buff = ds._attrs["layers"][i]["buffer"]
-
         psize = ds.pixel_size(i) / 1000.0
-        if area:
-            layer /= psize ** 2
-
         N = psize * (n / 2 - buff)
-
-        if area:
-            norm = _np.array(
-                [(ds.pixel_size(i) / 1000) ** 2 for i in range(len(ds))]
-            )
-        else:
-            norm = 1.0
-        if "vmin" not in options:
-            options["vmin"] = min(
-                _np.array(
-                    [
-                        _np.min(layer[layer != 0] if log else layer)
-                        for layer in ds
-                    ]
-                )
-                / norm
-            )
-        if "vmax" not in options:
-            options["vmax"] = max(
-                _np.array([_np.max(layer) for layer in ds]) / norm
-            )
-
-        if log:
-            options["norm"] = _colors.LogNorm(
-                vmin=options["vmin"], vmax=options["vmax"]
-            )
 
         _plt.imshow(
             layer[buff : n - buff, buff : n - buff],
             extent=(-N, N, -N, N),
+            **normOptions,
             **options,
         )
 

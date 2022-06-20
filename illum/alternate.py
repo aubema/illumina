@@ -14,7 +14,7 @@ from illum import pytools as pt
 from illum.inventory import from_lamps, from_zones
 
 
-@click.command()
+@click.command(name="alternate")
 @click.argument("name")
 @click.option(
     "-z",
@@ -28,12 +28,16 @@ from illum.inventory import from_lamps, from_zones
     type=click.Path(exists=True),
     help="New discrete lights inventory filename.",
 )
-def alternate(name, zones, lights):
+def CLI_alternate(name, zones, lights):
     """Generates an alternate scenario at constant lumen.
 
     This scenatio will be based on the content of the `Inputs` folder and
     will be placed in a folder named `Inputs_NAME`.
     """
+    alternate(name, zones, lights)
+
+
+def alternate(name, zones, lights):
     if zones is None and lights is None:
         print("ERROR: At least one of 'zones' and 'lights' must be provided.")
         raise SystemExit
@@ -201,14 +205,14 @@ def alternate(name, zones, lights):
             ds = MSD.Open(fname)
             wl = int(fname.split("_")[1])
             for i, dat in enumerate(ds):
-                oldlumlp[i] += dat * nspct[x.index(wl)] * dl
+                oldlumlp[i] += dat * nspct[x.index(wl)]
 
         newlumlp = MSD.from_domain("domain.ini")
         for fname in glob(os.path.join(dir_name, "*lumlp*")):
             ds = MSD.Open(fname)
             wl = int(fname.split("_")[2])
             for i, dat in enumerate(ds):
-                newlumlp[i] += dat * nspct[x.index(wl)] * dl
+                newlumlp[i] += dat * nspct[x.index(wl)]
 
         ratio = MSD.from_domain("domain.ini")
         for i in range(len(ratio)):
