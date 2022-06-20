@@ -7,10 +7,11 @@ from glob import glob
 import click
 import numpy as np
 import yaml
+from scipy.interpolate import interp1d as interp
+
 from illum import MultiScaleData as MSD
 from illum import pytools as pt
 from illum.inventory import from_lamps, from_zones
-from scipy.interpolate import interp1d as interp
 
 
 @click.command(name="alternate")
@@ -204,14 +205,14 @@ def alternate(name, zones, lights):
             ds = MSD.Open(fname)
             wl = int(fname.split("_")[1])
             for i, dat in enumerate(ds):
-                oldlumlp[i] += dat * nspct[x.index(wl)] * dl
+                oldlumlp[i] += dat * nspct[x.index(wl)]
 
         newlumlp = MSD.from_domain("domain.ini")
         for fname in glob(os.path.join(dir_name, "*lumlp*")):
             ds = MSD.Open(fname)
             wl = int(fname.split("_")[2])
             for i, dat in enumerate(ds):
-                newlumlp[i] += dat * nspct[x.index(wl)] * dl
+                newlumlp[i] += dat * nspct[x.index(wl)]
 
         ratio = MSD.from_domain("domain.ini")
         for i in range(len(ratio)):
