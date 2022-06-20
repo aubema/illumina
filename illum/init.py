@@ -8,9 +8,13 @@ import click
 import illum
 
 
-@click.command()
-def init():
+@click.command(name="init")
+def CLI_init():
     """Initialize an execution folder."""
+    init()
+
+
+def init():
     print("Initializing Illumina execution folder.")
     illumpath = os.path.dirname(illum.__path__[0])
 

@@ -13,15 +13,19 @@ def recursive_glob(rootdir=".", pattern="*"):
             yield os.path.join(root, filename)
 
 
-@click.command()
+@click.command(name="failed")
 @click.option(
     "-e",
     "--executable",
     is_flag=True,
     help="If given, returns the executable code to rerun failed executions.",
 )
-def failed(executable):
+def CLI_failed(executable):
     "Find failed ILLUMINA executions."
+    failed(executable)
+
+
+def failed(executable=False):
     if executable:
 
         def failed(dirname):

@@ -39,7 +39,7 @@ def MSDOpen(filename, cached={}):
     return ds
 
 
-@click.command()
+@click.command(name="batches")
 @click.argument("input_path", type=click.Path(exists=True), default=".")
 @click.argument("batch_name", required=False)
 @click.option(
@@ -57,7 +57,7 @@ def MSDOpen(filename, cached={}):
     show_default=True,
     help="Number of runs per produced batch file.",
 )
-def batches(input_path, compact, batch_size, batch_name=None):
+def CLI_batches(input_path, compact, batch_size, batch_name=None):
     """Makes the execution batches.
 
     INPUT_PATH is the path to the folder containing the inputs.
@@ -65,6 +65,10 @@ def batches(input_path, compact, batch_size, batch_name=None):
     BATCH_NAME is an optional name for the produced batch files.
     It overwrites the one defined in 'inputs_params.in' is given.
     """
+    batches(input_path, compact, batch_size, batch_name)
+
+
+def batches(input_path=".", compact=False, batch_size=300, batch_name=None):
     os.chdir(input_path)
 
     with open("inputs_params.in") as f:

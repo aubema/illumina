@@ -13,7 +13,7 @@ def illum():
 
     See 'illum COMMAND --help' to read about specific subcommand.
     The user's guide is available at:
-    https://lx02.cegepsherbrooke.qc.ca/~aubema/index.php/Prof/IlluminaGuide2021
+    http://dome.obsand.org:2080/wiki/pmwiki.php/Prof/IlluminaGuidev22
 
     Below is detailled the typical use case:
 
@@ -52,15 +52,15 @@ def illum():
 
 
 functions = (
-    (".domain", "domain"),
-    (".warp", "warp"),
-    (".inputs", "inputs"),
-    (".batches", "batches"),
-    (".failed", "failed"),
-    (".extract", "extract"),
-    (".init", "init"),
-    (".alternate", "alternate"),
-    (".convert", "convert"),
+    (".alternate", "CLI_alternate"),
+    (".batches", "CLI_batches"),
+    (".convert", "CLI_convert"),
+    (".domain", "CLI_domain"),
+    (".failed", "CLI_failed"),
+    (".extract", "CLI_extract"),
+    (".init", "CLI_init"),
+    (".inputs", "CLI_inputs"),
+    (".warp", "CLI_warp"),
 )
 
 for module_name, method in functions:
