@@ -52,16 +52,16 @@ def illum():
 
 
 functions = (
-    (".alternate", "alternate"),
-    (".batches", "batches"),
-    (".convert", "convert"),
-    (".domain", "domain"),
-    (".extract", "extract"),
-    (".failed", "failed"),
+    (".alternate", "CLI_alternate"),
+    (".batches", "CLI_batches"),
+    (".convert", "CLI_convert"),
+    (".domain", "CLI_domain"),
+    (".failed", "CLI_failed"),
+    (".extract", "CLI_extract"),
     (".GUI.light", "light"),
-    (".init", "init"),
-    (".inputs", "inputs"),
-    (".warp", "warp"),
+    (".init", "CLI_init"),
+    (".inputs", "CLI_inputs"),
+    (".warp", "CLI_warp"),
 )
 
 for module_name, method in functions:
