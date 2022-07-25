@@ -84,41 +84,8 @@ def batches(input_path=".", compact=False, batch_size=300, batch_name=None):
 
     ds = MSD.Open(glob("*.hdf5")[0])
 
-    # Pre process the obs extract
-    print("Preprocessing...")
-    shutil.rmtree("obs_data", True)
-    lats, lons = ds.get_obs_pos()
-    xs, ys = ds.get_obs_pos(proj=True)
-    for lat, lon in zip(lats, lons):
-        for i in range(len(ds)):
-            os.makedirs("obs_data/%6f_%6f/%d" % (lat, lon, i))
-
-    for i, fname in enumerate(progress(glob("*.hdf5")), 1):
-        dataset = MSD.Open(fname)
-        for clipped in dataset.split_observers():
-            lat, lon = clipped.get_obs_pos()
-            lat, lon = lat[0], lon[0]
-
-            if "lumlp" in fname:
-                clipped.set_buffer(0)
-                clipped.set_overlap(0)
-            for i, dat in enumerate(clipped):
-                padded_dat = np.pad(dat, (27 - dat.shape[0]) // 2, "constant")
-                save_bin(
-                    "obs_data/%6f_%6f/%i/%s"
-                    % (lat, lon, i, fname.rsplit(".", 1)[0] + ".bin"),
-                    padded_dat,
-                )
-            if "srtm" in fname:
-                for j in range(len(clipped)):
-                    clipped[j][:] = 0
-                clipped.save("obs_data/%6f_%6f/blank" % (lat, lon))
-
-    # Add wavelength and multiscale
+    # Add wavelength
     params["wavelength"] = np.loadtxt("wav.lst", ndmin=1).tolist()
-    params["layer"] = list(range(len(ds)))
-    params["observer_coordinates"] = list(zip(*ds.get_obs_pos()))
-
     bandwidth = (params["lambda_max"] - params["lambda_min"]) / params[
         "nb_bins"
     ]
@@ -266,7 +233,7 @@ def batches(input_path=".", compact=False, batch_size=300, batch_name=None):
                     fold_name + "%s_lumlp_%03d.bin" % (exp_name, i),
                 )
 
-        # Create illumina.in
+        # Create illum-health.in
         input_data = (
             (("", "Input file for ILLUMINA"),),
             ((exp_name, "Root file name"),),
@@ -274,70 +241,32 @@ def batches(input_path=".", compact=False, batch_size=300, batch_name=None):
                 (ds.pixel_size(layer), "Cell size along X [m]"),
                 (ds.pixel_size(layer), "Cell size along Y [m]"),
             ),
-            (("aerosol.txt", "Aerosol optical cross section file"),),
-            (
-                ("layer.txt", "Layer optical cross section file"),
-                (P["layer_aod"], "Layer aerosol optical depth at 500nm"),
-                (P["layer_alpha"], "Layer angstom coefficient"),
-                (P["layer_height"], "Layer scale height [m]"),
-            ),
-            ((P["double_scattering"] * 1, "Double scattering activated"),),
-            ((P["single_scattering"] * 1, "Single scattering activated"),),
-            ((wavelength, "Wavelength [nm]"), (bandwidth, "Bandwidth [nm]")),
-            ((reflectance, "Reflectance"),),
-            ((P["air_pressure"], "Ground level pressure [kPa]"),),
+            ((5, "Number of light sources types"),),
+            ((512), "Domain size"),  # TODO: Put real value in
             (
                 (P["aerosol_optical_depth"], "Aerosol optical depth at 500nm"),
                 (P["angstrom_coefficient"], "Angstrom exponent"),
                 (P["aerosol_height"], "Aerosol scale height [m]"),
             ),
-            ((len(lamps), "Number of source types"),),
-            ((P["stop_limit"], "Contribution threshold"),),
-            (("", ""),),
+            ((wavelength, "Wavelength [nm]"), (bandwidth, "Bandwidth [nm]")),
             (
-                (14, "Observer X position"),
-                (14, "Observer Y position"),
+                (reflectance, "Street reflectance"),  # TODO: Put real value in
+                (
+                    reflectance,
+                    "Building reflectance",
+                ),  # TODO: Put real value in
+                (reflectance, "Ground reflectance"),
+            ),  # TODO: Put real value in
+            ((P["air_pressure"], "Ground level pressure [kPa]"),),
+            (
                 (
                     P["observer_elevation"],
                     "Observer elevation above ground [m]",
                 ),
             ),
-            ((P["observer_obstacles"] * 1, "Obstacles around observer"),),
-            (
-                (P["elevation_angle"], "Elevation viewing angle"),
-                (
-                    (P["azimuth_angle"] + bearing) % 360,
-                    "Azimuthal viewing angle",
-                ),
-            ),
-            ((P["direct_fov"], "Direct field of view"),),
-            (("", ""),),
-            (("", ""),),
-            (("", ""),),
-            (
-                (
-                    P["reflection_radius"],
-                    "Radius around light sources where reflextions are computed",
-                ),
-            ),
-            (
-                (
-                    P["cloud_model"],
-                    "Cloud model: "
-                    "0=clear, "
-                    "1=Thin Cirrus/Cirrostratus, "
-                    "2=Thick Cirrus/Cirrostratus, "
-                    "3=Altostratus/Altocumulus, "
-                    "4=Cumulus/Cumulonimbus, "
-                    "5=Stratocumulus",
-                ),
-                (P["cloud_base"], "Cloud base altitude [m]"),
-                (P["cloud_fraction"], "Cloud fraction"),
-            ),
-            (("", ""),),
         )
 
-        with open(fold_name + unique_ID + ".in", "w") as f:
+        with open(fold_name + "illum-health.in", "w") as f:
             lines = (input_line(*zip(*line_data)) for line_data in input_data)
             f.write("\n".join(lines))
 
@@ -350,7 +279,7 @@ def batches(input_path=".", compact=False, batch_size=300, batch_name=None):
                     "#SBATCH --time=%d:00:00\n"
                     % params["estimated_computing_time"]
                 )
-                f.write("#SBATCH --mem=2G\n")
+                # f.write("#SBATCH --mem=2G\n") # TODO: Evaluate ram requirements dynamically
                 f.write("cd %s\n" % os.path.abspath(fold_name))
                 f.write("umask 0011\n")
             os.chmod(fold_name + "execute", 0o777)
@@ -367,8 +296,8 @@ def batches(input_path=".", compact=False, batch_size=300, batch_name=None):
 
         # Add current parameters execution to execution script
         with open(fold_name + "execute", "a") as f:
-            f.write("cp %s.in illumina.in\n" % unique_ID)
-            f.write("./illumina\n")
+            f.write("cp %s.in illum-health.in\n" % unique_ID)
+            f.write("./illum-health\n")
             f.write("mv %s.out %s_%s.out\n" % (exp_name, exp_name, unique_ID))
             f.write(
                 "mv %s_pcl.bin %s_pcl_%s.bin\n"
