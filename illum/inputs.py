@@ -135,6 +135,7 @@ def inputs():
         bins = np.stack([limits[:-1], limits[1:]], axis=1)
     bool_array = (wav >= bins[:, 0:1]) & (wav < bins[:, 1:2])
     x = bins.mean(1)
+    bw = bins[:, 1] - bins[:, 0]
 
     print("Interpolating reflectance.")
 
@@ -179,7 +180,7 @@ def inputs():
     shutil.copy("srtm.hdf5", dir_name)
 
     with open(dir_name + "/wav.lst", "w") as zfile:
-        zfile.write("".join("%g\n" % w for w in x))
+        zfile.write("".join("%g %g\n" % (w, b) for w, b in zip(x, bw)))
 
     
 

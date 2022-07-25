@@ -1,6 +1,14 @@
-#!/usr/bin/env bash
+#!/usr/bin/env python
 
-firstLine=`head -1 illum/__init__.py`
-version=${firstLine:15:-1}
+import sys
 
-echo $version: $(cat $1) > $1
+with open("illum/__init__.py") as f:
+    content = f.read()
+line = content.split("\n")[0]
+version = line.split("=")[1].strip().strip("\"'")
+
+with open(sys.argv[1]) as f:
+    content = f.read()
+
+with open(sys.argv[1], "w") as f:
+    f.write(version + ": " + content)
