@@ -115,13 +115,10 @@ def batches(input_path=".", compact=False, batch_size=300, batch_name=None):
                 clipped.save("obs_data/%6f_%6f/blank" % (lat, lon))
 
     # Add wavelength and multiscale
-    params["wavelength"] = np.loadtxt("wav.lst", ndmin=1).tolist()
+    spectral_bands = np.loadtxt("wav.lst", ndmin=2)
+    params["wavelength"] = spectral_bands[:, 0].tolist()
     params["layer"] = list(range(len(ds)))
     params["observer_coordinates"] = list(zip(*ds.get_obs_pos()))
-
-    bandwidth = (params["lambda_max"] - params["lambda_min"]) / params[
-        "nb_bins"
-    ]
 
     wls = params["wavelength"]
     refls = np.loadtxt("refl.lst", ndmin=1).tolist()
@@ -196,6 +193,7 @@ def batches(input_path=".", compact=False, batch_size=300, batch_name=None):
         wavelength = "%g" % P["wavelength"]
         layer = P["layer"]
         reflectance = refls[wls.index(P["wavelength"])]
+        bandwidth = spectral_bands[wls.index(P["wavelength"]), 1]
 
         if not os.path.isdir(fold_name):
             os.makedirs(fold_name)

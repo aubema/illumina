@@ -7,11 +7,10 @@ from glob import glob
 import click
 import numpy as np
 import yaml
-from scipy.interpolate import interp1d as interp
-
 from illum import MultiScaleData as MSD
 from illum import pytools as pt
 from illum.inventory import from_lamps, from_zones
+from scipy.interpolate import interp1d as interp
 
 
 @click.command(name="alternate")
@@ -133,6 +132,7 @@ def alternate(name, zones, lights):
 
     bool_array = (wav >= bins[:, 0:1]) & (wav < bins[:, 1:2])
     x = bins.mean(1).tolist()
+    bw = bins[:, 1] - bins[:, 0]
 
     out_name = params["exp_name"]
 
@@ -175,7 +175,7 @@ def alternate(name, zones, lights):
     shutil.copy("srtm.hdf5", dirname)
 
     with open(dirname + "/wav.lst", "w") as zfile:
-        zfile.write("\n".join(map(str, x)) + "\n")
+        zfile.write("".join("%g %g\n" % (w, b) for w, b in zip(x, bw)))
 
     if params["zones_inventory"] is not None:
         dir_name = ".Inputs_zones/"
