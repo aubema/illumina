@@ -163,6 +163,7 @@ def batches(input_path=".", compact=False, batch_size=300, batch_name=None):
         wavelength = "%g" % P["wavelength"]
         layer = P["layer"]
         reflectance = refls[wls.index(P["wavelength"])]
+        bandwidth = spectral_bands[wls.index(P["wavelength"]), 1]
 
         if not os.path.isdir(fold_name):
             os.makedirs(fold_name)
