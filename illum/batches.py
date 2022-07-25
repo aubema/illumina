@@ -31,14 +31,6 @@ def input_line(val, comment, n_space=30):
     return "%-*s ! %s" % (n_space, value_str, comment_str)
 
 
-def MSDOpen(filename, cached={}):
-    if filename in cached:
-        return cached[filename]
-    ds = MSD.Open(filename)
-    cached[filename] = ds
-    return ds
-
-
 @click.command(name="batches")
 @click.argument("input_path", type=click.Path(exists=True), default=".")
 @click.argument("batch_name", required=False)
@@ -91,17 +83,10 @@ def batches(input_path=".", compact=False, batch_size=300, batch_name=None):
     ]
 
     wls = params["wavelength"]
-    refls = np.loadtxt("refl.lst", ndmin=1).tolist()
-
-    for pname in ["layer", "observer_coordinates"]:
-        if len(params[pname]) == 1:
-            params[pname] = params[pname][0]
+    refls = np.loadtxt("refl.lst", ndmin=2).tolist()
 
     with open("lamps.lst") as f:
         lamps = f.read().split()
-
-    if os.path.isfile("brng.lst"):
-        brng = np.loadtxt("brng.lst", ndmin=1)
 
     # Clear and create execution folder
     dir_name = "exec" + os.sep
@@ -117,47 +102,13 @@ def batches(input_path=".", compact=False, batch_size=300, batch_name=None):
     for param_vals in progress(product(*param_space), max_value=N):
         local_params = OrderedDict(zip(multival, param_vals))
         P = ChainMap(local_params, params)
-        if (
-            "azimuth_angle" in multival
-            and P["elevation_angle"] == 90
-            and params["azimuth_angle"].index(P["azimuth_angle"]) != 0
-        ):
-            continue
 
-        if os.path.isfile("brng.lst"):
-            obs_index = (
-                0
-                if "observer_coordinates" not in multival
-                else params["observer_coordinates"].index(
-                    P["observer_coordinates"]
-                )
-            )
-            bearing = brng[obs_index]
-        else:
-            bearing = 0
-
-        coords = "%6f_%6f" % P["observer_coordinates"]
-        if "observer_coordinates" in multival:
-            P["observer_coordinates"] = coords
-
-        if compact:
-            fold_name = (
-                dir_name
-                + os.sep.join(
-                    "%s_%s" % (k, v)
-                    for k, v in local_params.items()
-                    if k in ["observer_coordinates", "wavelength", "layer"]
-                )
-                + os.sep
-            )
-        else:
-            fold_name = (
-                dir_name
-                + os.sep.join(
-                    "%s_%s" % (k, v) for k, v in local_params.items()
-                )
-                + os.sep
-            )
+        filter = ["wavelength"] if compact else local_params.keys()
+        fold_name = os.path.join(
+            dir_name,
+            ("%s_%s" % (k, v) for k, v in local_params.items() if k in filter),
+            "",
+        )
 
         unique_ID = "-".join("%s_%s" % item for item in local_params.items())
         wavelength = "%g" % P["wavelength"]
@@ -197,25 +148,15 @@ def batches(input_path=".", compact=False, batch_size=300, batch_name=None):
                 fold_name + "illumina",
             )
 
-            # Copying layer data
-            obs_fold = os.path.join("obs_data", coords, str(layer))
-
             os.symlink(
-                os.path.relpath(os.path.join(obs_fold, "srtm.bin"), fold_name),
+                os.path.relpath("srtm.bin", fold_name),
                 fold_name + exp_name + "_topogra.bin",
             )
 
-            os.symlink(
-                os.path.relpath(
-                    os.path.join(obs_fold, "origin.bin"), fold_name
-                ),
-                fold_name + "origin.bin",
-            )
-
-            for name in ["obstd", "obsth", "obstf", "altlp"]:
+            for name in ["obsth", "altlp"]:
                 os.symlink(
                     os.path.relpath(
-                        os.path.join(obs_fold, "%s_%s.bin" % (exp_name, name)),
+                        "%s_%s.bin" % (exp_name, name),
                         fold_name,
                     ),
                     fold_name + "%s_%s.bin" % (exp_name, name),
@@ -224,11 +165,7 @@ def batches(input_path=".", compact=False, batch_size=300, batch_name=None):
             for i, lamp in enumerate(lamps, 1):
                 os.symlink(
                     os.path.relpath(
-                        os.path.join(
-                            obs_fold,
-                            "%s_%s_lumlp_%s.bin"
-                            % (exp_name, wavelength, lamp),
-                        ),
+                        "%s_%s_lumlp_%s.bin" % (exp_name, wavelength, lamp),
                         fold_name,
                     ),
                     fold_name + "%s_lumlp_%03d.bin" % (exp_name, i),
@@ -251,13 +188,10 @@ def batches(input_path=".", compact=False, batch_size=300, batch_name=None):
             ),
             ((wavelength, "Wavelength [nm]"), (bandwidth, "Bandwidth [nm]")),
             (
-                (reflectance, "Street reflectance"),  # TODO: Put real value in
-                (
-                    reflectance,
-                    "Building reflectance",
-                ),  # TODO: Put real value in
-                (reflectance, "Ground reflectance"),
-            ),  # TODO: Put real value in
+                (reflectance[0], "Street"),
+                (reflectance[1], "Building"),
+                (reflectance[2], "Ground reflectance"),
+            ),
             ((P["air_pressure"], "Ground level pressure [kPa]"),),
             (
                 (
@@ -267,7 +201,7 @@ def batches(input_path=".", compact=False, batch_size=300, batch_name=None):
             ),
         )
 
-        with open(fold_name + "illum-health.in", "w") as f:
+        with open(fold_name + "in_" + unique_ID, "w") as f:
             lines = (input_line(*zip(*line_data)) for line_data in input_data)
             f.write("\n".join(lines))
 
@@ -297,7 +231,7 @@ def batches(input_path=".", compact=False, batch_size=300, batch_name=None):
 
         # Add current parameters execution to execution script
         with open(fold_name + "execute", "a") as f:
-            f.write("cp %s.in illum-health.in\n" % unique_ID)
+            f.write("cp in_%s illum-health.in\n" % unique_ID)
             f.write("./illum-health\n")
             f.write("mv %s.out %s_%s.out\n" % (exp_name, exp_name, unique_ID))
             f.write(
