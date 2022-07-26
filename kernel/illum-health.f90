@@ -61,17 +61,17 @@ program illumhealth                           ! Beginning
   INTEGER lenbase                                   ! Length of the Base name of the experiment
   real lambda,pressi                                ! Wavelength (nanometer), atmospheri! pressure (kPa)
   real pvalto                                       !
-  
+
   real, dimension(:,:,:), allocatable :: pval       ! pval(181,181,ntype)
   real, dimension(:,:,:), allocatable :: pvalno     ! pvalno(181,181,ntype) values of the angular photometry functions 1sr(x)_axis=zenith, 2nd(y)_axis=azimuth
   real, dimension(:,:), allocatable :: lamplu       ! lamplu(width,width)  Source fluxes
   real, dimension(:,:), allocatable ::  val2d       ! val2d(width,width)  Temporary input array 2d
   real, dimension(:,:), allocatable ::  altsol      ! altsol(width,width)  Ground elevation (meter)
   real, dimension(:,:), allocatable ::  altsob      ! altsob(width,width)  Elevation including buildings
-  real, dimension(:,:), allocatable ::  reflec      ! reflec(width,width)  reflectance  
+  real, dimension(:,:), allocatable ::  reflec      ! reflec(width,width)  reflectance
   real, dimension(:,:), allocatable ::  lampal      ! lampal(width,width) Height of the light sources relative to the ground (meter)
   real, dimension(:,:), allocatable ::  inclix      ! inclix(width,width)  tilt of the ground pixel along x (radian)
-  real, dimension(:,:), allocatable ::  incliy      ! incliy(width,width)  tilt of the ground pixel along y (radian)  
+  real, dimension(:,:), allocatable ::  incliy      ! incliy(width,width)  tilt of the ground pixel along y (radian)
   real, dimension(:,:), allocatable ::  obsH        ! obsH(width,width)  averaged height of the buildings
   real, dimension(:,:), allocatable ::  ofill       ! ofill(width,width)  fill factor giving the probability to hit an obstacle when pointing in its direction real 0-1
   real, dimension(:,:), allocatable ::  irradi      ! irradi(width,width)  direct irradiance on a surface normal to the line of sight (no scattering)
@@ -88,9 +88,9 @@ program illumhealth                           ! Beginning
 
   real srefl,brefl,orefl                      ! Street reflectance , Building facades reflectance , Other reflectance
   INTEGER stype                               ! Source type or zone index
-  character*72 pafile,lufile,alfile,ohfile,odfile,offile,azfile,lifile,gifile 
+  character*72 pafile,lufile,alfile,ohfile,odfile,offile,azfile,lifile,gifile
   ! Files related to light sources and obstacles (photometri
-  ! function of the sources (sr-1), flux (W), height (m), obstacles           
+  ! function of the sources (sr-1), flux (W), height (m), obstacles
   ! height (m), obstacle distance (m), obstacle filling factor (0-1).
 
   real dtheta               ! Angle increment of the photometri! function of the sources
@@ -171,10 +171,10 @@ program illumhealth                           ! Beginning
   read(1,*) pressi
   read(1,*) z_o
   close(1)
-  ! allocate arrays 
+  ! allocate arrays
   allocate ( pval(181,181,ntype) )
   allocate ( pvalno(181,181,ntype) )
-  allocate ( lamplu(width,width) )  
+  allocate ( lamplu(width,width) )
   allocate ( val2d(width,width) )
   allocate ( altsol(width,width) )
   allocate ( altsob(width,width) )
@@ -235,13 +235,13 @@ program illumhealth                           ! Beginning
   !     determine the Length of basenm
   lenbase=index(basenm,' ')-1
   outfile=basenm(1:lenbase)//'.bin'
-  mnaf=basenm(1:lenbase)//'_topogra.bin' ! determine the names of input and output files
-  ohfile=basenm(1:lenbase)//'_obsth.bin'
-  alfile=basenm(1:lenbase)//'_altlp.bin' ! setting the file name of height of the sources lumineuse.
-  azfile=basenm(1:lenbase)//'_azimu.bin'
-  lifile=basenm(1:lenbase)//'lmpty.bin' 
-  gifile=basenm(1:lenbase)//'gndty.bin'
-  lufile=basenm(1:lenbase)//'_lumlp_.bin' ! setting the file name of the luminosite of the cases.
+  mnaf='topogra.bin' ! determine the names of input and output files
+  ohfile='obsth.bin'
+  alfile='altlp.bin' ! setting the file name of height of the sources lumineuse.
+  azfile='azimu.bin'
+  lifile='lmpty.bin'
+  gifile='gndty.bin'
+  lufile='lumlp.bin' ! setting the file name of the luminosite of the cases.
   dtheta=.017453293
   !     reading of the elevation file
   call twodin(nbx,nby,mnaf,altsol,width)
@@ -272,7 +272,7 @@ program illumhealth                           ! Beginning
      do j=1,nby             ! beginning of the loop over all cells along y.
         lmpty(i,j)=nint(val2d(i,j)) ! ground type flag flag array 0 or 1
      enddo                  ! end of the loop over all cells along y.
-  enddo  
+  enddo
   !     reading azimuth
   call twodin(nbx,nby,azfile,val2d,width)
   do i=1,nbx                ! beginning of the loop over all cells along x.
@@ -307,9 +307,9 @@ program illumhealth                           ! Beginning
      do j=1,nby          ! of non-null luminosity to speedup the calculation
         if (val2d(i,j).ne.0.) then
            if (i.lt.imin) imin=i
-           if (i.gt.imax) imax=i  
+           if (i.gt.imax) imax=i
            if (j.lt.jmin) jmin=j
-           if (j.gt.jmax) jmax=i           
+           if (j.gt.jmax) jmax=i
         endif
      enddo
   enddo
@@ -322,12 +322,12 @@ program illumhealth                           ! Beginning
         lamplu(i,j)=val2d(i,j) ! filling lamp power array
         totlu=totlu+lamplu(i,j) ! the total lamp flux should be non-null to proceed to the calculations
      enddo               ! end of the loop over all cells along y.
-  enddo                  ! end of the loop over all cells along x.  
+  enddo                  ! end of the loop over all cells along x.
   ! loading photometry files
   do stype=1,ntype          ! beginning of the loop over ntype types of sources.
      pvalto=0.
      write(lampno, '(I1.1)' ) stype ! support of ntype different sources (1 digit)
-     pafile=basenm(1:lenbase)//'_fctem_'//lampno//'.dat' ! setting the file name of angular photometry.
+     pafile='fctem_'//lampno//'.dat' ! setting the file name of angular photometry.
 
      !     reading photometry files
      open(UNIT=1, FILE=pafile,status='OLD') ! opening file pa#.dat, angular photometry.
@@ -367,7 +367,7 @@ program illumhealth                           ! Beginning
   enddo
   !     computation of the basi! tilt of the pixels along x and along y
   !
-  !     0=street 
+  !     0=street
   !     1=building front and observer               222
   !     2=building top                              222
   !     3=building rear                            12223
@@ -375,7 +375,7 @@ program illumhealth                           ! Beginning
   !     fake building profile                  000012223444444444
   do i=1,nbx                ! beginning of the loop over the column (longitude) of the domain.
      do j=1,nby             ! beginning of the loop over the rows (latitu) of the domain.
-        if (gndty(i,j).eq.0) then  ! on street keep the inclinaison without the buildings    
+        if (gndty(i,j).eq.0) then  ! on street keep the inclinaison without the buildings
            if (i.eq.1) then ! specific case close to the border of the domain (vertical side left).
               inclix(i,j)=atan((altsol(i+1,j)-altsol(i,j))/real(dx)) ! computation of the tilt along x of the surface.
            elseif (i.eq.nbx) then ! specifi! case close to the border of the domain (vertical side right).
@@ -453,7 +453,7 @@ program illumhealth                           ! Beginning
                        if ((dho.gt.0.).and.(z_s.ne.z_obs)) then  ! if same horizontal position we cannot have same z elevation
                           ! azimuth source to road
                           angazsr=azims(x_s,y_s)
-                          call angleazimutal(rx_s,ry_obs,rx_s,ry_s,angazos)                             
+                          call angleazimutal(rx_s,ry_obs,rx_s,ry_s,angazos)
                           ! azimuth and zenith from obsever to source
                           call anglezenithal(rx_obs,ry_obs,z_obs,rx_s,ry_s,z_s,angzeos)
                           call angleazimutal(rx_obs,ry_obs,rx_s,ry_s,angazos)
@@ -659,7 +659,7 @@ program illumhealth                           ! Beginning
         if (verbose.ge.1) print*,'Direct irradiance from sources (W/m**2/nm) at (',oi,',',oj,'):',irradi(oi,oj)
      enddo !     end of loop over every observer
   enddo
-  deallocate ( pvalno )  
+  deallocate ( pvalno )
   deallocate ( lamplu )
   deallocate ( altsol )
   deallocate ( reflec )

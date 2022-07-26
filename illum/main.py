@@ -40,27 +40,20 @@ def illum():
     6b. extract -- Extract the results from the executions.
 
     At this point, the analysis of the data is left to the user.
-    We recommend Python and provide some functions to assist in that regard
-    in the `MultiScaleData` module.
-
-
-    One may want to convert the custom HDF5 format used by Illumina to a more
-    standard format for use with GIS programs.
-    This can be acheived with `convert`.
+    We recommend Python and provide some functions to assist in that regard.
     """
     pass  # Entry point
 
 
 functions = (
-    (".alternate", "CLI_alternate"),
+    # (".alternate", "CLI_alternate"),
     (".batches", "CLI_batches"),
-    (".convert", "CLI_convert"),
-    (".domain", "CLI_domain"),
-    (".failed", "CLI_failed"),
-    (".extract", "CLI_extract"),
+    # (".domain", "CLI_domain"),
+    # (".failed", "CLI_failed"),
+    # (".extract", "CLI_extract"),
     (".init", "CLI_init"),
-    (".inputs", "CLI_inputs"),
-    (".warp", "CLI_warp"),
+    # (".inputs", "CLI_inputs"),
+    # (".warp", "CLI_warp"),
 )
 
 for module_name, method in functions:

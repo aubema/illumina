@@ -7,11 +7,15 @@
 #
 # March 2016
 
+import errno as _errno
+import os as _os
+
 import astropy.io.fits as _fits
 import matplotlib.colors as _colors
 import matplotlib.pyplot as _plt
 import numpy as _np
 import scipy.interpolate as _I
+from osgeo import gdal as _gdal
 
 
 def safe_divide(a, b):
@@ -46,112 +50,6 @@ def spct_norm(wav, x):
     step."""
     dlambda = wav[1] - wav[0]
     return safe_divide(x, _np.sum(x) * dlambda)
-
-
-def zon_norm(angles, wavelenght, zone):
-    """Returns the normalisation factor of an ILLUMINA zone."""
-    a = _np.deg2rad(angles)
-    mids = _np.concatenate([[a[0]], _np.mean([a[1:], a[:-1]], 0), [a[-1]]])
-    sinx = 2 * _np.pi * (_np.cos(mids[:-1]) - _np.cos(mids[1:]))
-    dlambda = wavelenght[1] - wavelenght[0]
-    return _np.sum(zone.T * sinx) * dlambda
-
-
-def parse_inventory(filename, n=0):
-    """Parse an inventory type file.
-    Skips the first 'n' columns."""
-
-    def lamp_norm(lampsData):
-        trans = list(map(list, list(zip(*lampsData))))
-        norm = sum(trans[0])
-        if norm != 0.0:
-            trans[0] = [n / norm for n in trans[0]]
-        return list(map(list, list(zip(*trans))))
-
-    with open(filename) as inv_file:
-        zonData = strip_comments(inv_file.readlines())
-    zonData = [s.split()[n:] for s in zonData]
-    zonData = [[s.split("_") for s in i] for i in zonData]
-    zonData = [[[float(s[0]), s[1], s[2]] for s in i] for i in zonData]
-    zonData = list(map(lamp_norm, zonData))
-
-    return zonData
-
-
-def make_zones(theta, lop, wl, spct, ivtr, sources):
-    """Returns an array of normalized zones.
-
-    theta : angles used to define the Light Output Pattern (deg)
-    lop : Light Output Pattern dictionnary
-    wl : wavelength used to define the spectrum
-    spct : Lamp spectrum dictionnary
-    ivtr : Parsed inventory
-    lops : List of LOPs in the inventory"""
-
-    zones = _np.ones((len(ivtr), len(sources), len(theta), len(wl)))
-    for i, zone in enumerate(ivtr):
-        for j, s in enumerate(sources):
-            zones[i, j] *= sum(
-                c * spct[t] * lop[l][:, None] for c, t, l in zone if l == s
-            )
-
-    for i, zone in enumerate(zones):
-        zon = zone.sum(0)
-        norm = zon_norm(theta, wl, zon)
-        zones[i] = safe_divide(zone, norm)
-
-    return zones
-
-
-def load_pgm(filename):
-    """Opens a PGM file.
-
-    Returns the header dictionnary, the image parameters and the data as a
-    3-ple. The image parameters are a list of the height, the width and the
-    resolution."""
-    with open(filename) as file:
-        data = file.read().split("\n")[:-1]
-
-    head = (s for s in data if s[0] == "#")
-    head = {s.split()[1]: s.split()[2] for s in head}
-
-    gain = float(head.setdefault("gain", 0))
-    offset = float(head.setdefault("offset", 0))
-
-    header = data[: len(head) + 2]
-    data = _np.loadtxt(filename, skiprows=len(head) + 2, ndmin=2)
-    data = data * gain + offset
-
-    p = list(map(int, header[-1].split()))
-
-    return head, p, data.reshape(p[1::-1])
-
-
-def save_pgm(filename, head, p, data, offset=0.0):
-    """Saves a PGM file.
-
-    head : A dictionnary of headers
-    p : The image parameters as returned by 'load_pgm'
-    data : Data to be saved
-    offset : Either a value or 'min', the minimum of the data."""
-
-    offset = _np.min(data) if offset == "min" else offset
-    new_gain = (_np.max(data) - offset) / float(p[2])
-    if new_gain != 0:
-        data = (data - offset) / new_gain
-        data = _np.round(data).astype(int)
-        data[data < 0] = 0
-
-    head["gain"] = str(new_gain)
-    head["offset"] = str(offset)
-
-    headstring = (
-        "P2\n"
-        + "\n".join(["# %s %s" % s for s in iter(list(head.items()))])
-        + "\n"
-        + " ".join(map(str, p))
-    )
-    _np.savetxt(filename, data, fmt="%d", header=headstring, comments="")
 
 
 def load_fits(filename):
@@ -219,6 +117,36 @@ def save_bin(filename, data):
         head.tofile(f)
     with open(filename, "a") as f:
         body.tofile(f)
+
+
+def load_geotiff(filename):
+    """Open a georeferenced tiff image as a numpy array.
+
+    Returns the data array and the projection and the geotransform."""
+    # Load file, and access the band and get a NumPy array
+    if not _os.path.isfile(filename):
+        raise FileNotFoundError(
+            _errno.ENOENT, _os.strerror(_errno.ENOENT), filename
+        )
+    src = _gdal.Open(filename, _gdal.GA_Update)
+    arr = src.GetRasterBand(1).ReadAsArray()
+    return arr, src.GetProjection(), src.GetGeoTransform()
+
+
+def save_geotiff(filename, arr, projection, geotransform):
+    """Saves a numpy data array as a georeferenced tiff image.
+
+    Needs the projection and the geotransform."""
+    nband = 1
+    nrow, ncol = arr.shape
+    driver = _gdal.GetDriverByName("GTiff")
+    dst_dataset = driver.Create(
+        filename + ".tiff", ncol, nrow, nband, _gdal.GDT_Float32
+    )
+    dst_dataset.SetGeoTransform(geotransform)
+    dst_dataset.SetProjection(projection)
+    dst_dataset.GetRasterBand(1).WriteArray(data.astype(_np.float32))
+    dst_dataset.FlushCache()
 
 
 def strip_comments(item, token="#"):

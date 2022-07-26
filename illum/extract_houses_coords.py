@@ -28,6 +28,14 @@ def geotransform(X, Y, GT):
     return X_geo, Y_geo
 
 
+def latlon2epsg(lat, lon):
+    return (
+        "32" + ("6" if lat >= 0 else "7") + "61"
+        if np.abs(lat) > 75
+        else "%02d" % (lon / 6 + 31)
+    )  # WGS84/UTM
+
+
 src, im = open_tiff(f"{p['wd']}/Vrad.tiff")
 GT = src.GetGeoTransform()
 
@@ -47,18 +55,14 @@ df["lons"], df["lats"] = geotransform(X, Y, GT)
 df["X"] = X
 df["Y"] = Y
 
-outProj = (
-    "epsg:32"
-    + ("6" if np.mean(df["lats"]) >= 0 else "7")
-    + "%02d" % (np.mean(df["lons"]) / 6 + 31)
-)  # WGS84/UTM
+outProj = "epsg:" + latlon2epsg(mean(df["lats"]), np.mean(df["lons"]))
 
 print("Build convex hull")
 corner_mask = (
-    (df["lons"] < (0.975 * np.min(df["lons"]) + 0.025 * np.max(df["lons"])))
-    | (df["lons"] > (0.025 * np.min(df["lons"]) + 0.975 * np.max(df["lons"])))
-    | (df["lats"] < (0.975 * np.min(df["lats"]) + 0.025 * np.max(df["lats"])))
-    | (df["lats"] > (0.025 * np.min(df["lats"]) + 0.975 * np.max(df["lats"])))
+    (df["lons"] < (0.99 * np.min(df["lons"]) + 0.01 * np.max(df["lons"])))
+    | (df["lons"] > (0.01 * np.min(df["lons"]) + 0.99 * np.max(df["lons"])))
+    | (df["lats"] < (0.99 * np.min(df["lats"]) + 0.01 * np.max(df["lats"])))
+    | (df["lats"] > (0.01 * np.min(df["lats"]) + 0.99 * np.max(df["lats"])))
 )
 corner_pts = df[corner_mask][["lons", "lats"]].to_numpy()
 convex_hull = geometry.MultiPoint(corner_pts).convex_hull

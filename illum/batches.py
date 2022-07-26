@@ -18,8 +18,6 @@ import click
 import illum
 import numpy as np
 import yaml
-from illum import MultiScaleData as MSD
-from illum.pytools import save_bin
 from progressbar import progressbar
 
 progress = partial(progressbar, redirect_stdout=True)
@@ -74,13 +72,11 @@ def batches(input_path=".", compact=False, batch_size=300, batch_name=None):
 
     exp_name = params["exp_name"]
 
-    ds = MSD.Open(glob("*.hdf5")[0])
+    ds = illum.pytools.load_geotiff(glob("*.tif"))
 
     # Add wavelength
-    params["wavelength"] = np.loadtxt("wav.lst", ndmin=1).tolist()
-    bandwidth = (params["lambda_max"] - params["lambda_min"]) / params[
-        "nb_bins"
-    ]
+    spectral_bands = np.loadtxt("wav.lst", ndmin=2)
+    params["wavelength"] = spectral_bands[:, 0].tolist()
 
     wls = params["wavelength"]
     refls = np.loadtxt("refl.lst", ndmin=2).tolist()
@@ -89,7 +85,7 @@ def batches(input_path=".", compact=False, batch_size=300, batch_name=None):
         lamps = f.read().split()
 
     # Clear and create execution folder
-    dir_name = "exec" + os.sep
+    dir_name = "exec"
     shutil.rmtree(dir_name, True)
     os.makedirs(dir_name)
 
@@ -118,64 +114,41 @@ def batches(input_path=".", compact=False, batch_size=300, batch_name=None):
 
         if not os.path.isdir(fold_name):
             os.makedirs(fold_name)
-            # Linking files
-            mie_file = "%s_%s.txt" % (params["aerosol_profile"], wavelength)
-            os.symlink(
-                os.path.relpath(mie_file, fold_name), fold_name + "aerosol.txt"
-            )
-            layer_file = "%s_%s.txt" % (params["layer_type"], wavelength)
-            os.symlink(
-                os.path.relpath(layer_file, fold_name), fold_name + "layer.txt"
+
+            binfiles = (
+                "topogra",
+                "obsth",
+                "altlp",
+                "azimu",
+                "lmpty",
+                "gndty",
+                "lumlp",
             )
 
-            os.symlink(
-                os.path.relpath("MolecularAbs.txt", fold_name),
-                fold_name + "MolecularAbs.txt",
-            )
-
-            for i, lamp in enumerate(lamps, 1):
+            for name in binfiles:
+                name += ".bin"
                 os.symlink(
-                    os.path.relpath(
-                        "fctem_wl_%s_lamp_%s.dat" % (wavelength, lamp),
-                        fold_name,
-                    ),
-                    fold_name + exp_name + "_fctem_%03d.dat" % i,
+                    os.path.relpath(name, fold_name),
+                    os.path.join(fold_name, name),
                 )
 
-            illumpath = os.path.dirname(illum.__path__[0])
-            os.symlink(
-                os.path.abspath(illumpath + "/bin/illumina"),
-                fold_name + "illumina",
-            )
-
-            os.symlink(
-                os.path.relpath("srtm.bin", fold_name),
-                fold_name + exp_name + "_topogra.bin",
-            )
-
-            for name in ["obsth", "altlp"]:
+            for fname in glob("fctem_*.dat"):
                 os.symlink(
-                    os.path.relpath(
-                        "%s_%s.bin" % (exp_name, name),
-                        fold_name,
-                    ),
-                    fold_name + "%s_%s.bin" % (exp_name, name),
+                    os.path.relpath(fname, fold_name),
+                    os.path.join(fold_name, "_".join(fname.split("_")[::2])),
                 )
 
-            for i, lamp in enumerate(lamps, 1):
-                os.symlink(
-                    os.path.relpath(
-                        "%s_%s_lumlp_%s.bin" % (exp_name, wavelength, lamp),
-                        fold_name,
-                    ),
-                    fold_name + "%s_lumlp_%03d.bin" % (exp_name, i),
-                )
+            os.symlink(
+                os.path.abspath(os.path.join(illum.path, "bin", "illumina")),
+                os.path.join(fold_name, "illum-health"),
+            )
 
         # Create illum-health.in
         input_data = (
             (("", "Input file for ILLUMINA"),),
             ((exp_name, "Root file name"),),
             (
+                # TODO: Put real sizes in
                 (ds.pixel_size(layer), "Cell size along X [m]"),
                 (ds.pixel_size(layer), "Cell size along Y [m]"),
             ),
@@ -201,23 +174,25 @@ def batches(input_path=".", compact=False, batch_size=300, batch_name=None):
             ),
         )
 
-        with open(fold_name + "in_" + unique_ID, "w") as f:
+        with open(os.path.join(fold_name, "in_" + unique_ID), "w") as f:
             lines = (input_line(*zip(*line_data)) for line_data in input_data)
             f.write("\n".join(lines))
 
         # Write execute script
-        if not os.path.isfile(fold_name + "execute"):
-            with open(fold_name + "execute", "w") as f:
+        exec_file = os.path.join(fold_name, "execute")
+        if not os.path.isfile(exec_file):
+            with open(exec_file, "w") as f:
                 f.write("#!/bin/sh\n")
                 f.write("#SBATCH --job-name=Illumina\n")
                 f.write(
                     "#SBATCH --time=%d:00:00\n"
                     % params["estimated_computing_time"]
                 )
-                # f.write("#SBATCH --mem=2G\n") # TODO: Evaluate ram requirements dynamically
+                # TODO: Evaluate ram requirements dynamically
+                # f.write("#SBATCH --mem=2G\n")
                 f.write("cd %s\n" % os.path.abspath(fold_name))
                 f.write("umask 0011\n")
-            os.chmod(fold_name + "execute", 0o777)
+            os.chmod(exec_file, 0o777)
 
             # Append execution to batch list
             with open(
@@ -229,8 +204,9 @@ def batches(input_path=".", compact=False, batch_size=300, batch_name=None):
 
             count += 1
 
+        # TODO: Manage outputs properly
         # Add current parameters execution to execution script
-        with open(fold_name + "execute", "a") as f:
+        with open(exec_file, "a") as f:
             f.write("cp in_%s illum-health.in\n" % unique_ID)
             f.write("./illum-health\n")
             f.write("mv %s.out %s_%s.out\n" % (exp_name, exp_name, unique_ID))
@@ -240,5 +216,4 @@ def batches(input_path=".", compact=False, batch_size=300, batch_name=None):
             )
 
     print("Final count:", count)
-
     print("Done.")

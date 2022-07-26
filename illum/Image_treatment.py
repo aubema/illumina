@@ -197,7 +197,7 @@ image_tech[image_tech == 0] = np.nan
 # 7. Saving results
 
 
-def save_geotiff(filename, data):
+def save_geotiff(filename, data, src):
     nband = 1
     nrow, ncol = data.shape
     driver = gdal.GetDriverByName("GTiff")
@@ -215,6 +215,6 @@ def save_geotiff(filename, data):
 if not os.path.isdir(p["wd"]):
     os.makedirs(p["wd"])
 
-save_geotiff(p["wd"] + "/Vrad", image_intensity)
-save_geotiff(p["wd"] + "/tech", image_tech)
-save_geotiff(p["wd"] + "/domain", domain)
+save_geotiff(p["wd"] + "/Vrad", image_intensity, src)
+save_geotiff(p["wd"] + "/tech", image_tech, src)
+save_geotiff(p["wd"] + "/domain", domain, src)
