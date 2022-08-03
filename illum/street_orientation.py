@@ -10,6 +10,7 @@ import numpy as np
 import osmnx as ox
 import pyproj
 import shapely.geometry as geometry
+from osgeo import gdal, ogr
 from pyproj import Proj, transform
 
 from .pytools import geotransform, load_geotiff, save_geotiff
@@ -66,8 +67,8 @@ def street_orientation(lats, lons, srs):
 
 
 # https://gist.github.com/calebrob6/5039fd409921606aa5843f8fec038c03
-def download_roads(src):
-    arr, proj, gt = load_geotiff(src)
+def download_roads(domain):
+    arr, proj, gt = load_geotiff(domain)
     proj_xy = pyproj.Proj(proj)
     proj_ll = pyproj.Proj("epsg:4326")
     xy2ll = pyproj.Transformer.from_proj(proj_xy, proj_ll, always_xy=True)
@@ -75,14 +76,15 @@ def download_roads(src):
     func = lambda x, y: xy2ll.transform(*geotransform(x, y, gt))
 
     H, W = arr.shape
-    n = func(np.arange(W), 0)
-    s = func(np.arange(W), H - 1)
+    n = func(np.arange(W), 0)[1]
+    s = func(np.arange(W), H - 1)[1]
     y = np.concatenate([n, s])
-    e = func(W - 1, np.arange(H))
-    w = func(0, np.arange(H))
+    e = func(W - 1, np.arange(H))[0]
+    w = func(0, np.arange(H))[0]
     x = np.concatenate([e, w])
 
     coords = (y.max(), y.min(), x.max(), x.min())
+    print(coords)
     Graph = ox.graph_from_bbox(
         *coords,
         network_type="drive",
@@ -92,3 +94,14 @@ def download_roads(src):
         clean_periphery=True,
     )
     ox.save_graph_shapefile(Graph, "roads")
+
+
+def rasterize_roads(domain, roads):
+    arr, proj, gt = load_geotiff(domain)
+    roads = ogr.Open(roads).GetLayer()
+    driver = gdal.GetDriverByName("MEM")
+    ds = driver.Create("roads.mem", *arr.shape[::-1], 1, gdal.GDT_Byte)
+    ds.SetGeoTransform(gt)
+    ds.SetProjection(proj)
+    gdal.RasterizeLayer(ds, [1], roads, burn_values=[1])
+    return ds.ReadAsArray()
