@@ -7,7 +7,7 @@ import os
 
 import astropy.io.fits as fits
 import numpy as np
-from osgeo import gdal
+from osgeo import gdal, gdal_array
 
 # Georeferenced FITS
 
@@ -58,30 +58,54 @@ def save_fits(axis, data, filename):
 def load_geotiff(filename):
     """Open a georeferenced tiff image as a numpy array.
 
-    Returns the data array and the projection and the geotransform."""
-    # Load file, and access the band and get a NumPy array
+    Returns the data array, the projection and the geotransform."""
+
     if not os.path.isfile(filename):
         raise FileNotFoundError(
             errno.ENOENT, os.strerror(errno.ENOENT), filename
         )
+
     src = gdal.Open(filename, gdal.GA_Update)
     arr = src.GetRasterBand(1).ReadAsArray()
+
     return arr, src.GetProjection(), src.GetGeoTransform()
 
 
-def save_geotiff(filename, arr, projection, geotransform):
-    """Saves a numpy data array as a georeferenced tiff image.
+def save_geotiff(filename, arr, projection, geotransform, compression="NONE"):
+    """Saves a 2D numpy data array as a georeferenced tiff image.
 
-    Needs the projection and the geotransform."""
-    nband = 1
-    nrow, ncol = arr.shape
+    Needs the projection (WKT string) and the geotransform coefficients.
+
+    Compatible data types are:
+        '(u)int[8,16,32]', 'float[32,64]', 'complex[64,128]'
+
+    Different compressions algorithms can be used:
+        'LZW', 'DEFLATE', 'PACKBITS', 'JPEG' or 'NONE'.
+    'JPEG' compression shoudn't be used when accurate values are needed."""
+
+    options = ["LZW", "PACKBITS", "DEFLATE", "JPEG", "NONE"]
+    if compression not in options:
+        raise ValueError(
+            "Compression needs to be one of "
+            + ", ".join("'" + opt + "'" for opt in options[:-1])
+            + f" or '{options[-1]}'."
+        )
+    if compression == "JPEG":
+        print(f"Warning: Lossy compression used when saving {filename}.tiff")
+
+    shape = arr.shape[::-1] + (1,)
     driver = gdal.GetDriverByName("GTiff")
+
+    type_code = gdal_array.NumericTypeCodeToGDALTypeCode(arr.dtype)
+    if type_code is None:
+        raise TypeError("Unsupported data type.")
+
     dst_dataset = driver.Create(
-        filename + ".tiff", ncol, nrow, nband, gdal.GDT_Float32
+        filename + ".tiff", *shape, type_code, ["COMPRESS=" + compression]
     )
     dst_dataset.SetGeoTransform(geotransform)
     dst_dataset.SetProjection(projection)
-    dst_dataset.GetRasterBand(1).WriteArray(arr.astype(np.float32))
+    dst_dataset.GetRasterBand(1).WriteArray(arr)
     dst_dataset.FlushCache()
 
 

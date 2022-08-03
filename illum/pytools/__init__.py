@@ -8,5 +8,5 @@ from ._IO import (
     save_fits,
     save_geotiff,
 )
-from ._math import deg2mx, deg2my, safe_divide
+from ._math import deg2mx, deg2my, geotransform, safe_divide
 from ._pytools import strip_comments

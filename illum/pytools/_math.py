@@ -25,3 +25,10 @@ def safe_divide(a, b):
         c[c == np.inf] = 0
         c = np.nan_to_num(c)
     return c
+
+
+def geotransform(X, Y, GT):
+    # From https://gdal.org/tutorials/geotransforms_tut.html
+    X_geo = GT[0] + (X + 0.5) * GT[1] + (Y + 0.5) * GT[2]
+    Y_geo = GT[3] + (X + 0.5) * GT[4] + (Y + 0.5) * GT[5]
+    return X_geo, Y_geo
