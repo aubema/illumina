@@ -225,8 +225,9 @@ class Ui_LIGHT(Ui_ILLUMINA):
 
         job_cont = 0
         self.progressBar.setValue(1)
-        wavel = np.loadtxt("wav.lst")  # ['507.25','545.75','584.25','622.75']
-        layer = list(range(5))
+        #wavel = np.loadtxt("wav.lst")  # ['507.25','545.75','584.25','622.75']
+        wavel = ['542.0','614.0']
+        layer = list(range(5))        
         while job_cont < self.jobs:
             for wl in wavel:
                 for ly in layer:
@@ -241,6 +242,7 @@ class Ui_LIGHT(Ui_ILLUMINA):
                         self.progressBar.setValue(
                             ((100 * job_cont) // self.jobs) - 5
                         )
+        
         for t in threads:
             t.join()
 
@@ -309,18 +311,18 @@ class Ui_LIGHT(Ui_ILLUMINA):
         contrib = illum.MultiScaleData.from_domain("domain.ini")
         for n, fname in enumerate(contrib_filenames):
             ds = illum.MultiScaleData.Open(fname)
-            for i, layer in enumerate(ds):
-                contrib[i] += layer * avg_value[n]
+            for i, layers in enumerate(ds): #layer already exists line 230
+                contrib[i] += layers * avg_value[n]
             os.remove(fname)
         contrib.save("contribution_map")
-
+        
         plt.ion()
         contrib.plot(cmap="inferno", area=True, log=True)
         plt.colorbar().set_label(
             "Contribution to artificial sky brightness [W/sr/m$^2$/km$^2$]"
         )
         plt.savefig("contribution_map.png")
-
+        
         mag_V_art = mag_ref - 2.5 * np.log10(radiance_V_art / radiance_ref)
 
         log = f"Artificial sky brightness: {mag_V_art:.2f} mag/arcsec\n"
