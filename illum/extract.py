@@ -28,6 +28,18 @@ def MSDOpen(filename, cached={}):
     return ds
 
 
+def chunker(seq, size):
+    return (seq[pos : pos + size] for pos in range(0, len(seq), size))
+
+
+def add_arrays(a, b):
+    if len(a) < len(b):
+        a, b = b, a
+    c = a.copy()
+    c[: len(b)] += b
+    return c
+
+
 @click.command(name="extract")
 @click.argument("exec_dir", default=".", type=click.Path(exists=True))
 @click.option(
@@ -50,7 +62,13 @@ def MSDOpen(filename, cached={}):
     is_flag=True,
     help="If present, will extract all available outputs.",
 )
-def CLI_extract(exec_dir, contrib, params, full):
+@click.option(
+    "-x",
+    "--profile",
+    is_flag=True,
+    help="If present, extract profile along line of sight.",
+)
+def CLI_extract(exec_dir, contrib, params, full, profile):
     """Extract Illumina outputs.
 
     Will walk the EXEC_DIR to locate and extract illumina outputs.
@@ -59,10 +77,10 @@ def CLI_extract(exec_dir, contrib, params, full):
 
     If not given, EXEC_DIR will default to the current directory.
     """
-    extract(exec_dir, contrib, params, full)
+    extract(exec_dir, contrib, params, full, profile)
 
 
-def extract(exec_dir, contrib=False, params=(), full=False):
+def extract(exec_dir, contrib=False, params=(), full=False, profile=False):
     regex_layer = re.compile(r"-layer_(\d+)")
     regex_coords = re.compile(r"observer_coordinates_(-?\d+\.\d+_-?\d+\.\d+)")
 
@@ -71,6 +89,9 @@ def extract(exec_dir, contrib=False, params=(), full=False):
         outputs = ddict(partial(np.zeros, 6))
     if contrib:
         contributions = dict()
+    if profile:
+        prof_dist = np.array([])
+        profiles = ddict(partial(np.zeros, 0))
 
     for dirpath, dirnames, filenames in os.walk(exec_dir):
         if not os.path.isfile(os.path.join(dirpath, "illumina.in")):
@@ -95,6 +116,8 @@ def extract(exec_dir, contrib=False, params=(), full=False):
             else:
                 params_name = oname[len(basename) + 1 : -4]
 
+            key = regex_layer.sub("", params_name)
+
             try:
                 for pname, pvals in params:
                     if pname not in params_name:
@@ -117,9 +140,31 @@ def extract(exec_dir, contrib=False, params=(), full=False):
                 vals = np.array(
                     [float(line) for line in lines[idx_results + 1 :: 2]]
                 )
-                outputs[regex_layer.sub("", params_name)] += vals
+                outputs[key] += vals
             else:
-                skyglow[regex_layer.sub("", params_name)] += val
+                skyglow[key] += val
+
+            if profile:
+                ind = np.where(["==" in line for line in lines])[0]
+
+                prof = np.array(
+                    [
+                        (
+                            float(chunk[2].split()[-2]),
+                            float(chunk[3].split()[-2]),
+                            float(chunk[-2].split()[-1]),
+                        )
+                        for chunk in chunker(
+                            lines[ind[0] : ind[-1]], ind[1] - ind[0]
+                        )
+                    ]
+                )
+
+                profiles[key] = add_arrays(profiles[key], prof[:, 2])
+
+                if len(prof) > len(prof_dist):
+                    prof_dist = np.sqrt(prof[:, 0] ** 2 + prof[:, 1] ** 2)
+
             if contrib:
                 try:
                     n_layer = int(regex_layer.search(params_name).groups()[0])
@@ -127,7 +172,6 @@ def extract(exec_dir, contrib=False, params=(), full=False):
                     # No match, only 1 layer
                     n_layer = 0
 
-                key = regex_layer.sub("", params_name)
                 if key not in contributions:
                     try:
                         coords = re.match(regex_coords, params_name).group(1)
@@ -173,3 +217,9 @@ def extract(exec_dir, contrib=False, params=(), full=False):
             print(key, val, sep="\t")
             if contrib:
                 contributions[key].save(key)
+    if profile:
+        length = np.diff(prof_dist, prepend=0)
+        for key, val in profiles.items():
+            val /= length[: len(val)]
+            out = np.stack([prof_dist[: len(val)], val]).T
+            np.savetxt(f"profile_{key}.dat", out)
