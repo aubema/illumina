@@ -9,61 +9,11 @@
 import numpy as np
 import osmnx as ox
 import pyproj
-import shapely.geometry as geometry
-from osgeo import gdal, ogr
-from pyproj import Proj, transform
+import rasterio
+from rasterio import features
+from scipy.ndimage import distance_transform_edt
 
-from .pytools import geotransform, load_geotiff, save_geotiff
-
-
-def get_bearing(lat1, lon1, lat2, lon2):
-    x = np.cos(np.deg2rad(lat2)) * np.sin(np.deg2rad(lon2 - lon1))
-    y = np.cos(np.deg2rad(lat1)) * np.sin(np.deg2rad(lat2)) - np.sin(
-        np.deg2rad(lat1)
-    ) * np.cos(np.deg2rad(lat2)) * np.cos(np.deg2rad(lon2 - lon1))
-    return np.rad2deg(np.arctan2(x, y))
-
-
-def street_orientation(lats, lons, srs):
-    print("    Loading graph")
-    Graph = ox.graph_from_bbox(
-        north=max(lats) + 0.01,
-        south=min(lats) - 0.01,
-        east=max(lons) + 0.01,
-        west=min(lons) - 0.01,
-        network_type="drive",
-        simplify=False,
-        retain_all=True,
-        truncate_by_edge=True,
-        clean_periphery=True,
-    )
-
-    Graph = ox.utils_graph.get_undirected(Graph)
-    Graph = ox.bearing.add_edge_bearings(Graph, precision=0)
-    Graph = ox.projection.project_graph(Graph, to_crs=srs)
-    nodes, edges = ox.graph_to_gdfs(Graph)
-    df_routes = edges.filter(["name", "bearing", "geometry"], axis=1)
-
-    inProj = Proj("epsg:4326")
-    outProj = Proj(srs)
-    X, Y = transform(inProj, outProj, lons, lats, always_xy=True)
-
-    print("    Get nearest edges")
-    edges_ID = ox.distance.nearest_edges(Graph, X, Y)
-    nearest_edges = df_routes.loc[map(tuple, edges_ID)]
-
-    print("    Compute bearings")
-    coords = np.array([x.coords.xy for x in nearest_edges["geometry"]])
-    lon_c, lat_c = transform(
-        outProj, inProj, coords[:, 0, 0], coords[:, 1, 0], always_xy=True
-    )
-
-    bearing = nearest_edges["bearing"].to_numpy()
-    bearing_AC = get_bearing(lat_c, lon_c, lats, lons)
-    bearing[(bearing_AC - bearing) % 360 > 180] += 180
-    bearing -= 90  # point towards road
-
-    return bearing % 360
+from .pytools import geotransform, load_geotiff
 
 
 # https://gist.github.com/calebrob6/5039fd409921606aa5843f8fec038c03
@@ -73,7 +23,8 @@ def download_roads(domain):
     proj_ll = pyproj.Proj("epsg:4326")
     xy2ll = pyproj.Transformer.from_proj(proj_xy, proj_ll, always_xy=True)
 
-    func = lambda x, y: xy2ll.transform(*geotransform(x, y, gt))
+    def func(x, y):
+        return xy2ll.transform(*geotransform(x, y, gt))
 
     H, W = arr.shape
     n = func(np.arange(W), 0)[1]
@@ -84,7 +35,7 @@ def download_roads(domain):
     x = np.concatenate([e, w])
 
     coords = (y.max(), y.min(), x.max(), x.min())
-    print(coords)
+    print("Downloading road network")
     Graph = ox.graph_from_bbox(
         *coords,
         network_type="drive",
@@ -93,15 +44,35 @@ def download_roads(domain):
         truncate_by_edge=True,
         clean_periphery=True,
     )
-    ox.save_graph_shapefile(Graph, "roads")
+    return ox.graph_to_gdfs(Graph, nodes=False)
 
 
 def rasterize_roads(domain, roads):
+    rst = rasterio.open(domain)
+    meta = rst.meta.copy()
+    meta["compress"] = "lzw"
+    print("Rasterizing roads")
+    roads = roads.to_crs(meta["crs"])
+    burned = features.rasterize(
+        roads.geometry,
+        out_shape=rst.shape,
+        fill=1,
+        default_value=0,
+        all_touched=True,
+        transform=rst.transform,
+    )
+    return burned
+
+
+def dist_ang(domain, roads):
     arr, proj, gt = load_geotiff(domain)
-    roads = ogr.Open(roads).GetLayer()
-    driver = gdal.GetDriverByName("MEM")
-    ds = driver.Create("roads.mem", *arr.shape[::-1], 1, gdal.GDT_Byte)
-    ds.SetGeoTransform(gt)
-    ds.SetProjection(proj)
-    gdal.RasterizeLayer(ds, [1], roads, burn_values=[1])
-    return ds.ReadAsArray()
+    print("Computing geometrical parameters")
+    dist, i = distance_transform_edt(
+        roads, return_indices=True, sampling=(abs(gt[5]), gt[1])
+    )
+    Y, X = np.indices(roads.shape, sparse=True)
+    return dist, np.arctan2((i[1] - X) * gt[1], (i[0] - Y) * gt[5])
+
+
+def roads_analysis(domain):
+    return dist_ang(domain, rasterize_roads(domain, download_roads(domain)))
