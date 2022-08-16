@@ -47,6 +47,7 @@ def download_roads(domain):
     return ox.graph_to_gdfs(Graph, nodes=False)
 
 
+# https://gis.stackexchange.com/a/151861/92556
 def rasterize_roads(domain, roads):
     rst = rasterio.open(domain)
     meta = rst.meta.copy()
