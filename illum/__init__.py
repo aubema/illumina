@@ -1,4 +1,4 @@
-__version__ = "2.2.2.20220816.20360188"
+__version__ = "2.2.2.20220817.22265316"
 
 try:
     # from .alternate import alternate
