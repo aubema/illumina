@@ -1,7 +1,8 @@
 from subprocess import check_output
 
-import illum
 from setuptools import setup
+
+import illum
 
 gdal_version = (
     check_output(["gdalinfo", "--version"]).decode().split(",")[0].split()[1]
@@ -13,7 +14,7 @@ setup(
     packages=["illum"],
     install_requires=[
         "astropy",
-        "Click<8",
+        "Click",
         "fiona",
         "gdal==" + gdal_version,
         "geopandas",
@@ -29,6 +30,14 @@ setup(
         "pyyaml",
         "scipy",
     ],
+    extras_require={
+        "dev": [
+            "black",
+            "flake8",
+            "ipython",
+            "isort",
+        ],
+    },
     entry_points="""
         [console_scripts]
         illum=illum.main:illum
