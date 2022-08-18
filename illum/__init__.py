@@ -1,4 +1,4 @@
-__version__ = "2.2.2.20220818.16125819"
+__version__ = "2.2.2.20220818.16165252"
 
 try:
     # from .alternate import alternate
@@ -11,7 +11,7 @@ try:
     from .batches import batches
     from .init import init
 except ModuleNotFoundError:
-    raise
+    pass
 
 
 try:

@@ -1,7 +1,8 @@
 from subprocess import check_output
 
-import illum
 from setuptools import setup
+
+import illum
 
 gdal_version = (
     check_output(["gdalinfo", "--version"]).decode().split(",")[0].split()[1]
@@ -27,6 +28,7 @@ setup(
         "progressbar2",
         "pyproj",
         "pyyaml",
+        "rasterio",
         "scipy",
     ],
     entry_points="""
