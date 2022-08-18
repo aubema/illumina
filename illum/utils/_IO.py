@@ -2,26 +2,26 @@
 # Author: Alexandre Simoneau
 
 
-import errno
-import os
-
 import astropy.io.fits
 import astropy.wcs
 import numpy as np
-from osgeo import gdal, gdal_array
+import rasterio as rio
 
 # Georeferenced FITS
 
 
-def load_fits(filename, c=True):
+def load_fits(filename, c=True, gdal_like=False):
     """Loads a FITS file."""
     hdu = astropy.io.fits.open(filename)[0]
     try:
-        wcs = astropy.wcs.find_all_wcs(hdu.header, fix=False)[0]
+        wcs = astropy.wcs.WCS(hdu.header)
     except IndexError:
         return hdu.data, None
     c = wcs.all_pix2world([[-0.5, -0.5], [0.5, 0.5]], 0)
-    gt = (c[0, 0], c[1, 0] - c[0, 0], 0, c[0, 1], 0, c[1, 1] - c[0, 1])
+    if gdal_like:
+        gt = (c[0, 0], c[1, 0] - c[0, 0], 0, c[0, 1], 0, c[1, 1] - c[0, 1])
+    else:
+        gt = (c[1, 0] - c[0, 0], 0, c[0, 0], 0, c[1, 1] - c[0, 1], c[0, 1])
     return hdu.data, gt
 
 
@@ -32,18 +32,26 @@ def load_geotiff(filename):
     """Open a georeferenced tiff image as a numpy array.
 
     Returns the data array, the projection and the geotransform."""
-    rst = rasterio.open(filename)
+    rst = rio.open(filename)
     return rst.read(1), rst.crs, rst.get_transform()
 
 
-def save_geotiff(filename, arr, **kwargs):
+def save_geotiff(filename, arr, arr_like=None, **kwargs):
     """Saves a 2D numpy data array as a georeferenced tiff image."""
-    if "dtype" not in kwargs:
-        kwargs["dtype"] = str(arr.dtype)
-    kwargs["height"], kwargs["width"] = arr.shape
-    profile = rasterio.profiles.DefaultGTiffProfile(count=1, **kwargs)
-    with rasterio.open(filename, "w", **profile) as f:
-        f.write(arr.astype(kwargs["dtype"]), 1)
+    if arr_like is not None and type(arr_like is rio.io.DatasetReader):
+        profile = arr_like.profile
+    else:
+        defaults = dict(
+            count=1,
+            nodata=None,
+            dtype=str(arr.dtype),
+            height=arr.shape[0],
+            width=arr.shape[1],
+        )
+        defaults.update(kwargs)
+        profile = rio.profiles.DefaultGTiffProfile(**defaults)
+    with rio.open(filename, "w", **profile) as f:
+        f.write(arr.astype(profile["dtype"]), 1)
 
 
 # Fortran binary files
