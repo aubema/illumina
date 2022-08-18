@@ -14,7 +14,7 @@ setup(
     packages=["illum"],
     install_requires=[
         "astropy",
-        "Click<8",
+        "Click",
         "fiona",
         "gdal==" + gdal_version,
         "geopandas",
@@ -31,6 +31,14 @@ setup(
         "rasterio",
         "scipy",
     ],
+    extras_require={
+        "dev": [
+            "black",
+            "flake8",
+            "ipython",
+            "isort",
+        ],
+    },
     entry_points="""
         [console_scripts]
         illum=illum.main:illum
