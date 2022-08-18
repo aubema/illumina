@@ -1,9 +1,10 @@
 # Functions related to spectral and angular emission functions
 # Author: Alexandre Simoneau
 
-import illum.pytools
 import numpy as np
 import scipy.interpolate
+
+import illum.utils
 
 
 def LOP_norm(angles, x):

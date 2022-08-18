@@ -16,7 +16,7 @@ import illum
 import numpy as np
 import yaml
 from illum import MultiScaleData as MSD
-from illum import pytools as pt
+from illum import utils as pt
 from illum.inventory import from_lamps, from_zones
 from illum.OPAC import OPAC
 from scipy.interpolate import griddata

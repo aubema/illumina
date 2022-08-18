@@ -6,7 +6,7 @@
 #
 # December 2021
 
-import illum.pytools as pt
+import illum.utils as pt
 import numpy as np
 from illum import MultiScaleData as MSD
 

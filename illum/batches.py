@@ -15,10 +15,11 @@ from glob import glob
 from itertools import product
 
 import click
-import illum
 import numpy as np
 import yaml
 from progressbar import progressbar
+
+import illum
 
 progress = partial(progressbar, redirect_stdout=True)
 
@@ -72,7 +73,7 @@ def batches(input_path=".", compact=False, batch_size=300, batch_name=None):
 
     exp_name = params["exp_name"]
 
-    ds = illum.pytools.load_geotiff(glob("*.tif"))
+    ds = illum.utils.load_geotiff(glob("*.tif"))
 
     # Add wavelength
     spectral_bands = np.loadtxt("wav.lst", ndmin=2)

@@ -7,10 +7,11 @@ from glob import glob
 import click
 import numpy as np
 import yaml
-from illum import MultiScaleData as MSD
-from illum import pytools as pt
-from illum.inventory import from_lamps, from_zones
 from scipy.interpolate import interp1d as interp
+
+from illum import MultiScaleData as MSD
+from illum import utils as pt
+from illum.inventory import from_lamps, from_zones
 
 
 @click.command(name="alternate")

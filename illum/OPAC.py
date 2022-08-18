@@ -7,7 +7,7 @@ from collections import OrderedDict
 import illum
 import numpy as np
 import yaml
-from illum.pytools import LOP_norm
+from illum.utils import LOP_norm
 from scipy import interpolate
 
 

@@ -10,4 +10,4 @@ from ._IO import (
     save_geotiff,
 )
 from ._math import deg2mx, deg2my, safe_divide
-from ._pytools import strip_comments
+from ._utils import strip_comments
