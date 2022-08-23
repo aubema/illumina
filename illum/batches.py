@@ -16,6 +16,7 @@ from itertools import product
 
 import click
 import numpy as np
+import rasterio as rio
 import yaml
 from progressbar import progressbar
 
@@ -73,7 +74,7 @@ def batches(input_path=".", compact=False, batch_size=300, batch_name=None):
 
     exp_name = params["exp_name"]
 
-    ds = illum.utils.load_geotiff(glob("*.tif"))
+    rst = rio.open(glob("*.tif")[0])
 
     # Add wavelength
     spectral_bands = np.loadtxt("wav.lst", ndmin=2)
@@ -109,7 +110,6 @@ def batches(input_path=".", compact=False, batch_size=300, batch_name=None):
 
         unique_ID = "-".join("%s_%s" % item for item in local_params.items())
         wavelength = "%g" % P["wavelength"]
-        layer = P["layer"]
         reflectance = refls[wls.index(P["wavelength"])]
         bandwidth = spectral_bands[wls.index(P["wavelength"]), 1]
 
@@ -149,9 +149,8 @@ def batches(input_path=".", compact=False, batch_size=300, batch_name=None):
             (("", "Input file for ILLUMINA"),),
             ((exp_name, "Root file name"),),
             (
-                # TODO: Put real sizes in
-                (ds.pixel_size(layer), "Cell size along X [m]"),
-                (ds.pixel_size(layer), "Cell size along Y [m]"),
+                (rst.res[1], "Cell size along X [m]"),
+                (rst.res[0], "Cell size along Y [m]"),
             ),
             ((5, "Number of light sources types"),),
             ((512), "Domain size"),  # TODO: Put real value in
