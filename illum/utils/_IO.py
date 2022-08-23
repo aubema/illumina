@@ -39,7 +39,7 @@ def load_geotiff(filename):
 def save_geotiff(filename, arr, arr_like=None, **kwargs):
     """Saves a 2D numpy data array as a georeferenced tiff image."""
     if arr_like is not None and type(arr_like is rio.io.DatasetReader):
-        profile = arr_like.profile
+        defaults = arr_like.profile
     else:
         defaults = dict(
             count=1,
@@ -48,8 +48,8 @@ def save_geotiff(filename, arr, arr_like=None, **kwargs):
             height=arr.shape[0],
             width=arr.shape[1],
         )
-        defaults.update(kwargs)
-        profile = rio.profiles.DefaultGTiffProfile(**defaults)
+    defaults.update(kwargs)
+    profile = rio.profiles.DefaultGTiffProfile(**defaults)
     with rio.open(filename, "w", **profile) as f:
         f.write(arr.astype(profile["dtype"]), 1)
 

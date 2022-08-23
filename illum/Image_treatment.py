@@ -59,14 +59,12 @@ Vrad -= np.nanmax(Vrad) * p["threshold"]
 Vrad[Vrad < 0] = np.nan
 
 n_changed = 1
-i = 1
-changed = np.zeros_like(Vrad, dtype=int)
+changed = np.zeros_like(Vrad, dtype=np.bool8)
 while n_changed:
     Vrad, mask = fill_voids(Vrad, window=3, n_keep=4)
     n_changed = np.sum(mask)
-    changed += mask * i
+    changed |= mask
     print("Void pixel filled:", n_changed)
-    i += 1
 tech[changed] = convolve_freq(tech, 3)[changed]
 
 n_changed = 1
@@ -83,6 +81,6 @@ if not os.path.isdir(p["wd"]):
 
 rst = rio.open(f"{exp_fold}/quality/{basename}RGBdisto2_rect.tiff")
 
-u.save_geotiff(os.path.join(p["wd"], "Vrad.tiff"), Vrad, rst)
-u.save_geotiff(os.path.join(p["wd"], "tech.tiff"), tech, rst)
+u.save_geotiff(os.path.join(p["wd"], "Vrad.tiff"), Vrad, rst, dtype="float32")
+u.save_geotiff(os.path.join(p["wd"], "tech.tiff"), tech, rst, dtype="float32")
 u.save_geotiff(os.path.join(p["wd"], "domain.tiff"), rst.read(1) > 0, rst)
