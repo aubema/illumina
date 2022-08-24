@@ -546,7 +546,7 @@ class Ui_ILLUMINA(object):
         self.label_7.setText(_translate("ILLUMINA", "Mean heigh of all the lamps (m)"))
         self.dobs_edit.setText(_translate("ILLUMINA", "0"))
         self.label_8.setText(_translate("ILLUMINA", "Mean street width (m)"))
-        self.label_18.setText(_translate("ILLUMINA", "Mean building story number"))
+        self.label_18.setText(_translate("ILLUMINA", "Mean building heigh (m)"))
         self.hobs_edit.setText(_translate("ILLUMINA", "0"))
         self.obstacles_checkbox.setText(_translate("ILLUMINA", "No obstacles"))
         self.exp_def_button.setText(_translate("ILLUMINA", "6. Define simulation"))

@@ -711,7 +711,7 @@
      </font>
     </property>
     <property name="text">
-     <string>Mean building story number</string>
+     <string>Mean building heigh (m)</string>
     </property>
    </widget>
    <widget class="QLineEdit" name="hobs_edit">
