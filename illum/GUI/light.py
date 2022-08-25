@@ -315,14 +315,14 @@ class Ui_LIGHT(Ui_ILLUMINA):
                 contrib[i] += layers * avg_value[n]
             os.remove(fname)
         contrib.save("contribution_map")
-        
+        '''
         plt.ion()
         contrib.plot(cmap="inferno", area=True, log=True)
         plt.colorbar().set_label(
             "Contribution to artificial sky brightness [W/sr/m$^2$/km$^2$]"
         )
         plt.savefig("contribution_map.png")
-        
+        '''
         mag_V_art = mag_ref - 2.5 * np.log10(radiance_V_art / radiance_ref)
 
         log = f"Artificial sky brightness: {mag_V_art:.2f} mag/arcsec\n"
