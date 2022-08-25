@@ -23,11 +23,11 @@ def convolve_freq(im, window):
     return conv
 
 
-def fill_voids(im, window, n_keep):
+def fill_voids(im, window, n_keep, threshold=3):
     frac_valid = convolve(im > 0, window)
     mask = (frac_valid > n_keep / window**2) & (np.nan_to_num(im) == 0)
     im_grow = convolve(im, window)
-    mask &= im_grow > np.nanmean(im)
+    mask &= im_grow > np.nanmean(im) * threshold
     return np.where(mask, im_grow, im), mask
 
 
@@ -61,7 +61,7 @@ Vrad[Vrad < 0] = np.nan
 n_changed = 1
 changed = np.zeros_like(Vrad, dtype=np.bool8)
 while n_changed:
-    Vrad, mask = fill_voids(Vrad, window=3, n_keep=4)
+    Vrad, mask = fill_voids(Vrad, window=3, n_keep=3, threshold=3)
     n_changed = np.sum(mask)
     changed |= mask
     print("Void pixel filled:", n_changed)
