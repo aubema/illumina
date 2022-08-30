@@ -489,6 +489,9 @@
     </property>
    </widget>
    <widget class="QLineEdit" name="box_direction">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
     <property name="geometry">
      <rect>
       <x>90</x>
@@ -507,6 +510,9 @@
     </property>
     <property name="text">
      <string>Zenith</string>
+    </property>
+    <property name="dragEnabled">
+     <bool>false</bool>
     </property>
     <property name="readOnly">
      <bool>true</bool>
@@ -756,8 +762,8 @@
   <widget class="QPushButton" name="exp_def_button">
    <property name="geometry">
     <rect>
-     <x>160</x>
-     <y>640</y>
+     <x>120</x>
+     <y>630</y>
      <width>141</width>
      <height>25</height>
     </rect>
@@ -773,10 +779,13 @@
    </property>
   </widget>
   <widget class="QPushButton" name="Run_simulation">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="geometry">
     <rect>
-     <x>460</x>
-     <y>640</y>
+     <x>310</x>
+     <y>830</y>
      <width>141</width>
      <height>25</height>
     </rect>
@@ -1041,8 +1050,8 @@
    <property name="geometry">
     <rect>
      <x>10</x>
-     <y>670</y>
-     <width>741</width>
+     <y>660</y>
+     <width>361</width>
      <height>161</height>
     </rect>
    </property>
@@ -1050,8 +1059,8 @@
   <widget class="QProgressBar" name="progressBar">
    <property name="geometry">
     <rect>
-     <x>300</x>
-     <y>840</y>
+     <x>320</x>
+     <y>860</y>
      <width>118</width>
      <height>23</height>
     </rect>
@@ -1310,6 +1319,38 @@
     </property>
    </widget>
   </widget>
+  <widget class="QPushButton" name="Alt_esc">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="geometry">
+    <rect>
+     <x>460</x>
+     <y>630</y>
+     <width>181</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="font">
+    <font>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+   <property name="text">
+    <string>8. Alternate Scenario</string>
+   </property>
+  </widget>
+  <widget class="QPlainTextEdit" name="log_edit_2">
+   <property name="geometry">
+    <rect>
+     <x>380</x>
+     <y>660</y>
+     <width>361</width>
+     <height>161</height>
+    </rect>
+   </property>
+  </widget>
   <zorder>groupBox_7</zorder>
   <zorder>groupBox</zorder>
   <zorder>groupBox_3</zorder>
@@ -1319,7 +1360,39 @@
   <zorder>log_edit</zorder>
   <zorder>progressBar</zorder>
   <zorder>groupBox_5</zorder>
+  <zorder>Alt_esc</zorder>
+  <zorder>log_edit_2</zorder>
  </widget>
+ <tabstops>
+  <tabstop>name_edit</tabstop>
+  <tabstop>latitude_edit</tabstop>
+  <tabstop>longitude_edit</tabstop>
+  <tabstop>date_edit</tabstop>
+  <tabstop>altitude_edit</tabstop>
+  <tabstop>box_direction</tabstop>
+  <tabstop>box_band</tabstop>
+  <tabstop>natural_light</tabstop>
+  <tabstop>comboBox_atm</tabstop>
+  <tabstop>comboBox_rh</tabstop>
+  <tabstop>aerosol_opac_button</tabstop>
+  <tabstop>box_alpha</tabstop>
+  <tabstop>box_aod</tabstop>
+  <tabstop>box_aeh</tabstop>
+  <tabstop>perc_edit</tabstop>
+  <tabstop>comboBox_tech</tabstop>
+  <tabstop>comboBox_ulor</tabstop>
+  <tabstop>add_tech_btn</tabstop>
+  <tabstop>clean_ls_btn</tabstop>
+  <tabstop>hlamp_edit</tabstop>
+  <tabstop>obstacles_checkbox</tabstop>
+  <tabstop>dobs_edit</tabstop>
+  <tabstop>hobs_edit</tabstop>
+  <tabstop>exp_def_button</tabstop>
+  <tabstop>Run_simulation</tabstop>
+  <tabstop>Alt_esc</tabstop>
+  <tabstop>log_edit_2</tabstop>
+  <tabstop>log_edit</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>
