@@ -47,11 +47,14 @@ def save_geotiff(filename, arr, arr_like=None, **kwargs):
             dtype=str(arr.dtype),
             height=arr.shape[0],
             width=arr.shape[1],
+            BIFTIFF="IF_NEEDED",
         )
     defaults.update(kwargs)
     profile = rio.profiles.DefaultGTiffProfile(**defaults)
+    arr = arr.astype(profile["dtype"], copy=False)
     with rio.open(filename, "w", **profile) as f:
-        f.write(arr.astype(profile["dtype"]), 1)
+        for idx, window in f.block_windows(1):
+            f.write(arr[window.toslices()], 1, window=window)
 
 
 # Fortran binary files
