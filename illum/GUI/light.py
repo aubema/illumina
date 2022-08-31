@@ -122,7 +122,9 @@ class Ui_LIGHT(Ui_ILLUMINA):
             with suppress(FileExistsError):
                 os.symlink(f"{self.datapath}/hydropolys.zip", "hydropolys.zip")
             with suppress(FileExistsError):
-                os.symlink(f"{self.datapath}/spectral_bands.dat", "spectral_bands.dat")
+                os.symlink(
+                    f"{self.datapath}/spectral_bands.dat", "spectral_bands.dat"
+                )
 
             with open("domain_params.in", "w") as f:
                 f.write(
@@ -312,7 +314,9 @@ class Ui_LIGHT(Ui_ILLUMINA):
                     if os.path.isfile(path + "/finished.txt"):
                         job_cont += 1
                         os.remove(path + "/finished.txt")
-                        self.progressBar.setValue(((100 * job_cont) // self.jobs) - 5)
+                        self.progressBar.setValue(
+                            ((100 * job_cont) // self.jobs) - 5
+                        )
 
         for t in threads:
             t.join()
@@ -359,16 +363,23 @@ class Ui_LIGHT(Ui_ILLUMINA):
 
         # extracting results
         if self.switch2 == 0:
-            self.log_edit.setPlainText("Simulation finished\nExtracting results")
+            self.log_edit.setPlainText(
+                "Simulation finished\nExtracting results"
+            )
             self.log_edit.repaint()
             lines = check_output(["illum", "extract", "-c"])
         elif self.switch2 == 1:
-            self.log_edit_2.setPlainText("Simulation finished\nExtracting results")
+            self.log_edit_2.setPlainText(
+                "Simulation finished\nExtracting results"
+            )
             self.log_edit_2.repaint()
             lines = check_output(["illum", "extract", "-c", "Inputs_Alt"])
         lines = sorted(lines.decode().strip().split("\n"))
         central_wl, radiance = zip(
-            *[[float(elem.split("_")[-1]) for elem in line.split()] for line in lines]
+            *[
+                [float(elem.split("_")[-1]) for elem in line.split()]
+                for line in lines
+            ]
         )
         wl, sens = np.loadtxt("Lights/JC_V.dat", skiprows=1).T
         mask = (wl >= 470) & (wl <= 740)
@@ -376,13 +387,17 @@ class Ui_LIGHT(Ui_ILLUMINA):
         sens_filt = sens[mask] / 100  # % to frac
 
         bins = np.loadtxt(self.datapath + "/spectral_bands.dat", delimiter=",")
-        bool_array = (wl_filt >= bins[:, 0, None]) & (wl_filt < bins[:, 1, None])
+        bool_array = (wl_filt >= bins[:, 0, None]) & (
+            wl_filt < bins[:, 1, None]
+        )
         avg_value = [np.mean(sens_filt[mask]) for mask in bool_array]
         radiance_V_art = np.sum(
             np.prod([radiance, avg_value, bins[:, 1] - bins[:, 0]], 0)
         )
 
-        contrib_filenames = [glob(f"*wavelength_{wl:.1f}.hdf5")[0] for wl in central_wl]
+        contrib_filenames = [
+            glob(f"*wavelength_{wl:.1f}.hdf5")[0] for wl in central_wl
+        ]
         contrib = illum.MultiScaleData.from_domain("domain.ini")
         for n, fname in enumerate(contrib_filenames):
             ds = illum.MultiScaleData.Open(fname)
