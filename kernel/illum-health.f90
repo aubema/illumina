@@ -86,7 +86,7 @@ program illumhealth                           ! Beginning
   real largy                                  ! Length (y axis) of the modeling domain (meter)
   INTEGER nbx,nby                             ! Number of pixels in the modeling domain
 
-  real srefl,brefl,orefl                      ! Street reflectance , Building facades reflectance , Other reflectance
+  real grefl,srefl,brefl,arefl,orefl,trefl                      ! Grass reflectance, Street reflectance , Building facades reflectance ,rear facade reflectance, Other reflectance, roof reflectance
   INTEGER stype                               ! Source type or zone index
   character*72 pafile,lufile,alfile,ohfile,odfile,offile,azfile,lifile,gifile
   ! Files related to light sources and obstacles (photometri
@@ -167,7 +167,7 @@ program illumhealth                           ! Beginning
   read(1,*) width
   read(1,*) taua,alpha,haer
   read(1,*) lambda,bandw
-  read(1,*) srefl,brefl,orefl
+  read(1,*) srefl,grefl,brefl,orefl
   read(1,*) pressi
   read(1,*) z_o
   close(1)
@@ -203,8 +203,8 @@ program illumhealth                           ! Beginning
   print*,'Wavelength (nm):',lambda,' Aerosol optical depth:',taua
   !     Initialisation of arrays and variables
   if (verbose.ge.1) print*,'Initializing variables...'
-  do j=1,width
-     do i=1,width
+  do i=1,width
+     do j=1,width
         val2d(i,j)=0.
         altsol(i,j)=0.
         altsob(i,j)=0.
@@ -218,9 +218,9 @@ program illumhealth                           ! Beginning
         lamplu(i,j)=0.
      enddo
   enddo
-  do k=1,ntype
+  do i=1,181
      do j=1,181
-        do i=1,181
+        do k=1,ntype
            pval(i,j,k)=0.
            pvalno(i,j,k)=0.
         enddo
@@ -247,36 +247,36 @@ program illumhealth                           ! Beginning
   call twodin(nbx,nby,mnaf,altsol,width)
   !     reading lamp heights
   call twodin(nbx,nby,alfile,val2d,width)
-  do j=1,nby             ! beginning of the loop over all cells along y.
-     do i=1,nbx                ! beginning of the loop over all cells along x.
+  do i=1,nbx                ! beginning of the loop over all cells along x.
+     do j=1,nby             ! beginning of the loop over all cells along y.
         lampal(i,j)=val2d(i,j) ! filling of the array for the lamp stype
      enddo                  ! end of the loop over all cells along y.
   enddo                     ! end of the loop over all cells along x.
   !     reading buildings average height
   call twodin(nbx,nby,ohfile,val2d,width)
-  do j=1,nby             ! beginning of the loop over all cells along y.
-     do i=1,nbx                ! beginning of the loop over all cells along x.
+  do i=1,nbx                ! beginning of the loop over all cells along x.
+     do j=1,nby             ! beginning of the loop over all cells along y.
         obsH(i,j)=val2d(i,j) ! filling of the array
      enddo                  ! end of the loop over all cells along y.
   enddo
   !     reading ground type flag
   call twodin(nbx,nby,gifile,val2d,width)
-  do j=1,nby             ! beginning of the loop over all cells along y.
-     do i=1,nbx                ! beginning of the loop over all cells along x.
+  do i=1,nbx                ! beginning of the loop over all cells along x.
+     do j=1,nby             ! beginning of the loop over all cells along y.
         gndty(i,j)=nint(val2d(i,j)) ! ground type flag flag array 0 or 1
      enddo                  ! end of the loop over all cells along y.
   enddo
   !     reading lamp type flag
   call twodin(nbx,nby,lifile,val2d,width)
-  do j=1,nby             ! beginning of the loop over all cells along y.
-     do i=1,nbx                ! beginning of the loop over all cells along x.
+  do i=1,nbx                ! beginning of the loop over all cells along x.
+     do j=1,nby             ! beginning of the loop over all cells along y.
         lmpty(i,j)=nint(val2d(i,j)) ! ground type flag flag array 0 or 1
      enddo                  ! end of the loop over all cells along y.
   enddo
   !     reading azimuth
   call twodin(nbx,nby,azfile,val2d,width)
-  do j=1,nby             ! beginning of the loop over all cells along y.
-     do i=1,nbx                ! beginning of the loop over all cells along x.
+  do i=1,nbx                ! beginning of the loop over all cells along x.
+     do j=1,nby             ! beginning of the loop over all cells along y.
         azims(i,j)=val2d(i,j) ! Filling of the array 0-1
         !     conversion of the geographical viewing angles toward the cartesian
         !     angle we assume that the angle in the file illumina.in
@@ -295,16 +295,16 @@ program illumhealth                           ! Beginning
   imax=1
   jmax=1
   call twodin(nbx,nby,lufile,val2d,width)
-  do j=1,nby          ! beginning of the loop over all cells along y.
-     do i=1,nbx             ! beginning of the loop over all cells along x.
+  do i=1,nbx             ! beginning of the loop over all cells along x.
+     do j=1,nby          ! beginning of the loop over all cells along y.
         if (val2d(i,j).lt.0.) then ! searching of negative fluxes
            print*,'***Negative lamp flux!, stopping execution'
            stop
         endif
      enddo               ! end of the loop over all cells along y.
   enddo
-  do j=1,nby          ! of non-null luminosity to speedup the calculation
-     do i=1,nbx             ! searching of the smallest rectangle containing the zone
+  do i=1,nbx             ! searching of the smallest rectangle containing the zone
+     do j=1,nby          ! of non-null luminosity to speedup the calculation
         if (val2d(i,j).ne.0.) then
            if (i.lt.imin) imin=i
            if (i.gt.imax) imax=i
@@ -317,8 +317,8 @@ program illumhealth                           ! Beginning
   if (imin.lt.1) imin=1
   if (jmax.gt.nbx) jmax=nby
   if (imax.gt.nbx) imax=nbx
-  do j=1,nby          ! beginning of the loop over all cells along y.
-     do i=1,nbx             ! beginning of the loop over all cells along x.
+  do i=1,nbx             ! beginning of the loop over all cells along x.
+     do j=1,nby          ! beginning of the loop over all cells along y.
         lamplu(i,j)=val2d(i,j) ! filling lamp power array
         totlu=totlu+lamplu(i,j) ! the total lamp flux should be non-null to proceed to the calculations
      enddo               ! end of the loop over all cells along y.
@@ -333,15 +333,15 @@ program illumhealth                           ! Beginning
      open(UNIT=1, FILE=pafile,status='OLD') ! opening file pa#.dat, angular photometry.
      ! each line (j) is a new azimuth starting at 0 deg (perpendicular to the street) and ending at 180 deg (behind)
      ! on each line we have the zenith angle (i) beginning at 0 (zenith) end ending at 180 (nadir)
-     do j=1,181          ! beginning of the loop for the 181 data points
-        do i=1,181
+     do i=1,181
+        do j=1,181          ! beginning of the loop for the 181 data points
            read(1,*) pval(i,j,stype) ! reading of the data in the array pval.
            pvalto=pvalto+pval(i,j,stype)*2.*sin(real(i-1)*dtheta)*dtheta**2.  ! units of 1/sr.
         enddo
      enddo                  ! end of the loop over the 181 donnees of the fichier pa#.dat.
      close(1)               ! closing file pa#.dat, angular photometry.
-     do j=1,181
-        do i=1,181
+     do i=1,181
+        do j=1,181
            if (pvalto.ne.0.) pvalno(i,j,stype)=pval(i,j,stype)/pvalto ! Normalisation of the photometri! function.
         enddo
      enddo
@@ -349,15 +349,20 @@ program illumhealth                           ! Beginning
   deallocate ( pval )
   deallocate ( val2d )
   !     distribute reflectance values and adding fake buildings
-  do j=1,nby             ! beginning of the loop over all cells along y.
-     do i=1,nbx                ! beginning of the loop over all cells along x.
+  do i=1,nbx                ! beginning of the loop over all cells along x.
+     do j=1,nby             ! beginning of the loop over all cells along y.
         if (gndty(i,j).eq.0) then
            reflec(i,j)=srefl
+         elseif (gndty(i,j).eq.1) then
+           reflec(i,j)=grefl 
         elseif (gndty(i,j).eq.2) then
-           reflec(i,j)=srefl
-           altsob(i,j)=altsol(i,j)+obsH(i,j)
-        elseif ((gndty(i,j).eq.1).or.(gndty(i,j).eq.3)) then
            reflec(i,j)=brefl
+           altsob(i,j)=altsol(i,j)+obsH(i,j)/2.
+        elseif (gndty(i,j).eq.3) then
+           reflec(i,j)=trefl
+           altsob(i,j)=altsol(i,j)+obsH(i,j)           
+        elseif (gndty(i,j).eq.4) then
+           reflec(i,j)=arefl
            altsob(i,j)=altsol(i,j)+obsH(i,j)/2.
         else
            reflec(i,j)=orefl
@@ -368,14 +373,15 @@ program illumhealth                           ! Beginning
   !     computation of the basi! tilt of the pixels along x and along y
   !
   !     0=street
-  !     1=building front and observer               222
-  !     2=building top                              222
-  !     3=building rear                            12223
-  !     4=other                                    12223
-  !     fake building profile                  000012223444444444
-  do j=1,nby                ! beginning of the loop over the rows (latitu) of the domain.
-     do i=1,nbx             ! beginning of the loop over the column (longitude) of the domain.
-        if (gndty(i,j).eq.0) then  ! on street keep the inclinaison without the buildings
+  !     1=grass
+  !     2=building front and observer                   3333
+  !     2=building top                                  3333
+  !     3=building rear                                233334
+  !     4=other                                        233334
+  !     fake building profile                  0000111123333455555
+  do i=1,nbx                ! beginning of the loop over the column (longitude) of the domain.
+     do j=1,nby             ! beginning of the loop over the rows (latitu) of the domain.
+        if ((gndty(i,j).eq.0).or.(gndty(i,j).eq.1).or.(gndty(i,j).eq.5)) then  ! on street and grass keep the inclinaison without the buildings
            if (i.eq.1) then ! specific case close to the border of the domain (vertical side left).
               inclix(i,j)=atan((altsol(i+1,j)-altsol(i,j))/real(dx)) ! computation of the tilt along x of the surface.
            elseif (i.eq.nbx) then ! specifi! case close to the border of the domain (vertical side right).
@@ -417,8 +423,8 @@ program illumhealth                           ! Beginning
   layaod=0.
   hlay=2000.
   !     loop over potential observers
-  do oj=1,nby
-     do oi=1,nbx
+  do oi=1,nbx
+     do oj=1,nby
         !     only calculate if it is an observer position
         if (gndty(oi,oj).eq.1) then
            angazor = (pi*azims(oi,oj))/180.         ! angle to the road  from an observer (gndty=1)
@@ -438,8 +444,8 @@ program illumhealth                           ! Beginning
            if (verbose.ge.1) print*,' Calculating obtrusive light...'
            !     Is any lamp power
            if (totlu.ne.0.) then
-             do y_s=jmin,jmax ! beginning of the loop over the rows (latitud) of the domain.
-                do x_s=imin,imax ! beginning of the loop over the column (longitude the) of the domain.
+              do x_s=imin,imax ! beginning of the loop over the column (longitude the) of the domain.
+                 do y_s=jmin,jmax ! beginning of the loop over the rows (latitud) of the domain.
                     rx_s=real(x_s)*dx
                     ry_s=real(y_s)*dy
                     if (lamplu(x_s,y_s).ne.0.) then ! if the luminosite of the case is null, the program ignore this case.
@@ -505,10 +511,10 @@ program illumhealth                           ! Beginning
                           if (ysrmi.lt.1) ysrmi=1
                           ysrma=y_s+boxy
                           if (ysrma.gt.nby) ysrma=nby
-                          do y_sr=ysrmi,ysrma ! beginning of the loop over the rows (latitu) reflecting.
-                            ry_sr=real(y_sr)*dy
-                             do x_sr=xsrmi,xsrma ! beginning of the loop over the column (longitude) reflecting.
-                                rx_sr=real(x_sr)*dx
+                          do x_sr=xsrmi,xsrma ! beginning of the loop over the column (longitude) reflecting.
+                             rx_sr=real(x_sr)*dx
+                             do y_sr=ysrmi,ysrma ! beginning of the loop over the rows (latitu) reflecting.
+                                ry_sr=real(y_sr)*dy
                                 irefl=0.
                                 z_sr=altsol(x_sr,y_sr)
                                 if ((x_sr.gt.nbx).or.(x_sr.lt.1).or.(y_sr.gt.nby).or.(y_sr.lt.1)) then
@@ -594,10 +600,10 @@ program illumhealth                           ! Beginning
                                          nap=0
                                          nbang=0.
                                          P_indir=0.
-                                         do na=-nint(ouvang),nint(ouvang)
-                                           nap=anglea+na
-                                            do nz=-nint(ouvang),nint(ouvang)
-                                               nzp=anglez+nz
+                                         do nz=-nint(ouvang),nint(ouvang)
+                                            nzp=anglez+nz
+                                            do na=-nint(ouvang),nint(ouvang)
+                                               nap=anglea+na
                                                if (nzp.lt.0) nzp=-nzp
                                                if (nzp.gt.181) nzp=362-nzp ! symetri! function
                                                if (nzp.eq.0) nzp=1
