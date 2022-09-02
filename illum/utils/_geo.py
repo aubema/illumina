@@ -122,7 +122,7 @@ def roads_analysis(domain, res=1, xsize=10000, ysize=10000, buffer=200):
     epsg = estimate_utm_epsg(*coords)
     print(f"Using epsg:{epsg} projection.")
     bounds = shapely.geometry.MultiPoint(
-        tuple(zip(*u.transform(t_crs=epsg)(*coords)))
+        tuple(zip(*transform(t_crs=epsg)(*coords)))
     ).minimum_rotated_rectangle
 
     print("Splitting domain.")
