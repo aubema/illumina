@@ -135,12 +135,22 @@ def to_txt(filename, spd, /, *, sep="  ", header=True):
 
 
 def interpolate(spd, wavelengths):
+    # Based on work taken from http://indico.hep.manchester.ac.uk/getFile.py/access?resId=0&materialId=slides&confId=4586
     if type(wavelengths) == SpectralPowerDistribution:
         wavelengths = wavelengths.wavelengths
 
-    spd.data = np.interp(
-        wavelengths, spd.wavelengths, spd.data, left=0, right=0
-    )
+    def diff(arr):
+        return np.diff(arr, prepend=2 * arr[0] - arr[1])
+
+    spd.data = diff(
+        np.interp(
+            wavelengths,
+            spd.wavelengths,
+            np.cumsum(diff(spd.wavelengths) * spd.data),
+            left=0,
+            right=0,
+        )
+    ) / diff(wavelengths)
     spd.wavelengths = wavelengths
 
     return spd
