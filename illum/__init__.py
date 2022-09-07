@@ -1,6 +1,11 @@
-__version__ = "2.2.2.20220906.19245309"
+__version__ = "2.2.2.20220907.14061283"
 
-from . import MultiScaleData, pytools
+from . import (
+    AngularPowerDistribution,
+    MultiScaleData,
+    SpectralPowerDistribution,
+    pytools,
+)
 from .alternate import alternate
 from .batches import batches
 from .convert import convert
