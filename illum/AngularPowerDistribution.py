@@ -4,6 +4,7 @@ from dataclasses import dataclass
 
 import matplotlib as mpl
 import numpy as np
+import scipy.interpolate
 
 
 def mids(arr, /):
@@ -28,6 +29,9 @@ class AngularPowerDistribution:
 
     def cycle(self, *args, **kwargs):
         return cycle(self, *args, **kwargs)
+
+    def interpolate(self, *args, **kwargs):
+        return interpolate(self, *args, **kwargs)
 
     def normalize(self, *args, **kwargs):
         return normalize(self, *args, **kwargs)
@@ -109,7 +113,7 @@ def to_txt(filename, apd, /, **kwargs):
 
 
 def vertical_profile(apd, /, *, integrated=False):
-    if apd._type_letter in "AB":
+    if apd._type_letter() in "AB":
         raise NotImplementedError(f"Type {apd._type_letter} not supported.")
 
     profile = (
@@ -119,7 +123,7 @@ def vertical_profile(apd, /, *, integrated=False):
             weights=np.diff(mids(apd.horizontal_angles)),
         )
         if len(apd.horizontal_angles) > 1
-        else apd.data[0]
+        else apd.data[:, 0]
     )
     if integrated:
         profile *= (
@@ -134,7 +138,7 @@ def normalize(apd):
 
 
 def cycle(apd, /, *, step=1, kind="linear"):
-    if apd._type_letter in "AB":
+    if apd._type_letter() in "AB":
         raise NotImplementedError(f"Type {apd._type_letter} not supported.")
 
     ha = apd.horizontal_angles
@@ -157,6 +161,29 @@ def cycle(apd, /, *, step=1, kind="linear"):
     )
 
     return apd_cycle
+
+
+def interpolate(apd, /, *, step=1, method="linear"):
+    N = round(90 / step)
+    apd = apd.cycle()
+    ha, va = np.meshgrid(apd.horizontal_angles, apd.vertical_angles)
+    H = np.linspace(0, 360, 4 * N + 1)
+    V = np.linspace(0, 180, 2 * N + 1)
+
+    interp = scipy.interpolate.griddata(
+        (ha.flatten(), va.flatten()),
+        apd.data.flatten(),
+        tuple(np.meshgrid(H, V)),
+        method=method,
+        fill_value=0,
+    )
+
+    return AngularPowerDistribution(
+        lumens=apd.lumens,
+        vertical_angles=V,
+        horizontal_angles=H,
+        data=interp,
+    )
 
 
 def plot(
