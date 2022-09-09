@@ -136,8 +136,14 @@ def vertical_profile(apd, /, *, integrated=False):
 
 
 def normalize(apd):
-    apd.data /= np.sum(apd.vertical_profile(integrated=True))
-    return apd
+    data = apd.data / np.sum(apd.vertical_profile(integrated=True))
+
+    return AngularPowerDistribution(
+        type=apd.type,
+        vertical_angles=apd.vertical_angles,
+        horizontal_angles=apd.horizontal_angles,
+        data=data,
+    )
 
 
 def cycle(apd, /, *, step=1, kind="linear"):

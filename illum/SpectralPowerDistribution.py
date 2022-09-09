@@ -142,7 +142,7 @@ def interpolate(spd, wavelengths):
     def diff(arr):
         return np.diff(arr, prepend=2 * arr[0] - arr[1])
 
-    spd.data = diff(
+    data = diff(
         np.interp(
             wavelengths,
             spd.wavelengths,
@@ -151,9 +151,13 @@ def interpolate(spd, wavelengths):
             right=0,
         )
     ) / diff(wavelengths)
-    spd.wavelengths = wavelengths
 
-    return spd
+    return SpectralPowerDistribution(
+        wavelengths=wavelengths,
+        data=data,
+        description=spd.description,
+        quantity=spd.quantity,
+    )
 
 
 def integral(spd, norm=None):
@@ -162,14 +166,20 @@ def integral(spd, norm=None):
     return np.trapz(spd.interpolate(norm).data * norm.data, norm.wavelengths)
 
 
-def normalize(spd, /, *, type="max", norm=None):
-    if type == "max":
-        spd.data /= np.max(spd.data)
-        spd.quantity = "relative"
-    elif type == "norm":
-        spd.data /= integral(spd, norm=norm)
-        spd.quantity = "other"
-    return spd
+def normalize(spd, norm=None):
+    if norm is None:
+        data = spd.data / np.max(spd.data)
+        quantity = "relative"
+    else:
+        data = spd.data / integral(spd, norm=norm)
+        quantity = "other"
+
+    return SpectralPowerDistribution(
+        wavelengths=spd.wavelengths,
+        data=data,
+        description=spd.description,
+        quantity=quantity,
+    )
 
 
 def plot(spd, /, ax=None, *, axis_labels=False, **kwargs):
