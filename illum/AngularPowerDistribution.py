@@ -39,6 +39,9 @@ class AngularPowerDistribution:
     def plot(self, *args, **kwargs):
         return plot(self, *args, **kwargs)
 
+    def plot3d(self, *args, **kwargs):
+        return plot3d(self, *args, **kwargs)
+
     def to_ies(self, filename, *args, **kwargs):
         return to_ies(filename, self, *args, **kwargs)
 
@@ -226,3 +229,27 @@ def plot(
     ax.set_ylim(va[0], va[-1])
 
     return im
+
+
+def plot3d(apd, /, *, wireframe=False, **kwargs):
+    ha, va = np.meshgrid(
+        np.deg2rad(90 - apd.horizontal_angles),
+        np.deg2rad(180 - apd.vertical_angles),
+        copy=False,
+        sparse=True,
+    )
+    r = apd.data
+    x = r * np.sin(va) * np.cos(ha)
+    y = r * np.sin(va) * np.sin(ha)
+    z = r * np.cos(va)
+
+    m = max(np.max(np.abs(x)), np.max(np.abs(y)), np.max(np.abs(z)))
+
+    fig = mpl.pyplot.figure()
+    ax = fig.add_subplot(projection="3d")
+    (ax.plot_wireframe if wireframe else ax.plot_surface)(
+        x, y, z, rstride=1, cstride=1, **kwargs
+    )
+    ax.set_xlim(-m, m)
+    ax.set_ylim(-m, m)
+    ax.set_zlim(-m, m)
