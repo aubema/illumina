@@ -36,6 +36,7 @@ setup(
         "pyproj",
         "pyyaml",
         "scipy",
+        "xmltodict",
     ],
     extras_require={
         "dev": [
