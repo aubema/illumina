@@ -13,10 +13,12 @@ from glob import glob
 
 import click
 import illum
+import illum.AngularPowerDistribution as APD
+import illum.MultiScaleData as MSD
+import illum.pytools as pt
+import illum.SpectralPowerDistribution as SPD
 import numpy as np
 import yaml
-from illum import MultiScaleData as MSD
-from illum import pytools as pt
 from illum.inventory import from_lamps, from_zones
 from illum.OPAC import OPAC
 from scipy.interpolate import griddata
@@ -96,27 +98,44 @@ def inputs():
     print("Loading photometry files.")
 
     # Angular distribution (normalised to 1)
-    lop_files = glob("Lights/*.lop")
-    angles = np.arange(181, dtype=float)
+    def parse_key(fname):
+        return os.path.basename(fname).rsplit(".", 1)[0].split("_", 1)[0]
+
+    angles = np.arange(181)
     lop = {
-        os.path.basename(s)
-        .rsplit(".", 1)[0]
-        .split("_", 1)[0]: pt.load_lop(angles, s)
-        for s in lop_files
+        parse_key(fname): APD.from_txt(fname).normalize()
+        for fname in glob("Lights/*.lop") + glob("Lights/*.LOP")
+    }
+    lop.update(
+        {
+            parse_key(fname): APD.from_ies(fname).normalize()
+            for fname in glob("Lights/*.ies") + glob("Lights/*.IES")
+        }
+    )
+    lop = {
+        key: apd.normalize().interpolate(step=1) for key, apd in lop.items()
     }
 
     # Spectral distribution (normalised with scotopric vision to 1)
-    wav, viirs = np.loadtxt("Lights/viirs.dat", skiprows=1).T
-    viirs /= np.max(viirs)
-    wav, norm_spectrum = np.loadtxt("Lights/photopic.dat", skiprows=1).T
-    norm_spectrum /= np.max(norm_spectrum)
+    norm_spectrum = SPD.from_txt("Lights/photopic.dat").normalize()
+    wav = norm_spectrum.wavelengths
+    viirs = (
+        SPD.from_txt("Lights/viirs.dat").interpolate(norm_spectrum).normalize()
+    )
 
-    spct_files = glob("Lights/*.spct")
     spct = {
-        os.path.basename(s)
-        .rsplit(".", 1)[0]
-        .split("_", 1)[0]: pt.load_spct(wav, norm_spectrum, s)
-        for s in spct_files
+        parse_key(fname): SPD.from_txt(fname)
+        for fname in glob("Lights/*.spct") + glob("Lights/*.SPCT")
+    }
+    spct.update(
+        {
+            parse_key(fname): SPD.from_spdx(fname)
+            for fname in glob("Lights/*.spdx") + glob("Lights/*.SPDX")
+        }
+    )
+    spct = {
+        key: spd.interpolate(norm_spectrum).normalize(norm_spectrum)
+        for key, spd in spct.items()
     }
 
     print("Splitting in wavelengths bins.")
@@ -138,17 +157,10 @@ def inputs():
 
     print("Interpolating reflectance.")
 
-    aster_files = glob("Lights/*.aster")
     aster = {
-        os.path.basename(s).split(".", 1)[0]: np.loadtxt(s)
-        for s in aster_files
+        parse_key(fname): SPD.from_aster(fname).interpolate(wav)
+        for fname in glob("Lights/*.aster") + glob("Lights/*.ASTER")
     }
-
-    for type in aster:
-        wl, refl = aster[type].T
-        wl *= 1000.0
-        refl /= 100.0
-        aster[type] = np.interp(wav, wl, refl)
 
     sum_coeffs = sum(
         params["reflectance"][type] for type in params["reflectance"]
@@ -157,7 +169,7 @@ def inputs():
         sum_coeffs = 1.0
 
     refl = sum(
-        aster[type] * coeff / sum_coeffs
+        aster[type].data * coeff / sum_coeffs
         for type, coeff in params["reflectance"].items()
     )
 

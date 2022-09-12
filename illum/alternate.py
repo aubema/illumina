@@ -5,12 +5,13 @@ import shutil
 from glob import glob
 
 import click
+import illum.AngularPowerDistribution as APD
+import illum.MultiScaleData as MSD
+import illum.pytools as pt
+import illum.SpectralPowerDistribution as SPD
 import numpy as np
 import yaml
-from illum import MultiScaleData as MSD
-from illum import pytools as pt
 from illum.inventory import from_lamps, from_zones
-from scipy.interpolate import interp1d as interp
 
 
 @click.command(name="alternate")
@@ -92,30 +93,44 @@ def alternate(name, zones, lights):
     print("\nLoading data...")
 
     # Angular distribution (normalised to 1)
-    lop_files = glob("Lights/*.lop")
-    angles = np.arange(181, dtype=float)
+    def parse_key(fname):
+        return os.path.basename(fname).rsplit(".", 1)[0].split("_", 1)[0]
+
+    angles = np.arange(181)
     lop = {
-        os.path.basename(s)
-        .rsplit(".", 1)[0]
-        .split("_", 1)[0]: pt.load_lop(angles, s)
-        for s in lop_files
+        parse_key(fname): APD.from_txt(fname).normalize()
+        for fname in glob("Lights/*.lop") + glob("Lights/*.LOP")
+    }
+    lop.update(
+        {
+            parse_key(fname): APD.from_ies(fname).normalize()
+            for fname in glob("Lights/*.ies") + glob("Lights/*.IES")
+        }
+    )
+    lop = {
+        key: apd.normalize().interpolate(step=1) for key, apd in lop.items()
     }
 
     # Spectral distribution (normalised with scotopric vision to 1)
-    wav, viirs = np.loadtxt("Lights/viirs.dat", skiprows=1).T
-    viirs = pt.spct_norm(wav, viirs)
-    scotopic = pt.load_spct(wav, np.ones(wav.shape), "Lights/scotopic.dat", 1)
-    photopic = pt.load_spct(wav, np.ones(wav.shape), "Lights/photopic.dat", 1)
+    norm_spectrum = SPD.from_txt("Lights/photopic.dat").normalize()
+    wav = norm_spectrum.wavelengths
+    viirs = (
+        SPD.from_txt("Lights/viirs.dat").interpolate(norm_spectrum).normalize()
+    )
 
-    ratio_ps = 1.0
-    norm_spectrum = ratio_ps * photopic + (1 - ratio_ps) * scotopic
-
-    spct_files = glob("Lights/*.spct")
     spct = {
-        os.path.basename(s)
-        .rsplit(".", 1)[0]
-        .split("_", 1)[0]: pt.load_spct(wav, norm_spectrum, s)
-        for s in spct_files
+        parse_key(fname): SPD.from_txt(fname)
+        for fname in glob("Lights/*.spct") + glob("Lights/*.SPCT")
+    }
+    spct.update(
+        {
+            parse_key(fname): SPD.from_spdx(fname)
+            for fname in glob("Lights/*.spdx") + glob("Lights/*.SPDX")
+        }
+    )
+    spct = {
+        key: spd.interpolate(norm_spectrum).normalize(norm_spectrum)
+        for key, spd in spct.items()
     }
 
     # Make bins
@@ -136,17 +151,10 @@ def alternate(name, zones, lights):
 
     out_name = params["exp_name"]
 
-    asper_files = glob("Lights/*.aster")
-    asper = {
-        os.path.basename(s).split(".", 1)[0]: np.loadtxt(s)
-        for s in asper_files
+    aster = {
+        parse_key(fname): SPD.from_aster(fname).interpolate(wav)
+        for fname in glob("Lights/*.aster") + glob("Lights/*.ASTER")
     }
-
-    for type in asper:
-        wl, refl = asper[type].T
-        wl *= 1000.0
-        refl /= 100.0
-        asper[type] = interp(wl, refl, bounds_error=False, fill_value=0.0)(wav)
 
     sum_coeffs = sum(
         params["reflectance"][type] for type in params["reflectance"]
@@ -155,19 +163,15 @@ def alternate(name, zones, lights):
         sum_coeffs = 1.0
 
     refl = sum(
-        asper[type] * coeff / sum_coeffs
+        aster[type].data * coeff / sum_coeffs
         for type, coeff in params["reflectance"].items()
     )
 
     reflect = [np.mean(refl[mask]) for mask in bool_array]
+    nspct = [np.mean(norm_spectrum.data[mask] for mask in bool_array)]
 
     with open(dirname + "/refl.lst", "w") as zfile:
         zfile.write("\n".join(["%.06g" % n for n in reflect]) + "\n")
-
-    # Photopic/scotopic spectrum
-    nspct = ratio_ps * photopic + (1 - ratio_ps) * scotopic
-    nspct = nspct / np.sum(nspct)
-    nspct = [np.mean(nspct[mask]) for mask in bool_array]
 
     for aero_file in glob("Inputs/*.txt"):
         shutil.copy(aero_file, aero_file.replace("Inputs", dirname))
