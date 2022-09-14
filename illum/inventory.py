@@ -50,7 +50,7 @@ def from_lamps(
 
     for n in range(n_bins):
         for s in sources:
-            profile = lop[s].vertical_profile()
+            profile = lop[s].vertical_profile()[::-1]
             np.savetxt(
                 dir_name + "fctem_wl_%g_lamp_%s.dat" % (x[n], s),
                 np.concatenate([profile, angles]).reshape((2, -1)).T,
@@ -134,7 +134,7 @@ def from_zones(
 
     for n in range(n_bins):
         for s in sources:
-            profile = lop[s].vertical_profile()
+            profile = lop[s].vertical_profile()[::-1]
             np.savetxt(
                 dir_name + "fctem_wl_%g_lamp_%s.dat" % (x[n], s),
                 np.concatenate([profile, angles]).reshape((2, -1)).T,

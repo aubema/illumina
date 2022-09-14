@@ -92,7 +92,7 @@ def make_zones(theta, lop, wl, spct, ivtr, sources):
     for i, zone in enumerate(ivtr):
         for j, s in enumerate(sources):
             zones[i, j] *= sum(
-                c * spct[t].data * lop[l].vertical_profile()[:, None]
+                c * spct[t].data * lop[l].vertical_profile()[::-1, None]
                 for c, t, l in zone
                 if l == s
             )
