@@ -50,9 +50,10 @@ def from_lamps(
 
     for n in range(n_bins):
         for s in sources:
+            profile = lop[s].vertical_profile()[::-1]
             np.savetxt(
                 dir_name + "fctem_wl_%g_lamp_%s.dat" % (x[n], s),
-                np.concatenate([lop[s], angles]).reshape((2, -1)).T,
+                np.concatenate([profile, angles]).reshape((2, -1)).T,
             )
 
     with open(dir_name + "lamps.lst", "w") as zfile:
@@ -86,7 +87,10 @@ def from_lamps(
                 for s in local_sources:
                     mask = photometry[:, 1][ind] == s
                     fctem = np.array(
-                        [spct[type] for type in photometry[:, 0][ind][mask]]
+                        [
+                            spct[type].data
+                            for type in photometry[:, 0][ind][mask]
+                        ]
                     )
                     fctem = np.sum(fctem * lumens[mask, None], 0)
 
@@ -130,9 +134,10 @@ def from_zones(
 
     for n in range(n_bins):
         for s in sources:
+            profile = lop[s].vertical_profile()[::-1]
             np.savetxt(
                 dir_name + "fctem_wl_%g_lamp_%s.dat" % (x[n], s),
-                np.concatenate([lop[s], angles]).reshape((2, -1)).T,
+                np.concatenate([profile, angles]).reshape((2, -1)).T,
             )
 
     with open(dir_name + "lamps.lst", "w") as zfile:
@@ -198,7 +203,7 @@ def from_zones(
         )
         / sinx[angles < 70].sum()
     )
-    integral = np.sum(viirs * (Gdown * refl / np.pi + Gup), (1, 2)) * (
+    integral = np.sum(viirs.data * (Gdown * refl / np.pi + Gup), (1, 2)) * (
         wav[1] - wav[0]
     )
 

@@ -1,8 +1,15 @@
+#!/usr/bin/env python3
+
 from subprocess import check_output
 
 from setuptools import setup
 
-import illum
+with open("illum/__init__.py") as f:
+    info = {}
+    for line in f:
+        if line.startswith("__version__"):
+            exec(line, info)
+            break
 
 gdal_version = (
     check_output(["gdalinfo", "--version"]).decode().split(",")[0].split()[1]
@@ -10,7 +17,7 @@ gdal_version = (
 
 setup(
     name="illum",
-    version=illum.__version__,
+    version=info["__version__"],
     packages=["illum"],
     install_requires=[
         "astropy",
@@ -30,6 +37,7 @@ setup(
         "pyyaml",
         "rasterio",
         "scipy",
+        "xmltodict",
     ],
     extras_require={
         "dev": [
