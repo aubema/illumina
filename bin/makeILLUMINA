@@ -5,15 +5,15 @@
 #
 #    Copyright (C) 2012  Martin Aube
 #
-#    This program kernel/is free kernel/software: you can redistribute it and/or kernel/modify
+#    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
-#    kernel/the Free kernel/Software Foundation, either version 3 of the License, or
+#    the Free Software Foundation, either version 3 of the License, or
 #    (at your option) any later version.
 #
-#    This program is distributed in the hope that it will be kernel/useful,
+#    This program is distributed in the hope that it will be useful,
 #    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY kernel/or Fkernel/ITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public kernel/License for more details.
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
 #
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
@@ -32,11 +32,11 @@ folder=`pwd`
 chmod a+x bin/*
 
 # options de debuggage -Wall -fcheck=all -g -fbacktrace -ffpe-trap=zero
-echo $F77" -Wunused-parameter -mcmodel=medium -O3 kernel/illumina.f kernel/zone_diffusion.f kernel/diffusion.f kernel/angle3points.f kernel/anglesolide.f kernel/transmita.f kernel/transmitm.f kernel/transmitl.f kernel/anglezenithal.f kernel/angleazimutal.f kernel/horizon.f kernel/cloudreflectance.f  kernel/twodin.f kernel/twodout.f kernel/transTOA.f kernel/curvature.f kernel/molabs.f -o bin/illumina"
-sed -i "s/__version__/$version/" kernel/illumina.f
-$F77 -Wunused-parameter -mcmodel=medium -O3 kernel/illumina.f kernel/zone_diffusion.f kernel/diffusion.f kernel/angle3points.f kernel/anglesolide.f kernel/transmita.f kernel/transmitm.f kernel/transmitl.f kernel/anglezenithal.f kernel/angleazimutal.f kernel/horizon.f kernel/cloudreflectance.f  kernel/twodin.f kernel/twodout.f kernel/transTOA.f kernel/curvature.f kernel/molabs.f -o bin/illumina
-sed -i "s/$version/__version__/" kernel/illumina.f
-echo $F77" kernel/continue_illumina.f -o bin/continue_illumina"
-$F77 kernel/continue_illumina.f -o bin/continue_illumina
+echo $F77" -Wunused-parameter -mcmodel=medium -O3 illum/kernel/illumina.f illum/kernel/zone_diffusion.f illum/kernel/diffusion.f illum/kernel/angle3points.f illum/kernel/anglesolide.f illum/kernel/transmita.f illum/kernel/transmitm.f illum/kernel/transmitl.f illum/kernel/anglezenithal.f illum/kernel/angleazimutal.f illum/kernel/horizon.f illum/kernel/cloudreflectance.f  illum/kernel/twodin.f illum/kernel/twodout.f illum/kernel/transTOA.f illum/kernel/curvature.f illum/kernel/molabs.f -o bin/illumina"
+sed -i "s/__version__/$version/" illum/kernel/illumina.f
+$F77 -Wunused-parameter -mcmodel=medium -O3 illum/kernel/illumina.f illum/kernel/zone_diffusion.f illum/kernel/diffusion.f illum/kernel/angle3points.f illum/kernel/anglesolide.f illum/kernel/transmita.f illum/kernel/transmitm.f illum/kernel/transmitl.f illum/kernel/anglezenithal.f illum/kernel/angleazimutal.f illum/kernel/horizon.f illum/kernel/cloudreflectance.f  illum/kernel/twodin.f illum/kernel/twodout.f illum/kernel/transTOA.f illum/kernel/curvature.f illum/kernel/molabs.f -o bin/illumina
+sed -i "s/$version/__version__/" illum/kernel/illumina.f
+echo $F77" illum/kernel/continue_illumina.f -o bin/continue_illumina"
+$F77 illum/kernel/continue_illumina.f -o bin/continue_illumina
 chmod a+x bin/*
 chmod a+x *.bash

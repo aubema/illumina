@@ -1,20 +1,19 @@
 #!/usr/bin/env python3
 
-import os
 import sys
 from collections import OrderedDict
+from importlib.resources import path
 
-import illum
 import numpy as np
 import yaml
-from illum.pytools import LOP_norm
 from scipy import interpolate
+
+from illum.pytools import LOP_norm
 
 
 def OPAC(wavelengths):
     # READ DATA FROM INPUT FILES
-    illumpath = os.path.dirname(illum.__path__[0])
-    mie_path = illumpath + "/Aerosol_optics/"
+    mie_path = path("illum", "data/Aerosol_optics")
 
     with open("inputs_params.in") as f:
         params = yaml.safe_load(f)
