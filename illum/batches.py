@@ -12,6 +12,7 @@ import shutil
 from collections import ChainMap, OrderedDict
 from functools import partial
 from glob import glob
+from importlib.resources import path
 from itertools import product
 
 import click
@@ -21,6 +22,8 @@ import yaml
 from progressbar import progressbar
 
 import illum
+from illum import MultiScaleData as MSD
+from illum.pytools import save_bin
 
 progress = partial(progressbar, redirect_stdout=True)
 

@@ -5,15 +5,15 @@
 #
 #    Copyright (C) 2012  Martin Aube
 #
-#    This program kernel/is free kernel/software: you can redistribute it and/or kernel/modify
+#    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
-#    kernel/the Free kernel/Software Foundation, either version 3 of the License, or
+#    the Free Software Foundation, either version 3 of the License, or
 #    (at your option) any later version.
 #
-#    This program is distributed in the hope that it will be kernel/useful,
+#    This program is distributed in the hope that it will be useful,
 #    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY kernel/or Fkernel/ITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public kernel/License for more details.
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
 #
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
@@ -32,8 +32,8 @@ folder=`pwd`
 chmod a+x bin/*
 
 # options de debuggage -Wall -fcheck=all -g -fbacktrace -ffpe-trap=zero
-echo $F77" -Wunused-parameter -mcmodel=medium -O3 kernel/illum-health.f90 kernel/angle3points.f kernel/anglesolide.f kernel/anglezenithal.f kernel/angleazimutal.f kernel/horizon.f90 kernel/twodin.f90 kernel/transTOA.f kernel/transmitm.f kernel/transmita.f kernel/transmitl.f kernel/molabs.f kernel/curvature.f -o bin/illum-health"
-$F77 -Wunused-parameter -mcmodel=medium -O3 kernel/illum-health.f90 kernel/angle3points.f kernel/anglesolide.f kernel/anglezenithal.f kernel/angleazimutal.f kernel/horizon.f90 kernel/twodin.f90 kernel/transTOA.f kernel/transmitm.f kernel/transmita.f kernel/transmitl.f kernel/molabs.f kernel/curvature.f -o bin/illum-health
-# sed -i "s/$version/__version__/" kernel/illum-health.f90
+echo $F77" -Wunused-parameter -mcmodel=medium -O3 illum/kernel/illum-health.f90 illum/kernel/angle3points.f illum/kernel/anglesolide.f illum/kernel/anglezenithal.f illum/kernel/angleazimutal.f illum/kernel/horizon.f90 illum/kernel/twodin.f90 illum/kernel/transTOA.f illum/kernel/transmitm.f illum/kernel/transmita.f illum/kernel/transmitl.f illum/kernel/molabs.f illum/kernel/curvature.f -o bin/illum-health"
+$F77 -Wunused-parameter -mcmodel=medium -O3 illum/kernel/illum-health.f90 illum/kernel/angle3points.f illum/kernel/anglesolide.f illum/kernel/anglezenithal.f illum/kernel/angleazimutal.f illum/kernel/horizon.f90 illum/kernel/twodin.f90 illum/kernel/transTOA.f illum/kernel/transmitm.f illum/kernel/transmita.f illum/kernel/transmitl.f illum/kernel/molabs.f illum/kernel/curvature.f -o bin/illum-health
+
 chmod a+x bin/*
 chmod a+x *.bash

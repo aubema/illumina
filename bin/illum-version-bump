@@ -2,6 +2,8 @@
 
 import argparse
 
+import illum
+
 parser = argparse.ArgumentParser()
 parser.add_argument(
     "-m",
@@ -11,7 +13,7 @@ parser.add_argument(
 )
 p = parser.parse_args()
 
-with open("illum/__init__.py") as f:
+with open(illum.path + "/illum/__init__.py") as f:
     content = f.read()
 line = content.split("\n")[0]
 version = line.split("=")[1].strip().strip("\"'")
@@ -28,7 +30,7 @@ while (res := input("Do you want to continue? (Enter y/n) ").lower()) not in {
     pass
 
 if res == "y":
-    with open("illum/__init__.py", "w") as f:
+    with open(illum.path + "/illum/__init__.py", "w") as f:
         f.write(content.replace(version, ".".join(parts)))
 else:
     print("Aborting.")

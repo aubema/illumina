@@ -10,13 +10,13 @@
 import os
 import shutil
 from glob import glob
+from importlib.resources import path
 
 import click
 import numpy as np
 import yaml
 from scipy.interpolate import griddata
 
-import illum
 import illum.AngularPowerDistribution as APD
 import illum.MultiScaleData as MSD
 import illum.SpectralPowerDistribution as SPD
@@ -181,7 +181,7 @@ def inputs():
 
     print("Linking mie files.")
 
-    illumpath = os.path.dirname(illum.__path__[0])
+    illumpath = path("illum", "data").as_posix()
     shutil.copy2(
         os.path.abspath(illumpath + "/Molecular_optics/MolecularAbs.txt"),
         dir_name,
