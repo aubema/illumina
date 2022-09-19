@@ -1,0 +1,6 @@
+{
+  "commands": [
+    "**/*.f?? : fprettify --indent 2 --whitespace 4 --strict-indent --enable-decl --enable-replacements --c-relations --case 2 2 2 2 {relFullPath}",
+    "**/*.F?? : fprettify --indent 2 --whitespace 4 --strict-indent --enable-decl --enable-replacements --c-relations --case 2 2 2 2 {relFullPath}"
+  ]
+}
