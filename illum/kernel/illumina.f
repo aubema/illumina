@@ -360,7 +360,7 @@ c  determine the Length of basenm
       pclgp=basenm(1:lenbase)//'_pcl.gplot'
 c opening output file
       open(unit=2,file=outfile,status='unknown')
-        write(2,*) "ILLUMINA version __version__"
+        write(2,*) "ILLUMINA __version__"
         write(2,*) 'FILE USED:'
         write(2,*) mnaf,diffil
         print*,'Wavelength (nm):',lambda,
@@ -715,7 +715,7 @@ c ******************************************************************************
                   else
                     hh=1.
                   endif
-               ff=0.   
+               ff=0.
                if (obsobs.eq.1) then
 c sub-grid obstacles
                   if (dho.gt.drefle(x_obs,y_obs)+drefle(x_s,y_s)) then    ! light path to observer larger than the mean free path -> subgrid obstacles
@@ -729,13 +729,13 @@ c sub-grid obstacles
                     endif
                   endif                                                   ! end light path to the observer larger than mean free path
                endif
-                  
- 
- 
- 
-                  
+
+
+
+
+
                   call anglezenithal(rx_s,ry_s,z_s                        ! zenithal angle source-observer
-     +            ,rx_obs,ry_obs,z_obs,dzen)                  
+     +            ,rx_obs,ry_obs,z_obs,dzen)
                   ff2=0.
                   if (dho.gt.drefle(x_s,y_s)) then                        ! light path from source larger than the mean free path -> subgrid obstacles
                     angmin=pi/2.-atan2((altsol(x_s,y_s)+
@@ -746,14 +746,14 @@ c sub-grid obstacles
                     else
                       ff2=ofill(x_s,y_s)
                     endif
-                  endif                                                   ! end light path to the observer larger than mean free path                  
+                  endif                                                   ! end light path to the observer larger than mean free path
                   call anglezenithal(rx_obs,ry_obs,z_obs                  ! zenithal angle source-observer
-     +            ,rx_s,ry_s,z_s,dzen)                  
-                  
-                  
-                  
-                  
-                  
+     +            ,rx_s,ry_s,z_s,dzen)
+
+
+
+
+
 c projection angle of line to the lamp and the viewing angle
                   call angle3points (rx_s,ry_s,z_s,rx_obs,                ! scattering angle.
      +            ry_obs,z_obs,rx,ry,rz,dang)
@@ -965,11 +965,11 @@ c sub-grid obstacles
                                 endif
                               endif                                       ! end light path to the observer larger than mean free path
                endif
-                              
-                              
-                              
+
+
+
                   call anglezenithal(rx_sr,ry_sr,z_sr                     ! zenithal angle surface-observer
-     +            ,rx_obs,ry_obs,z_obs,dzen)                  
+     +            ,rx_obs,ry_obs,z_obs,dzen)
                   ff2=0.
                   if (dho.gt.drefle(x_sr,y_sr)) then                      ! light path from reflecting surface larger than the mean free path -> subgrid obstacles
                     angmin=pi/2.-atan2((altsol(x_sr,y_sr)+
@@ -980,12 +980,12 @@ c sub-grid obstacles
                     else
                       ff2=ofill(x_sr,y_sr)
                     endif
-                  endif                                                   ! end light path to the observer larger than mean free path                                                
+                  endif                                                   ! end light path to the observer larger than mean free path
                               call anglezenithal(rx_obs,ry_obs,z_obs      ! zenithal angle source-observer
-     +                        ,rx_sr,ry_sr,z_sr,dzen)                              
-                              
-                              
-                              
+     +                        ,rx_sr,ry_sr,z_sr,dzen)
+
+
+
 c projection angle of line to the lamp and the viewing angle
                               call angle3points (rx_sr,ry_sr,z_sr,        ! scattering angle.
      +                        rx_obs,ry_obs,z_obs,rx,ry,rz,dang)
