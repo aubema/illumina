@@ -37,7 +37,7 @@ def remove_isolated(im, window, n_keep):
     return np.where(mask, np.nan, im), mask
 
 
-if __name__ == "__main__":
+def process():
     with open("iss_params.in") as f:
         p = yaml.safe_load(f)
 
@@ -93,3 +93,7 @@ if __name__ == "__main__":
         os.path.join(p["wd"], "tech.tiff"), tech, rst, dtype="float32"
     )
     u.save_geotiff(os.path.join(p["wd"], "domain.tiff"), rst.read(1) > 0, rst)
+
+
+if __name__ == "__main__":
+    process()
