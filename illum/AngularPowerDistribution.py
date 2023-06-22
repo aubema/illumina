@@ -126,7 +126,7 @@ def vertical_profile(apd, /, *, integrated=False):
             weights=np.diff(mids(apd.horizontal_angles)),
         )
         if len(apd.horizontal_angles) > 1
-        else apd.data[:, 0]
+        else apd.data[:, 0].copy()
     )
     if integrated:
         profile *= (
