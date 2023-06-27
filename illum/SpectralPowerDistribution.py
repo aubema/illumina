@@ -150,7 +150,7 @@ def interpolate(spd, wavelengths):
         x=spd.wavelengths,
         initial=0,
     )
-    interpolator = scipy.integrate.CubicHermiteSpline(
+    interpolator = scipy.interpolate.CubicHermiteSpline(
         x=spd.wavelengths,
         y=integral,
         dydx=spd.data,  # The data is the derivative of its own integral
