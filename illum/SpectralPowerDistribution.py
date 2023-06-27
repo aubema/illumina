@@ -145,7 +145,7 @@ def interpolate(spd, wavelengths):
 
     # Interpolate the integral, then derivate
 
-    integral = scipy.integrate.cumtrapz(
+    integral = scipy.integrate.cumulative_trapezoid(
         y=spd.data,
         x=spd.wavelengths,
         initial=0,
