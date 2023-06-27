@@ -116,8 +116,9 @@ def inputs():
         key: apd.normalize().interpolate(step=1) for key, apd in lop.items()
     }
 
-    # Spectral distribution (normalised with scotopric vision to 1)
+    # Spectral distribution (normalised with scotopric vision to 1 lm / W)
     norm_spectrum = SPD.from_txt("Lights/photopic.dat").normalize()
+    norm_spectrum.data *= 683.002
     wav = norm_spectrum.wavelengths
     viirs = (
         SPD.from_txt("Lights/viirs.dat").interpolate(norm_spectrum).normalize()
