@@ -6,6 +6,8 @@ from dataclasses import dataclass
 
 import matplotlib as mpl
 import numpy as np
+import scipy.integrate
+import scipy.interpolate
 import xmltodict
 
 _units_table = {
@@ -135,26 +137,34 @@ def to_txt(filename, spd, /, *, sep="  ", header=True):
 
 
 def interpolate(spd, wavelengths):
-    # Based on work taken from http://indico.hep.manchester.ac.uk/getFile.py/access?resId=0&materialId=slides&confId=4586
     if type(wavelengths) == SpectralPowerDistribution:
         wavelengths = wavelengths.wavelengths
 
-    def diff(arr):
+    def diff(arr):  # Derivative
         return np.diff(arr, prepend=2 * arr[0] - arr[1])
 
-    data = diff(
-        np.interp(
-            wavelengths,
-            spd.wavelengths,
-            np.cumsum(diff(spd.wavelengths) * spd.data),
-            left=0,
-            right=0,
-        )
-    ) / diff(wavelengths)
+    # Interpolate the integral, then derivate
+
+    integral = scipy.integrate.cumulative_trapezoid(
+        y=spd.data,
+        x=spd.wavelengths,
+        initial=0,
+    )
+    interpolator = scipy.interpolate.CubicHermiteSpline(
+        x=spd.wavelengths,
+        y=integral,
+        dydx=spd.data,  # The data is the derivative of its own integral
+        extrapolate=False,
+    )
+    # Evaluate in the middle of the bin (logic unclear, but better results)
+    interpolated_integral = np.nan_to_num(
+        interpolator(wavelengths + diff(wavelengths / 2))
+    )
+    interpolated_data = diff(interpolated_integral) / diff(wavelengths)  # Derivate
 
     return SpectralPowerDistribution(
         wavelengths=wavelengths,
-        data=data,
+        data=interpolated_data,
         description=spd.description,
         quantity=spd.quantity,
     )
