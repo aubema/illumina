@@ -1,11 +1,12 @@
 __version__ = "2.2.4"
 
-from . import (
-    AngularPowerDistribution,
-    MultiScaleData,
-    SpectralPowerDistribution,
-    pytools,
-)
+from . import AngularPowerDistribution
+from . import AngularPowerDistribution as APD
+from . import MultiScaleData
+from . import MultiScaleData as MSD
+from . import SpectralPowerDistribution
+from . import SpectralPowerDistribution as SPD
+from . import pytools
 from .alternate import alternate
 from .batches import batches
 from .convert import convert
