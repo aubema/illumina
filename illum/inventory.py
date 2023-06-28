@@ -50,9 +50,10 @@ def from_lamps(
 
     for n in range(n_bins):
         for s in sources:
+            profile = lop[s].vertical_profile()[::-1]
             np.savetxt(
                 dir_name + "fctem_wl_%g_lamp_%s.dat" % (x[n], s),
-                np.concatenate([lop[s], angles]).reshape((2, -1)).T,
+                np.concatenate([profile, angles]).reshape((2, -1)).T,
             )
 
     with open(dir_name + "lamps.lst", "w") as zfile:
@@ -86,7 +87,10 @@ def from_lamps(
                 for s in local_sources:
                     mask = photometry[:, 1][ind] == s
                     fctem = np.array(
-                        [spct[type] for type in photometry[:, 0][ind][mask]]
+                        [
+                            spct[type].data
+                            for type in photometry[:, 0][ind][mask]
+                        ]
                     )
                     fctem = np.sum(fctem * lumens[mask, None], 0)
 
@@ -130,9 +134,10 @@ def from_zones(
 
     for n in range(n_bins):
         for s in sources:
+            profile = lop[s].vertical_profile()[::-1]
             np.savetxt(
                 dir_name + "fctem_wl_%g_lamp_%s.dat" % (x[n], s),
-                np.concatenate([lop[s], angles]).reshape((2, -1)).T,
+                np.concatenate([profile, angles]).reshape((2, -1)).T,
             )
 
     with open(dir_name + "lamps.lst", "w") as zfile:
@@ -186,19 +191,19 @@ def from_zones(
     S = np.array([viirs_dat.pixel_size(i) ** 2 for i in range(len(viirs_dat))])
 
     # Calculate zones lamps
-    zones = pt.make_zones(angles, lop, wav, spct, zonData, sources)
+    zones = pt.make_zones(angles, lop, wav, spct, zonData, sources).transpose((0,1,3,2))
 
     # phie = DNB * S / int( R ( rho/pi Gdown + Gup ) ) dlambda
-    Gdown = np.tensordot(
-        zones[:, :, angles > 90], sinx[angles > 90], axes=([2], [0])
+    Gdown = np.dot(
+        zones[..., angles > 90], sinx[angles > 90]
     )
     Gup = (
-        np.tensordot(
-            zones[:, :, angles < 70], sinx[angles < 70], axes=([2], [0])
+        np.dot(
+            zones[..., angles < 70], sinx[angles < 70]
         )
         / sinx[angles < 70].sum()
     )
-    integral = np.sum(viirs * (Gdown * refl / np.pi + Gup), (1, 2)) * (
+    integral = np.sum(viirs.data * (Gdown * refl / np.pi + Gup), (1, 2)) * (
         wav[1] - wav[0]
     )
 
@@ -211,7 +216,7 @@ def from_zones(
     ]
 
     ratio = [
-        np.tensordot(zones[..., ind], sinx, axes=([2], [0])).mean(-1)
+        np.dot(zones[:,:, ind], sinx).mean(-1)
         for ind in bool_array
     ]
 
