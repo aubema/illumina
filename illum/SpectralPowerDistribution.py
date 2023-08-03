@@ -157,9 +157,11 @@ def interpolate(spd, wavelengths):
         extrapolate=False,
     )
     # Evaluate in the middle of the bin (logic unclear, but better results)
-    interpolated_integral = np.nan_to_num(
-        interpolator(wavelengths + diff(wavelengths / 2))
-    )
+    interpolated_integral = interpolator(wavelengths + diff(wavelengths / 2))
+    valid = np.where(~np.isnan(interpolated_integral))[0]
+    interpolated_integral[: valid[0]] = interpolated_integral[valid[0]]
+    interpolated_integral[valid[-1] :] = interpolated_integral[valid[-1]]
+
     interpolated_data = diff(interpolated_integral) / diff(wavelengths)  # Derivate
 
     return SpectralPowerDistribution(
