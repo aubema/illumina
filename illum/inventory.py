@@ -106,7 +106,7 @@ def from_lamps(
 
     for key, ds in lumlp.items():
         s, wl = key
-        ds.save(dir_name + "%s_%03d_lumlp_%s" % (out_name, wl, s))
+        ds.save(dir_name + "%s_%g_lumlp_%s" % (out_name, wl, s))
 
 
 def from_zones(
