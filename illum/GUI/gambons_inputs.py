@@ -88,7 +88,7 @@ def gambons_inputs():
     parent3 = SubElement(top, "Map")
 
     child21 = SubElement(parent3, "band")
-    child21.text = "V"
+    child21.text = "TESS"
     child22 = SubElement(parent3, "stars")
     child22.text = "true"
     child23 = SubElement(parent3, "zodiacalLight")

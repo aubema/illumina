@@ -121,10 +121,16 @@ class Ui_LIGHT(Ui_ILLUMINA):
                 os.symlink(f"{self.datapath}/SRTM", "SRTM")
             with suppress(FileExistsError):
                 os.symlink(f"{self.datapath}/hydropolys.zip", "hydropolys.zip")
+
+            band_name = self.box_band.currentText()
+            band_data = np.loadtxt(
+                f"{self.datapath}/spectral_bands/{band_name.replace(' ','_')}.dat",
+                delimiter=",",
+            )
+            self.spectral_bands = band_data[:, :2]
+            self.spectral_bands_norm = band_data[:, -1]
             with suppress(FileExistsError):
-                os.symlink(
-                    f"{self.datapath}/spectral_bands.dat", "spectral_bands.dat"
-                )
+                np.savetxt("spectral_bands.dat", self.spectral_bands, delimiter=",")
 
             with open("domain_params.in", "w") as f:
                 f.write(
@@ -175,9 +181,7 @@ class Ui_LIGHT(Ui_ILLUMINA):
             ip["aerosol_optical_depth"] = float(aod)
             ip["angstrom_coefficient"] = float(ac)
             ip["aerosol_height"] = float(aeh)
-            ip[
-                "exp_name"
-            ] = f"{self.name_edit.text()}-{date_day}-{date_month}"  # '_' inbetween
+            ip["exp_name"] = f"{self.name_edit.text()}_{date_day}_{date_month}"
 
             with open("inputs_params.in", "w") as f:
                 yaml.safe_dump(ip, f)
@@ -194,7 +198,7 @@ class Ui_LIGHT(Ui_ILLUMINA):
             log = (
                 "Experiment defined\n"
                 "Simulation of the diffuse radiance in zenith direction"
-                " for the V band\n"
+                f" for the {self.box_band.currentText()} band\n"
                 f"Lat: {lat} Long: {long} "
                 f"Altitude relative to ground: {alt}m "
                 f"Date: {date_month}/2021\n"
@@ -253,7 +257,7 @@ class Ui_LIGHT(Ui_ILLUMINA):
             log = (
                 "Alternative scenario defined\n"
                 "Simulation of the diffuse radiance in zenith direction"
-                " for the V band\n"
+                f" for the {self.box_band.currentText()} band\n"
                 f"Lat: {lat} Long: {long} "
                 f"Altitude relative to ground: {alt}m "
                 f"Date: {date_month}/2021\n"
@@ -300,8 +304,7 @@ class Ui_LIGHT(Ui_ILLUMINA):
 
         job_cont = 0
         self.progressBar.setValue(1)
-        # wavel = np.loadtxt("wav.lst")  # ['507.25','545.75','584.25','622.75']
-        wavel = ["542.0", "614.0"]
+        wavel = np.mean(self.spectral_bands, axis=0)
         layer = list(range(5))
         while job_cont < self.jobs:
             for wl in wavel:
@@ -309,21 +312,19 @@ class Ui_LIGHT(Ui_ILLUMINA):
                     time.sleep(0.5)
                     path = (
                         "./exec/elevation_angle_90/azimuth_angle_0/"
-                        f"wavelength_{wl}/layer_{ly}"
+                        f"wavelength_{wl:.1f}/layer_{ly}"
                     )
                     if os.path.isfile(path + "/finished.txt"):
                         job_cont += 1
                         os.remove(path + "/finished.txt")
-                        self.progressBar.setValue(
-                            ((100 * job_cont) // self.jobs) - 5
-                        )
+                        self.progressBar.setValue(((100 * job_cont) // self.jobs) - 5)
 
         for t in threads:
             t.join()
 
         # GAMBONS
-        mag_ref = 21.93
-        radiance_ref = 2.22e-7
+        mag_ref = 0  # 21.93
+        radiance_ref = 521.06  # 2.22e-7
         os.chdir(self.pathparent)
         pathgambons = self.datapath + "/GambonsV2"
         os.chdir(pathgambons)
@@ -363,46 +364,29 @@ class Ui_LIGHT(Ui_ILLUMINA):
 
         # extracting results
         if self.switch2 == 0:
-            self.log_edit.setPlainText(
-                "Simulation finished\nExtracting results"
-            )
+            self.log_edit.setPlainText("Simulation finished\nExtracting results")
             self.log_edit.repaint()
             lines = check_output(["illum", "extract", "-c"])
         elif self.switch2 == 1:
-            self.log_edit_2.setPlainText(
-                "Simulation finished\nExtracting results"
-            )
+            self.log_edit_2.setPlainText("Simulation finished\nExtracting results")
             self.log_edit_2.repaint()
             lines = check_output(["illum", "extract", "-c", "Inputs_Alt"])
         lines = sorted(lines.decode().strip().split("\n"))
         central_wl, radiance = zip(
-            *[
-                [float(elem.split("_")[-1]) for elem in line.split()]
-                for line in lines
-            ]
+            *[[float(elem.split("_")[-1]) for elem in line.split()] for line in lines]
         )
-        wl, sens = np.loadtxt("Lights/JC_V.dat", skiprows=1).T
-        mask = (wl >= 470) & (wl <= 740)
-        wl_filt = wl[mask]
-        sens_filt = sens[mask] / 100  # % to frac
 
-        bins = np.loadtxt(self.datapath + "/spectral_bands.dat", delimiter=",")
-        bool_array = (wl_filt >= bins[:, 0, None]) & (
-            wl_filt < bins[:, 1, None]
-        )
-        avg_value = [np.mean(sens_filt[mask]) for mask in bool_array]
+        bandwidth = self.spectral_bands[:, 1] - self.spectral_bands[:, 0]
         radiance_V_art = np.sum(
-            np.prod([radiance, avg_value, bins[:, 1] - bins[:, 0]], 0)
+            np.prod([radiance, self.spectral_bands_norm, bandwidth], 0)
         )
 
-        contrib_filenames = [
-            glob(f"*wavelength_{wl:.1f}.hdf5")[0] for wl in central_wl
-        ]
+        contrib_filenames = [glob(f"*wavelength_{wl:.1f}.hdf5")[0] for wl in central_wl]
         contrib = illum.MultiScaleData.from_domain("domain.ini")
         for n, fname in enumerate(contrib_filenames):
             ds = illum.MultiScaleData.Open(fname)
             for i, layers in enumerate(ds):  # layer already exists line 230
-                contrib[i] += layers * avg_value[n]
+                contrib[i] += layers * self.spectral_bands_norm[n]
             os.remove(fname)
         contrib.save("contribution_map")
         """
@@ -441,7 +425,7 @@ class Ui_LIGHT(Ui_ILLUMINA):
             ("Latitude", self.latitude_edit.text()),
             ("Longitude", self.longitude_edit.text()),
             ("Direction", "Zenith"),
-            ("Band", "V"),
+            ("Band", self.box_band.currentText()),
             ("Date (ddmmyyyy)", self.date_edit.text()),
             ("Inventory", inv_text),
             ("Lamps height", self.hlamp_edit.text()),

@@ -464,7 +464,7 @@
      <string>Direction</string>
     </property>
    </widget>
-   <widget class="QLineEdit" name="box_band">
+   <widget class="QComboBox" name="box_band">
     <property name="geometry">
      <rect>
       <x>260</x>
@@ -481,12 +481,21 @@
       <bold>false</bold>
      </font>
     </property>
-    <property name="text">
-     <string>V (J-C)</string>
-    </property>
-    <property name="readOnly">
-     <bool>true</bool>
-    </property>
+    <item>
+     <property name="text">
+      <string>V (J-C)</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>TESS</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>SG_WAS</string>
+     </property>
+    </item>
    </widget>
    <widget class="QLineEdit" name="box_direction">
     <property name="enabled">
