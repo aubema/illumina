@@ -25,10 +25,8 @@ class MultiScaleData:
             data = [
                 _np.zeros(
                     (
-                        2 * (params["nb_pixels"] + p["buffer"])
-                        + p["observer_size_y"],
-                        2 * (params["nb_pixels"] + p["buffer"])
-                        + p["observer_size_x"],
+                        2 * (params["nb_pixels"] + p["buffer"]) + p["observer_size_y"],
+                        2 * (params["nb_pixels"] + p["buffer"]) + p["observer_size_x"],
                     )
                 )
                 for p in params["layers"]
@@ -70,10 +68,7 @@ class MultiScaleData:
         x, y = self._project(coords)
         for i, layer in enumerate(self._attrs["layers"]):
             attrs = layer
-            if (
-                attrs["xmin"] < x < attrs["xmax"]
-                and attrs["ymin"] < y < attrs["ymax"]
-            ):
+            if attrs["xmin"] < x < attrs["xmax"] and attrs["ymin"] < y < attrs["ymax"]:
                 return i
         raise IndexError("Coordinate out of range")
 
@@ -134,7 +129,7 @@ class MultiScaleData:
             R = float(radii) / self.pixel_size(i)
             Y, X = _np.ogrid[:ny, :nx]
             d2 = (X - X0) ** 2 + (Y - Y0) ** 2
-            self[i][d2 <= R ** 2] = value
+            self[i][d2 <= R**2] = value
 
     def set_overlap(self, value=0):
         nb_core = self._attrs["nb_core"]
@@ -179,13 +174,9 @@ class MultiScaleData:
             pix_size = new._attrs["layers"][i]["pixel_size"]
             ny, nx = self[i].shape
             new._attrs["layers"][i]["xmin"] += (xc - n - b) * pix_size
-            new._attrs["layers"][i]["xmax"] -= (
-                nx - (xc + n + b + 1)
-            ) * pix_size
+            new._attrs["layers"][i]["xmax"] -= (nx - (xc + n + b + 1)) * pix_size
             new._attrs["layers"][i]["ymin"] += (yc - n - b) * pix_size
-            new._attrs["layers"][i]["ymax"] -= (
-                ny - (yc + n + b + 1)
-            ) * pix_size
+            new._attrs["layers"][i]["ymax"] -= (ny - (yc + n + b + 1)) * pix_size
             new._attrs["layers"][i]["observer_size_x"] = 1
             new._attrs["layers"][i]["observer_size_y"] = 1
 
@@ -204,9 +195,7 @@ class MultiScaleData:
                     if "obs" not in key:
                         File.attrs[key] = val
                     else:
-                        ds = File.create_dataset(
-                            key.replace("_", "/"), data=val
-                        )
+                        ds = File.create_dataset(key.replace("_", "/"), data=val)
             for i in range(len(self)):
                 ds = File.create_dataset("layers/%d" % i, data=self[i])
                 for key, val in list(self._attrs["layers"][i].items()):
@@ -289,10 +278,7 @@ def plot(ds, n_layer=None, log=False, area=False, **options):
 
     if n_layer is None:
         n_layer = len(ds)
-    N = (
-        ds[n_layer - 1].shape[0] / 2
-        - ds._attrs["layers"][n_layer - 1]["buffer"]
-    )
+    N = ds[n_layer - 1].shape[0] / 2 - ds._attrs["layers"][n_layer - 1]["buffer"]
     N *= ds.pixel_size(n_layer - 1) / 1000
     _plt.xlim(-N, N)
     _plt.ylim(-N, N)
@@ -308,12 +294,12 @@ def scatter(ds, fmt=".", n_layer=None, area=False, **options):
 
         psize = ds.pixel_size(i) / 1000.0
         if area:
-            layer /= psize ** 2
+            layer /= psize**2
 
         N = n // 2 - buff
         x = _np.arange(-N, N + 1) * psize
         xx, yy = _np.meshgrid(x, x)
-        r = _np.sqrt(xx ** 2 + yy ** 2)
+        r = _np.sqrt(xx**2 + yy**2)
 
         L = layer[buff : n - buff, buff : n - buff]
 
@@ -332,17 +318,12 @@ def from_domain(params, data=None):
     if isinstance(params, str):
         with open(params) as f:
             params = _yaml.safe_load(f)
-    attrs = {
-        k: v
-        for k, v in list(params.items())
-        if k not in ["extents", "observers"]
-    }
+    attrs = {k: v for k, v in list(params.items()) if k not in ["extents", "observers"]}
     attrs["obs_lat"] = [d["latitude"] for d in params["observers"]]
     attrs["obs_lon"] = [d["longitude"] for d in params["observers"]]
     attrs["obs_x"] = [d["x"] for d in params["observers"]]
     attrs["obs_y"] = [d["y"] for d in params["observers"]]
     attrs["layers"] = [
-        {k: v for k, v in list(d.items()) if k != "layer"}
-        for d in params["extents"]
+        {k: v for k, v in list(d.items()) if k != "layer"} for d in params["extents"]
     ]
     return MultiScaleData(attrs, data)

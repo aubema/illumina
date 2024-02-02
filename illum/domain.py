@@ -14,9 +14,7 @@ def eng_format(x, unit=""):
     #
     # U+03BC is Greek lowercase mu
     UNITS = (
-        [" ", " k", " M", " G"]
-        + ([None] * 10)
-        + [" f", " p", " n", " \u03bc", " m"]
+        [" ", " k", " M", " G"] + ([None] * 10) + [" f", " p", " n", " \u03bc", " m"]
     )
 
     power_of_1000 = int(math.floor(math.log10(x) // 3))
@@ -26,7 +24,7 @@ def eng_format(x, unit=""):
         prefix = "*10^%d " % exponent
 
     significand = x * 10 ** (-exponent)
-    return "%.2f%s%s" % (significand, prefix, unit)
+    return f"{significand:.2f}{prefix}{unit}"
 
 
 def round_odd(n):
@@ -74,9 +72,7 @@ def domain():
     wgs84 = pyproj.Proj("epsg:4326")
     proj = pyproj.Proj(domain["srs"])
 
-    x0, y0 = pyproj.transform(
-        wgs84, proj, center_lon, center_lat, always_xy=True
-    )
+    x0, y0 = pyproj.transform(wgs84, proj, center_lon, center_lat, always_xy=True)
 
     obs_x, obs_y = list(
         zip(
@@ -107,7 +103,7 @@ def domain():
     domain["extents"] = list()
 
     for i in range(domain["nb_layers"]):
-        psize = domain["scale_min"] * scale ** i
+        psize = domain["scale_min"] * scale**i
         buff = min(255 - R, domain["buffer"] * 1e3 // psize)
 
         print("Layer", i)
@@ -153,5 +149,5 @@ def domain():
     W = min(NW[0], SW[0])
 
     print("Bounding box:")
-    print("  SW: %f,%f" % (S, W))
-    print("  NE: %f,%f" % (N, E))
+    print(f"  SW: {S:f},{W:f}")
+    print(f"  NE: {N:f},{E:f}")

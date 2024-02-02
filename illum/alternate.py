@@ -5,12 +5,13 @@ import shutil
 from glob import glob
 
 import click
+import numpy as np
+import yaml
+
 import illum.AngularPowerDistribution as APD
 import illum.MultiScaleData as MSD
 import illum.pytools as pt
 import illum.SpectralPowerDistribution as SPD
-import numpy as np
-import yaml
 from illum.inventory import from_lamps, from_zones
 
 
@@ -107,17 +108,13 @@ def alternate(name, zones, lights):
             for fname in glob("Lights/*.ies") + glob("Lights/*.IES")
         }
     )
-    lop = {
-        key: apd.normalize().interpolate(step=1) for key, apd in lop.items()
-    }
+    lop = {key: apd.normalize().interpolate(step=1) for key, apd in lop.items()}
 
     # Spectral distribution (normalised with scotopric vision to 1 lm / W)
     norm_spectrum = SPD.from_txt("Lights/photopic.dat").normalize()
     norm_spectrum.data *= 683.002
     wav = norm_spectrum.wavelengths
-    viirs = (
-        SPD.from_txt("Lights/viirs.dat").interpolate(norm_spectrum).normalize()
-    )
+    viirs = SPD.from_txt("Lights/viirs.dat").interpolate(norm_spectrum).normalize()
 
     spct = {
         parse_key(fname): SPD.from_txt(fname)
@@ -157,9 +154,7 @@ def alternate(name, zones, lights):
         for fname in glob("Lights/*.aster") + glob("Lights/*.ASTER")
     }
 
-    sum_coeffs = sum(
-        params["reflectance"][type] for type in params["reflectance"]
-    )
+    sum_coeffs = sum(params["reflectance"][type] for type in params["reflectance"])
     if sum_coeffs == 0:
         sum_coeffs = 1.0
 
@@ -180,7 +175,7 @@ def alternate(name, zones, lights):
     shutil.copy("srtm.hdf5", dirname)
 
     with open(dirname + "/wav.lst", "w") as zfile:
-        zfile.write("".join("%g %g\n" % (w, b) for w, b in zip(x, bw)))
+        zfile.write("".join(f"{w:g} {b:g}\n" for w, b in zip(x, bw)))
 
     if params["zones_inventory"] is not None:
         dir_name = ".Inputs_zones/"

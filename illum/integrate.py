@@ -6,8 +6,9 @@ import re
 import numpy as np
 import pyproj
 import yaml
-from illum.pytools import load_bin
 from matplotlib.path import Path
+
+from illum.pytools import load_bin
 
 parser = argparse.ArgumentParser(
     description="Integrates Illumina binary file over a polygon."

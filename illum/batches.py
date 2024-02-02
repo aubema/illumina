@@ -15,12 +15,13 @@ from glob import glob
 from itertools import product
 
 import click
-import illum
 import numpy as np
 import yaml
+from progressbar import progressbar
+
+import illum
 from illum import MultiScaleData as MSD
 from illum.pytools import save_bin
-from progressbar import progressbar
 
 progress = partial(progressbar, redirect_stdout=True)
 
@@ -112,7 +113,7 @@ def batches(input_path=".", compact=False, batch_size=300, batch_name=None):
             if "srtm" in fname:
                 for j in range(len(clipped)):
                     clipped[j][:] = 0
-                clipped.save("obs_data/%6f_%6f/blank" % (lat, lon))
+                clipped.save(f"obs_data/{lat:6f}_{lon:6f}/blank")
 
     # Add wavelength and multiscale
     spectral_bands = np.loadtxt("wav.lst", ndmin=2)
@@ -158,9 +159,7 @@ def batches(input_path=".", compact=False, batch_size=300, batch_name=None):
             obs_index = (
                 0
                 if "observer_coordinates" not in multival
-                else params["observer_coordinates"].index(
-                    P["observer_coordinates"]
-                )
+                else params["observer_coordinates"].index(P["observer_coordinates"])
             )
             bearing = brng[obs_index]
         else:
@@ -174,7 +173,7 @@ def batches(input_path=".", compact=False, batch_size=300, batch_name=None):
             fold_name = (
                 dir_name
                 + os.sep.join(
-                    "%s_%s" % (k, v)
+                    f"{k}_{v}"
                     for k, v in local_params.items()
                     if k in ["observer_coordinates", "wavelength", "layer"]
                 )
@@ -183,9 +182,7 @@ def batches(input_path=".", compact=False, batch_size=300, batch_name=None):
         else:
             fold_name = (
                 dir_name
-                + os.sep.join(
-                    "%s_%s" % (k, v) for k, v in local_params.items()
-                )
+                + os.sep.join(f"{k}_{v}" for k, v in local_params.items())
                 + os.sep
             )
 
@@ -198,14 +195,10 @@ def batches(input_path=".", compact=False, batch_size=300, batch_name=None):
         if not os.path.isdir(fold_name):
             os.makedirs(fold_name)
             # Linking files
-            mie_file = "%s_%s.txt" % (params["aerosol_profile"], wavelength)
-            os.symlink(
-                os.path.relpath(mie_file, fold_name), fold_name + "aerosol.txt"
-            )
-            layer_file = "%s_%s.txt" % (params["layer_type"], wavelength)
-            os.symlink(
-                os.path.relpath(layer_file, fold_name), fold_name + "layer.txt"
-            )
+            mie_file = "{}_{}.txt".format(params["aerosol_profile"], wavelength)
+            os.symlink(os.path.relpath(mie_file, fold_name), fold_name + "aerosol.txt")
+            layer_file = "{}_{}.txt".format(params["layer_type"], wavelength)
+            os.symlink(os.path.relpath(layer_file, fold_name), fold_name + "layer.txt")
 
             os.symlink(
                 os.path.relpath("MolecularAbs.txt", fold_name),
@@ -215,7 +208,7 @@ def batches(input_path=".", compact=False, batch_size=300, batch_name=None):
             for i, lamp in enumerate(lamps, 1):
                 os.symlink(
                     os.path.relpath(
-                        "fctem_wl_%s_lamp_%s.dat" % (wavelength, lamp),
+                        f"fctem_wl_{wavelength}_lamp_{lamp}.dat",
                         fold_name,
                     ),
                     fold_name + exp_name + "_fctem_%03d.dat" % i,
@@ -236,19 +229,17 @@ def batches(input_path=".", compact=False, batch_size=300, batch_name=None):
             )
 
             os.symlink(
-                os.path.relpath(
-                    os.path.join(obs_fold, "origin.bin"), fold_name
-                ),
+                os.path.relpath(os.path.join(obs_fold, "origin.bin"), fold_name),
                 fold_name + "origin.bin",
             )
 
             for name in ["obstd", "obsth", "obstf", "altlp"]:
                 os.symlink(
                     os.path.relpath(
-                        os.path.join(obs_fold, "%s_%s.bin" % (exp_name, name)),
+                        os.path.join(obs_fold, f"{exp_name}_{name}.bin"),
                         fold_name,
                     ),
-                    fold_name + "%s_%s.bin" % (exp_name, name),
+                    fold_name + f"{exp_name}_{name}.bin",
                 )
 
             for i, lamp in enumerate(lamps, 1):
@@ -256,8 +247,7 @@ def batches(input_path=".", compact=False, batch_size=300, batch_name=None):
                     os.path.relpath(
                         os.path.join(
                             obs_fold,
-                            "%s_%s_lumlp_%s.bin"
-                            % (exp_name, wavelength, lamp),
+                            f"{exp_name}_{wavelength}_lumlp_{lamp}.bin",
                         ),
                         fold_name,
                     ),
@@ -345,8 +335,7 @@ def batches(input_path=".", compact=False, batch_size=300, batch_name=None):
                 f.write("#!/bin/sh\n")
                 f.write("#SBATCH --job-name=Illumina\n")
                 f.write(
-                    "#SBATCH --time=%d:00:00\n"
-                    % params["estimated_computing_time"]
+                    "#SBATCH --time=%d:00:00\n" % params["estimated_computing_time"]
                 )
                 f.write("#SBATCH --mem=2G\n")
                 f.write("cd %s\n" % os.path.abspath(fold_name))
@@ -354,9 +343,7 @@ def batches(input_path=".", compact=False, batch_size=300, batch_name=None):
             os.chmod(fold_name + "execute", 0o777)
 
             # Append execution to batch list
-            with open(
-                f"{params['batch_file_name']}_{(count//batch_size)+1}", "a"
-            ) as f:
+            with open(f"{params['batch_file_name']}_{(count//batch_size)+1}", "a") as f:
                 f.write("cd %s\n" % os.path.abspath(fold_name))
                 f.write("sbatch ./execute\n")
                 f.write("sleep 0.05\n")
@@ -367,11 +354,8 @@ def batches(input_path=".", compact=False, batch_size=300, batch_name=None):
         with open(fold_name + "execute", "a") as f:
             f.write("cp %s.in illumina.in\n" % unique_ID)
             f.write("./illumina\n")
-            f.write("mv %s.out %s_%s.out\n" % (exp_name, exp_name, unique_ID))
-            f.write(
-                "mv %s_pcl.bin %s_pcl_%s.bin\n"
-                % (exp_name, exp_name, unique_ID)
-            )
+            f.write(f"mv {exp_name}.out {exp_name}_{unique_ID}.out\n")
+            f.write(f"mv {exp_name}_pcl.bin {exp_name}_pcl_{unique_ID}.bin\n")
 
     print("Final count:", count)
 

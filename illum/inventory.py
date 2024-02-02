@@ -6,8 +6,9 @@
 #
 # December 2021
 
-import illum.pytools as pt
 import numpy as np
+
+import illum.pytools as pt
 from illum import MultiScaleData as MSD
 
 
@@ -52,7 +53,7 @@ def from_lamps(
         for s in sources:
             profile = lop[s].vertical_profile()[::-1]
             np.savetxt(
-                dir_name + "fctem_wl_%g_lamp_%s.dat" % (x[n], s),
+                dir_name + f"fctem_wl_{x[n]:g}_lamp_{s}.dat",
                 np.concatenate([profile, angles]).reshape((2, -1)).T,
             )
 
@@ -75,9 +76,7 @@ def from_lamps(
                 ind = inds[np.logical_and(cols == col, rows == row)]
                 lumens = lampsData[:, 2][ind]
 
-                for n, geo in zip(
-                    range(3, 7), ["obsth", "obstd", "obstf", "altlp"]
-                ):
+                for n, geo in zip(range(3, 7), ["obsth", "obstd", "obstf", "altlp"]):
                     geometry[geo][layer][row, col] = np.average(
                         lampsData[:, n][ind], weights=lumens
                     )
@@ -87,10 +86,7 @@ def from_lamps(
                 for s in local_sources:
                     mask = photometry[:, 1][ind] == s
                     fctem = np.array(
-                        [
-                            spct[type].data
-                            for type in photometry[:, 0][ind][mask]
-                        ]
+                        [spct[type].data for type in photometry[:, 0][ind][mask]]
                     )
                     fctem = np.sum(fctem * lumens[mask, None], 0)
 
@@ -106,7 +102,7 @@ def from_lamps(
 
     for key, ds in lumlp.items():
         s, wl = key
-        ds.save(dir_name + "%s_%g_lumlp_%s" % (out_name, wl, s))
+        ds.save(dir_name + f"{out_name}_{wl:g}_lumlp_{s}")
 
 
 def from_zones(
@@ -136,7 +132,7 @@ def from_zones(
         for s in sources:
             profile = lop[s].vertical_profile()[::-1]
             np.savetxt(
-                dir_name + "fctem_wl_%g_lamp_%s.dat" % (x[n], s),
+                dir_name + f"fctem_wl_{x[n]:g}_lamp_{s}.dat",
                 np.concatenate([profile, angles]).reshape((2, -1)).T,
             )
 
@@ -146,9 +142,7 @@ def from_zones(
     print("Making zone properties files.")
 
     circles = MSD.from_domain("domain.ini")  # Same geolocalisation
-    zonfile = np.loadtxt(
-        params["zones_inventory"], usecols=list(range(7)), ndmin=2
-    )
+    zonfile = np.loadtxt(params["zones_inventory"], usecols=list(range(7)), ndmin=2)
 
     # zone number
     for i, dat in enumerate(zonfile, 1):
@@ -179,9 +173,7 @@ def from_zones(
     circles = MSD.Open(dir_name + out_name + "_zone.hdf5")
     zon_mask = np.empty(len(circles), dtype=object)
     for i in range(len(zon_mask)):
-        zon_mask[i] = (
-            np.arange(1, len(zonfile) + 1)[:, None, None] == circles[i]
-        )
+        zon_mask[i] = np.arange(1, len(zonfile) + 1)[:, None, None] == circles[i]
 
     a = np.deg2rad(angles)
     mids = np.concatenate([[a[0]], np.mean([a[1:], a[:-1]], 0), [a[-1]]])
@@ -191,18 +183,13 @@ def from_zones(
     S = np.array([viirs_dat.pixel_size(i) ** 2 for i in range(len(viirs_dat))])
 
     # Calculate zones lamps
-    zones = pt.make_zones(angles, lop, wav, spct, zonData, sources).transpose((0,1,3,2))
+    zones = pt.make_zones(angles, lop, wav, spct, zonData, sources).transpose(
+        (0, 1, 3, 2)
+    )
 
     # phie = DNB * S / int( R ( rho/pi Gdown + Gup ) ) dlambda
-    Gdown = np.dot(
-        zones[..., angles > 90], sinx[angles > 90]
-    )
-    Gup = (
-        np.dot(
-            zones[..., angles < 70], sinx[angles < 70]
-        )
-        / sinx[angles < 70].sum()
-    )
+    Gdown = np.dot(zones[..., angles > 90], sinx[angles > 90])
+    Gup = np.dot(zones[..., angles < 70], sinx[angles < 70]) / sinx[angles < 70].sum()
     integral = np.sum(viirs.data * (Gdown * refl / np.pi + Gup), (1, 2)) * (
         wav[1] - wav[0]
     )
@@ -215,10 +202,7 @@ def from_zones(
         for i in range(len(S))
     ]
 
-    ratio = [
-        np.dot(zones[:,:, ind], sinx).mean(-1)
-        for ind in bool_array
-    ]
+    ratio = [np.dot(zones[:, :, ind], sinx).mean(-1) for ind in bool_array]
 
     for n in range(n_bins):
         r = [
@@ -229,4 +213,4 @@ def from_zones(
             new = MSD.from_domain("domain.ini")
             for layer in range(len(new)):
                 new[layer] = phie[layer] * r[layer][i]
-            new.save(dir_name + "%s_%g_lumlp_%s" % (out_name, x[n], s))
+            new.save(dir_name + f"{out_name}_{x[n]:g}_lumlp_{s}")

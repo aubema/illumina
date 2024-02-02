@@ -4,11 +4,12 @@ import os
 import sys
 from collections import OrderedDict
 
-import illum
 import numpy as np
 import yaml
-from illum.pytools import LOP_norm
 from scipy import interpolate
+
+import illum
+from illum.pytools import LOP_norm
 
 
 def OPAC(wavelengths):
@@ -80,12 +81,8 @@ def OPAC(wavelengths):
                 scat_angle = pf_array[:, 0]
                 pf_array = pf_array[:, 1:].T
 
-                ext_type[j] = np.interp(
-                    wl / 1000, wl_prop[:, 0], wl_prop[:, 1]
-                )
-                scat_type[j] = np.interp(
-                    wl / 1000, wl_prop[:, 0], wl_prop[:, 2]
-                )
+                ext_type[j] = np.interp(wl / 1000, wl_prop[:, 0], wl_prop[:, 1])
+                scat_type[j] = np.interp(wl / 1000, wl_prop[:, 0], wl_prop[:, 2])
                 # cubic interpolation for a given wl and angle
                 pf_function = interpolate.interp2d(
                     scat_angle, wl_prop[:, 0], pf_array, kind="cubic"
@@ -98,12 +95,8 @@ def OPAC(wavelengths):
             w_total = np.sum(scat_type * N) / np.sum(ext_type * N)
 
             # phase function (angle)
-            pf_norm = (
-                4 * np.pi * LOP_norm(np.arange(181), np.sum(pf_type * N, 1))
-            )
-            with open(
-                "./Inputs/%s_%g.txt" % (combination_type, wl), "w+"
-            ) as f:
+            pf_norm = 4 * np.pi * LOP_norm(np.arange(181), np.sum(pf_type * N, 1))
+            with open(f"./Inputs/{combination_type}_{wl:g}.txt", "w+") as f:
                 f.write(str(w_total) + " # single scatering albedo\n")
                 f.write("ScatAngle PhaseFct\n")
                 np.savetxt(f, np.stack([np.arange(181), pf_norm], 1), fmt="%g")

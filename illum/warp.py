@@ -7,8 +7,9 @@ from subprocess import call
 import click
 import numpy as np
 import yaml
-from illum import MultiScaleData as MSD
 from PIL import Image
+
+from illum import MultiScaleData as MSD
 
 
 def OpenTIFF(path):
@@ -136,9 +137,7 @@ def correction_filenames(srcfiles):
 def convert_correction_data(srcfiles):
     corr_files = np.unique(correction_filenames(srcfiles))
 
-    data = np.nanmean(
-        [np.loadtxt(fname, delimiter=",") for fname in corr_files], 0
-    )
+    data = np.nanmean([np.loadtxt(fname, delimiter=",") for fname in corr_files], 0)
     data[np.isnan(data)] = -9999
 
     with open("VIIRS-DNB/correction.asc", "w") as f:
@@ -198,8 +197,7 @@ def warp(output_name=None, infiles=[]):
 
     if len(infiles):
         data = [
-            warp_files(infiles, params["srs"], extent)
-            for extent in params["extents"]
+            warp_files(infiles, params["srs"], extent) for extent in params["extents"]
         ]
         save(params, data, output_name)
 
@@ -207,9 +205,7 @@ def warp(output_name=None, infiles=[]):
         if os.path.isfile("GHSL.zip"):
             print("Found GHSL.zip file, processing.")
             data = [
-                warp_files(
-                    ["/vsizip/GHSL.zip/GHSL.tif"], params["srs"], extent
-                )
+                warp_files(["/vsizip/GHSL.zip/GHSL.tif"], params["srs"], extent)
                 for extent in params["extents"]
             ]
             save(params, data, "obstf")
@@ -223,8 +219,7 @@ def warp(output_name=None, infiles=[]):
             raise SystemExit
         print("    ".join(map(str, files)))
         data = [
-            warp_files(files, params["srs"], extent)
-            for extent in params["extents"]
+            warp_files(files, params["srs"], extent) for extent in params["extents"]
         ]
         save(params, data, "srtm")
 
@@ -243,10 +238,7 @@ def warp(output_name=None, infiles=[]):
             print("    ".join(map(str, files)))
 
             correction = np.all(
-                [
-                    os.path.isfile(fname)
-                    for fname in correction_filenames(files)
-                ]
+                [os.path.isfile(fname) for fname in correction_filenames(files)]
             )
             if not correction:
                 print(
@@ -258,21 +250,17 @@ def warp(output_name=None, infiles=[]):
                     "that you have the right ones."
                 )
                 print(
-                    "Note that only the VCMCFG dataset from VIIRS "
-                    "can be corrected."
+                    "Note that only the VCMCFG dataset from VIIRS " "can be corrected."
                 )
 
             data = [
-                warp_files(files, params["srs"], extent)
-                for extent in params["extents"]
+                warp_files(files, params["srs"], extent) for extent in params["extents"]
             ]
 
             if correction:
                 convert_correction_data(files)
                 corr = [
-                    warp_files(
-                        ["VIIRS-DNB/correction.asc"], params["srs"], extent
-                    )
+                    warp_files(["VIIRS-DNB/correction.asc"], params["srs"], extent)
                     for extent in params["extents"]
                 ]
                 save(params, corr, "VIIRS_background")

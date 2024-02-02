@@ -11,9 +11,7 @@ with open("illum/__init__.py") as f:
             exec(line, info)
             break
 
-gdal_version = (
-    check_output(["gdalinfo", "--version"]).decode().split(",")[0].split()[1]
-)
+gdal_version = check_output(["gdalinfo", "--version"]).decode().split(",")[0].split()[1]
 
 setup(
     name="illum",

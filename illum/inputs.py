@@ -12,16 +12,17 @@ import shutil
 from glob import glob
 
 import click
+import numpy as np
+import yaml
+from scipy.interpolate import griddata
+
 import illum
 import illum.AngularPowerDistribution as APD
 import illum.MultiScaleData as MSD
 import illum.pytools as pt
 import illum.SpectralPowerDistribution as SPD
-import numpy as np
-import yaml
 from illum.inventory import from_lamps, from_zones
 from illum.OPAC import OPAC
-from scipy.interpolate import griddata
 
 
 @click.command(name="inputs")
@@ -42,10 +43,7 @@ def inputs():
     with open("inputs_params.in") as f:
         params = yaml.safe_load(f)
 
-    if (
-        params["zones_inventory"] is not None
-        and params["lamps_inventory"] is not None
-    ):
+    if params["zones_inventory"] is not None and params["lamps_inventory"] is not None:
 
         print("Validating the inventories.")
 
@@ -112,17 +110,13 @@ def inputs():
             for fname in glob("Lights/*.ies") + glob("Lights/*.IES")
         }
     )
-    lop = {
-        key: apd.normalize().interpolate(step=1) for key, apd in lop.items()
-    }
+    lop = {key: apd.normalize().interpolate(step=1) for key, apd in lop.items()}
 
     # Spectral distribution (normalised with scotopric vision to 1 lm / W)
     norm_spectrum = SPD.from_txt("Lights/photopic.dat").normalize()
     norm_spectrum.data *= 683.002
     wav = norm_spectrum.wavelengths
-    viirs = (
-        SPD.from_txt("Lights/viirs.dat").interpolate(norm_spectrum).normalize()
-    )
+    viirs = SPD.from_txt("Lights/viirs.dat").interpolate(norm_spectrum).normalize()
 
     spct = {
         parse_key(fname): SPD.from_txt(fname)
@@ -163,9 +157,7 @@ def inputs():
         for fname in glob("Lights/*.aster") + glob("Lights/*.ASTER")
     }
 
-    sum_coeffs = sum(
-        params["reflectance"][type] for type in params["reflectance"]
-    )
+    sum_coeffs = sum(params["reflectance"][type] for type in params["reflectance"])
     if sum_coeffs == 0:
         sum_coeffs = 1.0
 
@@ -192,7 +184,7 @@ def inputs():
     shutil.copy("srtm.hdf5", dir_name)
 
     with open(dir_name + "/wav.lst", "w") as zfile:
-        zfile.write("".join("%g %g\n" % (w, b) for w, b in zip(x, bw)))
+        zfile.write("".join(f"{w:g} {b:g}\n" for w, b in zip(x, bw)))
 
     if params["zones_inventory"] is not None:
         dir_name = ".Inputs_zones/"

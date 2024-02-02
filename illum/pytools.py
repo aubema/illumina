@@ -169,8 +169,7 @@ def load_fits(filename):
         _np.linspace(
             hdu.header["CRVAL%d" % (i + 1)],
             hdu.header["CRVAL%d" % (i + 1)]
-            + hdu.header["CDELT%d" % (i + 1)]
-            * (hdu.header["NAXIS%d" % (i + 1)] - 1),
+            + hdu.header["CDELT%d" % (i + 1)] * (hdu.header["NAXIS%d" % (i + 1)] - 1),
             hdu.header["NAXIS%d" % (i + 1)],
         )
         for i in range(hdu.header["NAXIS"])
@@ -375,9 +374,7 @@ def plot_allsky(phi, r, data, n=100, **kwargs):
         if "vmax" in kwargs:
             args["vmax"] = kwargs["vmax"]
         if "log" in kwargs and kwargs["log"]:
-            args["norm"] = _colors.LogNorm(
-                vmin=kwargs["vmin"], vmax=kwargs["vmax"]
-            )
+            args["norm"] = _colors.LogNorm(vmin=kwargs["vmin"], vmax=kwargs["vmax"])
         m = _plt.pcolormesh(Theta, R, data, linewidth=0, **args)
 
     if "showpts" in kwargs and kwargs["showpts"]:

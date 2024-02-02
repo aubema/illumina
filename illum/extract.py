@@ -16,6 +16,7 @@ from glob import glob
 
 import click
 import numpy as np
+
 from illum import MultiScaleData as MSD
 from illum.pytools import load_bin
 
@@ -53,8 +54,7 @@ def add_arrays(a, b):
     "--params",
     multiple=True,
     nargs=2,
-    help="Parameter name,value pair to extract."
-    " Can be provided more than once.",
+    help="Parameter name,value pair to extract." " Can be provided more than once.",
 )
 @click.option(
     "-f",
@@ -110,9 +110,7 @@ def extract(exec_dir, contrib=False, params=(), full=False, profile=False):
 
         for oname in out_names:
             if oname == basename + ".out":
-                params_name = dirpath.split("exec" + os.sep)[1].replace(
-                    os.sep, "-"
-                )
+                params_name = dirpath.split("exec" + os.sep)[1].replace(os.sep, "-")
             else:
                 params_name = oname[len(basename) + 1 : -4]
 
@@ -124,7 +122,7 @@ def extract(exec_dir, contrib=False, params=(), full=False, profile=False):
                         print("ERROR: Parameter '%s' not found." % pname)
                         exit()
                     for pval in pvals.split(","):
-                        if "%s_%s" % (pname, pval) in params_name:
+                        if f"{pname}_{pval}" in params_name:
                             break
                     else:
                         raise ValueError()
@@ -137,9 +135,7 @@ def extract(exec_dir, contrib=False, params=(), full=False, profile=False):
 
             val = float(lines[-1])
             if full:
-                vals = np.array(
-                    [float(line) for line in lines[idx_results + 1 :: 2]]
-                )
+                vals = np.array([float(line) for line in lines[idx_results + 1 :: 2]])
                 outputs[key] += vals
             else:
                 skyglow[key] += val
@@ -154,9 +150,7 @@ def extract(exec_dir, contrib=False, params=(), full=False, profile=False):
                             float(chunk[3].split()[-2]),
                             float(chunk[-2].split()[-1]),
                         )
-                        for chunk in chunker(
-                            lines[ind[0] : ind[-1]], ind[1] - ind[0]
-                        )
+                        for chunk in chunker(lines[ind[0] : ind[-1]], ind[1] - ind[0])
                     ]
                 )
 
@@ -190,23 +184,15 @@ def extract(exec_dir, contrib=False, params=(), full=False, profile=False):
                 if oname == basename + ".out":
                     pcl_name = [s for s in filenames if "pcl.bin" in s][0]
                 else:
-                    pcl_name = "_".join(
-                        [basename, "pcl", params_name + ".bin"]
-                    )
+                    pcl_name = "_".join([basename, "pcl", params_name + ".bin"])
                 pcl_path = os.path.join(dirpath, pcl_name)
                 pcl_data = load_bin(pcl_path)
                 pcl_data *= val / pcl_data.sum()
-                b = (
-                    pcl_data.shape[0] - contributions[key][n_layer].shape[0]
-                ) // 2
-                contributions[key][n_layer] = (
-                    pcl_data[b:-b, b:-b] if b else pcl_data
-                )
+                b = (pcl_data.shape[0] - contributions[key][n_layer].shape[0]) // 2
+                contributions[key][n_layer] = pcl_data[b:-b, b:-b] if b else pcl_data
 
     if full:
-        results_names = ["Case"] + [
-            s[: s.index("(")] for s in lines[idx_results::2]
-        ]
+        results_names = ["Case"] + [s[: s.index("(")] for s in lines[idx_results::2]]
         print("\t".join(results_names))
         for key, vals in outputs.items():
             print(key, *vals, sep="\t")

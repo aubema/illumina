@@ -5,6 +5,7 @@ import shutil
 from glob import glob
 
 import click
+
 import illum
 
 
@@ -22,11 +23,7 @@ def init():
         shutil.copytree(illumpath + "/Example/Lights", "Lights")
 
     example_files = glob(illumpath + "/Example/*.*")
-    files = [
-        s
-        for s in example_files
-        if not (s.endswith("hdf5") or s.endswith("csv"))
-    ]
+    files = [s for s in example_files if not (s.endswith("hdf5") or s.endswith("csv"))]
 
     for filename in files:
         shutil.copy2(filename, ".")
