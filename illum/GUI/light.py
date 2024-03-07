@@ -579,7 +579,7 @@ def progress_download(url, outname=None, block_size=1024**2):
 def download_data():
     # Download needed data
     illumpath = os.path.dirname(illum.__path__[0])
-    base_url = "http://dome.obsand.org/wiki/html/"
+    base_url = "http://obsand.org/wiki/html/"
 
     def ensure_downloaded(name):
         if not os.path.exists(
