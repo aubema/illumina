@@ -23,7 +23,7 @@ c    Contact: martin.aube@cegepsherbrooke.qc.ca
 
       subroutine transtoa(lambm,bandw,taua,layaod,pressi,tranam,tranaa
      +,tranal,tabs)
-      real m,lambm,taua,pressi,tranam,tranaa,tranal,layaod,tabs,bandw
+      real*8 m,lambm,taua,pressi,tranam,tranaa,tranal,layaod,tabs,bandw
       m=(pressi/101.325)
 c  transmittance taken from Bodhaine et al. (1999)
       tranam=exp(-1.*m*0.0021520*(1.0455996-341.29061*(lambm/1000.)**
