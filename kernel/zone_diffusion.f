@@ -27,21 +27,17 @@ c
 c    Contact: martin.aube@cegepsherbrooke.qc.ca
 c
 c
-      subroutine zone_diffusion(
-     +effet,zondif,ncell,stepdi,siz)
+      subroutine zone_diffusion(effet,zondif,ncell,siz)
        implicit none
        integer i,j,k
-       integer ncell,neffet,imin,imax,jmin,jmax,kmin,kmax,nvol
-       integer keep,stepdi
-       real x0,y0,z0
-       real effet,dmin,d
-       real zondif(3000000,3),siz
-       real pi
-       pi=3.141592654
-       keep=0
-       neffet=nint(effet/siz)
-       dmin=effet
-       stepdi=1
+       integer ncell,neffet,imin,imax,jmin,jmax,kmin,kmax
+       real*8 x0,y0,z0
+       real*8 effet,dmax,d
+       real*8 zondif(3000000,3),siz
+       real*8 pi
+       pi=3.141592654D0
+       neffet=idnint(effet/siz)
+       dmax=effet
 c limits of the calculations loops
        imin=-neffet
        imax=+neffet
@@ -57,16 +53,12 @@ c limits of the calculations loops
            do k=kmin,kmax                                                     
              z0=real(k)*siz
              d=sqrt(x0**2.+y0**2.+z0**2.)
-               if (d.le.dmin) then
-                 keep=keep+1
-                 if (keep.eq.stepdi) then
-                   keep=0
-                   ncell=ncell+1
-                   zondif(ncell,1)=x0                                   
-                   zondif(ncell,2)=y0 
-                   zondif(ncell,3)=z0
-                 endif
-               endif
+             if (d.le.dmax) then                                                ! ensure spherical zone r<dmax
+               ncell=ncell+1
+               zondif(ncell,1)=x0                                   
+               zondif(ncell,2)=y0 
+               zondif(ncell,3)=z0
+             endif
            enddo
          enddo
        enddo

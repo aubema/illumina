@@ -33,12 +33,13 @@ c
 c
       subroutine diffusion(angdif,tranam,tranaa,tranal,un,secdif,secdil,
      +   fonc_a,fonc_l,haer,hlay,pdif,altit)
-      real angdif,pdif,prob_a,prob_m,prob_l,secdif,secdil
-      real fctmol,pi,fonc_a(181),fonc_l(181),fonc_ae,fonc_le
-      real angdeg,tranam,tranaa,tranal
-      real altit,un,hlay,haer
+      real*8 angdif,secdif,secdil
+      real*8 fctmol,pi,fonc_a(181),fonc_l(181),fonc_ae,fonc_le
+      real*8 angdeg,tranam,tranaa,tranal
+      real*8 altit,un,hlay,haer
+      real*8 pdif,prob_a,prob_m,prob_l
       integer rang,na,naz
-      parameter (pi=3.1415926)
+      parameter (pi=3.1415926D0)
 c--------------------------------------------------------      
       if (angdif.lt.0.) angdif=-angdif      
       if (angdif-pi.gt.0.00001) angdif=pi
@@ -71,7 +72,7 @@ c----------------------------------------
       prob_m=(1.-exp(log(tranam)*exp(-1.*altit/8000.)*un/8000.))*
      +fctmol
 
-      pdif = prob_a+prob_m+prob_l                                         ! This is an approximation valide if 1-transa,
+      pdif = prob_a+prob_m+prob_l                                         ! This is an approximation valid if 1-transa,
                                                                           ! 1-transm et 1-transl are small
       if (prob_a.gt.1.) then
          print*,'prob_a>1.'
@@ -86,7 +87,7 @@ c----------------------------------------
          stop
       endif
       if (prob_m.lt.0.) then
-         print*,'prob_m`¸^<0..'
+         print*,'prob_m<0..'
          stop
       endif
       if (prob_l.gt.1.) then
@@ -94,7 +95,7 @@ c----------------------------------------
          stop
       endif
       if (prob_l.lt.0.) then
-         print*,'prob_l`¸^<0..'
+         print*,'prob_l<0.'
          stop
       endif
       if (pdif.gt.1.) then

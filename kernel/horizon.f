@@ -29,9 +29,9 @@ c
       integer width                                                       ! Matrix dimension in Length/width and height
       parameter (width=512)
       integer x,y,nx,ny
-      real dx,dy,altsol(width,width),anga,zout,pi,angaz1,ix,iy
-      real hcur,distc                                                           ! Earth curvature terrain
-      real posx,posy,scalef,zhoriz,z,d,dout
+      real*8 dx,dy,altsol(width,width),anga,zout,pi,angaz1,ix,iy
+      real*8 hcur,distc                                                           ! Earth curvature terrain
+      real*8 posx,posy,scalef,zhoriz,z,d,dout
       pi=3.141592654
       angaz1=anga
       ix = (cos(angaz1))                                                  ! viewing vector components
@@ -45,8 +45,8 @@ c
      +((posy.le.real(width)*dy).and.(posy.ge.1.*dy)))
         posx=posx+ix*scalef
         posy=posy+iy*scalef
-        nx=nint(posx/dx)
-        ny=nint(posy/dy)
+        nx=idnint(posx/dx)
+        ny=idnint(posy/dy)
 c earth curvature (first order correction)
         distc=sqrt((dx*real(nx-x))**2.+(dy*real(ny-y))**2.)
         call curvature(distc,hcur)

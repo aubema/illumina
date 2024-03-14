@@ -35,11 +35,11 @@ c    Contact: martin.aube@cegepsherbrooke.qc.ca
 c
 c
       subroutine transmita(angz,z_i,z_f,distd,haer,transa,tranaa)
-      real transa                                                         ! Declaration des variables.
-      real tranaa                                                         ! vertical transmittance of the complete atmosphere (aerosols)
-      real angz,haer
-      real z_i,z_f,z1,z2
-      real distd
+      real*8 transa                                                         ! Declaration des variables.
+      real*8 tranaa                                                         ! vertical transmittance of the complete atmosphere (aerosols)
+      real*8 angz,haer
+      real*8 z_i,z_f,z1,z2
+      real*8 distd
 
 
       if (z_i.gt.z_f) then
@@ -53,12 +53,16 @@ c
         transa=exp((log(tranaa)/abs(cos(angz)))*(exp(-1.*z1/haer)-
      +  exp(-1.*z2/haer)))
       else
-        transa=exp((log(tranaa))*exp(-1.*z1/haer)*distd/haer)  
+        transa=exp((log(tranaa))*exp(-1.*z1/haer)*distd/haer)
       endif
       if (distd.eq.0.) transa=1.
          if (transa.eq.0.) then
       print*,'ERREUR transa - no transmission',z_i,z_f,angz,tranaa,distd
      +,haer
+      print*,log(tranaa),exp(-1.*z1/haer),exp(-1.*z2/haer),
+     +  exp(-1.*z1/haer)-exp(-1.*z2/haer),cos(angz),transa,
+     + log(tranaa)/abs(cos(angz))
+      stop
          endif
          if (transa.gt.1.) then 
             print*,'ERREUR avec transa',transa,z_i,z_f,angz
