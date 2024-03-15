@@ -220,6 +220,7 @@
       real*8 itodif2                                                 ! Second scattering intensity
       real*8 itodif3                                                 ! total 3rd order intentity
       real*8 itot
+      real*8 tot1,tot2,tot3
       integer rho                                                  ! switch between source (rho=0) or ground pixel (rho=1)
       verbose=1                                                    ! Very little printout=0, Many printout = 1, even more=2
       diamobj=1.D0                                                   ! A dummy value for the diameter of the objective of the instrument used by the observer.
@@ -233,9 +234,10 @@
       cloudslope=-0.013D0
       cloudfrac=100.D0
       effdif2=5000.D0
-      effdif3=4000.D0
+      effdif3=10000.D0
       siz2=1000.D0
-      siz3=2000.D0
+      !siz3=20000.D0
+      siz3=(4.*pi*effdif3**3./3/sqrt(1000000.))**(1./3.)
       volu2=siz2**3.D0
       volu3=siz3**3.D0
       if (verbose.ge.1) then
@@ -760,7 +762,10 @@
         itoclou=0.
         fctcld=0.
         fcapt=0.
-        ftocap=0.        
+        ftocap=0.   
+        tot1=0.
+        tot2=0.
+        tot3=0.     
         if (ssswit.gt.0) then ! if any need for scattering calculations
 ! Calculation of the scattered radiances - 1st, 2nd, and 3rd scattering
           cloudtop=100000.
@@ -821,12 +826,12 @@
                     if (verbose.ge.1) then 
                       print*,'================================================'
                       print*,' Progression along the line of sight :',icible
-                      print*,' Horizontal dist. line of sight =',sqrt((rx_c-rx_obs)**2.+(ry_c-ry_obs)**2.),' m'
-                      print*,' Vertical dist. line of sight =',abs(z_c-z_obs),' m'
+                      print*,' Horizontal dist. line of sight =',idnint(sqrt((rx_c-rx_obs)**2.+(ry_c-ry_obs)**2.)),' m'
+                      print*,' Vertical dist. line of sight =',idnint(abs(z_c-z_obs)),' m'
                       write(2,*) '============================================='
                       write(2,*) ' Progression along the line of sight :',icible
-                      write(2,*) ' Horizontal dist. line of sight =',sqrt((rx_c-rx_obs)**2.+(ry_c-ry_obs)**2.),' m'
-                      write(2,*) ' Vertical dist. line of sight =',abs(z_c-z_obs),' m'
+                      write(2,*) ' Horizontal dist. line of sight =',idnint(sqrt((rx_c-rx_obs)**2.+(ry_c-ry_obs)**2.)),' m'
+                      write(2,*) ' Vertical dist. line of sight =',idnint(abs(z_c-z_obs)),' m'
                     endif
                     dis_obs=sqrt((z_c-z_obs)**2.+(ry_c-ry_obs)**2.+(rx_c-rx_obs)**2.)
                     if (dis_obs.eq.0.) then
@@ -1044,9 +1049,10 @@
                       
                     enddo ! end of the loop over the types of sources (stype).
                     itot=itodif1+itodif2+itodif3
-                    
-                    
-                    print*,itodif1,itodif2,itodif3
+                    tot1=tot1+itodif1
+                    tot2=tot2+itodif2
+                    tot3=tot3+itodif3
+
                     
                     ! computation of the luminous flux reaching the observer
                     ! computation of the zenithal angle between the observer and the line of sight voxel
@@ -1115,9 +1121,10 @@
             endif ! end the line of sight is not yet blocked by the topography
           enddo ! end of the loop over the line of sight voxels.
       
-      
-      
-      
+                          print*,tot1,tot2,tot3
+          print*,'Ratio 2nd/1st scat=',tot2/tot1
+          print*,'Ratio 3rd/1st scat=',tot3/tot1
+        
       
           fctcld=fctcld*10**(0.4*(100.-cloudfrac)*cloudslope) ! correction for the cloud fraction (defined from 0 to 100)
           if (prmaps.eq.1) then
