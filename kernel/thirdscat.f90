@@ -67,21 +67,21 @@
  !     print*,'t1'
       
       do is3a=1,ndif ! beginning of the loop over the scattering voxels.
-        rx_difa=zondif(is3a,1)+(rx_s+rx_c)/2.
-        ry_difa=zondif(is3a,2)+(ry_s+ry_c)/2.
+        rx_difa=zondif(is3a,1)
+        ry_difa=zondif(is3a,2)
         ida=idnint(rx_difa/dx)
         jda=idnint(ry_difa/dy)
         if (ida.gt.width) ida=width
         if (ida.lt.1) ida=1
         if (jda.gt.width) jda=width
         if (jda.lt.1) jda=1
-        z_difa=zondif(is3a,3)+(z_s+z_c)/2.    
+        z_difa=zondif(is3a,3)
         
 !        print*,'t2j'
                                               
         do is3b=1,ndif
-          rx_difb=zondif(is3b,1)+(rx_difb+rx_c)/2.
-          ry_difb=zondif(is3b,2)+(ry_difb+ry_c)/2.
+          rx_difb=zondif(is3b,1)
+          ry_difb=zondif(is3b,2)
           idb=idnint(rx_difb/dx)          
           jdb=idnint(ry_difb/dy)
           
@@ -92,7 +92,7 @@
           if (idb.lt.1) idb=1
           if (jdb.gt.width) jdb=width
           if (jdb.lt.1) jdb=1
-          z_difb=zondif(is3b,3)+(z_difb+z_c)/2.
+          z_difb=zondif(is3b,3)
 
           if ((ida.ne.idb).and.(jda.ne.jdb).and.(z_difa.ne.z_difb)) then
             if (((z_difa-siz/2..le.altsol(ida,jda)).or.(z_difa.gt.35000.).or.(z_difa.gt.cloudbase)).or.  &
