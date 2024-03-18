@@ -57,7 +57,7 @@
       ! light fixture. This number is however somehow subjective and that means
       ! that the value of sky brightness near sources will be affected by this
       ! choice
-      omemax=1./((10.D0)**2.)
+      omemax=1./((10.D0)**2.D0)
       rx_sr=real(x_sr)*dx
       ry_sr=real(y_sr)*dy
       rx_s=real(x_s)*dx

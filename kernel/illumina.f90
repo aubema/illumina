@@ -405,25 +405,10 @@
         itodif1=0.
         itodif2=0.
         itodif3=0.
-        ! determine the 2nd scattering zone
-        if (ssswit.gt.1) then
-          call zone_diffusion(effdif2,zondi2,ndiff2,siz2)
-          dss2=1.D0*siz2
-          if (verbose.gt.0) then
-            print*,'2nd order scattering grid points =',ndiff2
-            print*,'2nd order scattering smoothing radius =',dss2,'m'
-          endif
-        endif
- 
-        ! determine the 3rd scattering zones
-        if (ssswit.gt.2) then
-          call zone_diffusion(effdif3,zondi3,ndiff3,siz3)
-          dss3=1.D0*siz3
-          if (verbose.gt.0) then
-            print*,'3rd order scattering grid points =',ndiff3*ndiff3
-            print*,'3rd order scattering smoothing radius =',dss3,'m'
-          endif
-        endif   
+        
+        
+        
+             
         ! determination of the vertical atmospheric transmittance
         call transtoa(lambda,bandw,taua,layaod,pressi,tranam,tranaa,tranal,tabs) ! tranam and tranaa are the top of atmosphere transmittance (molecules and aerosols)
         ! reading of the environment variables
@@ -778,6 +763,13 @@
           ry_c=real(y_obs)*dx-iy*scal/2.
           z_c=z_obs-iz*scal/2.
           do icible=1,ncible ! beginning of the loop over the line of sight voxels
+          
+          
+! ajouter le calcul du volume de diffusion          
+          
+          
+          
+          
             itodif1=0.
             itodif2=0.
             itodif3=0.
@@ -851,7 +843,13 @@
                           enddo
                         enddo
                         do x_s=imin(stype),imax(stype) ! beginning of the loop over the column (longitude the) of the domain.
-                          do y_s=jmin(stype),jmax(stype)       
+                          do y_s=jmin(stype),jmax(stype)
+                            
+                            rx_s=real(x_s)*dx
+                            ry_s=real(y_s)*dy
+                            
+                            
+                               
 ! 1st scattering from source and ground                              
                             rho=0 ! from source                   
                             icloud=0.
@@ -913,6 +911,10 @@
                                   rho=0 ! from source
                                   icloud=0.
                                   idif2=0.
+                                  call zone_scat(rx_s,ry_s,z_s,rx_c,ry_c,z_c,effdif2,zondi2,ndiff2,siz2)
+                                  
+                                  print*,'n 2nd=',ndiff2
+                                  
                                   call secondscat(rho,x_s,y_s,z_s,x_c,y_c,z_c,x_sr,y_sr,z_sr,x_obs,y_obs,z_obs,iz,lamplu, &
                                   ofill,srefl,drefle,reflsiz,obsH,altsol,inclix,incliy,pvalno,stype,zondi2,siz2,volu2,ndiff2, &
                                   tranam,tabs,tranaa,tranal,secdif,secdil,fdifan,fdifl,haer,hlay,dx,dy,cloudt,cloudbase,omefov, &
@@ -942,6 +944,7 @@
                                           if((x_sr.le.nbx).and.(x_sr.ge.1).and.(y_sr.le.nby).and.(y_sr.ge.1)) then
                                             if((x_c.ne.x_sr).and.(y_c.ne.y_sr).and.(z_c.ne.z_sr)) then 
                                               idif2=0.
+                                              call zone_scat(rx_sr,ry_sr,z_sr,rx_c,ry_c,z_c,effdif2,zondi2,ndiff2,siz2)
                                               call secondscat(rho,x_s,y_s,z_s,x_c,y_c,z_c,x_sr,y_sr,z_sr,x_obs,y_obs,z_obs,iz, &
                                               lamplu,ofill,srefl,drefle,reflsiz,obsH,altsol,inclix,incliy,pvalno,stype,zondi2, &
                                               siz2,volu2,ndiff2,tranam,tabs,tranaa,tranal,secdif,secdil,fdifan,fdifl,haer,hlay, &
@@ -958,7 +961,10 @@
 ! 3rd scattering from source and ground                             
                                 if (ssswit.gt.2) then
                                   rho=0 ! from source
-                                  icloud=0.                                 
+                                  icloud=0.
+                                  call zone_scat(rx_s,ry_s,z_s,rx_c,ry_c,z_c,effdif3,zondi3,ndiff3,siz3)   
+
+                                                              
                                   call thirdscat(rho,x_s,y_s,z_s,x_c,y_c,z_c,x_sr,y_sr,z_sr,x_obs,y_obs,z_obs,iz,lamplu, &
                                   ofill,srefl,drefle,reflsiz,obsH,altsol,inclix,incliy,pvalno,stype,zondi3,siz3,volu3, &
                                   ndiff3,tranam,tabs,tranaa,tranal,secdif,secdil,fdifan,fdifl,haer,hlay,dx,dy,cloudt,cloudbase, &
@@ -986,11 +992,20 @@
                                         haut=-(rx_s-rx_sr)*tan(inclix(x_sr,y_sr))-(ry_s-ry_sr)*tan(incliy(x_sr,y_sr))+z_s-z_sr ! if haut < 0, ground cell is lighted from below
                                         if (haut.gt.0.) then ! Condition: the ground cell is lighted from above
                                           if((x_sr.le.nbx).and.(x_sr.ge.1).and.(y_sr.le.nby).and.(y_sr.ge.1)) then
-                                            if((x_c.ne.x_sr).and.(y_c.ne.y_sr).and.(z_c.ne.z_sr)) then    ! if the ground is not at the line of sight voxel                              
+                                            if((x_c.ne.x_sr).and.(y_c.ne.y_sr).and.(z_c.ne.z_sr)) then    ! if the ground is not at the line of sight voxel      
+                                              call zone_scat(rx_sr,ry_sr,z_sr,rx_c,ry_c,z_c,effdif3,zondi3,ndiff3,siz3)          
+                                              
+                                              
+                                                                                                                  
+                                  print*,'n 3rd=',ndiff3
+                                                             
                                               call thirdscat(rho,x_s,y_s,z_s,x_c,y_c,z_c,x_sr,y_sr,z_sr,x_obs,y_obs,z_obs, &
                                               iz,lamplu,ofill,srefl,drefle,reflsiz,obsH,altsol,inclix,incliy,pvalno,stype, &
                                               zondi3,siz3,volu3,ndiff3,tranam,tabs,tranaa,tranal,secdif,secdil,fdifan,fdifl,haer, &
                                               hlay,dx,dy,cloudt,cloudbase,omefov,scal,portio,idif3,icloud)
+                                              
+                                              print*,'t1'
+                                              
                                               itodif3=itodif3+idif3
                                               itoclou=itoclou+icloud    
                                             endif
