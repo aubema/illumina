@@ -178,7 +178,7 @@
       real*8 volu2,volu3                                             ! volume of a voxel
       real*8 scal                                                    ! stepping along the line of sight
       real*8 scalo                                                   ! previous value of scal
-      real*8 siz2,siz3                                               ! resolution of the 2nd scat grid in meter
+      real*8 siz2,siz3,siz2_0,siz3_0                                 ! resolution of the 2nd scat grid in meter
       real*8 angvi1,angaz1,angze1                                    ! viewing angles in radian
       real*8 ix,iy,iz                                                ! base vector of the viewing (length=1)
       real*8 omemax                                                  ! max solid angle allowed
@@ -233,13 +233,7 @@
       ncible=1024
       cloudslope=-0.013D0
       cloudfrac=100.D0
-      effdif2=5000.D0
-      effdif3=10000.D0
-      siz2=1000.D0
-      !siz3=20000.D0
-      siz3=(4.*pi*effdif3**3./3/sqrt(1000000.))**(1./3.)
-      volu2=siz2**3.D0
-      volu3=siz3**3.D0
+
       if (verbose.ge.1) then
         print*,'Starting ILLUMINA computations...'
       endif
@@ -750,7 +744,11 @@
         ftocap=0.   
         tot1=0.
         tot2=0.
-        tot3=0.     
+        tot3=0. 
+        effdif2=6000.D0
+        effdif3=6000.D0
+        siz2_0=1000.D0
+        siz3_0=1500.D0
         if (ssswit.gt.0) then ! if any need for scattering calculations
 ! Calculation of the scattered radiances - 1st, 2nd, and 3rd scattering
           cloudtop=100000.
@@ -911,9 +909,10 @@
                                   rho=0 ! from source
                                   icloud=0.
                                   idif2=0.
-                                  call zone_scat(rx_s,ry_s,z_s,rx_c,ry_c,z_c,effdif2,zondi2,ndiff2,siz2)
-                                  
-                                  print*,'n 2nd=',ndiff2
+                                  call zone_scat(rx_s,ry_s,z_s,rx_c,ry_c,z_c,effdif2,zondi2,ndiff2,siz2,siz2_0)
+                                  volu2=siz2**3.D0
+
+                                  !print*,'n 2nd=',ndiff2,siz2
                                   
                                   call secondscat(rho,x_s,y_s,z_s,x_c,y_c,z_c,x_sr,y_sr,z_sr,x_obs,y_obs,z_obs,iz,lamplu, &
                                   ofill,srefl,drefle,reflsiz,obsH,altsol,inclix,incliy,pvalno,stype,zondi2,siz2,volu2,ndiff2, &
@@ -944,7 +943,8 @@
                                           if((x_sr.le.nbx).and.(x_sr.ge.1).and.(y_sr.le.nby).and.(y_sr.ge.1)) then
                                             if((x_c.ne.x_sr).and.(y_c.ne.y_sr).and.(z_c.ne.z_sr)) then 
                                               idif2=0.
-                                              call zone_scat(rx_sr,ry_sr,z_sr,rx_c,ry_c,z_c,effdif2,zondi2,ndiff2,siz2)
+                                              call zone_scat(rx_sr,ry_sr,z_sr,rx_c,ry_c,z_c,effdif2,zondi2,ndiff2,siz2,siz2_0)
+                                              volu2=siz2**3.D0
                                               call secondscat(rho,x_s,y_s,z_s,x_c,y_c,z_c,x_sr,y_sr,z_sr,x_obs,y_obs,z_obs,iz, &
                                               lamplu,ofill,srefl,drefle,reflsiz,obsH,altsol,inclix,incliy,pvalno,stype,zondi2, &
                                               siz2,volu2,ndiff2,tranam,tabs,tranaa,tranal,secdif,secdil,fdifan,fdifl,haer,hlay, &
@@ -962,8 +962,8 @@
                                 if (ssswit.gt.2) then
                                   rho=0 ! from source
                                   icloud=0.
-                                  call zone_scat(rx_s,ry_s,z_s,rx_c,ry_c,z_c,effdif3,zondi3,ndiff3,siz3)   
-
+                                  call zone_scat(rx_s,ry_s,z_s,rx_c,ry_c,z_c,effdif3,zondi3,ndiff3,siz3,siz3_0)   
+                                  volu3=siz3**3.D0
                                                               
                                   call thirdscat(rho,x_s,y_s,z_s,x_c,y_c,z_c,x_sr,y_sr,z_sr,x_obs,y_obs,z_obs,iz,lamplu, &
                                   ofill,srefl,drefle,reflsiz,obsH,altsol,inclix,incliy,pvalno,stype,zondi3,siz3,volu3, &
@@ -993,18 +993,18 @@
                                         if (haut.gt.0.) then ! Condition: the ground cell is lighted from above
                                           if((x_sr.le.nbx).and.(x_sr.ge.1).and.(y_sr.le.nby).and.(y_sr.ge.1)) then
                                             if((x_c.ne.x_sr).and.(y_c.ne.y_sr).and.(z_c.ne.z_sr)) then    ! if the ground is not at the line of sight voxel      
-                                              call zone_scat(rx_sr,ry_sr,z_sr,rx_c,ry_c,z_c,effdif3,zondi3,ndiff3,siz3)          
-                                              
+                                              call zone_scat(rx_sr,ry_sr,z_sr,rx_c,ry_c,z_c,effdif3,zondi3,ndiff3,siz3,siz3_0)          
+                                              volu3=siz3**3.D0
                                               
                                                                                                                   
-                                  print*,'n 3rd=',ndiff3
+                                  !print*,'n 3rd=',ndiff3
                                                              
                                               call thirdscat(rho,x_s,y_s,z_s,x_c,y_c,z_c,x_sr,y_sr,z_sr,x_obs,y_obs,z_obs, &
                                               iz,lamplu,ofill,srefl,drefle,reflsiz,obsH,altsol,inclix,incliy,pvalno,stype, &
                                               zondi3,siz3,volu3,ndiff3,tranam,tabs,tranaa,tranal,secdif,secdil,fdifan,fdifl,haer, &
                                               hlay,dx,dy,cloudt,cloudbase,omefov,scal,portio,idif3,icloud)
                                               
-                                              print*,'t1'
+                                              !print*,'t1'
                                               
                                               itodif3=itodif3+idif3
                                               itoclou=itoclou+icloud    
