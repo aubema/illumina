@@ -745,8 +745,8 @@
         tot1=0.
         tot2=0.
         tot3=0. 
-        effdif2=6000.D0
-        effdif3=6000.D0
+        effdif2=15000.D0
+        effdif3=15000.D0
         siz2_0=1000.D0
         siz3_0=1500.D0
         if (ssswit.gt.0) then ! if any need for scattering calculations
@@ -1118,6 +1118,7 @@
                     endif
                     
                     
+                    
                                              
                     
                     
@@ -1139,7 +1140,7 @@
                           print*,tot1,tot2,tot3
           print*,'Ratio 2nd/1st scat=',tot2/tot1
           print*,'Ratio 3rd/1st scat=',tot3/tot1
-        
+          write(*,2002) tot2/tot1,tot3/tot1
       
           fctcld=fctcld*10**(0.4*(100.-cloudfrac)*cloudslope) ! correction for the cloud fraction (defined from 0 to 100)
           if (prmaps.eq.1) then
@@ -1184,6 +1185,7 @@
         write(2,2001) (ftocap+fctcld)/omefov/(pi*(diamobj/2.)**2.)
       close(2)
 2001  format('                   ',E10.3E2)
+2002  format('Ratio 2nd/1st scat=',F5.2,'Ratio 3rd/1st scat=',F5.2)
       stop
       end
 ! ***********************************************************************
