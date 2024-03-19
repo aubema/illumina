@@ -27,17 +27,19 @@
 !    Contact: martin.aube@cegepsherbrooke.qc.ca
 !
 !
-      subroutine zone_scat(xi,yi,zi,xf,yf,zf,effet,zondif,ncell,siz)
+      subroutine zone_scat(xi,yi,zi,xf,yf,zf,effet,zondif,ncell,siz,siz_0)
        implicit none
        integer i,j,k
        integer ncell,neffet,imin,imax,jmin,jmax,kmin,kmax
        real*8 x0,y0,z0,xi,yi,zi,xf,yf,zf
        real*8 effet,dmax,d
        real*8 xmin,xmax,ymin,ymax,zmin,zmax
-       real*8 zondif(3000000,3),siz
+       real*8 zondif(3000000,3),siz,siz_0
        real*8 pi
        pi=3.141592654D0
-
+       dmax=sqrt((xf-xi)**2.+(yf-yi)**2.+(zf-zi)**2.)
+       siz=siz_0*(((4.*effet**3.)/3.+dmax*effet**2.)/((4.*effet**3.)/3.))**(1./3.)  
+       dmax=dmax+effet
        xmin=3000000.
        ymin=3000000.
        zmin=3000000.
@@ -59,7 +61,7 @@
        
                 
        neffet=idnint(1.2*effet/siz)
-       dmax=sqrt((xf-xi)**2.+(yf-yi)**2.+(zf-zi)**2.)+effet
+
 ! limits of the calculations loops
        imin=idnint(xmin/siz)-neffet
        imax=idnint(xmax/siz)+neffet
