@@ -74,7 +74,7 @@
       character*72 mnaf                                            ! Terrain elevation file
       character*72 diffil                                          ! Aerosol file
       character*72 outfile                                         ! Results file
-      character*72 pclimg
+      character*72 pclimg1,pclimg2,pclimg3
       character*72 basenm                                          ! Base name of files
       integer lenbase                                              ! Length of the Base name of the experiment
       real*8 lambda,pressi,drefle(width,width)                       ! Wavelength (nanometer), atmospheric pressure (kPa), mean free path to the ground (meter).
@@ -123,8 +123,8 @@
       real*8 omega                                                   ! Solid angles
       real*8 idif3                                                   ! 3rd scat  intensity
       real*8 itodif                                                  ! Total contribution of the source to the scattered intensity toward the sensor.
-      real*8 fcapt                                                   ! Flux reaching the observer voxel from all FOV voxels in a given model level
-      real*8 ftocap                                                  ! Total flux reaching the observer voxel
+      real*8 fcapt,fcapt1,fcapt2,fcapt3                                                   ! Flux reaching the observer voxel from all FOV voxels in a given model level
+      real*8 ftocap,ftocap1,ftocap2,ftocap3                                        ! Total flux reaching the observer voxel
       real*8 haut                                                    ! Haut (negative indicate that the surface is lighted from inside the ground. I.e. not considered in the calculation
       real*8 epsilx,epsily                                           ! tilt of the ground pixel
       real*8 flrefl                                                  ! flux reaching a reflecting surface (watts).
@@ -147,11 +147,8 @@
                                                                    ! a light ray cannot propagate because it is blocked by a sub-grid obstable
       real*8 ofill(width,width)                                      ! fill factor giving the probability to hit an obstacle when pointing in its direction real 0-1
       integer naz,na
-      real*8 ITT(width,width,nzon)                                   ! total intensity per type of lamp
-      real*8 ITC(width,width)                                        ! total intensity per line of sight voxel
-      real*8 FTC(width,width)                                        ! fraction of the total flux at the sensor level
-      real*8 FCA(width,width)                                        ! sensor flux array
-      real*8 lpluto(width,width)                                     ! total luminosity of the ground cell for all lamps
+      real*8 contrib1(width,width),contrib2(width,width),contrib3(width,width)
+      real*8 tcontrib1(width,width),tcontrib2(width,width),tcontrib3(width,width)
       character*3 lampno                                           ! lamp number string
       integer imin(nzon),imax(nzon),jmin(nzon),jmax(nzon)          ! x and y limits containing a type of lamp
       real*8 latitu                                                  ! approximate latitude of the domain center
@@ -221,6 +218,7 @@
       real*8 itodif3                                                 ! total 3rd order intentity
       real*8 itot
       real*8 tot1,tot2,tot3
+      real*8 addrad(100,4)
       integer rho                                                  ! switch between source (rho=0) or ground pixel (rho=1)
       verbose=1                                                    ! Very little printout=0, Many printout = 1, even more=2
       diamobj=1.D0                                                   ! A dummy value for the diameter of the objective of the instrument used by the observer.
@@ -320,7 +318,9 @@
       lenbase=index(basenm,' ')-1
       mnaf=basenm(1:lenbase)//'_topogra.bin' ! determine the names of input and output files
       outfile=basenm(1:lenbase)//'.out'
-      pclimg=basenm(1:lenbase)//'_pcl.bin'
+      pclimg1=basenm(1:lenbase)//'_pcl1.bin'
+      pclimg2=basenm(1:lenbase)//'_pcl2.bin'
+      pclimg3=basenm(1:lenbase)//'_pcl3.bin'
       ! opening output file
       open(unit=2,file=outfile,status='unknown')
         write(2,*) "ILLUMINA version __version__"
@@ -353,15 +353,16 @@
             ofill(i,j)=0.
             inclix(i,j)=0.
             incliy(i,j)=0.
-            lpluto(i,j)=0.
-            ITC(i,j)=0.
-            FTC(i,j)=0.
-            FCA(i,j)=0.
             flcld(i,j)=0.
             lampal(i,j)=0.
+            contrib(i,j,1)=0.
+            contrib(i,j,2)=0.
+            contrib(i,j,3)=0.
+            tcontrib(i,j,1)=0.
+            tcontrib(i,j,2)=0.
+            tcontrib(i,j,3)=0.            
             do k=1,nzon
               lamplu(i,j,k)=0.
-              ITT(i,j,k)=0.
             enddo
           enddo
         enddo
@@ -734,19 +735,24 @@
           endif ! check if there are any flux in that source type otherwise skip this lamp
         enddo ! end of the loop over the source types.
         ! end of direct calculations
-          
-          
-
         itot=0. 
         itoclou=0.
         fctcld=0.
         fcapt=0.
-        ftocap=0.   
+        fcapt1=0.
+        fcapt2=0.
+        fcapt3=0.                
+        ftocap=0.
+        ftocap1=0.       
+        ftocap2=0.
+        ftocap3=0.         
         tot1=0.
         tot2=0.
         tot3=0. 
         effdif2=15000.D0
         effdif3=15000.D0
+        print*,'Action radius of 2nd scattering =',effdif2
+        print*,'Action radius of 3rd scattering =',effdif3
         siz2_0=1000.D0
         siz3_0=1500.D0
         if (ssswit.gt.0) then ! if any need for scattering calculations
@@ -761,13 +767,6 @@
           ry_c=real(y_obs)*dx-iy*scal/2.
           z_c=z_obs-iz*scal/2.
           do icible=1,ncible ! beginning of the loop over the line of sight voxels
-          
-          
-! ajouter le calcul du volume de diffusion          
-          
-          
-          
-          
             itodif1=0.
             itodif2=0.
             itodif3=0.
@@ -787,11 +786,6 @@
                   ! stop the calculation of the viewing line when the increment is lower than 1/stoplim
                   ! or when hitting a cloud or when z>35km (scattering probability =0 (given precision)
                   fcapt=0.
-                  do i=1,nbx
-                    do j=1,nby
-                      FCA(i,j)=0.
-                    enddo
-                  enddo
                   ! Calculate the solid angle of the line of sight voxel unit voxel
                   ! (1 m^3) given the fixed FOV of the observer.
                   ! For line of sight voxel near the observer
@@ -834,12 +828,6 @@
                       if (totlu(stype).ne.0.) then ! check if there are any flux in that source type otherwise skip this lamp
                         if (verbose.ge.1) print*,' Turning on lamps zone',stype
                         if (verbose.ge.1) write(2,*) ' Turning on lamps zone',stype
-
-                        do x_s=1,nbx ! the intensity toward the sensor by a line of sight voxel.
-                          do y_s=1,nby
-                            ITT(x_s,y_s,stype)=0.
-                          enddo
-                        enddo
                         do x_s=imin(stype),imax(stype) ! beginning of the loop over the column (longitude the) of the domain.
                           do y_s=jmin(stype),jmax(stype)
                             
@@ -994,18 +982,11 @@
                                           if((x_sr.le.nbx).and.(x_sr.ge.1).and.(y_sr.le.nby).and.(y_sr.ge.1)) then
                                             if((x_c.ne.x_sr).and.(y_c.ne.y_sr).and.(z_c.ne.z_sr)) then    ! if the ground is not at the line of sight voxel      
                                               call zone_scat(rx_sr,ry_sr,z_sr,rx_c,ry_c,z_c,effdif3,zondi3,ndiff3,siz3,siz3_0)          
-                                              volu3=siz3**3.D0
-                                              
-                                                                                                                  
-                                  !print*,'n 3rd=',ndiff3
-                                                             
+                                              volu3=siz3**3.D0  
                                               call thirdscat(rho,x_s,y_s,z_s,x_c,y_c,z_c,x_sr,y_sr,z_sr,x_obs,y_obs,z_obs, &
                                               iz,lamplu,ofill,srefl,drefle,reflsiz,obsH,altsol,inclix,incliy,pvalno,stype, &
                                               zondi3,siz3,volu3,ndiff3,tranam,tabs,tranaa,tranal,secdif,secdil,fdifan,fdifl,haer, &
                                               hlay,dx,dy,cloudt,cloudbase,omefov,scal,portio,idif3,icloud)
-                                              
-                                              !print*,'t1'
-                                              
                                               itodif3=itodif3+idif3
                                               itoclou=itoclou+icloud    
                                             endif
@@ -1032,36 +1013,13 @@
                                   stop
                                 endif
                               endif
-
-                            
-                                                        
-
-
-                            
-
-                            !ITT(x_s,y_s,stype)=ITT(x_s,y_s,stype)+isourc ! ITT stores itotty in a matrix
+                              contrib1(x_s,y_s)=contrib1(x_s,y_s)+idif1
+                              contrib2(x_s,y_s)=contrib2(x_s,y_s)+idif2
+                              contrib3(x_s,y_s)=contrib3(x_s,y_s)+idif3
                             endif
                           enddo ! end the loop over the lines (latitude) of the domain (y_s).
                         enddo ! end the loop over the column (longitude) of the domain (x_s).
-
-                        
-                           !if (icible.eq.9)   stop
-                        
-                        
-
-                        do x_s=imin(stype),imax(stype)
-                          do y_s=jmin(stype),jmax(stype)
-                            !ITC(x_s,y_s)=ITC(x_s,y_s)+ITT(x_s,y_s,stype)
-                          enddo
-                        enddo
-                        ! calculate total lamp flux matrix for all lamp types
-                        do x_s=1,nbx
-                          do y_s=1,nby
-                            !lpluto(x_s,y_s)=lpluto(x_s,y_s)+lamplu(x_s,y_s,stype)
-                          enddo
-                        enddo
-                      endif ! end of condition if there are any flux in that source type
-                      
+                      endif ! end check if there are any flux in that source type otherwise skip this lamp
                     enddo ! end of the loop over the types of sources (stype).
                     itot=itodif1+itodif2+itodif3
                     tot1=tot1+itodif1
@@ -1072,6 +1030,10 @@
                     ! computation of the luminous flux reaching the observer
                     ! computation of the zenithal angle between the observer and the line of sight voxel
                     call anglezenithal(rx_c,ry_c,z_c,rx_obs,ry_obs,z_obs,angzen) ! computation of the zenithal angle between the line of sight voxel and the observer.
+                    if (cos(pi-angzen).eq.0.) then
+                      print*,'ERROR perfectly horizontal sight is forbidden'
+                      stop
+                    endif
                     ! computation of the transmittance between the line of sight voxel and the observer
                     distd=sqrt((rx_c-rx_obs)**2.+(ry_c-ry_obs)**2.+(z_c-z_obs)**2.)
                     call transmitm(angzen,z_c,z_obs,distd,transm,tranam,tabs)
@@ -1079,37 +1041,36 @@
                     call transmita(angzen,z_c,z_obs,distd,hlay,transl,tranal)
                     ! computation of the flux reaching the objective of the telescope from the line of sight voxel
                     fcapt=itot*ometif*transa*transm*transl ! computation of the flux reaching the intrument from the line of sight voxel
-                    
-                    
+                    fcapt1=itodif1*ometif*transa*transm*transl
+                    fcapt2=itodif2*ometif*transa*transm*transl
+                    fcapt3=itodif3*ometif*transa*transm*transl
+                    do x_s=imin(stype),imax(stype)
+                      do y_s=jmin(stype),jmax(stype)
+                        contrib1(x_s,y_s)=contrib1(x_s,y_s)*ometif*transa*transm*transl
+                        contrib2(x_s,y_s)=contrib2(x_s,y_s)*ometif*transa*transm*transl     
+                        contrib3(x_s,y_s)=contrib3(x_s,y_s)*ometif*transa*transm*transl                 
+                      enddo
+                    enddo                    
+                    ! flux for all source all type all line of sight element    
+                    ftocap=ftocap+fcapt               
+                    ftocap1=ftocap1+fcapt1
+                    ftocap2=ftocap2+fcapt2               
+                    ftocap3=ftocap3+fcapt3                   
+                    do x_s=imin(stype),imax(stype)
+                      do y_s=jmin(stype),jmax(stype)
+                        do k=1,3
+                          tcontrib1(x_s,y_s)=tcontrib1(x_s,y_s)+contrib1(x_s,y_s)
+                          tcontrib2(x_s,y_s)=tcontrib2(x_s,y_s)+contrib2(x_s,y_s)
+                          tcontrib3(x_s,y_s)=tcontrib3(x_s,y_s)+contrib3(x_s,y_s)
+                        enddo
+                      enddo
+                    enddo    
+               
+ 
 
-                    
-                    
-                    do x_s=1,nbx
-                      do y_s=1,nby
-                        !FCA(x_s,y_s)=ITC(x_s,y_s)*ometif*transa*transm*transl
-                      enddo
-                    enddo
-                    if (cos(pi-angzen).eq.0.) then
-                      print*,'ERROR perfectly horizontal sight is forbidden'
-                      stop
-                    endif
-                    ! end of the computation of the flux reaching the observer voxel from the line of sight voxel
-                    ftocap=ftocap+fcapt ! flux for all source all type all line of sight element
-                    
-                    
-                    
-                    !print*,'fcatp',icible,fcapt,ftocap,itotci,ometif,transa,transm,transl
-                    !if (icible.eq.10) stop
-                    
-                    
-                    do x_s=1,nbx
-                      do y_s=1,nby
-                        !FTC(x_s,y_s)=FTC(x_s,y_s)+FCA(x_s,y_s) 
-                        ! FTC is the array of the flux total at the sensor to identify
-                        ! the contribution of each ground pixel to the total flux at the observer level
-                        ! The % is simply given by the ratio FTC/ftocap
-                      enddo
-                    enddo
+
+
+
                     ! correction for the FOV to the flux reaching the intrument from the cloud voxel
                     if (cloudt.ne.0) then
                       ! computation of the flux reaching the intrument from the cloud voxel
@@ -1128,6 +1089,10 @@
                     if (verbose.ge.1) print*,'Radiance accumulated =',ftocap/omefov/(pi*(diamobj/2.)**2.)
                     if (verbose.ge.1) write(2,*) 'Added radiance =',fcapt/omefov/(pi*(diamobj/2.)**2.)
                     if (verbose.ge.1) write(2,*) 'Radiance accumulated =',ftocap/omefov/(pi*(diamobj/2.)**2.)
+                    addrad(icible,1)=idnint(sqrt((rx_c-rx_obs)**2.+(ry_c-ry_obs)**2.)) ! horizontal distance along line of sight
+                    addrad(icible,2)=idnint(abs(z_c-z_obs)) ! vertical distance along line of sight
+                    addrad(icible,3)=scal ! length of line of sight increment in m
+                    addrad(icible,4)=fcapt/omefov/(pi*(diamobj/2.)**2.) ! added radiance for the line of sight increment
                   endif ! end of the condition line of sight voxel inside the modelling domain
                 endif ! end condition line of sight voxel 1/stoplim
                 ! accelerate the computation as we get away from the sources
@@ -1136,24 +1101,24 @@
               endif
             endif ! end the line of sight is not yet blocked by the topography
           enddo ! end of the loop over the line of sight voxels.
-      
-                          print*,tot1,tot2,tot3
-          print*,'Ratio 2nd/1st scat=',tot2/tot1
-          print*,'Ratio 3rd/1st scat=',tot3/tot1
+
+          open(unit=8,file='added_radiance.csv',status='unknown')
+            write(8,*) 'Horizontal_distance, Vertical_distance,Path_element_length,Added_radiance'
+            do i=1,ncible
+              write(8,*) addrad(i,1),',',addrad(i,2),',',addrad(i,3),',',addrad(i,4)
+            enddo
+          close(unit=8)
           write(*,2002) tot2/tot1,tot3/tot1
       
           fctcld=fctcld*10**(0.4*(100.-cloudfrac)*cloudslope) ! correction for the cloud fraction (defined from 0 to 100)
           if (prmaps.eq.1) then
-            do x_s=1,nbx
-              do y_s=1,nby
-                FTC(x_s,y_s)=FTC(x_s,y_s)/ftocap ! Here FTC becomes the flux fraction of each pixel. The sum of FTC values over all pixels give the total flux
-              enddo
-            enddo
             if (verbose.eq.2) then
-              print*,'Writing normalized contribution array'
+              print*,'Writing contribution arrays'
               print*,'Warning Cloud contrib. excluded from that array.'
             endif
-            call twodout(nbx,nby,pclimg,FTC)
+            call twodout(nbx,nby,pclimg1,tcontrib1)
+            call twodout(nbx,nby,pclimg2,tcontrib2)
+            call twodout(nbx,nby,pclimg3,tcontrib3)
           endif ! end of condition for creating contrib and sensit maps
         endif ! end of scattered light
         ! End of calculation of the scattered radiances
