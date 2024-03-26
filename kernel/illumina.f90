@@ -220,8 +220,9 @@
       integer rho                                                  ! switch between source (rho=0) or ground pixel (rho=1)
       real*8 flux_total,flux_total1,flux_total2,flux_total3
       real*8 acoef,bcoef ! 2nd order polynomial extrapolation coefficients
+      real*8 resolut2(4),resolut3(4)
       integer nres ! resolution number used to extrapolate the scattered flux to infinite resolution
-      verbose=1                                                    ! Very little printout=0, Many printout = 1, even more=2
+      verbose=0                                                    ! Very little printout=0, Many printout = 1, even more=2
       diamobj=1.D0                                                   ! A dummy value for the diameter of the objective of the instrument used by the observer.
       volu2=0.D0
       volu3=0.D0
@@ -328,10 +329,6 @@
         write(2,*) mnaf,diffil
         print*,'Wavelength (nm):',lambda,' Aerosol optical depth:',taua
         write(2,*) 'Wavelength (nm):',lambda,' Aerosol optical depth:',taua
-        write(2,*) '2nd order scattering radius:',effdif2,' m'
-        print*,'2nd order scattering radius:',effdif2,' m'
-         write(2,*) '3rd order scattering radius:',effdif3,' m'
-        print*,'3rd order scattering radius:',effdif3,' m'       
         write(2,*) 'Observer position (x,y,z)',x_obs,y_obs,z_o
         print*,'Observer position (x,y,z)',x_obs,y_obs,z_o
         write(2,*) 'Elevation angle:',angvis,' azim angle (counterclockwise from east)',azim
@@ -744,10 +741,16 @@
  
 
         effdif2=6000.D0
-        effdif3=5000.D0
-        size_0=3500.
-        print*,'Action radius of 2nd scattering =',effdif2
-        print*,'Action radius of 3rd scattering =',effdif3
+        effdif3=3000.D0
+        size_0=600.
+        if (ssswit.gt.1) then
+          print*,'Action radius of 2nd scattering =',effdif2
+          write(2,*) ' Action radius of 2nd scattering =',effdif2
+        endif 
+        if (ssswit.gt.2) then
+          print*,'Action radius of 3rd scattering =',effdif3
+          write(2,*) ' Action radius of 3rd scattering =',effdif3
+        endif
         if (ssswit.gt.0) then ! if any need for scattering calculations
 ! Calculation of the scattered radiances - 1st, 2nd, and 3rd scattering
           ! scan 3 coarse resolution to extrapolate the infinite resolution of the multiple scat
@@ -763,8 +766,10 @@
               
             ftocap2(nres)=0.
             ftocap3(nres)=0.         
-            siz2_0=size_0-dble(nres-1)*500. ! scanning resolutions of 2000m 1500m and 1000m
-            siz3_0=size_0-dble(nres-1)*500. 
+            siz2_0=size_0-dble(nres-1)*400. ! scanning resolutions of 2000m 1500m and 1000m
+            resolut2(nres)=siz2_0
+            siz3_0=size_0-dble(nres-1)*500.
+            resolut3(nres)=siz3_0
             cloudtop=100000.
             if ((z_obs.ge.cloudbase).and.(z_obs.le.cloudtop)) then
               print*,'The observer is inside the cloud! Abort computing.',z_obs,cloudbase
@@ -1103,30 +1108,35 @@
             
           enddo ! end of loop of 3 coarse resolutions (nres)        
           ! 2ND and 3RD ORDER extrapolation TO INFINITE RESOLUTION
-          acoef=(ftocap2(1)-2.*ftocap2(2)+ftocap2(3))/(size_0**2.-2.*(size_0-500.)**2.+(size_0-1000.)**2.)
-          bcoef=(ftocap2(1)-ftocap2(2)-acoef*(size_0**2.-(size_0-500.)**2.))/500.
-          flux_total2=ftocap2(1)-acoef*size_0**2.-bcoef*size_0
-          acoef=((ftocap2(1)-ftocap2(2))/500.+(ftocap2(1)-ftocap2(3))/1000.+(ftocap2(1)-ftocap2(4))/1500.)/2.
-          bcoef=ftocap2(1)-acoef*size_0
-          flux_total2=bcoef
-          
-          
-          
-          acoef=(ftocap3(1)-2.*ftocap3(2)+ftocap3(3))/(size_0**2.-2.*(size_0-500.)**2.+(size_0-1000.)**2.)
-          bcoef=(ftocap3(1)-ftocap3(2)-acoef*(size_0**2-(size_0-500.)**2.))/500.
-          flux_total3=ftocap3(1)-acoef*size_0**2.-bcoef*size_0
+          if (ssswit.gt.1) then
+            call linearfit(resolut2,ftocap2,acoef,bcoef)
+            flux_total2=bcoef
+            if (ssswit.gt.2) then
+              call linearfit(resolut3,ftocap3,acoef,bcoef)
+              flux_total3=bcoef
+            else
+              flux_total3=0.
+            endif
+          else
+            flux_total2=0.
+          endif
           flux_total1=ftocap1
           flux_total=flux_total1+flux_total2+flux_total3
           do x_s=imin(stype),imax(stype)
             do y_s=jmin(stype),jmax(stype)
-              acoef=(tcontrib2(x_s,y_s,1)-2.*tcontrib2(x_s,y_s,2)+tcontrib2(x_s,y_s,3))/(size_0**2.-2.*(size_0-500.)**2. &
-              +(size_0-1000.)**2.)
-              bcoef=(tcontrib2(x_s,y_s,1)-tcontrib2(x_s,y_s,2)-acoef*(size_0**2-(size_0-500.)**2.))/500.
-              contrimap2(x_s,y_s)=tcontrib2(x_s,y_s,1)-acoef*size_0**2.-bcoef*size_0
-              acoef=(tcontrib3(x_s,y_s,1)-2.*tcontrib3(x_s,y_s,2)+tcontrib3(x_s,y_s,3))/(size_0**2.-2.*(size_0-500.)**2. &
-              +(size_0-1000.)**2.)
-              bcoef=(tcontrib3(x_s,y_s,1)-tcontrib3(x_s,y_s,2)-acoef*((size_0-500.)**2.-(size_0-1000.)**2.))/500.
-              contrimap3(x_s,y_s)=tcontrib3(x_s,y_s,1)-acoef*size_0**2.-bcoef*size_0
+            
+              if (ssswit.gt.1) then
+                call linearfit(resolut2,tcontrib2(x_s,y_s,:),acoef,bcoef)
+                contrimap2(x_s,y_s)=bcoef
+                if (ssswit.gt.2) then
+                  call linearfit(resolut3,tcontrib2(x_s,y_s,:),acoef,bcoef)
+                  contrimap3(x_s,y_s)=bcoef
+                else
+                  contrimap3(x_s,y_s)=0.
+                endif
+              else
+                contrimap2(x_s,y_s)=0.
+              endif
               contrimap1=tcontrib1(x_s,y_s)
             enddo
           enddo    
