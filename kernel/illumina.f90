@@ -123,7 +123,7 @@
       real*8 omega                                                   ! Solid angles
       real*8 idif3                                                   ! 3rd scat  intensity
       real*8 itodif                                                  ! Total contribution of the source to the scattered intensity toward the sensor.
-      real*8 flux,flux1,flux2(5),flux3(5)                        ! Flux reaching the observer voxel from all FOV voxels in a given model level
+      real*8 flux1,flux2(5),flux3(5)                        ! Flux reaching the observer voxel from all FOV voxels in a given model level
       real*8 flux_total,flux_total_1,flux_total_2(5),flux_total_3(5)                    ! Total flux reaching the observer voxel
       real*8 haut                                                    ! Haut (negative indicate that the surface is lighted from inside the ground. I.e. not considered in the calculation
       real*8 epsilx,epsily                                           ! tilt of the ground pixel
@@ -223,7 +223,7 @@
       real*8 acoef,bcoef ! 2nd order polynomial extrapolation coefficients
       real*8 resolut2(5),resolut3(5)
       integer nres ! resolution number used to extrapolate the scattered flux to infinite resolution
-      verbose=0                                                    ! Very little printout=0, Many printout = 1, even more=2
+      verbose=1                                                    ! Very little printout=0, Many printout = 1, even more=2
       diamobj=1.D0                                                   ! A dummy value for the diameter of the objective of the instrument used by the observer.
       volu2=0.D0
       volu3=0.D0
@@ -359,8 +359,9 @@
             contrib1(i,j)=0.
             tcontrib1(i,j)=0.   
             tcontrib2(i,j)=0.
-            tcontrib3(i,j)=0.         
-            do k=1,3
+            tcontrib3(i,j)=0.
+     
+            do k=1,5
               contrib2(i,j,k)=0.
               contrib3(i,j,k)=0.
             enddo            
@@ -384,8 +385,10 @@
           itodif2(i)=0.
         enddo
         do i=1,3000000
-          zondi2(i,j)=1.
-          zondi3(i,j)=1.
+          do j=1,3
+            zondi2(i,j)=1.
+            zondi3(i,j)=1.
+          enddo
         enddo
         do i=1,nzon
           totlu(i)=0.
@@ -739,17 +742,13 @@
 ! Calculation of the scattered radiances - 1st, 2nd, and 3rd scattering
           ! scan 3 coarse resolution to extrapolate the infinite resolution of the multiple scat
           flux_total_1=0.
-          flux1=0.
-          flux=0.
           flux_total=0.
           itoclou=0.
           fctcld=0.
           scal=19.D0
           scalo=scal
-              
           flux_total_2=0.
           flux_total_3=0.         
-
           cloudtop=100000.
           if ((z_obs.ge.cloudbase).and.(z_obs.le.cloudtop)) then
             print*,'The observer is inside the cloud! Abort computing.',z_obs,cloudbase
@@ -760,6 +759,8 @@
           ry_c=real(y_obs)*dx-iy*scal/2.
           z_c=z_obs-iz*scal/2.
           do icible=1,ncible ! beginning of the loop over the line of sight voxels
+            flux_all=0.
+            flux1=0.
             do nres=1,5
               siz2_0=size_0-dble(nres-1)*400. ! scanning resolutions of 2000m 1500m and 1000m
               resolut2(nres)=siz2_0
@@ -768,13 +769,12 @@
               itodif1=0.
               itodif2(nres)=0.
               itodif3(nres)=0.
-              flux1=0.
               flux2(nres)=0.
-              flux3(nres)=0.  
-              rx_c=rx_c+ix*(scalo/2.+scal/2.)
-              ry_c=ry_c+iy*(scalo/2.+scal/2.)
-              dh0=sqrt((rx_c-rx_obs)**2.+(ry_c-ry_obs)**2)
-              if ((dh0.le.dhmax).or.((dh0.gt.dhmax).and.(angze1-zhoriz.lt.0.00001))) then ! the line of sight is not yet blocked by the topography
+              flux3(nres)=0.
+              if (nres.eq.1) then
+                rx_c=rx_c+ix*(scalo/2.+scal/2.)
+                ry_c=ry_c+iy*(scalo/2.+scal/2.)
+                dh0=sqrt((rx_c-rx_obs)**2.+(ry_c-ry_obs)**2)
                 x_c=idnint(rx_c/dx)
                 if (x_c.lt.1) x_c=1
                 if (x_c.gt.width) x_c=width
@@ -782,9 +782,15 @@
                 if (y_c.lt.1) y_c=1
                 if (y_c.gt.width) y_c=width
                 z_c=z_c+iz*(scalo/2.+scal/2.)
+              endif
+
+              if ((dh0.le.dhmax).or.((dh0.gt.dhmax).and.(angze1-zhoriz.lt.0.00001))) then ! the line of sight is not yet blocked by the topography
+              
+
+              
+
                 if (z_c.gt.altsol(x_c,y_c)) then
-                  if ((flux.ge.flux_total/stoplim).and.(z_c.lt.cloudbase).and.(z_c.lt.35000.)) then
-                    ! flux=0.
+                  if ((flux_all.ge.flux_total/stoplim).and.(z_c.lt.cloudbase).and.(z_c.lt.35000.)) then
                     ! stop the calculation of the viewing line when the increment is lower than 1/stoplim
                     ! or when hitting a cloud or when z>35km (scattering probability =0 (given precision) 
                     ! Calculate the solid angle of the line of sight voxel unit voxel
@@ -807,7 +813,7 @@
                     endif
                     if( (rx_c.gt.real(nbx*dx)).or.(rx_c.lt.dx).or.(ry_c.gt.(nby*dy)).or.(ry_c.lt.dy)) then ! Condition line of sight inside the modelling domain
                     else
-                      if (verbose.ge.1) then 
+                      if ((verbose.ge.1).and.(nres.eq.1)) then 
                         print*,'================================================'
                         print*,' Progression along the line of sight :',icible
                         print*,' Horizontal dist. line of sight =',idnint(sqrt((rx_c-rx_obs)**2.+(ry_c-ry_obs)**2.)),' m'
@@ -1035,17 +1041,7 @@
                       
                       
                       
-                      
-                      
-                      
-                      
-                      
-                      ! déplacer ceci apres l'interpolation ?
-                      flux=flux1+flux2(nres)+flux3(nres)
-                      
-                      
-                      
-                      
+
                       do x_s=imin(stype),imax(stype)
                         do y_s=jmin(stype),jmax(stype)
                           if (nres.eq.1) contrib1(x_s,y_s)=contrib1(x_s,y_s)*ometif*transa*transm*transl
@@ -1061,13 +1057,11 @@
 
                 endif
               endif ! end the line of sight is not yet blocked by the topography                      
-                      
-              ! accelerate the computation as we get away from the sources
-              scalo=scal
-              if (scal.le.3000.)  scal=scal*1.12                      
-               
-              
-            enddo ! end of loop over resolutions for interpolation of each line of sight voxel value                     
+
+            enddo ! end of loop over resolutions for interpolation of each line of sight voxel value
+                          ! accelerate the computation as we get away from the sources
+            scalo=scal
+            if (scal.le.3000.)  scal=scal*1.12           
 
             ! 2ND and 3RD ORDER extrapolation TO INFINITE RESOLUTION
             if (scat_level.gt.1) then
@@ -1116,7 +1110,7 @@
                       
                          
             ! flux for all source all type all line of sight element    
-            flux_total_1=flux_total_1+flux1
+            flux_total_1=flux_total_1+flux_1
             flux_total_2=flux_total_2+flux_2               
             flux_total_3=flux_total_3+flux_3
             flux_total=flux_total+flux_all
