@@ -1,11 +1,11 @@
 ! subroutine for linear regression
-subroutine linearfit(x,y,a,b)
+subroutine linearfit(x,y,nfit,a,b)
 implicit none
-integer,parameter::n=4
-integer i
+integer,parameter::n=5
+integer i,nfit
 real*8, dimension(n)::x,y
 real*8::s1,s2,s3,s4,a,b
-do i=1,n
+do i=1,nfit
   s1=s1+x(i)
   s2=s2+x(i)**2
   s3=s3+y(i)
