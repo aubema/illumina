@@ -223,6 +223,7 @@
       real*8 acoef,bcoef ! 2nd order polynomial extrapolation coefficients
       real*8 resolut2(5),resolut3(5)
       real*8 resofit(5),fluxfit(5)
+      real*8 moy,quad,sigma
       integer nres,nfit ! resolution number used to extrapolate the scattered flux to infinite resolution
       verbose=1                                                    ! Very little printout=0, Many printout = 1, even more=2
       diamobj=1.D0                                                   ! A dummy value for the diameter of the objective of the instrument used by the observer.
@@ -726,8 +727,8 @@
         ! end of direct calculations
  
 
-        radius_2=8000.D0
-        radius_3=6000.D0
+        radius_2=6000.D0
+        radius_3=3000.D0
         size_0=3000.
         if (scat_level.gt.1) then
           print*,'Action radius of 2nd scattering =',radius_2
@@ -1061,27 +1062,37 @@
             if ((flux_all.ge.flux_total/stoplim).and.(z_c.lt.cloudbase).and.(z_c.lt.35000.)) then
               ! 2ND and 3RD ORDER extrapolation TO INFINITE RESOLUTION
               if (scat_level.gt.1) then
+              
+              
+              
                 ! filter the data for abnormal variations.
                 nfit=0
-                do nres=1,4
-                  if (flux2(nres).lt.flux2(nres+1)) then
+                moy=0.
+                quad=0.
+                do nres=1,5
+                  moy=flux2(nres)+moy
+                enddo
+                moy=moy/5.
+                do nres=1,5
+                  quad=quad+(flux2(nres)-moy)**2.
+                enddo
+                sigma=sqrt(quad/4.)
+                do nres=1,5
+                  if (dabs(flux2(nres)-moy).le.1.5*sigma) then
                     nfit=nfit+1
                     fluxfit(nfit)=flux2(nres)
                     resofit(nfit)=resolut2(nres)
                   endif
                 enddo
-                if (flux2(5).gt.flux2(4)) then
-                  nfit=nfit+1
-                  fluxfit(nfit)=flux2(5)
-                  resofit(nfit)=resolut2(5)
-                endif
 
-                
+
+                print*,'nfit=',nfit,sigma
                 call linearfit(resofit,fluxfit,nfit,acoef,bcoef)
                 flux_2=bcoef
               
                 print*,'flux2',flux2
-              print*,flux_2
+                print*,fluxfit
+                print*,flux_2
               
                 if (scat_level.gt.2) then
                   if (PRODUCT(flux3).ne.0.) then
