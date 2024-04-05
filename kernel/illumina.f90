@@ -1096,6 +1096,7 @@
               
                 if (scat_level.gt.2) then
                   if (PRODUCT(flux3).ne.0.) then
+                    nfit=5
                     do nres=1,5
                   
                   
@@ -1105,7 +1106,7 @@
                     enddo
                   
                     ! linear interpolation in the LN space 
-                    call linearfit(resolut3,flux3,nres,acoef,bcoef)
+                    call linearfit(resolut3,flux3,nfit,acoef,bcoef)
                     print*,bcoef,acoef
                     flux_3=EXP(bcoef)
                   else
@@ -1113,7 +1114,7 @@
                   endif
                   
                   
-                                  print*,'flux3',flux3
+              print*,'flux3',flux3
               print*,flux_3
                   
                 else
