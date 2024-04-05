@@ -11,7 +11,7 @@ do i=1,nfit
   s3=s3+y(i)
   s4=s4+x(i)*y(i)
 enddo
-a=((n*s4)-(s1*s3))/((n*s2)-(s1**2)) ! slope
-b=(s3-(s1*a))/n ! intercept
+a=((nfit*s4)-(s1*s3))/((nfit*s2)-(s1**2)) ! slope
+b=(s3-(s1*a))/nfit ! intercept
 return
 end
