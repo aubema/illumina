@@ -86,5 +86,15 @@
            enddo
          enddo
        enddo
+       
+!       open(unit=1,file='scatzon.txt',status='unknown')
+!         do i=1,ncell
+!            write(1,*) zondif(i,1),zondif(i,2),zondif(i,3)
+!         enddo
+!       close(1)
+!       open(unit=1,file='points.txt',status='unknown')
+!          write(1,*) xi,yi,zi
+!          write(1,*) xf,yf,zf
+!       close(1)
        return
        end 

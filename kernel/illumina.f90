@@ -148,7 +148,6 @@
       real*8 ofill(width,width)                                      ! fill factor giving the probability to hit an obstacle when pointing in its direction real 0-1
       integer naz,na
       real*8 contrib1(width,width),contrib2(width,width,5),contrib3(width,width,5) ! contribution maps
-      real*8 tcontrib1(width,width),tcontrib2(width,width),tcontrib3(width,width)
       real*8 contribution_1(width,width),contribution_2(width,width),contribution_3(width,width)
       real*8 contrimap1(width,width),contrimap2(width,width),contrimap3(width,width)
       character*3 lampno                                           ! lamp number string
@@ -355,10 +354,9 @@
             contrimap2(i,j)=0.
             contrimap3(i,j)=0.
             contrib1(i,j)=0.
-            tcontrib1(i,j)=0.   
-            tcontrib2(i,j)=0.
-            tcontrib3(i,j)=0.
-     
+            contribution_1(i,j)=0.
+            contribution_2(i,j)=0. 
+            contribution_3(i,j)=0.  
             do k=1,5
               contrib2(i,j,k)=0.
               contrib3(i,j,k)=0.
@@ -1062,9 +1060,6 @@
             if ((flux_all.ge.flux_total/stoplim).and.(z_c.lt.cloudbase).and.(z_c.lt.35000.)) then
               ! 2ND and 3RD ORDER extrapolation TO INFINITE RESOLUTION
               if (scat_level.gt.1) then
-              
-              
-              
                 ! filter the data for abnormal variations.
                 nfit=0
                 moy=0.
@@ -1095,64 +1090,107 @@
                 print*,flux_2
               
                 if (scat_level.gt.2) then
-                  if (PRODUCT(flux3).ne.0.) then
-                    nfit=5
-                    do nres=1,5
-                  
-                  
-                  print*,flux3(nres)
-                  
+                  ! filter the data for abnormal variations.
+                  nfit=0
+                  moy=0.
+                  quad=0.
+                  do nres=1,5
                     flux3(nres)=LOG(flux3(nres))
-                    enddo
-                  
-                    ! linear interpolation in the LN space 
-                    call linearfit(resolut3,flux3,nfit,acoef,bcoef)
-                    print*,bcoef,acoef
-                    flux_3=EXP(bcoef)
-                  else
-                    flux_3=0.
-                  endif
-                  
-                  
-              print*,'flux3',flux3
-              print*,flux_3
-                  
+                  enddo                 
+                  do nres=1,5
+                    moy=flux3(nres)+moy
+                  enddo
+                  moy=moy/5.
+                  do nres=1,5
+                    quad=quad+(flux3(nres)-moy)**2.
+                  enddo
+                  sigma=sqrt(quad/4.)
+                  do nres=1,5
+                    if (dabs(flux3(nres)-moy).le.1.5*sigma) then
+                      nfit=nfit+1
+                      fluxfit(nfit)=flux3(nres)
+                      resofit(nfit)=resolut3(nres)
+                    endif
+                  enddo                  
+                  ! linear interpolation in the LN space 
+                  print*,'nfit=',nfit,sigma
+                  call linearfit(resofit,fluxfit,nfit,acoef,bcoef)
+                  print*,bcoef,acoef
+                  flux_3=EXP(bcoef)
                 else
                   flux_3=0.
                 endif
               else
                 flux_2=0.
+                flux_3=0.
               endif
               flux_1=flux1
               flux_all=flux_1+flux_2+flux_3
               do x_s=imin(stype),imax(stype)
                 do y_s=jmin(stype),jmax(stype)
-                  do nres=1,5
-                    contrib3(x_s,y_s,nres)=LOG(contrib3(x_s,y_s,nres))
-                  enddo
-                  if (scat_level.gt.1) then
-                    call linearfit(resolut2,contrib2(x_s,y_s,:),nres,acoef,bcoef)
-                    contribution_2(x_s,y_s)=bcoef
-                    if (scat_level.gt.2) then
-                      call linearfit(resolut3,contrib3(x_s,y_s,:),nres,acoef,bcoef)
+                  if (scat_level.gt.1) then  
+                    ! filter the data for abnormal variations.
+                    nfit=0
+                    moy=0.
+                    quad=0.
+                    do nres=1,5
+                      moy=contrib2(x_s,y_s,nres)+moy
+                    enddo
+                    moy=moy/5.
+                    do nres=1,5
+                      quad=quad+(contrib2(x_s,y_s,nres)-moy)**2.
+                    enddo
+                    sigma=sqrt(quad/4.)
+                    do nres=1,5
+                      if (dabs(contrib2(x_s,y_s,nres)-moy).le.1.5*sigma) then
+                        nfit=nfit+1
+                        fluxfit(nfit)=contrib2(x_s,y_s,nres)
+                        resofit(nfit)=resolut2(nres)
+                      endif
+                    enddo
+                    call linearfit(resofit,fluxfit,nfit,acoef,bcoef)
+                    contribution_2(x_s,y_s)=bcoef                 
+                    if (scat_level.gt.2) then            
+                      ! filter the data for abnormal variations.
+                      nfit=0
+                      moy=0.
+                      quad=0.
+                      do nres=1,5
+                        contrib3(x_s,y_s,nres)=LOG(contrib3(x_s,y_s,nres))
+                      enddo                 
+                      do nres=1,5
+                        moy=contrib3(x_s,y_s,nres)+moy
+                      enddo
+                      moy=moy/5.
+                      do nres=1,5
+                        quad=quad+(contrib3(x_s,y_s,nres)-moy)**2.
+                      enddo
+                      sigma=sqrt(quad/4.)
+                      do nres=1,5
+                        if (dabs(contrib3(x_s,y_s,nres)-moy).le.1.5*sigma) then
+                          nfit=nfit+1
+                          fluxfit(nfit)=contrib3(x_s,y_s,nres)
+                          resofit(nfit)=resolut3(nres)
+                        endif
+                      enddo
+                      call linearfit(resofit,fluxfit,nfit,acoef,bcoef)
                       contribution_3(x_s,y_s)=EXP(bcoef)
                     else
                       contribution_3(x_s,y_s)=0.
                     endif
+                    
                   else
                     contribution_2(x_s,y_s)=0.
+                    contribution_3(x_s,y_s)=0.
                   endif
-                  contribution_1=contrib1(x_s,y_s)
+                  contribution_1(x_s,y_s)=contrib1(x_s,y_s)
                 enddo
               enddo
             endif                         
-                      
-                      
 
-                      
-                      
-                      
-                         
+
+
+       
             ! flux for all source all type all line of sight element    
             flux_total_1=flux_total_1+flux_1
             flux_total_2=flux_total_2+flux_2               
@@ -1160,9 +1198,9 @@
             flux_total=flux_total+flux_all
             do x_s=imin(stype),imax(stype)
               do y_s=jmin(stype),jmax(stype)
-                tcontrib1(x_s,y_s)=tcontrib1(x_s,y_s)+contribution_1(x_s,y_s)
-                tcontrib2(x_s,y_s)=tcontrib2(x_s,y_s)+contribution_2(x_s,y_s)
-                tcontrib3(x_s,y_s)=tcontrib3(x_s,y_s)+contribution_3(x_s,y_s)
+                contrimap1(x_s,y_s)=contrimap1(x_s,y_s)+contribution_1(x_s,y_s)
+                contrimap2(x_s,y_s)=contrimap2(x_s,y_s)+contribution_2(x_s,y_s)
+                contrimap3(x_s,y_s)=contrimap3(x_s,y_s)+contribution_3(x_s,y_s)
               enddo
             enddo
 
