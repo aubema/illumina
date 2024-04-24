@@ -117,14 +117,7 @@
                 pdif=0.
               endif
               idif=flux*pdif*volu ! intensity toward line of sight voxel
-
-              
             endif
-  
-              
-              ! ajouter cloud ici?????????????
-              
-              
           else ! from ground
             flux=0.
             if ((ds1.lt.dss).or.(ds3.lt.dss)) then
@@ -207,12 +200,12 @@
               ! computing the scattering probability toward 2nd scat voxel
               call anglezenithal(rx_sr,ry_sr,z_sr,rx_difa,ry_difa,z_difa,zenith)
               call blocking(x_sr,y_sr,z_sr,ida,jda,z_difa,dx,dy,nbx,nby,altsol,drefle,ofill,obsH,hh,ff1,ff2)
-              ! computation of the transmittance between the reflection surface and the 3rd scattering voxel
+              ! computation of the transmittance between the reflection surface and the 2nd scattering voxel
               distd=sqrt((rx_difa-rx_sr)**2.+(ry_difa-ry_sr)**2.+(z_difa-z_sr)**2.)
               call transmitm(zenith,z_sr,z_difa,distd,transm,tranam,tabs)
               call transmita(zenith,z_sr,z_difa,distd,haer,transa,tranaa)
               call transmita(zenith,z_sr,z_difa,distd,hlay,transl,tranal)
-              ! computation of the solid angle of the 3rd scattering voxel seen from the reflecting surface
+              ! computation of the solid angle of the 2nd scattering voxel seen from the reflecting surface
               omega=1./distd**2.
               if (omega.gt.omemax) omega=0.   
               !flux=irefl*omega*transm*transa*transl*(1.-ff1)*(1.-ff2)*hh ! flux crossing the scattering voxel after refection
@@ -226,17 +219,14 @@
               idif=flux*pdif*volu ! intensity toward line of sight voxel
             endif
           endif ! end of source vs ground cell cases   
-
-   
-          
           call anglezenithal(rx_difa,ry_difa,z_difa,rx_c,ry_c,z_c,zenith)
           call blocking(ida,jda,z_difa,x_c,y_c,z_c,dx,dy,nbx,nby,altsol,drefle,ofill,obsH,hh,ff1,ff2)            
-          ! computing transmittance between the 3rd scattering voxel 2nd
+          ! computing transmittance between the 2nd scattering voxel 2nd
           distd=sqrt((rx_difa-rx_c)**2.+(ry_difa-ry_c)**2.+(z_difa-z_c)**2.)
           call transmitm(zenith,z_difa,z_c,distd,transm,tranam,tabs)
           call transmita(zenith,z_difa,z_c,distd,haer,transa,tranaa)
           call transmita(zenith,z_difa,z_c,distd,hlay,transl,tranal)
-          ! computing the solid angle of the 2nd scat voxel as seen from the 3rdscattering voxel
+          ! computing the solid angle of the 2nd scat voxel as seen from the 2nd scattering voxel
           omega=1./distd**2.
           if (omega.gt.omemax) omega=0.
           ! computation of the scattered flux reaching 2nd scattering voxel
@@ -249,7 +239,7 @@
           else
             pdif=0.D0
           endif
-          ! computing scattered intensity at the 3rd scat voxel toward the line of sight voxel
+          ! computing scattered intensity at the 2nd scat voxel toward the line of sight voxel
           idift=idift+flux*pdif*scal*portio ! still need to correct for the line of sight path step and for the FOV
           if (cloudt.ne.0) then ! line of sight voxel = cloud
             if (cloudbase-z_c.le.iz*scal) then ! this is the cloud base interface
