@@ -763,7 +763,8 @@
               siz2_0=size_0+dble(nres-1)*500. ! scanning resolutions of 2000m 1500m and 1000m
               resolut2(nres)=siz2_0
               siz3_0=size_0+dble(nres-1)*500.
-              resolut3(nres)=siz3_0            
+              resolut3(nres)=siz3_0
+              resolut3p(nres)=0.         
               itodif2(nres)=0.
               itodif3(nres)=0.
               flux2(nres)=0.
@@ -1075,6 +1076,7 @@
                 nfit=0
                 moy=0.
                 quad=0.
+                sigma=0.
                 do nres=1,5
                   moy=flux2(nres)+moy
                 enddo
@@ -1097,6 +1099,7 @@
                   call linearfit(resofit,fluxfit,nfit,acoef,bcoef)
                   flux_2=bcoef
                 else
+                  print*,'LESS THAN 4 points for 2nd order'
                   flux_2=0.
                 endif
                 print*,'flux2',flux2
@@ -1110,35 +1113,37 @@
                   moy=0.
                   quad=0.
                   nresp=0
+                  sigma=0.
                   do nres=1,5
                     if (flux3(nres).ne.0.) then
-                      flux3p(nres)=LOG(flux3(nres))
-                      resolut3p(nres)=resolut3(nres)
-                      nresp=nresp+1
+                      nresp=nresp+1                      
+                      flux3p(nresp)=LOG(flux3(nres))
+                      resolut3p(nresp)=resolut3(nres)
                     endif
-                  enddo                 
-                  do nres=1,nresp
-                    moy=flux3p(nres)+moy
                   enddo
-                  moy=moy/dble(nresp)
-                  do nres=1,nresp
-                    quad=quad+(flux3p(nres)-moy)**2.
-                  enddo
-                  sigma=sqrt(quad/dble(nresp-1))
-                  do nres=1,nresp
-                    if (dabs(flux3p(nres)-moy).le.1.5*sigma) then
-                      nfit=nfit+1
-                      fluxfit(nfit)=flux3p(nres)
-                      resofit(nfit)=resolut3p(nres)
-                    endif
-                  enddo                  
-                  ! linear interpolation in the LN space 
-                  print*,'nfit3=',nfit,sigma
-                  if (nfit.ge.4) then
+                  if (nresp.ge.4) then               
+                    do nres=1,nresp
+                      moy=flux3p(nres)+moy
+                    enddo
+                    moy=moy/dble(nresp)
+                    do nres=1,nresp
+                      quad=quad+(flux3p(nres)-moy)**2.
+                    enddo
+                    sigma=sqrt(quad/dble(nresp-1))
+                    do nres=1,nresp
+                      if (dabs(flux3p(nres)-moy).le.1.5*sigma) then
+                        nfit=nfit+1
+                        fluxfit(nfit)=flux3p(nres)
+                        resofit(nfit)=resolut3p(nres)
+                      endif
+                    enddo                  
+                    ! linear interpolation in the LN space 
+                    print*,'nfit3=',nfit,sigma
                     call linearfit(resofit,fluxfit,nfit,acoef,bcoef)
                     print*,bcoef,acoef
                     flux_3=EXP(bcoef)                    
                   else
+                    print*,'LESS THAN 4 points for 3rd order'
                     flux_3=0.
                   endif
                   print*,flux_3
@@ -1174,14 +1179,34 @@
                       endif
                     enddo
                     call linearfit(resofit,fluxfit,nfit,acoef,bcoef)
-                    contribution_2(x_s,y_s)=bcoef                 
-                    if (scat_level.gt.2) then            
+                    contribution_2(x_s,y_s)=bcoef 
+                    
+                    
+                                    
+                    if (scat_level.gt.3) then    ! ICI remettre 2
+                    
+                    
+                            
                       ! filter the data for abnormal variations.
                       nfit=0
                       moy=0.
                       quad=0.
+                      
+                      
                       do nres=1,5
+                        if (contrib3(x_s,y_s,nres).eq.0.) then
+                          contrib3(x_s,y_s,nres)=MAXVAL(contrib3(x_s,y_s,:))
+                        endif
+                      enddo   
+                      
+                                    
+                      
+                      do nres=1,5
+                      
+                      
                         contrib3(x_s,y_s,nres)=LOG(contrib3(x_s,y_s,nres))
+                        
+                        
                       enddo                 
                       do nres=1,5
                         moy=contrib3(x_s,y_s,nres)+moy
@@ -1190,7 +1215,11 @@
                       do nres=1,5
                         quad=quad+(contrib3(x_s,y_s,nres)-moy)**2.
                       enddo
+                      
+                      
                       sigma=sqrt(quad/4.)
+                      
+                      
                       do nres=1,5
                         if (dabs(contrib3(x_s,y_s,nres)-moy).le.1.5*sigma) then
                           nfit=nfit+1
@@ -1224,34 +1253,17 @@
                   contrimap3(x_s,y_s)=contrimap3(x_s,y_s)+contribution_3(x_s,y_s)
                 enddo
               enddo
-
-                         
-
-
               ! correction for the FOV to the flux reaching the intrument from the cloud voxel
               if (cloudt.ne.0) then
                 ! computation of the flux reaching the intrument from the cloud voxel
                 fccld=itoclou*ometif*transa*transm*transl
                 fctcld=fctcld+fccld ! cloud flux for all source all type all line of sight element
               endif
-      
               if (verbose.ge.1) print*,'Added radiance =',flux_all/omefov/(pi*(diamobj/2.)**2.)
               if (verbose.ge.1) print*,'Radiance accumulated =',flux_total/omefov/(pi*(diamobj/2.)**2.)
               if (verbose.ge.1) write(2,*) 'Added radiance =',flux_all/omefov/(pi*(diamobj/2.)**2.)
               if (verbose.ge.1) write(2,*) 'Radiance accumulated =',flux_total/omefov/(pi*(diamobj/2.)**2.)
-             
-              print*,'icible',icible              
-                
-              
-              
-              
-              
             endif ! end of stoplim and limits of the atmosphere                         
-
-
-
-       
-
           enddo ! end of the loop over the line of sight voxels.
           write(*,2002) flux_total_2/flux_total_1,flux_total_3/flux_total_1
           fctcld=fctcld*10**(0.4*(100.-cloudfrac)*cloudslope) ! correction for the cloud fraction (defined from 0 to 100)
