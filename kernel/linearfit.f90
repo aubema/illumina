@@ -1,7 +1,7 @@
 ! subroutine for linear regression
 subroutine linearfit(x,y,nfit,a,b)
 implicit none
-integer,parameter::n=5
+integer,parameter::n=6
 integer i,nfit
 real*8, dimension(n)::x,y
 real*8::s1,s2,s3,s4,a,b

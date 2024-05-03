@@ -123,7 +123,7 @@
       real*8 omega                                                   ! Solid angles
       real*8 idif3                                                   ! 3rd scat  intensity
       real*8 itodif                                                  ! Total contribution of the source to the scattered intensity toward the sensor.
-      real*8 flux1,flux2(5),flux3(5),flux3p(5)                      ! Flux reaching the observer voxel from all FOV voxels in a given model level
+      real*8 flux1,flux2(6),flux3(6),flux3p(6)                      ! Flux reaching the observer voxel from all FOV voxels in a given model level
       real*8 flux_total,flux_total_1,flux_total_2,flux_total_3                    ! Total flux reaching the observer voxel
       real*8 haut                                                    ! Haut (negative indicate that the surface is lighted from inside the ground. I.e. not considered in the calculation
       real*8 epsilx,epsily                                           ! tilt of the ground pixel
@@ -147,7 +147,7 @@
                                                                    ! a light ray cannot propagate because it is blocked by a sub-grid obstable
       real*8 ofill(width,width)                                      ! fill factor giving the probability to hit an obstacle when pointing in its direction real 0-1
       integer naz,na
-      real*8 contrib1(width,width),contrib2(width,width,5),contrib3(width,width,5) ! contribution maps
+      real*8 contrib1(width,width),contrib2(width,width,6),contrib3(width,width,6) ! contribution maps
       real*8 contribution_1(width,width),contribution_2(width,width),contribution_3(width,width)
       real*8 contrimap1(width,width),contrimap2(width,width),contrimap3(width,width)
       character*3 lampno                                           ! lamp number string
@@ -215,13 +215,13 @@
 
       real*8 itoclou                                                 ! cloud intensity
       real*8 itodif1                                                 ! First scattering intensity
-      real*8 itodif2(5)                                                ! Second scattering intensity
-      real*8 itodif3(5)                                                 ! total 3rd order intentity
+      real*8 itodif2(6)                                                ! Second scattering intensity
+      real*8 itodif3(6)                                                 ! total 3rd order intentity
       integer rho                                                  ! switch between source (rho=0) or ground pixel (rho=1)
       real*8 flux_all,flux_1,flux_2,flux_3
       real*8 acoef,bcoef ! 2nd order polynomial extrapolation coefficients
-      real*8 resolut2(5),resolut3(5),resolut3p(5)
-      real*8 resofit(5),fluxfit(5)
+      real*8 resolut2(6),resolut3(6),resolut3p(6)
+      real*8 resofit(6),fluxfit(6)
       real*8 moy,quad,sigma
       integer nres,nresp,nfit ! resolution number used to extrapolate the scattered flux to infinite resolution
       verbose=1                                                    ! Very little printout=0, Many printout = 1, even more=2
@@ -357,7 +357,7 @@
             contribution_1(i,j)=0.
             contribution_2(i,j)=0. 
             contribution_3(i,j)=0.  
-            do k=1,5
+            do k=1,6
               contrib2(i,j,k)=0.
               contrib3(i,j,k)=0.
             enddo            
@@ -376,7 +376,7 @@
             pvalno(i,j)=0.
           enddo
         enddo
-        do i=1,5
+        do i=1,6
           itodif3(i)=0.
           itodif2(i)=0.
           resofit(i)=0.
@@ -725,9 +725,9 @@
         ! end of direct calculations
  
 
-        radius_2=10000.D0
+        radius_2=7000.D0
         radius_3=8000.D0
-        size_0=2000.
+        size_0=2000.D0
         if (scat_level.gt.1) then
           print*,'Action radius of 2nd scattering =',radius_2
           write(2,*) ' Action radius of 2nd scattering =',radius_2
@@ -758,9 +758,9 @@
           do icible=1,ncible ! beginning of the loop over the line of sight voxels
             flux1=0.
             itodif1=0.
-            ! scan 5 coarse resolution to extrapolate the infinite resolution of the multiple scat
-            do nres=1,5
-              siz2_0=size_0+dble(nres-1)*500. ! scanning resolutions of 2000m 1500m and 1000m
+            ! scan 6 coarse resolution to extrapolate the infinite resolution of the multiple scat
+            do nres=1,6
+              siz2_0=size_0+dble(nres-1)*300. ! scanning resolutions of 2000m 1500m and 1000m
               resolut2(nres)=siz2_0
               siz3_0=size_0+dble(nres-1)*500.
               resolut3(nres)=siz3_0
@@ -1077,15 +1077,15 @@
                 moy=0.
                 quad=0.
                 sigma=0.
-                do nres=1,5
+                do nres=1,6
                   moy=flux2(nres)+moy
                 enddo
-                moy=moy/5.
-                do nres=1,5
+                moy=moy/6.
+                do nres=1,6
                   quad=quad+(flux2(nres)-moy)**2.
                 enddo
                 sigma=sqrt(quad/4.)
-                do nres=1,5
+                do nres=1,6
                   if (dabs(flux2(nres)-moy).le.1.5*sigma) then
                     nfit=nfit+1
                     fluxfit(nfit)=flux2(nres)
@@ -1095,7 +1095,7 @@
 
 
                 print*,'nfit2=',nfit,sigma
-                if (nfit.ge.4) then
+                if (nfit.ge.3) then
                   call linearfit(resofit,fluxfit,nfit,acoef,bcoef)
                   flux_2=bcoef
                 else
@@ -1114,14 +1114,17 @@
                   quad=0.
                   nresp=0
                   sigma=0.
-                  do nres=1,5
+                  do nres=1,6
                     if (flux3(nres).ne.0.) then
                       nresp=nresp+1                      
-                      flux3p(nresp)=LOG(flux3(nres))
+!                      flux3p(nresp)=LOG(flux3(nres))
+                      flux3p(nresp)=flux3(nres)**(1./3.)
+
+
                       resolut3p(nresp)=resolut3(nres)
                     endif
                   enddo
-                  if (nresp.ge.4) then               
+                  if (nresp.ge.3) then               
                     do nres=1,nresp
                       moy=flux3p(nres)+moy
                     enddo
@@ -1141,7 +1144,8 @@
                     print*,'nfit3=',nfit,sigma
                     call linearfit(resofit,fluxfit,nfit,acoef,bcoef)
                     print*,bcoef,acoef
-                    flux_3=EXP(bcoef)                    
+!                    flux_3=EXP(bcoef) 
+                    flux_3=bcoef**3.
                   else
                     print*,'LESS THAN 4 points for 3rd order'
                     flux_3=0.
@@ -1156,6 +1160,11 @@
               endif
               flux_1=flux1
               flux_all=flux_1+flux_2+flux_3
+              
+              
+              
+              
+              
               do x_s=imin(stype),imax(stype)
                 do y_s=jmin(stype),jmax(stype)
                   if (scat_level.gt.1) then  
@@ -1163,15 +1172,15 @@
                     nfit=0
                     moy=0.
                     quad=0.
-                    do nres=1,5
+                    do nres=1,6
                       moy=contrib2(x_s,y_s,nres)+moy
                     enddo
-                    moy=moy/5.
-                    do nres=1,5
+                    moy=moy/6.
+                    do nres=1,6
                       quad=quad+(contrib2(x_s,y_s,nres)-moy)**2.
                     enddo
                     sigma=sqrt(quad/4.)
-                    do nres=1,5
+                    do nres=1,6
                       if (dabs(contrib2(x_s,y_s,nres)-moy).le.1.5*sigma) then
                         nfit=nfit+1
                         fluxfit(nfit)=contrib2(x_s,y_s,nres)
@@ -1193,7 +1202,7 @@
                       quad=0.
                       
                       
-                      do nres=1,5
+                      do nres=1,6
                         if (contrib3(x_s,y_s,nres).eq.0.) then
                           contrib3(x_s,y_s,nres)=MAXVAL(contrib3(x_s,y_s,:))
                         endif
@@ -1201,18 +1210,18 @@
                       
                                     
                       
-                      do nres=1,5
+                      do nres=1,6
                       
                       
                         contrib3(x_s,y_s,nres)=LOG(contrib3(x_s,y_s,nres))
                         
                         
                       enddo                 
-                      do nres=1,5
+                      do nres=1,6
                         moy=contrib3(x_s,y_s,nres)+moy
                       enddo
-                      moy=moy/5.
-                      do nres=1,5
+                      moy=moy/6.
+                      do nres=1,6
                         quad=quad+(contrib3(x_s,y_s,nres)-moy)**2.
                       enddo
                       
@@ -1220,7 +1229,7 @@
                       sigma=sqrt(quad/4.)
                       
                       
-                      do nres=1,5
+                      do nres=1,6
                         if (dabs(contrib3(x_s,y_s,nres)-moy).le.1.5*sigma) then
                           nfit=nfit+1
                           fluxfit(nfit)=contrib3(x_s,y_s,nres)
