@@ -223,7 +223,7 @@
       real*8 resolut2(6),resolut3(6),resolut3p(6)
       real*8 resofit(6),fluxfit(6)
       real*8 moy,quad,sigma
-      integer nres,nresp,nfit ! resolution number used to extrapolate the scattered flux to infinite resolution
+      integer nres,nresp,nfit,nmoy ! resolution number used to extrapolate the scattered flux to infinite resolution
       verbose=1                                                    ! Very little printout=0, Many printout = 1, even more=2
       diamobj=1.D0                                                   ! A dummy value for the diameter of the objective of the instrument used by the observer.
       volu2=0.D0
@@ -1092,8 +1092,6 @@
                     resofit(nfit)=resolut2(nres)
                   endif
                 enddo
-
-
                 print*,'nfit2=',nfit,sigma
                 if (nfit.ge.3) then
                   call linearfit(resofit,fluxfit,nfit,acoef,bcoef)
@@ -1105,7 +1103,6 @@
                 print*,'flux2',flux2
                 print*,fluxfit
                 print*,flux_2
-              
                 if (scat_level.gt.2) then
                   print*,'flux3',flux3
                   ! filter the data for abnormal variations.
@@ -1117,10 +1114,7 @@
                   do nres=1,6
                     if (flux3(nres).ne.0.) then
                       nresp=nresp+1                      
-!                      flux3p(nresp)=LOG(flux3(nres))
                       flux3p(nresp)=flux3(nres)**(1./3.)
-
-
                       resolut3p(nresp)=resolut3(nres)
                     endif
                   enddo
@@ -1160,11 +1154,6 @@
               endif
               flux_1=flux1
               flux_all=flux_1+flux_2+flux_3
-              
-              
-              
-              
-              
               do x_s=imin(stype),imax(stype)
                 do y_s=jmin(stype),jmax(stype)
                   if (scat_level.gt.1) then  
@@ -1172,14 +1161,20 @@
                     nfit=0
                     moy=0.
                     quad=0.
+                    nmoy=0
                     do nres=1,6
-                      moy=contrib2(x_s,y_s,nres)+moy
+                      if (contrib2(x_s,y_s,nres).ne.0.) then
+                        moy=contrib2(x_s,y_s,nres)+moy
+                        nmoy=nmoy+1
+                      endif
                     enddo
-                    moy=moy/6.
+                    moy=moy/dble(nmoy)
                     do nres=1,6
-                      quad=quad+(contrib2(x_s,y_s,nres)-moy)**2.
+                      if (contrib2(x_s,y_s,nres).ne.0.) then
+                        quad=quad+(contrib2(x_s,y_s,nres)-moy)**2.
+                      endif
                     enddo
-                    sigma=sqrt(quad/4.)
+                    sigma=sqrt(quad/dble(nmoy-1))
                     do nres=1,6
                       if (dabs(contrib2(x_s,y_s,nres)-moy).le.1.5*sigma) then
                         nfit=nfit+1
@@ -1189,46 +1184,33 @@
                     enddo
                     call linearfit(resofit,fluxfit,nfit,acoef,bcoef)
                     contribution_2(x_s,y_s)=bcoef 
-                    
-                    
-                                    
-                    if (scat_level.gt.3) then    ! ICI remettre 2
-                    
-                    
-                            
+                    if (scat_level.gt.2) then    ! ICI remettre 2
                       ! filter the data for abnormal variations.
                       nfit=0
                       moy=0.
                       quad=0.
-                      
-                      
                       do nres=1,6
                         if (contrib3(x_s,y_s,nres).eq.0.) then
                           contrib3(x_s,y_s,nres)=MAXVAL(contrib3(x_s,y_s,:))
                         endif
                       enddo   
-                      
-                                    
-                      
                       do nres=1,6
-                      
-                      
-                        contrib3(x_s,y_s,nres)=LOG(contrib3(x_s,y_s,nres))
-                        
-                        
-                      enddo                 
-                      do nres=1,6
-                        moy=contrib3(x_s,y_s,nres)+moy
+                        contrib3(x_s,y_s,nres)=(contrib3(x_s,y_s,nres))**(1./3.)
                       enddo
-                      moy=moy/6.
+                      nmoy=0
                       do nres=1,6
-                        quad=quad+(contrib3(x_s,y_s,nres)-moy)**2.
+                        if (contrib3(x_s,y_s,nres).ne.0.) then
+                          moy=contrib3(x_s,y_s,nres)+moy
+                          nmoy=nmoy+1
+                        endif
                       enddo
-                      
-                      
-                      sigma=sqrt(quad/4.)
-                      
-                      
+                      moy=moy/dble(nmoy)
+                      do nres=1,6
+                        if (contrib3(x_s,y_s,nres).ne.0.) then
+                          quad=quad+(contrib3(x_s,y_s,nres)-moy)**2.
+                        endif
+                      enddo
+                      sigma=sqrt(quad/dble(nmoy-1))
                       do nres=1,6
                         if (dabs(contrib3(x_s,y_s,nres)-moy).le.1.5*sigma) then
                           nfit=nfit+1
@@ -1237,7 +1219,7 @@
                         endif
                       enddo
                       call linearfit(resofit,fluxfit,nfit,acoef,bcoef)
-                      contribution_3(x_s,y_s)=EXP(bcoef)
+                      contribution_3(x_s,y_s)=bcoef**3.
                     else
                       contribution_3(x_s,y_s)=0.
                     endif
