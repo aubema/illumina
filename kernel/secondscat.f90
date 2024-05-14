@@ -69,7 +69,7 @@
       dss=1.*siz
       
       
-      dss=100.
+      dss=1000.
       
       
       icloud=0.
