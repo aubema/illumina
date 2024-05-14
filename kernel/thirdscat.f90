@@ -61,7 +61,7 @@
       rx_obs=real(x_obs)*dx
       ry_obs=real(y_obs)*dy         
       dss=1.D0*siz
-      dss=100.
+      dss=1000.
       icloud=0.D0
       idif=0.D0
       idift=0.D0
