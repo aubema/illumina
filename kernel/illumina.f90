@@ -235,7 +235,7 @@
       ncible=1024
       cloudslope=-0.013D0
       cloudfrac=100.D0
-      stoplim=500.
+      stoplim=500. 
       if (verbose.ge.1) then
         print*,'Starting ILLUMINA computations...'
       endif
@@ -826,8 +826,10 @@
                       ometif=pi*(diamobj/2.)**2./dis_obs**2.
                       do stype=1,ntype ! beginning of the loop over the source types.
                         if (totlu(stype).ne.0.) then ! check if there are any flux in that source type otherwise skip this lamp
-                          if (verbose.ge.1) print*,' Turning on lamps zone',stype,'@ resolution',nres
-                          if (verbose.ge.1) write(2,*) ' Turning on lamps zone',stype,'@ resolution',nres
+                          if (verbose.ge.1) print*,' Turning on lamps zone',stype,'@ resolutions',nres,"(",idnint(siz2_0), &
+                          idnint(siz3_0),")"
+                          if (verbose.ge.1) write(2,*) ' Turning on lamps zone',stype,'@ resolutions',nres,"(",idnint(siz2_0), &
+                          idnint(siz3_0),")"
                           do x_s=imin(stype),imax(stype) ! beginning of the loop over the column (longitude the) of the domain.
                             do y_s=jmin(stype),jmax(stype)
                               rx_s=real(x_s)*dx
@@ -890,7 +892,8 @@
                                   endif ! end if nres = 1
 ! 2nd scattering from source and ground
                                   if (scat_level.gt.1) then
-                                  if ((flux_2.gt.flux_total_2/stoplim).or.(flux_total_2.eq.0.)) then
+!                                  if ((flux_2.gt.flux_total_2/stoplim).or.(flux_total_2.eq.0.)) then
+                                  if ((flux_2.gt.flux_total/(20.*stoplim)).or.(flux_total_2.eq.0.)) then
                                     rho=0 ! from source
                                     icloud=0.
                                     idif2=0.
@@ -947,7 +950,8 @@
                                   endif ! end 2nd scat
 ! 3rd scattering from source and ground                             
                                   if (scat_level.gt.2) then
-                                  if ((flux_3.gt.flux_total_3/stoplim).or.(flux_total_3.eq.0.)) then
+!                                  if ((flux_3.gt.flux_total_3/stoplim).or.(flux_total_3.eq.0.)) then
+                                  if ((flux_3.gt.flux_total/(30.*stoplim)).or.(flux_total_3.eq.0.)) then
                                     rho=0 ! from source
                                     icloud=0.
                                     call zone_scat(rx_s,ry_s,z_s,rx_c,ry_c,z_c,radius_3,zondi3,ndiff3,siz3,siz3_0)   
@@ -1298,7 +1302,7 @@
         write(2,2001) (flux_total+fctcld)/omefov/(pi*(diamobj/2.)**2.)
       close(2)
 2001  format('                   ',E10.3E2)
-2002  format(' Ratio 2nd/1st scat=',F5.2,'     Ratio 3rd/1st scat=',F5.2)
+2002  format(' Ratio 2nd/1st scat=',F6.3,'     Ratio 3rd/1st scat=',F6.3)
       stop
       end
 ! ***********************************************************************
