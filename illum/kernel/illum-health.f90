@@ -49,17 +49,20 @@ program illumhealth                           ! Beginning
   !
   !     Variables declaration
   !
-  INTEGER width,ntype                               ! ntype Nb of light source types (different combination of spectrum and uplight)
+  INTEGER width,height,ntype                        ! ntype Nb of light source types (different combination of spectrum and uplight)
   !     Matrix dimensions
-  ! parameter (width=1024,ntype=36)
+  ! parameter (width=1024,height=1024,ntype=36)
   real pi
   INTEGER verbose                                   ! verbose = 1 to have more print out, 0 for silent
   parameter (pi=3.141592654)
   character*72 mnaf                                 ! Terrain elevation file
   character*72 outfile                              ! Results file
-  character*72 basenm                               ! Base name of files
   INTEGER lenbase                                   ! Length of the Base name of the experiment
-  real lambda,pressi                                ! Wavelength (nanometer), atmospheri! pressure (kPa)
+  real lambda,pressi,bandw                          ! Wavelength (nanometer), atmospheri! pressure (kPa)
+  real hlay, haer, tabs
+  real angazor, distd, hh
+  integer xsrma, xsrmi, ysrma, ysrmi
+  real layaod
   real pvalto                                       !
 
   real, dimension(:,:,:), allocatable :: pval       ! pval(181,181,ntype)
@@ -86,7 +89,7 @@ program illumhealth                           ! Beginning
   real largy                                  ! Length (y axis) of the modeling domain (meter)
   INTEGER nbx,nby                             ! Number of pixels in the modeling domain
 
-  real grefl,srefl,brefl,arefl,orefl,trefl                      ! Grass reflectance, Street reflectance , Building facades reflectance ,rear facade reflectance, Other reflectance, roof reflectance
+  real grefl,srefl,brefl,arefl,orefl,trefl    ! Grass reflectance, Street reflectance , Building facades reflectance ,rear facade reflectance, Other reflectance, roof reflectance
   INTEGER stype                               ! Source type or zone index
   character*72 pafile,lufile,alfile,ohfile,odfile,offile,azfile,lifile,gifile
   ! Files related to light sources and obstacles (photometri
@@ -116,13 +119,8 @@ program illumhealth                           ! Beginning
   real irefl,irefl1         ! intensity leaving a reflecting surface toward the line of sight voxel.
   real nbang                ! for the averaging of the photometri! function
   INTEGER nzp,nz,nap,na
-  character*3 lampno        ! lamp number string
-  real angazi               ! azimuth angle between two points in rad, max dist for the horizon determination
-  real latitu               ! approximate latitude of the domain center
-  INTEGER xsrmi,xsrma,ysrmi,ysrma ! limits of the loop valeur for the reflecting surfaces
-  real hh                   ! temporary horizon blocking factor
-  real distd                ! distance to compute the scattering probability
-  real angazor              ! viewing azimuth angles in radian
+  character*1 lampno        ! lamp number string
+  real angazi               ! azimuth angle between two points in rad, lambda
   real angzeor              ! horizontal zenith angle (normal to a window)
   real angazsr              ! azimuth angle between a source and the nearest road
   real angzeos              ! zenith angle between an observer and a source
@@ -142,15 +140,10 @@ program illumhealth                           ! Beginning
   real zhoriz               ! zenith angle of the horizon
   real dang                 ! Angle between the line of sight and the direction of a source
   real ddir_obs             ! distance between the source and the observer
-  real dh0,dhmax            ! horizontal distance along the line of sight and maximum distance before beeing blocked by topography
-  real layaod               ! 500 nm aod of the particle layer
-  real hlay                 ! exponential vertical scale height of the particle layer
-  real haer                 ! exponential vertical scale height of the background aerosol layer
-  real bandw                ! bandwidth of the spectral bin
-  real tabs                 ! TOA transmittance related to molecule absorption
+  real dh0,dhmax            ! horizontal distance along the line of sight and maximum distance before beeing blocked   
   INTEGER oi,oj             ! scanning position of observers
   real taua,alpha           ! aerosol layer optical properties
-  verbose=1                 ! Very little printout=0, Many printout = 1, even more=2
+  verbose=0                 ! Very little printout=0, Many printout = 1, even more=2
   step=1
   ntype=5
   angazor=90.                ! the window is pointing horizontally
@@ -161,32 +154,30 @@ program illumhealth                           ! Beginning
   print*,'Reading illum-health.in input file'
   open(unit=1,file='illum-health.in',status='old')
   read(1,*)
-  read(1,*) basenm
   read(1,*) dx,dy
-  read(1,*) ntype
-  read(1,*) width
+  read(1,*) width,height
   read(1,*) taua,alpha,haer
   read(1,*) lambda,bandw
-  read(1,*) srefl,grefl,brefl,orefl
+  read(1,*) srefl,grefl,brefl,trefl,arefl,orefl
   read(1,*) pressi
   read(1,*) z_o
   close(1)
   ! allocate arrays
   allocate ( pval(181,181,ntype) )
   allocate ( pvalno(181,181,ntype) )
-  allocate ( lamplu(width,width) )
-  allocate ( val2d(width,width) )
-  allocate ( altsol(width,width) )
-  allocate ( altsob(width,width) )
-  allocate ( reflec(width,width) )
-  allocate ( lampal(width,width) )
-  allocate ( inclix(width,width) )
-  allocate ( incliy(width,width) )
-  allocate ( obsH(width,width) )
-  allocate ( irradi(width,width) )
-  allocate ( gndty(width,width) )
-  allocate ( azims(width,width) )
-  allocate ( lmpty(width,width) )
+  allocate ( lamplu(width,height) )
+  allocate ( val2d(width,height) )
+  allocate ( altsol(width,height) )
+  allocate ( altsob(width,height) )
+  allocate ( reflec(width,height) )
+  allocate ( lampal(width,height) )
+  allocate ( inclix(width,height) )
+  allocate ( incliy(width,height) )
+  allocate ( obsH(width,height) )
+  allocate ( irradi(width,height) )
+  allocate ( gndty(width,height) )
+  allocate ( azims(width,height) )
+  allocate ( lmpty(width,height) )
 
   ! windows pointing toward horizon
   angzeor = pi/2.
@@ -204,7 +195,7 @@ program illumhealth                           ! Beginning
   !     Initialisation of arrays and variables
   if (verbose.ge.1) print*,'Initializing variables...'
   do i=1,width
-     do j=1,width
+     do j=1,height
         val2d(i,j)=0.
         altsol(i,j)=0.
         altsob(i,j)=0.
@@ -232,9 +223,7 @@ program illumhealth                           ! Beginning
   irefl1=0.
   hh=1.
   !     reading of the environment variables
-  !     determine the Length of basenm
-  lenbase=index(basenm,' ')-1
-  outfile=basenm(1:lenbase)//'.bin'
+  outfile='output.bin'
   mnaf='topogra.bin' ! determine the names of input and output files
   ohfile='obsth.bin'
   alfile='altlp.bin' ! setting the file name of height of the sources lumineuse.
@@ -244,37 +233,37 @@ program illumhealth                           ! Beginning
   lufile='lumlp.bin' ! setting the file name of the luminosite of the cases.
   dtheta=.017453293
   !     reading of the elevation file
-  call twodin(nbx,nby,mnaf,altsol,width)
+  call twodin(nbx,nby,mnaf,altsol,width,height)
   !     reading lamp heights
-  call twodin(nbx,nby,alfile,val2d,width)
+  call twodin(nbx,nby,alfile,val2d,width,height)
   do i=1,nbx                ! beginning of the loop over all cells along x.
      do j=1,nby             ! beginning of the loop over all cells along y.
         lampal(i,j)=val2d(i,j) ! filling of the array for the lamp stype
      enddo                  ! end of the loop over all cells along y.
   enddo                     ! end of the loop over all cells along x.
   !     reading buildings average height
-  call twodin(nbx,nby,ohfile,val2d,width)
+  call twodin(nbx,nby,ohfile,val2d,width,height)
   do i=1,nbx                ! beginning of the loop over all cells along x.
      do j=1,nby             ! beginning of the loop over all cells along y.
         obsH(i,j)=val2d(i,j) ! filling of the array
      enddo                  ! end of the loop over all cells along y.
   enddo
   !     reading ground type flag
-  call twodin(nbx,nby,gifile,val2d,width)
+  call twodin(nbx,nby,gifile,val2d,width,height)
   do i=1,nbx                ! beginning of the loop over all cells along x.
      do j=1,nby             ! beginning of the loop over all cells along y.
         gndty(i,j)=nint(val2d(i,j)) ! ground type flag flag array 0 or 1
      enddo                  ! end of the loop over all cells along y.
   enddo
   !     reading lamp type flag
-  call twodin(nbx,nby,lifile,val2d,width)
+  call twodin(nbx,nby,lifile,val2d,width,height)
   do i=1,nbx                ! beginning of the loop over all cells along x.
      do j=1,nby             ! beginning of the loop over all cells along y.
         lmpty(i,j)=nint(val2d(i,j)) ! ground type flag flag array 0 or 1
      enddo                  ! end of the loop over all cells along y.
   enddo
   !     reading azimuth
-  call twodin(nbx,nby,azfile,val2d,width)
+  call twodin(nbx,nby,azfile,val2d,width,height)
   do i=1,nbx                ! beginning of the loop over all cells along x.
      do j=1,nby             ! beginning of the loop over all cells along y.
         azims(i,j)=val2d(i,j) ! Filling of the array 0-1
@@ -294,7 +283,7 @@ program illumhealth                           ! Beginning
   jmin=nby
   imax=1
   jmax=1
-  call twodin(nbx,nby,lufile,val2d,width)
+  call twodin(nbx,nby,lufile,val2d,width,height)
   do i=1,nbx             ! beginning of the loop over all cells along x.
      do j=1,nby          ! beginning of the loop over all cells along y.
         if (val2d(i,j).lt.0.) then ! searching of negative fluxes
@@ -464,7 +453,7 @@ program illumhealth                           ! Beginning
                           call anglezenithal(rx_obs,ry_obs,z_obs,rx_s,ry_s,z_s,angzeos)
                           call angleazimutal(rx_obs,ry_obs,rx_s,ry_s,angazos)
                           if (angzeos.gt.pi/4.) then ! 45deg. it is unlikely to have a 1km high mountain less than 1
-                             call horizon(width,x_obs,y_obs,z_obs,dx,dy,altsol,angazos,zhoriz,dh)
+                             call horizon(width,height,x_obs,y_obs,z_obs,dx,dy,altsol,angazos,zhoriz,dh)
                              if (dh.le.dho) then
                                 if (angzeos-zhoriz.lt.0.00001) then ! shadow the path line of sight-source is not below the horizon => we compute
                                    hh=1.
@@ -624,7 +613,7 @@ program illumhealth                           ! Beginning
                                             call anglezenithal(rx_obs,ry_obs,z_obs,rx_sr,ry_sr,z_sr,angzeosr)
                                             call angleazimutal(rx_obs,ry_obs,rx_sr,ry_sr,angazosr)
                                             if (angzen.gt.pi/4.) then ! 45deg. it is unlikely to have a 1km high mountain less than 1
-                                               call horizon(width,x_obs,y_obs,z_obs,dx,dy,altsol,angazosr,zhoriz,dh)
+                                               call horizon(width,height,x_obs,y_obs,z_obs,dx,dy,altsol,angazosr,zhoriz,dh)
                                                if (dh.le.dho) then
                                                   if (angzeosr-zhoriz.lt.0.00001) then ! shadow the path line of sight-source is not below the horizon => we compute
                                                      hh=1.

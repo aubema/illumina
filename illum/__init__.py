@@ -7,6 +7,8 @@ try:
     # from .failed import failed
     # from .inputs import inputs
     # from .warp import warp
+    from . import AngularPowerDistribution as APD
+    from . import SpectralPowerDistribution as SPD
     from . import utils
     from .batches import batches
     from .init import init
@@ -14,17 +16,8 @@ except ModuleNotFoundError:
     pass
 
 
-try:
-    import os as _os
+from importlib.resources import files
 
-    path = _os.path.dirname(
-        [
-            path
-            for path in _os.environ["PATH"].split(":")
-            if path.endswith("illumina/bin")
-        ][0]
-    )
-except IndexError:
-    raise ValueError(
-        "The 'illumina/bin' folder is not in the PATH environment variable."
-    )
+path = files("illum").as_posix()
+
+del files

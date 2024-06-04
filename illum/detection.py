@@ -42,11 +42,11 @@ if __name__ == "__main__":
     with open("iss_params.in") as f:
         p = yaml.safe_load(f)
 
-    rst = rio.open(f"{p['wd']}/Vrad.tiff")
+    rst = rio.open("Vrad.tiff")
     im = rst.read(1)
 
     im_threshold = threshold_detection(im, 3)
     im_rings = rings(im, 1)
     im_gaus = gaussian(im, 1, 3)
     im_lamps = im_threshold * im_rings * im_gaus
-    u.save_geotiff(f"{p['wd']}/lamps.tiff", im_lamps, rst)
+    u.save_geotiff("lamps.tiff", im_lamps, rst)

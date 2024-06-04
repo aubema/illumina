@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import rasterio as rio
 import skimage
-from scipy import signal
+from scipy.signal.windows import gaussian
 
 
 def gaussian_kernel(n, std, normalised=False):
@@ -10,7 +10,7 @@ def gaussian_kernel(n, std, normalised=False):
     Generates a n x n matrix with a centered gaussian
     of standard deviation std centered on it. If normalised,
     its volume equals 1."""
-    gaussian1D = signal.gaussian(n, std)
+    gaussian1D = gaussian(n, std)
     gaussian2D = np.outer(gaussian1D, gaussian1D)
     if normalised:
         gaussian2D /= 2 * np.pi * (std**2)

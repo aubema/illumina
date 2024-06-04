@@ -43,9 +43,7 @@ def process():
 
     exp_folds = glob("iss???e*/")
     if not exp_folds:
-        print(
-            "ERROR: Data folder not found. Please make sure it was not renamed."
-        )
+        print("ERROR: Data folder not found. Please make sure it was not renamed.")
         exit()
     if len(exp_folds) > 1:
         print(f"ERROR: Too many data folders found. {exp_folds}")
@@ -55,9 +53,7 @@ def process():
     basename, ts = exp_fold.split("_")
     print(f"Data `{basename}` ({ts[:4]}-{ts[4:6]}-{ts[6:8]}) found.")
 
-    Vrad = u.load_fits(
-        f"{exp_fold}/popular/Corr_{basename}_ImpactVlG_GR.fits"
-    )[0]
+    Vrad = u.load_fits(f"{exp_fold}/popular/Corr_{basename}_ImpactVlG_GR.fits")[0]
     tech = u.load_fits(f"{exp_fold}/popular/Corr_{basename}CompositeW.fits")[0]
 
     Vrad -= np.nanmax(Vrad) * p["threshold"]
@@ -81,18 +77,11 @@ def process():
         print("Isolated pixel removed:", n_changed)
     tech[changed] = np.nan
 
-    if not os.path.isdir(p["wd"]):
-        os.makedirs(p["wd"])
-
     rst = rio.open(f"{exp_fold}/quality/{basename}RGBdisto2_rect.tiff")
 
-    u.save_geotiff(
-        os.path.join(p["wd"], "Vrad.tiff"), Vrad, rst, dtype="float32"
-    )
-    u.save_geotiff(
-        os.path.join(p["wd"], "tech.tiff"), tech, rst, dtype="float32"
-    )
-    u.save_geotiff(os.path.join(p["wd"], "domain.tiff"), rst.read(1) > 0, rst)
+    u.save_geotiff("Vrad.tiff", Vrad, rst, dtype="float32")
+    u.save_geotiff("tech.tiff", tech, rst, dtype="float32")
+    u.save_geotiff("domain.tiff", rst.read(1) > 0, rst)
 
 
 if __name__ == "__main__":

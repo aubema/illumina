@@ -25,24 +25,24 @@
 !    Contact: martin.aube@cegepsherbrooke.qc.ca
 !
 !
-      subroutine horizon(width,x,y,z,dx,dy,altsol,anga,zhoriz,d)
-      integer width                                                       ! Matrix dimension in Length/width and height
+      subroutine horizon(width,height,x,y,z,dx,dy,altsol,anga,zhoriz,d)
+      integer width,height               ! Matrix dimension in Length/width and height
       integer x,y,nx,ny
       real, dimension(:,:), allocatable ::  altsol
       real dx,dy,anga,zout,pi,angaz1,ix,iy
-      real hcur,distc                                                           ! Earth curvature terrain
+      real hcur,distc                    ! Earth curvature terrain
       real posx,posy,scalef,zhoriz,z,d,dout
-      allocate ( altsol(width,width) )
+      allocate ( altsol(width,height) )
       pi=3.141592654
       angaz1=anga
-      ix = (cos(angaz1))                                                  ! viewing vector components
+      ix = (cos(angaz1))                 ! viewing vector components
       iy = (sin(angaz1))
       scalef=dx/3.
       posx=real(x)*dx
       posy=real(y)*dy
       zhoriz=pi
       d=(real(width))*sqrt(1.+tan(angaz1)**2.)
-      do while (((posx.le.real(width)*dx).and.(posx.ge.1.*dx)).and.((posy.le.real(width)*dy).and.(posy.ge.1.*dy)))
+      do while (((posx.le.real(width)*dx).and.(posx.ge.1.*dx)).and.((posy.le.real(height)*dy).and.(posy.ge.1.*dy)))
         posx=posx+ix*scalef
         posy=posy+iy*scalef
         nx=nint(posx/dx)
