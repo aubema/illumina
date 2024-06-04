@@ -320,8 +320,8 @@ program illumhealth                           ! Beginning
 
      !     reading photometry files
      open(UNIT=1, FILE=pafile,status='OLD') ! opening file pa#.dat, angular photometry.
-     ! each line (j) is a new azimuth starting at 0 deg (perpendicular to the street) and ending at 180 deg (behind)
-     ! on each line we have the zenith angle (i) beginning at 0 (zenith) end ending at 180 (nadir)
+     ! each line (i) is a new azimuth starting at 0 deg (perpendicular to the street) and ending at 180 deg (behind)
+     ! on each line we have the zenith angle (j) beginning at 0 (zenith) end ending at 180 (nadir)
      do i=1,181
         do j=1,181          ! beginning of the loop for the 181 data points
            read(1,*) pval(i,j,stype) ! reading of the data in the array pval.
