@@ -59,9 +59,10 @@ class MultiScaleData:
 
     def _project(self, coords):
         lat, lon = coords
-        wgs84 = _pyproj.Proj("epsg:4326")
-        proj = _pyproj.Proj(self._attrs["srs"])
-        x, y = _pyproj.transform(wgs84, proj, lon, lat, always_xy=True)
+        wgs84 = _pyproj.CRS.from_epsg(4326)
+        proj = _pyproj.CRS.from_user_input(self._attrs["srs"])
+        transform = _pyproj.Transformer.from_crs(wgs84,proj,always_xy=True).transform
+        x, y = transform(lon, lat)
         return x, y
 
     def _get_layer(self, coords):

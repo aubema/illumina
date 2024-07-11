@@ -58,7 +58,14 @@ def MSDOpen(filename, cached={}):
     show_default=True,
     help="Number of runs per produced batch file.",
 )
-def CLI_batches(input_path, compact, batch_size, batch_name=None):
+@click.option(
+    "-s",
+    "--scheduler",
+    type=click.Choice(["parallel", "sequential", "slurm"]),
+    default="sequential",
+    help="Job scheduler",
+)
+def CLI_batches(input_path, compact, batch_size, scheduler, batch_name=None):
     """Makes the execution batches.
 
     INPUT_PATH is the path to the folder containing the inputs.
@@ -66,10 +73,21 @@ def CLI_batches(input_path, compact, batch_size, batch_name=None):
     BATCH_NAME is an optional name for the produced batch files.
     It overwrites the one defined in 'inputs_params.in' is given.
     """
-    batches(input_path, compact, batch_size, batch_name)
+    batches(input_path, compact, batch_size, scheduler, batch_name)
 
 
-def batches(input_path=".", compact=False, batch_size=300, batch_name=None):
+def batches(
+    input_path=".",
+    compact=False,
+    batch_size=300,
+    scheduler="sequential",
+    batch_name=None,
+):
+    execute = dict(
+        parallel="./execute &", sequential="./execute", slurm="sbatch ./execute"
+    )
+    execute_str = execute[scheduler] + "\n"
+
     os.chdir(input_path)
 
     with open("inputs_params.in") as f:
@@ -144,7 +162,7 @@ def batches(input_path=".", compact=False, batch_size=300, batch_name=None):
     multival = sorted(multival, key=len, reverse=True)  # Semi-arbitrary sort
     param_space = [params[k] for k in multival]
 
-    N = np.product([len(p) for p in param_space])
+    N = np.prod([len(p) for p in param_space])
     for param_vals in progress(product(*param_space), max_value=N):
         local_params = OrderedDict(zip(multival, param_vals))
         P = ChainMap(local_params, params)
@@ -216,8 +234,7 @@ def batches(input_path=".", compact=False, batch_size=300, batch_name=None):
 
             illumpath = os.path.dirname(illum.__path__[0])
             os.symlink(
-                os.path.abspath(illumpath + "/bin/illumina"),
-                fold_name + "illumina",
+                os.path.abspath(illumpath + "/bin/illumina"), fold_name + "illumina"
             )
 
             # Copying layer data
@@ -285,18 +302,12 @@ def batches(input_path=".", compact=False, batch_size=300, batch_name=None):
             (
                 (256, "Observer X position"),
                 (256, "Observer Y position"),
-                (
-                    P["observer_elevation"],
-                    "Observer elevation above ground [m]",
-                ),
+                (P["observer_elevation"], "Observer elevation above ground [m]"),
             ),
             ((P["observer_obstacles"] * 1, "Obstacles around observer"),),
             (
                 (P["elevation_angle"], "Elevation viewing angle"),
-                (
-                    (P["azimuth_angle"] + bearing) % 360,
-                    "Azimuthal viewing angle",
-                ),
+                ((P["azimuth_angle"] + bearing) % 360, "Azimuthal viewing angle"),
             ),
             ((P["direct_fov"], "Direct field of view"),),
             (("", ""),),
@@ -345,7 +356,7 @@ def batches(input_path=".", compact=False, batch_size=300, batch_name=None):
             # Append execution to batch list
             with open(f"{params['batch_file_name']}_{(count//batch_size)+1}", "a") as f:
                 f.write("cd %s\n" % os.path.abspath(fold_name))
-                f.write("sbatch ./execute\n")
+                f.write(execute_str)
                 f.write("sleep 0.05\n")
 
             count += 1

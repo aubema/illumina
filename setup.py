@@ -33,7 +33,7 @@ setup(
         "progressbar2",
         "pyproj",
         "pyyaml",
-        "scipy",
+        "scipy<1.14",
         "xmltodict",
     ],
     extras_require={

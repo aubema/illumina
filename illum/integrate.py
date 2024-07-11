@@ -49,13 +49,14 @@ domain["xmin"], domain["ymin"], domain["xmax"], domain["ymax"] = list(
     map(float, domain["bbox"].split())
 )
 
-p1 = pyproj.Proj("epsg:4326")  # WGS84
-p2 = pyproj.Proj(domain["srs"])
+p1 = pyproj.CRS.from_epsg(4326)  # WGS84
+p2 = pyproj.CRS.from_user_input(domain["srs"])
+transform = pyproj.Transformer.from_crs(p1, p2, always_xy=True).transform
 
 for zone, data in zones.items():
     lat, lon = data.T
 
-    x, y = pyproj.transform(p1, p2, lon, lat, always_xy=True)
+    x, y = pyproj.transform(lon, lat)
 
     data[:, 0] = (x - domain["xmin"]) / domain["pixsize"] + 1
     data[:, 1] = (y - domain["ymin"]) / domain["pixsize"] + 1

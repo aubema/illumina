@@ -69,18 +69,14 @@ def domain():
         )  # WGS84/UTM
         domain["srs"] = default_srs
 
-    wgs84 = pyproj.Proj("epsg:4326")
-    proj = pyproj.Proj(domain["srs"])
+    wgs84 = pyproj.CRS.from_epsg(4326)
+    proj = pyproj.CRS.from_user_input(domain["srs"])
+    transform = pyproj.Transformer.from_crs(wgs84, proj, always_xy=True).transform
 
-    x0, y0 = pyproj.transform(wgs84, proj, center_lon, center_lat, always_xy=True)
+    x0, y0 = transform(center_lon, center_lat)
 
     obs_x, obs_y = list(
-        zip(
-            *(
-                pyproj.transform(wgs84, proj, lon, lat, always_xy=True)
-                for lat, lon in zip(obs_lat, obs_lon)
-            )
-        )
+        zip(*(transform(lon, lat) for lat, lon in zip(obs_lat, obs_lon)))
     )
 
     domain["observers"] = [
@@ -138,10 +134,11 @@ def domain():
         yaml.safe_dump(domain, f, default_flow_style=False)
 
     # print lon/lat bbox formatted for earthdata
-    SE = pyproj.transform(proj, wgs84, xmax, ymin, always_xy=True)
-    SW = pyproj.transform(proj, wgs84, xmin, ymin, always_xy=True)
-    NE = pyproj.transform(proj, wgs84, xmax, ymax, always_xy=True)
-    NW = pyproj.transform(proj, wgs84, xmin, ymax, always_xy=True)
+    transform = pyproj.Transformer.from_crs(proj, wgs84, always_xy=True).transform
+    SE = transform(xmax, ymin)
+    SW = transform(xmin, ymin)
+    NE = transform(xmax, ymax)
+    NW = transform(xmin, ymax)
 
     N = max(NE[1], NW[1])
     S = min(SE[1], SW[1])
