@@ -56,8 +56,8 @@ def alternate(name, zones, lights):
 
         print("Validating the inventories.")
 
-        lamps = np.loadtxt(lights, usecols=[0, 1])
-        zones = np.loadtxt(params["zones_inventory"], usecols=[0, 1, 2])
+        lamps = np.loadtxt(lights, ndmin=2, usecols=[0, 1])
+        zones = np.loadtxt(params["zones_inventory"], ndmin=2, usecols=[0, 1, 2])
         zonData = pt.parse_inventory(zones, 0)
 
         hasLights = [sum(x[0] for x in z) != 0 for z in zonData]

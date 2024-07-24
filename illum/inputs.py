@@ -47,8 +47,8 @@ def inputs():
 
         print("Validating the inventories.")
 
-        lamps = np.loadtxt(params["lamps_inventory"], usecols=[0, 1])
-        zones = np.loadtxt(params["zones_inventory"], usecols=[0, 1, 2])
+        lamps = np.loadtxt(params["lamps_inventory"], ndmin=2, usecols=[0, 1])
+        zones = np.loadtxt(params["zones_inventory"], ndmin=2, usecols=[0, 1, 2])
         zonData = pt.parse_inventory(params["zones_inventory"], 7)
 
         hasLights = [sum(x[0] for x in z) != 0 for z in zonData]
