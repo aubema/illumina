@@ -509,9 +509,9 @@
           enddo
           ! reading luminosity files
           call twodin(nbx,nby,lufile,val2d)
-          imin(stype)=nbx
+          imin(stype)=nbx+1
           imax(stype)=1
-          jmin(stype)=nby
+          jmin(stype)=nby+1
           jmax(stype)=1
  336      do i=1,nbx ! beginning of the loop over all cells along x.
             do j=1,nby ! beginning of the loop over all cells along y.
@@ -541,6 +541,8 @@
               totlu(stype)=totlu(stype)+lamplu(i,j,stype) ! the total lamp flux should be non-null to proceed to the calculations
             enddo ! end of the loop over all cells along y.
           enddo ! end of the loop over all cells along x.
+          if (imin(stype).eq.nbx+1) imin(stype)=1
+          if (jmin(stype).eq.nbx+1) jmin(stype)=1
           print*,'Zone',stype,'bounding box: x=',imin(stype),imax(stype),'y=',jmin(stype),jmax(stype)
         enddo ! end of the loop 1 over the nzon types of sources.
         dy=dx
