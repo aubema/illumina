@@ -21,7 +21,7 @@ c
 
          character*60 name
 	 integer i
-	 real value, flux
+	 real*8 value, flux
          open (unit=1,file='continue_illumina.in',status='old')
             read(1,*) name
          close (unit=1)

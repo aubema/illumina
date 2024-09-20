@@ -27,8 +27,8 @@ c    Contact: martin.aube@cegepsherbrooke.qc.ca
 c
 c
       subroutine angleazimutal(x1,y1,x2,y2,angazi) 
-      real x1,y1,x2,y2
-      real pi,angazi                                                   
+      real*8 x1,y1,x2,y2
+      real*8 pi,angazi                                                   
       parameter (pi=3.141592654)   
       if (x2-x1.ne.0.) angazi=abs(atan((y2-y1)/(x2-x1)))
       if (((x2-x1).eq.0.).and.((y2-y1).eq.0.)) then

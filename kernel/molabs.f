@@ -1,7 +1,7 @@
 c  adding molecular absorption
 c
       subroutine molabs(lambda,bandw,tabs)
-      real lambda,bandw,tabs,wmax,wmin,wla,ta,bwa,bwabs
+      real*8 lambda,bandw,tabs,wmax,wmin,wla,ta,bwa,bwabs
       wmin=lambda-bandw/2.
       wmax=lambda+bandw/2.
       tabs=0.

@@ -29,9 +29,9 @@ c
       integer width                                                       ! Matrix dimension in Length/width and height
       parameter (width=512)
       integer x,y,nx,ny
-      real dx,dy,altsol(width,width),anga,zout,pi,angaz1,ix,iy
-      real hcur,distc                                                           ! Earth curvature terrain
-      real posx,posy,scalef,zhoriz,z,d,dout
+      real*8 dx,dy,altsol(width,width),anga,zout,pi,angaz1,ix,iy
+      real*8 hcur,distc                                                           ! Earth curvature terrain
+      real*8 posx,posy,scalef,zhoriz,z,d,dout
       pi=3.141592654
       angaz1=anga
       ix = (cos(angaz1))                                                  ! viewing vector components
@@ -62,7 +62,7 @@ c earth curvature (first order correction)
         dout=distc
         zout=pi/2.-atan((altsol(nx,ny)-hcur-z)/dout)
         if (altsol(nx,ny)-hcur.eq.z) then
-           zout=pi/2.-0.0001*pi/180.                                      ! bug for zhoriz=pi, anyway in the real world pi is almost impossible
+           zout=pi/2.-0.0001*pi/180.                                      ! bug for zhoriz=pi, anyway in the real*8 world pi is almost impossible
         endif
         if (zout.lt.zhoriz) then
            zhoriz=zout

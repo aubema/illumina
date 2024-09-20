@@ -30,11 +30,11 @@ c
 c----------------------------------------------------------------------
       integer i,headend,nligne,ncol,ntheta,nphi
       integer ii,iip,jj,jjp,flag,ilimi,ilims,jlimi,jlims
-      real tilt,fct(90,90),dthetas,thetas0,ies(150,150),phi(150)
-      real theta(150),moye(150),moyo(150),fctp(90,90),fctem(180)
-      real uplight,downlight,pi,totlight,gap,thetas,azim,azim0
-      real thetasp,azimp,fctpp(90,90),angle(90),iesmax
-      real epsi,epsilon,m,b
+      real*8 tilt,fct(90,90),dthetas,thetas0,ies(150,150),phi(150)
+      real*8 theta(150),moye(150),moyo(150),fctp(90,90),fctem(180)
+      real*8 uplight,downlight,pi,totlight,gap,thetas,azim,azim0
+      real*8 thetasp,azimp,fctpp(90,90),angle(90),iesmax
+      real*8 epsi,epsilon,m,b
       character bidon,bidon1
       character*64 nom,outfile
       thetas0=1.

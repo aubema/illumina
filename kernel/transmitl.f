@@ -33,11 +33,11 @@ c    Contact: martin.aube@cegepsherbrooke.qc.ca
 c
 c
       subroutine transmitl(angz,z_i,z_f,distd,hlay,transl,tranal)
-      real transl                                                         ! Declaration des variables.
-      real tranal                                                         ! vertical transmittance of the complete atmosphere (aerosols)
-      real angz,hlay
-      real z_i,z_f,z1,z2
-      real distd
+      real*8 transl                                                         ! Declaration des variables.
+      real*8 tranal                                                         ! vertical transmittance of the complete atmosphere (aerosols)
+      real*8 angz,hlay
+      real*8 z_i,z_f,z1,z2
+      real*8 distd
 
 
       if (z_i.gt.z_f) then

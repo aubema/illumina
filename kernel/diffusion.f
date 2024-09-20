@@ -33,10 +33,10 @@ c
 c
       subroutine diffusion(angdif,tranam,tranaa,tranal,un,secdif,secdil,
      +   fonc_a,fonc_l,haer,hlay,pdif,altit)
-      real angdif,pdif,prob_a,prob_m,prob_l,secdif,secdil
-      real fctmol,pi,fonc_a(181),fonc_l(181),fonc_ae,fonc_le
-      real angdeg,tranam,tranaa,tranal
-      real altit,un,hlay,haer
+      real*8 angdif,pdif,prob_a,prob_m,prob_l,secdif,secdil
+      real*8 fctmol,pi,fonc_a(181),fonc_l(181),fonc_ae,fonc_le
+      real*8 angdeg,tranam,tranaa,tranal
+      real*8 altit,un,hlay,haer
       integer rang,na,naz
       parameter (pi=3.1415926)
 c--------------------------------------------------------      

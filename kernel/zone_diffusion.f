@@ -33,10 +33,10 @@ c
        integer i,j,k
        integer ncell,neffet,imin,imax,jmin,jmax,kmin,kmax,nvol
        integer keep,stepdi
-       real x0,y0,z0
-       real effet,dmin,d
-       real zondif(3000000,3),siz
-       real pi
+       real*8 x0,y0,z0
+       real*8 effet,dmin,d
+       real*8 zondif(3000000,3),siz
+       real*8 pi
        pi=3.141592654
        keep=0
        neffet=nint(effet/siz)

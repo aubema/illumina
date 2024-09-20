@@ -72,8 +72,8 @@ c
       integer width,nzon                                                  ! Matrix dimension in Length/width and height
       parameter (width=512,nzon=256)
       integer iun,ideux
-      real pi,pix4
-      real zero,un                                                        ! value of 0. and 1.
+      real*8 pi,pix4
+      real*8 zero,un                                                        ! value of 0. and 1.
       integer verbose                                                     ! verbose = 1 to have more print out, 0 for silent
       parameter (pi=3.141592654)
       parameter (pix4=4.*pi)
@@ -84,74 +84,74 @@ c
       character*72 pclimg,pcwimg
       character*72 basenm                                                 ! Base name of files
       integer lenbase                                                     ! Length of the Base name of the experiment
-      real lambda,pressi,drefle(width,width)                              ! Wavelength (nanometer), atmospheric pressure (kPa), mean free path to the ground (meter).
-      real reflsiz                                                        ! Size of the reflecting surface
+      real*8 lambda,pressi,drefle(width,width)                              ! Wavelength (nanometer), atmospheric pressure (kPa), mean free path to the ground (meter).
+      real*8 reflsiz                                                        ! Size of the reflecting surface
       integer ntype                                                       ! Number of light source types or zones considered
-      real largx                                                          ! Width (x axis) of the modeling domain (meter)
-      real largy                                                          ! Length (y axis) of the modeling domain (meter)
+      real*8 largx                                                          ! Width (x axis) of the modeling domain (meter)
+      real*8 largy                                                          ! Length (y axis) of the modeling domain (meter)
       integer nbx,nby                                                     ! Number of pixels in the modeling domain
-      real val2d(width,width)                                             ! Temporary input array 2d
-      real altsol(width,width)                                            ! Ground elevation (meter)
-      real srefl                                                          ! Ground reflectance
+      real*8 val2d(width,width)                                             ! Temporary input array 2d
+      real*8 altsol(width,width)                                            ! Ground elevation (meter)
+      real*8 srefl                                                          ! Ground reflectance
       integer stype                                                       ! Source type or zone index
       character*72 pafile,lufile,alfile,ohfile,odfile,offile              ! Files related to light sources and obstacles (photometric function of the sources (sr-1), flux (W), height (m), obstacles c                                                               ! height (m), obstacle distance (m), obstacle filling factor (0-1).
-      real lamplu(width,width,nzon)                                       ! Source fluxes
-      real lampal(width,width)                                            ! Height of the light sources relative to the ground (meter)
-      real pval(181,nzon),pvalto,pvalno(181,nzon)                         ! Values of the angular photometry functions (unnormalized, integral, normalized)
-      real dtheta                                                         ! Angle increment of the photometric function of the sources
-      real dx,dy,dxp,dyp                                                  ! Width of the voxel (meter)
+      real*8 lamplu(width,width,nzon)                                       ! Source fluxes
+      real*8 lampal(width,width)                                            ! Height of the light sources relative to the ground (meter)
+      real*8 pval(181,nzon),pvalto,pvalno(181,nzon)                         ! Values of the angular photometry functions (unnormalized, integral, normalized)
+      real*8 dtheta                                                         ! Angle increment of the photometric function of the sources
+      real*8 dx,dy,dxp,dyp                                                  ! Width of the voxel (meter)
       integer boxx,boxy                                                   ! reflection window size (pixels)
-      real fdifa(181),fdifan(181)                                         ! Aerosol scattering functions (unnormalized and normalized)
-      real extinc,scatte,anglea(181)                                      ! Aerosol cross sections (extinction and scattering), scattering angle (degree)
-      real secdif                                                         ! Contribution of the scattering to the extinction
-      real inclix(width,width)                                            ! tilt of the ground pixel along x (radian)
-      real incliy(width,width)                                            ! tilt of the ground pixel along y (radian)
+      real*8 fdifa(181),fdifan(181)                                         ! Aerosol scattering functions (unnormalized and normalized)
+      real*8 extinc,scatte,anglea(181)                                      ! Aerosol cross sections (extinction and scattering), scattering angle (degree)
+      real*8 secdif                                                         ! Contribution of the scattering to the extinction
+      real*8 inclix(width,width)                                            ! tilt of the ground pixel along x (radian)
+      real*8 incliy(width,width)                                            ! tilt of the ground pixel along y (radian)
       integer x_obs,y_obs                                                 ! Position of the observer (INTEGER)
-      real rx_obs,ry_obs
-      real z_o                                                            ! observer height relative to the ground (meter)
-      real z_obs                                                          ! Height of the observer (meter) to the vertical grid scale
+      real*8 rx_obs,ry_obs
+      real*8 z_o                                                            ! observer height relative to the ground (meter)
+      real*8 z_obs                                                          ! Height of the observer (meter) to the vertical grid scale
       integer ncible,icible                                               ! Number of line of sight voxels, number loops over the voxels
       integer x_c,y_c                                                     ! Position of the line of sight voxel (INTEGER)
-      real rx_c,ry_c
-      real z_c                                                            ! Height of the line of sight voxel (meter)
+      real*8 rx_c,ry_c
+      real*8 z_c                                                            ! Height of the line of sight voxel (meter)
       integer dirck                                                       ! Test for the position of the source (case source=line of sight voxel)
       integer x_s,y_s,x_sr,y_sr,x_dif,y_dif,zceldi                        ! Positions of the source, the reflecting surface, and the scattering voxels
-      real z_s,z_sr,z_dif                                                 ! Heights of the source, the reflecting surface, and the scattering voxel (metre).
-      real rx_s,ry_s,rx_sr,ry_sr,rx_dif,ry_dif
-      real angzen,ouvang                                                  ! Zenithal angle between two voxels (radians) and opening angle of the solid angle in degrees.
+      real*8 z_s,z_sr,z_dif                                                 ! Heights of the source, the reflecting surface, and the scattering voxel (metre).
+      real*8 rx_s,ry_s,rx_sr,ry_sr,rx_dif,ry_dif
+      real*8 angzen,ouvang                                                  ! Zenithal angle between two voxels (radians) and opening angle of the solid angle in degrees.
       integer anglez                                                      ! Emitting zenithal angle from the luminaire.
-      real P_dir,P_indir,P_dif1                                           ! photometric function of the light sources (direct,indirect,scattered)
-      real transa,transm,transl                                           ! Transmittance between two voxels (aerosols,molecules,particle layer).
-      real tran1a,tran1m                                                  ! Transmittance of the voxel (aerosols,molecules).
-      real taua                                                           ! Aerosol optical depth @ 500nm.
-      real alpha                                                          ! Angstrom coefficient of aerosol AOD
+      real*8 P_dir,P_indir,P_dif1                                           ! photometric function of the light sources (direct,indirect,scattered)
+      real*8 transa,transm,transl                                           ! Transmittance between two voxels (aerosols,molecules,particle layer).
+      real*8 tran1a,tran1m                                                  ! Transmittance of the voxel (aerosols,molecules).
+      real*8 taua                                                           ! Aerosol optical depth @ 500nm.
+      real*8 alpha                                                          ! Angstrom coefficient of aerosol AOD
       real*8 xc,yc,zc,xn,yn,zn                                            ! Position (meter) of the elements (starting point, final point) for the calculation of the solid angle.
       real*8 r1x,r1y,r1z,r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z              ! Components of the vectors used in the solid angle calculation routine.
-      real omega,omega1                                                   ! Solid angles
-      real fldir                                                          ! Flux coming from a source (watt).
-      real flindi                                                         ! Flux coming from a reflecting ground element (watt).
-      real fldiff                                                         ! Flux coming from a scattering voxel (watt).
-      real zidif,zfdif                                                    ! initial and final limits of a scattering path.
-      real angdif                                                         ! scattering angle.
-      real pdifdi,pdifin,pdifd1,pdifd2                                    ! scattering probability (direct,indirect,1st and 2nd order of scattering
-      real intdir                                                         ! Direct intensity toward the sensor from a scattering voxel.
-      real intind                                                         ! Contribution of the reflecting cell to the reflected intensity toward the sensor.
-      real itotind                                                        ! Total contribution of the source to the reflected intensity toward the sensor.
-      real idiff2                                                         ! Contribution of the scattering voxel to the scattered intensity toward the sensor.
-      real itodif                                                         ! Total contribution of the source to the scattered intensity toward the sensor.
-      real isourc                                                         ! Total contribution of the source to the intensity from a line of sight voxel toward the sensor.
-      real itotty                                                         ! Total contribution of a source type to the intensity coming from a line of sight voxel toward the sensor.
-      real itotci                                                         ! total intensity from a line of sight voxel toward the sensor.
-      real itotrd                                                         ! total intensity a voxel toward the sensor after reflexion and double scattering.
-      real flcib                                                          ! Flux reaching the observer voxel from a line of sight voxel.
-      real fcapt                                                          ! Flux reaching the observer voxel from all FOV voxels in a given model level
-      real ftocap                                                         ! Total flux reaching the observer voxel
-      real haut                                                           ! Haut (negative indicate that the surface is lighted from inside the ground. I.e. not considered in the calculation
-      real epsilx,epsily                                                  ! tilt of the ground pixel
-      real flrefl                                                         ! flux reaching a reflecting surface (watts).
-      real irefl,irefl1                                                   ! intensity leaving a reflecting surface toward the line of sight voxel.
-      real effdif                                                         ! Distance around the source voxel and line of sight voxel considered to compute the 2nd order of scattering.
-      real zondif(3000000,3)                                              ! Array for the scattering voxels positions
+      real*8 omega,omega1                                                   ! Solid angles
+      real*8 fldir                                                          ! Flux coming from a source (watt).
+      real*8 flindi                                                         ! Flux coming from a reflecting ground element (watt).
+      real*8 fldiff                                                         ! Flux coming from a scattering voxel (watt).
+      real*8 zidif,zfdif                                                    ! initial and final limits of a scattering path.
+      real*8 angdif                                                         ! scattering angle.
+      real*8 pdifdi,pdifin,pdifd1,pdifd2                                    ! scattering probability (direct,indirect,1st and 2nd order of scattering
+      real*8 intdir                                                         ! Direct intensity toward the sensor from a scattering voxel.
+      real*8 intind                                                         ! Contribution of the reflecting cell to the reflected intensity toward the sensor.
+      real*8 itotind                                                        ! Total contribution of the source to the reflected intensity toward the sensor.
+      real*8 idiff2                                                         ! Contribution of the scattering voxel to the scattered intensity toward the sensor.
+      real*8 itodif                                                         ! Total contribution of the source to the scattered intensity toward the sensor.
+      real*8 isourc                                                         ! Total contribution of the source to the intensity from a line of sight voxel toward the sensor.
+      real*8 itotty                                                         ! Total contribution of a source type to the intensity coming from a line of sight voxel toward the sensor.
+      real*8 itotci                                                         ! total intensity from a line of sight voxel toward the sensor.
+      real*8 itotrd                                                         ! total intensity a voxel toward the sensor after reflexion and double scattering.
+      real*8 flcib                                                          ! Flux reaching the observer voxel from a line of sight voxel.
+      real*8 fcapt                                                          ! Flux reaching the observer voxel from all FOV voxels in a given model level
+      real*8 ftocap                                                         ! Total flux reaching the observer voxel
+      real*8 haut                                                           ! Haut (negative indicate that the surface is lighted from inside the ground. I.e. not considered in the calculation
+      real*8 epsilx,epsily                                                  ! tilt of the ground pixel
+      real*8 flrefl                                                         ! flux reaching a reflecting surface (watts).
+      real*8 irefl,irefl1                                                   ! intensity leaving a reflecting surface toward the line of sight voxel.
+      real*8 effdif                                                         ! Distance around the source voxel and line of sight voxel considered to compute the 2nd order of scattering.
+      real*8 zondif(3000000,3)                                              ! Array for the scattering voxels positions
       integer ndiff,idi                                                   ! Number of scattering voxels, counter of the loop over the scattering voxels
       integer stepdi                                                      ! scattering step to speedup the calculation e.g. if =2 one computation over two will be done
       integer ssswit                                                      ! activate double scattering (1=yes, 0=no)
@@ -159,100 +159,100 @@ c
       integer nvis0                                                       ! starting value for the calculation along of the viewing line.
 c                                                                         ! by default the value is 1 but it can be larger
 c                                                                         ! when we resume a previous interrupted calculation.
-      real fldif1,fldif2                                                  ! flux reaching a scattering voxel.
-      real fdif2                                                          ! flux reaching the line of sight voxel after reflexion > scattering
-      real idif1,idif2,idif2p                                             ! intensity toward a line of sight voxel from a scattering voxel (without and with reflexion).
-      real portio                                                         ! ratio of voxel surface to the solid angle of the sensor field of view.
-      real dis_obs                                                        ! Distance between the line of sight and the observer.
-      real ometif                                                         ! Solid angle of the telescope objective as seen from the line of sight voxel
-      real omefov                                                         ! Solid angle of the spectrometer slit.
-      real angvis,azim                                                    ! viewing angles of the sensor.
+      real*8 fldif1,fldif2                                                  ! flux reaching a scattering voxel.
+      real*8 fdif2                                                          ! flux reaching the line of sight voxel after reflexion > scattering
+      real*8 idif1,idif2,idif2p                                             ! intensity toward a line of sight voxel from a scattering voxel (without and with reflexion).
+      real*8 portio                                                         ! ratio of voxel surface to the solid angle of the sensor field of view.
+      real*8 dis_obs                                                        ! Distance between the line of sight and the observer.
+      real*8 ometif                                                         ! Solid angle of the telescope objective as seen from the line of sight voxel
+      real*8 omefov                                                         ! Solid angle of the spectrometer slit.
+      real*8 angvis,azim                                                    ! viewing angles of the sensor.
 c                                                                         ! Useful for the calculation of the lambertian reflectance.
-      real nbang                                                          ! for the averaging of the photometric function
-      real obsH(width,width),angmin                                       ! averaged height of the sub-grid obstacles, minimum angle under wich
+      real*8 nbang                                                          ! for the averaging of the photometric function
+      real*8 obsH(width,width),angmin                                       ! averaged height of the sub-grid obstacles, minimum angle under wich
 c                                                                         ! a light ray cannot propagate because it is blocked by a sub-grid obstable
-      real ofill(width,width)                                             ! fill factor giving the probability to hit an obstacle when pointing in its direction real 0-1
+      real*8 ofill(width,width)                                             ! fill factor giving the probability to hit an obstacle when pointing in its direction real*8 0-1
       integer naz,na
-      real ITT(width,width,nzon)                                          ! total intensity per type of lamp
-      real ITC(width,width)                                               ! total intensity per line of sight voxel
-      real FTC(width,width)                                               ! fraction of the total flux at the sensor level
-      real FCA(width,width)                                               ! sensor flux array
-      real lpluto(width,width)                                            ! total luminosity of the ground cell for all lamps
+      real*8 ITT(width,width,nzon)                                          ! total intensity per type of lamp
+      real*8 ITC(width,width)                                               ! total intensity per line of sight voxel
+      real*8 FTC(width,width)                                               ! fraction of the total flux at the sensor level
+      real*8 FCA(width,width)                                               ! sensor flux array
+      real*8 lpluto(width,width)                                            ! total luminosity of the ground cell for all lamps
       character*3 lampno                                                  ! lamp number string
       integer imin(nzon),imax(nzon),jmin(nzon),jmax(nzon)                 ! x and y limits containing a type of lamp
-      real angazi                                                         ! azimuth angle between two points in rad, max dist for the horizon determination
-      real latitu                                                         ! approximate latitude of the domain center
+      real*8 angazi                                                         ! azimuth angle between two points in rad, max dist for the horizon determination
+      real*8 latitu                                                         ! approximate latitude of the domain center
       integer prmaps                                                      ! flag to enable the tracking of contribution and sensitivity maps
       integer cloudt                                                      ! cloud type 0=clear, 1=Thin Cirrus/Cirrostratus, 2=Thick Cirrus/Cirrostratus, 3=Altostratus/Altocumulus,
                                                                           ! 4=Stratocumulus/stratus, 5=Cumulus/Cumulonimbus
-      real cloudslope                                                     ! slope of the radiance dependency on the cloud fraction (in percentage) According to
+      real*8 cloudslope                                                     ! slope of the radiance dependency on the cloud fraction (in percentage) According to
                                                                           ! Sciezoras 2020 the slope vary depending on the level of LP and how it is distributed.
                                                                           ! We decided instead to simplify this by using an average slope of -0.013.
                                                                           ! Rad=Rad_100 * 10**(0.4*(100-cloudfrac)*cloudslope) this equation is derived from
                                                                           ! Tomasz Sciezor , The impact of clouds on the brightness of the night sky, Journal of
                                                                           ! Quantitative Spectroscopy & Radiative Transfer (2020),
                                                                           ! doi: https://doi.org/10.1016/j.jqsrt.2020.106962
-      real cloudfrac                                                      ! cloud fraction in percentage
+      real*8 cloudfrac                                                      ! cloud fraction in percentage
       integer xsrmi,xsrma,ysrmi,ysrma                                     ! limits of the loop valeur for the reflecting surfaces
-      real rcloud                                                         ! cloud relfectance
-      real azencl                                                         ! zenith angle from cloud to observer
-      real icloud                                                         ! cloud reflected intensity
-      real fcloud                                                         ! flux reaching the intrument from the cloud voxel
-      real fccld                                                          ! correction for the FOV to the flux reaching the intrument from the cloud voxel
-      real fctcld                                                         ! total flux from cloud at the sensor level
-      real totlu(nzon)                                                    ! total flux of a source type
-      real stoplim                                                        ! Stop computation when the new voxel contribution is less than 1/stoplim of the cumulated flux
-      real ff,ff2,hh                                                          ! temporary obstacle filling factor and horizon blocking factor
-      real cloudbase,cloudtop,cloudhei                                    ! cloud base and top altitude (m), cloud layer avg height (m)
-      real distd                                                          ! distance to compute the scattering probability
-      real volu                                                           ! volume of a voxel
-      real scal                                                           ! stepping along the line of sight
-      real scalo                                                          ! previous value of scal
-      real siz                                                            ! resolution of the 2nd scat grid in meter
-      real angvi1,angaz1,angze1                                           ! viewing angles in radian
-      real ix,iy,iz                                                       ! base vector of the viewing (length=1)
-      real dsc2,doc2                                                      ! square of the path lengths for the cloud contribution
-      real azcl1,azcl2                                                    ! zenith angle from the (source, refl surface, or scattering voxel) to line of path and observer to line p.
-      real dh,dho                                                         ! distance of the horizon limit
+      real*8 rcloud                                                         ! cloud relfectance
+      real*8 azencl                                                         ! zenith angle from cloud to observer
+      real*8 icloud                                                         ! cloud reflected intensity
+      real*8 fcloud                                                         ! flux reaching the intrument from the cloud voxel
+      real*8 fccld                                                          ! correction for the FOV to the flux reaching the intrument from the cloud voxel
+      real*8 fctcld                                                         ! total flux from cloud at the sensor level
+      real*8 totlu(nzon)                                                    ! total flux of a source type
+      real*8 stoplim                                                        ! Stop computation when the new voxel contribution is less than 1/stoplim of the cumulated flux
+      real*8 ff,ff2,hh                                                          ! temporary obstacle filling factor and horizon blocking factor
+      real*8 cloudbase,cloudtop,cloudhei                                    ! cloud base and top altitude (m), cloud layer avg height (m)
+      real*8 distd                                                          ! distance to compute the scattering probability
+      real*8 volu                                                           ! volume of a voxel
+      real*8 scal                                                           ! stepping along the line of sight
+      real*8 scalo                                                          ! previous value of scal
+      real*8 siz                                                            ! resolution of the 2nd scat grid in meter
+      real*8 angvi1,angaz1,angze1                                           ! viewing angles in radian
+      real*8 ix,iy,iz                                                       ! base vector of the viewing (length=1)
+      real*8 dsc2,doc2                                                      ! square of the path lengths for the cloud contribution
+      real*8 azcl1,azcl2                                                    ! zenith angle from the (source, refl surface, or scattering voxel) to line of path and observer to line p.
+      real*8 dh,dho                                                         ! distance of the horizon limit
       integer n2nd                                                        ! desired number of voxel in the calculation of the 2nd scattering
       integer step                                                        ! skiping 2nd scat on 1 dim
-      real omemax                                                         ! max solid angle allowed
-      real tcloud                                                         ! low cloud transmission
-      real rx_sp,ry_sp                                                    ! position of a low cloud pixel
-      real flcld(width,width)                                             ! flux crossing a low cloud
-      real ds1,ds2,ds3,dss                                                ! double scattering distances
+      real*8 omemax                                                         ! max solid angle allowed
+      real*8 tcloud                                                         ! low cloud transmission
+      real*8 rx_sp,ry_sp                                                    ! position of a low cloud pixel
+      real*8 flcld(width,width)                                             ! flux crossing a low cloud
+      real*8 ds1,ds2,ds3,dss                                                ! double scattering distances
       integer nss                                                         ! number of skipped 2nd scat elements
       integer ndi                                                         ! number of cell under ground
       integer nvol                                                        ! number of cell for second scat calc un full resolution
-      real diamobj                                                        ! instrument objective diameter
+      real*8 diamobj                                                        ! instrument objective diameter
       integer i,j,k,id,jd
-      real tranam,tranaa                                                  ! atmospheric transmittancess of a path (molecular, aerosol)
-      real zhoriz                                                         ! zenith angle of the horizon
-      real direct                                                         ! direct radiance from sources on a surface normal to the line of sight (no scattering)
-      real rdirect                                                        ! direct radiance from a reflecting surface on a surface normal to the line of sight (no scattering)
-      real irdirect                                                       ! direct irradiance from sources on a surface normal to the line of sight (no scattering)
-      real irrdirect                                                      ! direct irradiance from a reflecting surface on a surface normal to the line of sight (no scattering)
-      real dang                                                           ! Angle between the line of sight and the direction of a source
-      real dzen                                                           ! zenith angle of the source-observer line
-      real ddir_obs                                                       ! distance between the source and the observer
-      real rx,ry,rz                                                       ! driving vector for the calculation of the projection angle for direct radiance. It is 20km long
-      real dfov                                                           ! field of view in degrees for the calculation of the direct radiance this number will be a kind of smoothing effect. The angular grid resolution to create a direct radiance panorama should be finer than that number
-      real Fo                                                             ! flux correction factor for obstacles
-      real thetali                                                        ! limit angle for the obstacles blocking of viirs
+      real*8 tranam,tranaa                                                  ! atmospheric transmittancess of a path (molecular, aerosol)
+      real*8 zhoriz                                                         ! zenith angle of the horizon
+      real*8 direct                                                         ! direct radiance from sources on a surface normal to the line of sight (no scattering)
+      real*8 rdirect                                                        ! direct radiance from a reflecting surface on a surface normal to the line of sight (no scattering)
+      real*8 irdirect                                                       ! direct irradiance from sources on a surface normal to the line of sight (no scattering)
+      real*8 irrdirect                                                      ! direct irradiance from a reflecting surface on a surface normal to the line of sight (no scattering)
+      real*8 dang                                                           ! Angle between the line of sight and the direction of a source
+      real*8 dzen                                                           ! zenith angle of the source-observer line
+      real*8 ddir_obs                                                       ! distance between the source and the observer
+      real*8 rx,ry,rz                                                       ! driving vector for the calculation of the projection angle for direct radiance. It is 20km long
+      real*8 dfov                                                           ! field of view in degrees for the calculation of the direct radiance this number will be a kind of smoothing effect. The angular grid resolution to create a direct radiance panorama should be finer than that number
+      real*8 Fo                                                             ! flux correction factor for obstacles
+      real*8 thetali                                                        ! limit angle for the obstacles blocking of viirs
       integer viirs(width,width)                                          ! viirs flag 1=yes 0=no
       character*72 vifile                                                 ! name of the viirs flag file
-      real dh0,dhmax                                                      ! horizontal distance along the line of sight and maximum distance before beeing blocked by topography
+      real*8 dh0,dhmax                                                      ! horizontal distance along the line of sight and maximum distance before beeing blocked by topography
       character*72 layfile                                                ! filename of the optical properties of the particle layer
-      real layaod                                                         ! 500 nm aod of the particle layer
-      real layalp                                                         ! spectral exponent of the aod for the particle layer
-      real hlay                                                           ! exponential vertical scale height of the particle layer
-      real secdil                                                         ! scattering/extinction ratio for the particle layer
-      real fdifl(181)                                                     ! scattering phase function of the particle layer
-      real tranal                                                         ! top of atmos transmission of the particle layer
-      real haer                                                           ! exponential vertical scale height of the background aerosol layer
-      real distc,hcur                                                     ! distance to any cell and curvature  correction for the earth curvature
-      real bandw                                                          ! bandwidth of the spectral bin
-      real tabs                                                           ! TOA transmittance related to molecule absorption
+      real*8 layaod                                                         ! 500 nm aod of the particle layer
+      real*8 layalp                                                         ! spectral exponent of the aod for the particle layer
+      real*8 hlay                                                           ! exponential vertical scale height of the particle layer
+      real*8 secdil                                                         ! scattering/extinction ratio for the particle layer
+      real*8 fdifl(181)                                                     ! scattering phase function of the particle layer
+      real*8 tranal                                                         ! top of atmos transmission of the particle layer
+      real*8 haer                                                           ! exponential vertical scale height of the background aerosol layer
+      real*8 distc,hcur                                                     ! distance to any cell and curvature  correction for the earth curvature
+      real*8 bandw                                                          ! bandwidth of the spectral bin
+      real*8 tabs                                                           ! TOA transmittance related to molecule absorption
       integer obsobs                                                      ! flag to activate the direct light obstacle blocking aroud the observer.
       verbose=1                                                           ! Very little printout=0, Many printout = 1, even more=2
       diamobj=1.                                                          ! A dummy value for the diameter of the objective of the instrument used by the observer.
