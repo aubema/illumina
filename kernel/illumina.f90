@@ -241,7 +241,7 @@
       endif
       ! reading of input file (illumina.in)
       print*,'Reading illumina.in input file'
-      open(unit=1,file='illumina_new.in',status='old')
+      open(unit=1,file='illumina.in',status='old')
         read(1,*)
         read(1,*) basenm
         read(1,*) dx,dy
