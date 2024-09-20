@@ -66,10 +66,10 @@
       ry_c=real(y_c)*dy
       rx_obs=real(x_obs)*dx
       ry_obs=real(y_obs)*dy     
-      dss=1.*siz
+      dss=1.*siz/2.
       
       
-      dss=1000.
+      !dss=1000.
       
       
       icloud=0.
