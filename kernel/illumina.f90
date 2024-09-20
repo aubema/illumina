@@ -541,6 +541,7 @@
               totlu(stype)=totlu(stype)+lamplu(i,j,stype) ! the total lamp flux should be non-null to proceed to the calculations
             enddo ! end of the loop over all cells along y.
           enddo ! end of the loop over all cells along x.
+          print*,'Zone',stype,'bounding box: x=',imin(stype),imax(stype),'y=',jmin(stype),jmax(stype)
         enddo ! end of the loop 1 over the nzon types of sources.
         dy=dx
         omefov=0.00000001 ! solid angle of the spectrometer slit on the sky. Here we only need a small value
