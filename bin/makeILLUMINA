@@ -33,7 +33,7 @@ chmod a+x bin/*
 
 # options de debuggage -Wall -fcheck=all -g -fbacktrace -ffpe-trap=zero
 echo $F77"-Wunused-parameter -mcmodel=medium -ffpe-trap=zero,overflow,underflow,denormal -fno-backtrace -O3 kernel/illumina.f90 kernel/thirdscat.f90 kernel/secondscat.f90 kernel/firstscat.f90 kernel/zone_scat.f90 kernel/diffusion.f kernel/angle3points.f kernel/anglesolide.f kernel/transmita.f kernel/transmitm.f kernel/anglezenithal.f kernel/angleazimutal.f kernel/horizon.f kernel/cloudreflectance.f kernel/blocking.f kernel/twodin.f kernel/twodout.f kernel/transTOA.f kernel/curvature.f kernel/molabs.f kernel/linearfit.f90 -o bin/illumina"
-sed -i "s/$version/__version__/" kernel/illumina.f
+sed -i "s/$version/__version__/" kernel/illumina.f90
 $F77 -Wunused-parameter -mcmodel=medium -ffpe-trap=zero,overflow,underflow,denormal -fno-backtrace -O3 kernel/illumina.f90 kernel/thirdscat.f90 kernel/secondscat.f90 kernel/firstscat.f90 kernel/zone_scat.f90 kernel/diffusion.f kernel/angle3points.f kernel/anglesolide.f kernel/transmita.f kernel/transmitm.f kernel/anglezenithal.f kernel/angleazimutal.f kernel/horizon.f kernel/cloudreflectance.f kernel/blocking.f kernel/twodin.f kernel/twodout.f kernel/transTOA.f kernel/curvature.f kernel/molabs.f kernel/linearfit.f90 -o bin/illumina
 
 
