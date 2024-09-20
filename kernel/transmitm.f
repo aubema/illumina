@@ -36,6 +36,7 @@ c
       subroutine transmitm(angz,z_i,z_f,distd,transm,tranam,tabs)
       real*8 transm                                                         ! Declaration des variables.
       real*8 tranam                                                         ! vertical transmittance of the complete atmosphere (molecules)
+      real*8 tabs
       real*8 angz
       real*8 distd
       real*8 z_i,z_f,z1,z2

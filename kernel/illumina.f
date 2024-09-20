@@ -254,7 +254,7 @@ c                                                                         ! a li
       real*8 bandw                                                          ! bandwidth of the spectral bin
       real*8 tabs                                                           ! TOA transmittance related to molecule absorption
       integer obsobs                                                      ! flag to activate the direct light obstacle blocking aroud the observer.
-      verbose=1                                                           ! Very little printout=0, Many printout = 1, even more=2
+      verbose=2                                                           ! Very little printout=0, Many printout = 1, even more=2
       diamobj=1.                                                          ! A dummy value for the diameter of the objective of the instrument used by the observer.
       volu=0.
       zero=0.
@@ -329,8 +329,8 @@ c cartesian, azim=0 toward east, 90 toward north, 180 toward west etc
       endif
       scal=19.
       scalo=scal
-      boxx=nint(reflsiz/dx)                                               ! Number of column to consider left/right of the source for the reflection.
-      boxy=nint(reflsiz/dy)                                               ! Number of column to consider up/down of the source for the reflection.
+      boxx=idnint(reflsiz/dx)                                               ! Number of column to consider left/right of the source for the reflection.
+      boxy=idnint(reflsiz/dy)                                               ! Number of column to consider up/down of the source for the reflection.
 c omemax: exclude calculations too close (<10m) this is a sustended angle of 1 deg.
 c the calculated flux is highly sensitive to that number for a very high
 c pixel resolution (a few 10th of meters). We assume anyway that somebody
@@ -530,7 +530,7 @@ c reading viirs flag
         call twodin(nbx,nby,vifile,val2d)
         do i=1,nbx                                                        ! beginning of the loop over all cells along x.
           do j=1,nby                                                      ! beginning of the loop over all cells along y.
-            viirs(i,j)=nint(val2d(i,j))                                   ! viirs flag array 0 or 1
+            viirs(i,j)=idnint(val2d(i,j))                                   ! viirs flag array 0 or 1
           enddo                                                           ! end of the loop over all cells along y.
         enddo
 c reading of the scattering parameters for background aerosols
@@ -761,7 +761,7 @@ c projection angle of line to the lamp and the viewing angle
      +            ry_obs,z_obs,rx,ry,rz,dang)
                   dang=pi-dang
 c computation of the solid angle of the line of sight voxel seen from the source
-                  anglez=nint(180.*(pi-dzen)/pi)+1
+                  anglez=idnint(180.*(pi-dzen)/pi)+1
                   P_dir=pvalno(anglez,stype)
 c computation of the flux direct reaching the line of sight voxel
                   if ((cos(dang).gt.0.).and.(dang.lt.pi/2.))
@@ -772,6 +772,10 @@ c computation of the solid angle 1m^2 at the observer as seen from the source
                     omega=1.*abs(cos(dang))/ddir_obs**2.
                     call transmitm(dzen,z_obs,z_s,ddir_obs,
      +              transm,tranam,tabs)
+     
+      print*,'debug4',dzen,z_obs,z_s,ddir_obs,transm,tranam,tabs
+     
+     
                     call transmita(dzen,z_obs,z_s,ddir_obs,
      +              haer,transa,tranaa)
                     call transmitl(dzen,z_obs,z_s,ddir_obs,
@@ -831,6 +835,10 @@ c computation of the transmittance between the source and the ground surface
      +                      (z_s-z_sr)**2.)
                             call transmitm(angzen,z_s,
      +                      z_sr,distd,transm,tranam,tabs)
+     
+      print*,'debug5',angzen,z_s,z_sr,distd,transm,tranam,tabs    
+     
+     
                             call transmita(angzen,z_s,
      +                      z_sr,distd,haer,transa,tranaa)
                             call transmitl(angzen,z_s,z_sr,distd,
@@ -898,7 +906,7 @@ c                                                                         ! P_di
 c computation of the photometric function of the light fixture toward the reflection surface
 c=======================================================================
 c
-                            anglez=nint(180.*angzen/pi)
+                            anglez=idnint(180.*angzen/pi)
                             if (anglez.lt.0)
      +                      anglez=-anglez
                             if (anglez.gt.180) anglez=360
@@ -908,7 +916,7 @@ c average +- ouvang
                             naz=0
                             nbang=0.
                             P_indir=0.
-                            do na=-nint(ouvang),nint(ouvang)
+                            do na=-idnint(ouvang),idnint(ouvang)
                               naz=anglez+na
                               if (naz.lt.0) naz=-naz
                               if (naz.gt.181) naz=362-naz                 ! symetric function
@@ -1060,10 +1068,10 @@ c temporaire !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         dh0=sqrt((rx_c-rx_obs)**2.+(ry_c-ry_obs)**2)
           if ((dh0.le.dhmax).or.((dh0.gt.dhmax).and.(angze1-zhoriz.lt.    ! the line of sight is not yet blocked by the topography
      +    0.00001))) then
-          x_c=nint(rx_c/dx)
+          x_c=idnint(rx_c/dx)
           if (x_c.lt.1) x_c=1
           if (x_c.gt.width) x_c=width
-          y_c=nint(ry_c/dy)
+          y_c=idnint(ry_c/dy)
           if (y_c.lt.1) y_c=1
           if (y_c.gt.width) y_c=width
           z_c=z_c+iz*(scalo/2.+scal/2.)
@@ -1204,6 +1212,10 @@ c sub-grid obstacles
                                 endif
                               endif
 c computation of the transmittance between the source and the line of sight
+
+       print*,'debug2',angzen,z_s,z_c,distd,transm,tranam,tabs
+
+
                               call transmitm(angzen,z_s,z_c,distd,
      +                        transm,tranam,tabs)
                               call transmita(angzen,z_s,z_c,distd,
@@ -1213,11 +1225,17 @@ c computation of the transmittance between the source and the line of sight
 c computation of the solid angle of the line of sight voxel seen from the source
                               omega=1./distd**2.
                               if (omega.gt.omemax) omega=0.
-                              anglez=nint(180.*angzen/pi)+1
+                              anglez=idnint(180.*angzen/pi)+1
                               P_dir=pvalno(anglez,stype)
 c computation of the flux reaching the line of sight voxel
                               fldir=lamplu(x_s,y_s,stype)*P_dir*
      +                        omega*transm*transa*transl*(1.-ff)*hh       ! correction for obstacle filling factor
+     
+     
+       print*,'debug1',lamplu(x_s,y_s,stype),P_dir,omega,transm,transa
+     + ,transl,ff,hh
+     
+     
 c computation of the scattering probability of the direct light
 c distance pour traverser la cellule unitaire parfaitement orientée
                               if (omega.ne.0.) then
@@ -1232,6 +1250,10 @@ c distance pour traverser la cellule unitaire parfaitement orientée
                               endif
 c computation of the source contribution to the scattered intensity toward the sensor by a line of sight voxel
                               intdir=fldir*pdifdi
+                              
+                              
+                              print*,'debug',intdir,fldir,pdifdi
+                              
 c contribution of the cloud reflection of the light coming directly from the source
                               if (cloudt.ne.0) then                       ! line of sight voxel = cloud
                                 if (cloudbase-z_c.le.iz*scal) then
@@ -1372,7 +1394,7 @@ c                                                                         ! P_di
 c computation of the photometric function of the light fixture toward the reflection surface
 c=======================================================================
 c
-                                        anglez=nint(180.*angzen/pi)
+                                        anglez=idnint(180.*angzen/pi)
                                         if (anglez.lt.0)
      +                                  anglez=-anglez
                                         if (anglez.gt.180) anglez=360
@@ -1382,7 +1404,7 @@ c average +- ouvang
                                         naz=0
                                         nbang=0.
                                         P_indir=0.
-                                        do na=-nint(ouvang),nint(ouvang)
+                                do na=-idnint(ouvang),idnint(ouvang)
                                           naz=anglez+na
                                           if (naz.lt.0) naz=-naz
                                           if (naz.gt.181) naz=362-naz     ! symetric function
@@ -1392,7 +1414,7 @@ c average +- ouvang
      +                                    /180.))/2.
                                           nbang=nbang+1.*abs(sin(pi*
      +                                    real(naz)/180.))/2.
-                                        enddo
+                                enddo
                                         P_indir=P_indir/nbang
 c computation of the flux reaching the reflecting surface
                                         flrefl=lamplu(x_s,y_s,stype)*
@@ -1413,14 +1435,14 @@ c ******************************************************************************
       ndi=0
       do idi=1,ndiff                                                      ! beginning of the loop over the scattering voxels.
         rx_dif=zondif(idi,1)+(rx_s+rx_c)/2.
-        x_dif=nint(rx_dif/dx)
+        x_dif=idnint(rx_dif/dx)
         ry_dif=zondif(idi,2)+(ry_s+ry_c)/2.
-        y_dif=nint(ry_dif/dy)
+        y_dif=idnint(ry_dif/dy)
         z_dif=zondif(idi,3)+(z_s+z_c)/2.
-        id=nint(rx_dif/dx)
+        id=idnint(rx_dif/dx)
         if (id.gt.width) id=width
         if (id.lt.1) id=1
-        jd=nint(ry_dif/dy)
+        jd=idnint(ry_dif/dy)
         if (jd.gt.width) jd=width
         if (jd.lt.1) jd=1
         if (z_dif-siz/2..le.altsol(id,jd).or.(z_dif.gt.35000.).or.
@@ -1582,7 +1604,7 @@ c computation of the transmittance between the source and the scattering voxel
 c computation of the Solid angle of the scattering unit voxel seen from the source
               omega=1./distd**2.
               if (omega.gt.omemax) omega=0.
-              anglez=nint(180.*angzen/pi)+1
+              anglez=idnint(180.*angzen/pi)+1
               P_dif1=pvalno(anglez,stype)
 c computing flux reaching the scattering voxel
               fldif1=lamplu(x_s,y_s,stype)*P_dif1*

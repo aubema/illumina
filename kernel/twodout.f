@@ -7,7 +7,7 @@ c write double precision array in binary
          write(1) nbx,nby
          do j=nby,1,-1
             do i=1,nbx
-               write(1) bindata(i,j)
+               write(1) SNGL(bindata(i,j))
             enddo
          enddo
        close(unit=1)
