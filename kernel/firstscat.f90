@@ -75,13 +75,13 @@
         call transmita(zenith,z_s,z_c,distd,hlay,transl,tranal)
         ! computation of the solid angle of the 3rd scattering voxel seen from the reflecting surface
         omega=1./distd**2.
-        if (omega.gt.omemax) omega=0.
-        anglez=idnint(180.*zenith/pi)+1
+        if (omega.gt.omemax) omega=0.D0
+        anglez=idnint(180.D0*zenith/pi)+1
         P_dif=pvalno(anglez,stype)
-        !flux=lamplu(x_s,y_s,stype)*P_dif*omega*transm*transa*transl*(1.-ff1)*(1.-ff2)*hh ! flux crossing line of sight voxel
-        flux=lamplu(x_s,y_s,stype)*P_dif*omega*transm*transa*transl*(1.-ff1)*hh
+        flux=lamplu(x_s,y_s,stype)*P_dif*omega*transm*transa*transl*(1.-ff1)*(1.-ff2)*hh ! flux crossing line of sight voxel
+        !flux=lamplu(x_s,y_s,stype)*P_dif*omega*transm*transa*transl*(1.-ff1)*hh
         ! computing the scattering probability toward 2nd scat voxel
-        if (omega.ne.0.) then
+        if (omega.ne.0.D0) then
           call angle3points(rx_s,ry_s,z_s,rx_c,ry_c,z_c,rx_obs,ry_obs,z_obs,angdif) ! scattering angle.
           call diffusion(angdif,tranam,tranaa,tranal,un,secdif,secdil,fdifan,fdifl,haer,hlay,pdif,z_c) ! scattering probability pdif of the direct light.
         else
@@ -148,30 +148,30 @@
         r4y=yc-dble(dyp)/2.-yn ! computation of the composante along y of the fourth vector.
         r4z=zc+tan(dble(epsilx))*dble(dxp)/2.-tan(dble(epsily))*dble(dyp)/2.-zn ! computation of the composante en z of the fourth vector.
         call anglesolide(omeg2,r1x,r1y,r1z,r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z) ! Call of the routine anglesolide to compute the angle solide.
-        if (omeg2.lt.0.) then
+        if (omeg2.lt.0.D0) then
           print*,'ERROR: Solid angle of the reflecting surface < 0.'
           stop
         endif
         ! estimation of the half of the underlying angle of the solid angle ! this angle servira a obtenir un meilleur isime (moyenne) of
         ! P_dir for le cas of grans solid angles the , pvalno varie significativement sur +- ouvang.
         ouvang=sqrt(omeg2/pi) ! Angle in radian.
-        ouvang=ouvang*180./pi ! Angle in degrees.
+        ouvang=ouvang*180.D0/pi ! Angle in degrees.
         ! computation of the photometric function of the light fixture toward the reflection surface
-        anglez=idnint(180.*zenith/pi)
+        anglez=idnint(180.D0*zenith/pi)
         if (anglez.lt.0) anglez=-anglez
         if (anglez.gt.180) anglez=360-anglez
         anglez=anglez+1 ! Transform the angle in integer degree into the position in the array.
         ! average +- ouvang
         naz=0
-        nbang=0.
-        P_indir=0.
+        nbang=0.D0
+        P_indir=0.D0
         do na=-idnint(ouvang),idnint(ouvang)
           naz=anglez+na
           if (naz.lt.0) naz=-naz
           if (naz.gt.181) naz=362-naz ! symetric function
           if (naz.eq.0) naz=1
-          P_indir=P_indir+pvalno(naz,stype)*abs(sin(pi*real(naz)/180.))/2.
-          nbang=nbang+1.*abs(sin(pi*real(naz)/180.))/2.
+          P_indir=P_indir+pvalno(naz,stype)*abs(sin(pi*real(naz)/180.D0))/2.
+          nbang=nbang+1.*abs(sin(pi*real(naz)/180.D0))/2.
         enddo
         P_indir=P_indir/nbang 
         flrefl=lamplu(x_s,y_s,stype)*P_indir*omeg2*transm*transa*transl
@@ -187,14 +187,14 @@
         call transmita(zenith,z_sr,z_c,distd,hlay,transl,tranal)
         ! computation of the solid angle of the 2nd scattering voxel seen from the reflecting surface
         omega=1./distd**2.
-        if (omega.gt.omemax) omega=0.   
-        !flux=irefl*omega*transm*transa*transl*(1.-ff1)*(1.-ff2)*hh
-        flux=irefl*omega*transm*transa*transl*(1.-ff1)*hh              
-        if (omega.ne.0.) then
+        if (omega.gt.omemax) omega=0.D0   
+        flux=irefl*omega*transm*transa*transl*(1.-ff1)*(1.-ff2)*hh
+        !flux=irefl*omega*transm*transa*transl*(1.-ff1)*hh              
+        if (omega.ne.0.D0) then
           call angle3points(rx_sr,ry_sr,z_sr,rx_c,ry_c,z_c,rx_obs,ry_obs,z_obs,angdif) ! scattering angle.
           call diffusion(angdif,tranam,tranaa,tranal,un,secdif,secdil,fdifan,fdifl,haer,hlay,pdif,z_c) ! scattering probability of the direct light.
         else
-          pdif=0.
+          pdif=0.D0
         endif
         idif=flux*pdif*scal*portio        
  

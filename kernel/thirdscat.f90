@@ -109,8 +109,8 @@
                   if (omega.gt.omemax) omega=0.
                   anglez=idnint(180.*zenith/pi)+1
                   P_dif=pvalno(anglez,stype)
-                  !flux=lamplu(x_s,y_s,stype)*P_dif*omega*transm*transa*transl*(1.-ff1)*(1.-ff2)*hh
-                  flux=lamplu(x_s,y_s,stype)*P_dif*omega*transm*transa*transl*(1.-ff1)*hh
+                  flux=lamplu(x_s,y_s,stype)*P_dif*omega*transm*transa*transl*(1.-ff1)*(1.-ff2)*hh
+                  !flux=lamplu(x_s,y_s,stype)*P_dif*omega*transm*transa*transl*(1.-ff1)*hh
                   ! computing the scattering probability toward 2nd scat voxel
                   if (omega.ne.0.) then
                     call angle3points(rx_s,ry_s,z_s,rx_difa,ry_difa,z_difa,rx_difb,ry_difb,z_difb,angdif) ! scattering angle.
@@ -125,7 +125,7 @@
                   idif=0.
                 else
                   call anglezenithal(rx_sr,ry_sr,z_sr,rx_difa,ry_difa,z_difa,zenith)
-                  call blocking(x_sr,y_sr,z_sr,ida,jda,z_difa,dx,dy,nbx,nby,altsol,drefle,ofill,obsH,hh,ff1,ff2)
+                  !call blocking(x_sr,y_sr,z_sr,ida,jda,z_difa,dx,dy,nbx,nby,altsol,drefle,ofill,obsH,hh,ff1,ff2)
                   ! computation of the transmittance between the reflection surface and the 3rd scattering voxel
                   distd=sqrt((rx_difa-rx_sr)**2.+(ry_difa-ry_sr)**2.+(z_difa-z_sr)**2.)
                   call transmitm(zenith,z_sr,z_difa,distd,transm,tranam,tabs)
@@ -214,8 +214,8 @@
                   ! computation of the solid angle of the 3rd scattering voxel seen from the reflecting surface
                   omega=1./distd**2.
                   if (omega.gt.omemax) omega=0.   
-                  !flux=irefl*omega*transm*transa*transl*(1.-ff1)*(1.-ff2)*hh
-                  flux=irefl*omega*transm*transa*transl*(1.-ff1)*hh
+                  flux=irefl*omega*transm*transa*transl*(1.-ff1)*(1.-ff2)*hh
+                  !flux=irefl*omega*transm*transa*transl*(1.-ff1)*hh
                   if (omega.ne.0.) then
                     call angle3points(rx_sr,ry_sr,z_sr,rx_difa,ry_difa,z_difa,rx_difb,ry_difb,z_difb,angdif) ! scattering angle.
                     call diffusion(angdif,tranam,tranaa,tranal,un,secdif,secdil,fdifan,fdifl,haer,hlay,pdif,z_difa) ! scattering probability of the direct light.
@@ -237,8 +237,8 @@
               omega=1./distd**2.
               if (omega.gt.omemax) omega=0.
               ! computation of the scattered flux reaching 2nd scattering voxel
-              !flux=idif*omega*transm*transa*transl*(1.-ff1)*(1.-ff2)*hh
-              flux=idif*omega*transm*transa*transl*(1.-ff1)*hh
+              flux=idif*omega*transm*transa*transl*(1.-ff1)*(1.-ff2)*hh
+              !flux=idif*omega*transm*transa*transl*(1.-ff1)*hh
               ! computing the scattering probability toward line of sight voxel
               if (omega.ne.0.) then
                 call angle3points (rx_difa,ry_difa,z_difa,rx_difb,ry_difb,z_difb,rx_c,ry_c,z_c,angdif) ! scattering angle
@@ -259,8 +259,8 @@
               omega=1./distd**2.
               if (omega.gt.omemax) omega=0.
               ! computation of the scattered flux reaching 2nd scattering voxel
-              !flux=idif*omega*transm*transa*transl*(1.-ff1)*(1.-ff2)*hh    
-              flux=idif*omega*transm*transa*transl*(1.-ff1)*hh        
+              flux=idif*omega*transm*transa*transl*(1.-ff1)*(1.-ff2)*hh    
+              !flux=idif*omega*transm*transa*transl*(1.-ff1)*hh        
               ! computation of the scattering probability of the scattered light toward line of sight voxel
               if (omega.ne.0.) then
                 call angle3points(rx_difb,ry_difb,z_difb,rx_c,ry_c,z_c,rx_obs,ry_obs,z_obs,angdif) ! scattering angle.
