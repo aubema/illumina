@@ -78,9 +78,5 @@ c sub-grid obstacles
             endif
           endif  
         endif
-      else
-        hh=1.
-        ff1=0.
-        ff2=0.
       endif                                                            ! end light path to the observer larger than mean free path  
       end
