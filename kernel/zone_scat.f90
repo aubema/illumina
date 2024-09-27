@@ -37,7 +37,7 @@
        real*8 zondif(3000000,3),siz,siz_0
        real*8 pi
        pi=3.141592654D0
-       dmax=sqrt((xf-xi)**2.+(yf-yi)**2.+(zf-zi)**2.)
+       dmax=dsqrt((xf-xi)**2.+(yf-yi)**2.+(zf-zi)**2.)
        siz=siz_0*(((4.*effet**3.)/3.+dmax*effet**2.)/((4.*effet**3.)/3.))**(1./3.)  
        dmax=dmax+effet
        xmin=3000000.
@@ -76,7 +76,7 @@
            y0=dble(j)*siz
            do k=kmin,kmax                                                     
              z0=dble(k)*siz
-             d=sqrt((x0-xi)**2.+(y0-yi)**2.+(z0-zi)**2.)+sqrt((x0-xf)**2.+(y0-yf)**2.+(z0-zf)**2.)
+             d=dsqrt((x0-xi)**2.+(y0-yi)**2.+(z0-zi)**2.)+dsqrt((x0-xf)**2.+(y0-yf)**2.+(z0-zf)**2.)
              if (d.le.dmax) then                                                ! ensure spherical zone r<dmax
                ncell=ncell+1
                zondif(ncell,1)=x0                                   

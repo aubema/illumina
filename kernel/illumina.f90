@@ -288,9 +288,9 @@
       angvi1=(pi*angvis)/180.D0
       angze1=pi/2.-angvi1
       angaz1=(pi*azim)/180.D0
-      ix=(sin((pi/2.)-angvi1))*(cos(angaz1))                        ! viewing vector components
-      iy=(sin((pi/2.)-angvi1))*(sin(angaz1))
-      iz=(sin(angvi1))
+      ix=(dsin((pi/2.)-angvi1))*(dcos(angaz1))                        ! viewing vector components
+      iy=(dsin((pi/2.)-angvi1))*(dsin(angaz1))
+      iz=(dsin(angvi1))
       dfov=(dfov*pi/180.D0)/2.
 
 
@@ -414,18 +414,18 @@
         do i=1,nbx ! beginning of the loop over the column (longitude) of the domain.
           do j=1,nby ! beginning of the loop over the rows (latitu) of the domain.
             if (i.eq.1) then ! specific case close to the border of the domain (vertical side left).
-              inclix(i,j)=atan((altsol(i+1,j)-altsol(i,j))/dble(dx)) ! computation of the tilt along x of the surface.
+              inclix(i,j)=datan((altsol(i+1,j)-altsol(i,j))/dble(dx)) ! computation of the tilt along x of the surface.
             elseif (i.eq.nbx) then ! specific case close to the border of the domain (vertical side right).
-              inclix(i,j)=atan((altsol(i-1,j)-altsol(i,j))/(dble(dx))) ! computation of the tilt along x of the surface.
+              inclix(i,j)=datan((altsol(i-1,j)-altsol(i,j))/(dble(dx))) ! computation of the tilt along x of the surface.
             else
-              inclix(i,j)=atan((altsol(i+1,j)-altsol(i-1,j))/(2.*dble(dx))) ! computation of the tilt along x of the surface.
+              inclix(i,j)=datan((altsol(i+1,j)-altsol(i-1,j))/(2.*dble(dx))) ! computation of the tilt along x of the surface.
             endif
             if (j.eq.1) then ! specific case close to the border of the domain (horizontal side down).
-              incliy(i,j)=atan((altsol(i,j+1)-altsol(i,j))/(dble(dy))) ! computation of the tilt along y of the surface.
+              incliy(i,j)=datan((altsol(i,j+1)-altsol(i,j))/(dble(dy))) ! computation of the tilt along y of the surface.
             elseif (j.eq.nby) then ! specific case close to the border of the domain (horizontal side up).
-              incliy(i,j)=atan((altsol(i,j-1)-altsol(i,j))/(dble(dy))) ! computation of the tilt along y of the surface.
+              incliy(i,j)=datan((altsol(i,j-1)-altsol(i,j))/(dble(dy))) ! computation of the tilt along y of the surface.
             else
-              incliy(i,j)=atan((altsol(i,j+1)-altsol(i,j-1))/(2.*dble(dy))) ! computation of the tilt along y of the surface
+              incliy(i,j)=datan((altsol(i,j+1)-altsol(i,j-1))/(2.*dble(dy))) ! computation of the tilt along y of the surface
             endif
           enddo ! end of the loop over the rows (latitu) of the domain
         enddo ! end of the loop over the column (longitude) of the domain
@@ -506,7 +506,7 @@
           open(UNIT=1, FILE=pafile,status='OLD') ! opening file pa#.dat, angular photometry.
             do i=1,181 ! beginning of the loop for the 181 data points
               read(1,*) pval(i,stype) ! reading of the data in the array pval.
-              pvalto=pvalto+pval(i,stype)*2.*pi*sin(dble(i-1)*dtheta)*dtheta ! Sum of the values of the  photometric function
+              pvalto=pvalto+pval(i,stype)*2.*pi*dsin(dble(i-1)*dtheta)*dtheta ! Sum of the values of the  photometric function
               ! (pvaleur x 2pi x sin theta x dtheta) (ou theta egale (i-1) x 1 degrees).
             enddo ! end of the loop over the 181 donnees of the fichier pa#.dat.
           close(1) ! closing file pa#.dat, angular photometry.
@@ -538,7 +538,7 @@
                 lamplu(i,j,stype)=lamplu(i,j,stype)/(tranam*tranaa*tranal)
                 thetali=datan2(drefle(i,j),obsH(i,j))
                 if (thetali .lt. 70.D0*pi/180.D0) then
-                  Fo=(1.-cos(70.D0*pi/180.D0))/(1.-ofill(i,j)*cos(thetali)+(ofill(i,j)-1.)*cos(70.D0*pi/180.D0))
+                  Fo=(1.-dcos(70.D0*pi/180.D0))/(1.-ofill(i,j)*dcos(thetali)+(ofill(i,j)-1.)*dcos(70.D0*pi/180.D0))
                 else
                   Fo=1.
                 endif
@@ -586,7 +586,7 @@
                   rx=rx_obs+20000.D0*ix
                   ry=ry_obs+20000.D0*iy
                   rz=z_obs+20000.D0*iz
-                  dho=sqrt((rx_obs-rx_s)**2.+(ry_obs-ry_s)**2.)
+                  dho=dsqrt((rx_obs-rx_s)**2.+(ry_obs-ry_s)**2.)
                   if ((dho.gt.0.D0).and.(z_s.ne.z_obs)) then
                     call anglezenithal(rx_s,ry_s,z_s,rx_obs,ry_obs,z_obs,zenith)
                     call blocking(x_s,y_s,z_s,x_obs,y_obs,z_obs,dx,dy,nbx,nby,altsol,drefle,ofill,obsH,hh,ff1,ff2)
@@ -597,10 +597,10 @@
                     anglez=idnint(180.D0*zenith/pi)+1
                     P_dir=pvalno(anglez,stype)
                     ! computation of the flux direct reaching the line of sight voxel
-                    if ((cos(dang).gt.0.D0).and.(dang.lt.pi/2.)) then
-                      ddir_obs=sqrt((rx_obs-rx_s)**2.+(ry_obs-ry_s)**2.+(z_obs-z_s)**2.) ! distance direct sight between source and observer
+                    if ((dcos(dang).gt.0.D0).and.(dang.lt.pi/2.)) then
+                      ddir_obs=dsqrt((rx_obs-rx_s)**2.+(ry_obs-ry_s)**2.+(z_obs-z_s)**2.) ! distance direct sight between source and observer
                       ! computation of the solid angle 1m^2 at the observer as seen from the source
-                      omega=1.*abs(cos(dang))/ddir_obs**2.
+                      omega=1.*dabs(dcos(dang))/ddir_obs**2.
                       call transmitm(zenith,z_obs,z_s,ddir_obs,transm,tranam,tabs)
                       call transmita(zenith,z_obs,z_s,ddir_obs,haer,transa,tranaa)
                       call transmita(zenith,z_obs,z_s,ddir_obs,hlay,transl,tranal)
@@ -634,10 +634,10 @@
                             endif
                           else
                             ! if haut is negative, the ground cell is lighted from below
-                            haut=-(rx_s-rx_sr)*tan(inclix(x_sr,y_sr))-(ry_s-ry_sr)*tan(incliy(x_sr,y_sr))+z_s-z_sr
+                            haut=-(rx_s-rx_sr)*dtan(inclix(x_sr,y_sr))-(ry_s-ry_sr)*dtan(incliy(x_sr,y_sr))+z_s-z_sr
                             if (haut.gt.0.D0) then ! Condition: the ground cell is illuminated from above
                               call anglezenithal(rx_s,ry_s,z_s,rx_sr,ry_sr,z_sr,angzen) ! computation of the zenithal angle between the source ground surface
-                              distd=sqrt((rx_s-rx_sr)**2.+(ry_s-ry_sr)**2.+(z_s-z_sr)**2.)
+                              distd=dsqrt((rx_s-rx_sr)**2.+(ry_s-ry_sr)**2.+(z_s-z_sr)**2.)
                               call transmitm(angzen,z_s,z_sr,distd,transm,tranam,tabs) ! computation of the transmittance between the source and the ground surface
                               call transmita(angzen,z_s,z_sr,distd,haer,transa,tranaa)
                               call transmita(angzen,z_s,z_sr,distd,hlay,transl,tranal)
@@ -670,16 +670,16 @@
                               endif
                               r1x=xc-dble(dxp)/2.-xn ! computation of the composante along x of the first vector.
                               r1y=yc+dble(dyp)/2.-yn ! computation of the composante along y of the first vector.
-                              r1z=zc-tan(dble(epsilx))*dble(dxp)/2.+tan(dble(epsily))*dble(dyp)/2.-zn ! computation of the composante en z of the first vector.
+                              r1z=zc-dtan(dble(epsilx))*dble(dxp)/2.+dtan(dble(epsily))*dble(dyp)/2.-zn ! computation of the composante en z of the first vector.
                               r2x=xc+dble(dxp)/2.-xn ! computation of the composante along x of the second vector.
                               r2y=yc+dble(dyp)/2.-yn ! computation of the composante along y of the second vector.
-                              r2z=zc+tan(dble(epsilx))*dble(dxp)/2.+tan(dble(epsily))*dble(dyp)/2.-zn ! computation of the composante en z of the second vector.
+                              r2z=zc+dtan(dble(epsilx))*dble(dxp)/2.+dtan(dble(epsily))*dble(dyp)/2.-zn ! computation of the composante en z of the second vector.
                               r3x=xc-dble(dxp)/2.-xn ! computation of the composante along x of the third vector.
                               r3y=yc-dble(dyp)/2.-yn ! computation of the composante along y of the third vector.
-                              r3z=zc-tan(dble(epsilx))*dble(dxp)/2.-tan(dble(epsily))*dble(dyp)/2.-zn ! computation of the composante en z of the third vector.
+                              r3z=zc-dtan(dble(epsilx))*dble(dxp)/2.-dtan(dble(epsily))*dble(dyp)/2.-zn ! computation of the composante en z of the third vector.
                               r4x=xc+dble(dxp)/2.-xn ! computation of the composante along x of the fourth vector.
                               r4y=yc-dble(dyp)/2.-yn ! computation of the composante along y of the fourth vector.
-                              r4z=zc+tan(dble(epsilx))*dble(dxp)/2.-tan(dble(epsily))*dble(dyp)/2.-zn ! computation of the composante en z of the fourth vector.
+                              r4z=zc+dtan(dble(epsilx))*dble(dxp)/2.-dtan(dble(epsily))*dble(dyp)/2.-zn ! computation of the composante en z of the fourth vector.
                               call anglesolide(omega,r1x,r1y,r1z,r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z) ! Call of the routine anglesolide to compute the angle solide.
                               if (omega.lt.0.D0) then
                                 print*,'ERROR: Solid angle of the reflecting surface < 0.'
@@ -687,7 +687,7 @@
                               endif
                               ! estimation of the half of the underlying angle of the solid angle       
                               ! this angle allow an estimate of the average emission function over the ground surface                                                                       
-                              ouvang=sqrt(omega/pi) ! Angle in radian.
+                              ouvang=dsqrt(omega/pi) ! Angle in radian.
                               ouvang=ouvang*180.D0/pi ! Angle in degrees.
                               ! computation of the photometric function of the light fixture toward the ground surface
                               anglez=idnint(180.D0*angzen/pi)
@@ -703,8 +703,8 @@
                                 if (naz.lt.0) naz=-naz
                                 if (naz.gt.181) naz=362-naz ! symetric function
                                 if (naz.eq.0) naz=1
-                                P_indir=P_indir+pvalno(naz,stype)*abs(sin(pi*dble(naz)/180.D0))/2.
-                                nbang=nbang+1.*abs(sin(pi*dble(naz)/180.D0))/2.
+                                P_indir=P_indir+pvalno(naz,stype)*dabs(dsin(pi*dble(naz)/180.D0))/2.
+                                nbang=nbang+1.*dabs(dsin(pi*dble(naz)/180.D0))/2.
                               enddo
                               P_indir=P_indir/nbang
                               ! computation of the flux reaching the reflecting ground surface
@@ -716,9 +716,9 @@
                               ! projection angle of line to the lamp and the viewing angle
                               call angle3points(rx_sr,ry_sr,z_sr,rx_obs,ry_obs,z_obs,rx,ry,rz,dang)
                               dang=pi-dang
-                              if ((cos(dang).gt.0.D0).and.(dang.lt.pi/2.)) then
-                                ddir_obs=sqrt((rx_obs-rx_sr)**2.+(ry_obs-ry_sr)**2.+(z_obs-z_sr)**2.) ! distance direct sight between source and observer
-                                omega=1.*abs(cos(dang))/ddir_obs**2.
+                              if ((dcos(dang).gt.0.D0).and.(dang.lt.pi/2.)) then
+                                ddir_obs=dsqrt((rx_obs-rx_sr)**2.+(ry_obs-ry_sr)**2.+(z_obs-z_sr)**2.) ! distance direct sight between source and observer
+                                omega=1.*dabs(dcos(dang))/ddir_obs**2.
                                 call transmitm(zenith,z_obs,z_sr,ddir_obs,transm,tranam,tabs)
                                 call transmita(zenith,z_obs,z_sr,ddir_obs,haer,transa,tranaa)
                                 call transmita(zenith,z_obs,z_sr,ddir_obs,hlay,transl,tranal)
@@ -789,7 +789,7 @@
               if (nres.eq.1) then
                 rx_c=rx_c+ix*(scalo/2.+scal/2.)
                 ry_c=ry_c+iy*(scalo/2.+scal/2.)
-                dh0=sqrt((rx_c-rx_obs)**2.+(ry_c-ry_obs)**2)
+                dh0=dsqrt((rx_c-rx_obs)**2.+(ry_c-ry_obs)**2)
                 x_c=idnint(rx_c/dx)
                 if (x_c.lt.1) x_c=1
                 if (x_c.gt.width) x_c=width
@@ -813,7 +813,7 @@
                     ! portio parameter calculated as the ratio of the solid angle of the
                     ! observer FOV over the line of sight voxel solid angle as seen from the
                     ! observer.
-                    distd=sqrt((rx_c-rx_obs)**2.+(ry_c-ry_obs)**2.+(z_c-z_obs)**2.)
+                    distd=dsqrt((rx_c-rx_obs)**2.+(ry_c-ry_obs)**2.+(z_c-z_obs)**2.)
                     ! computation of the Solid angle of the line of sight voxel seen from the observer
                     omega=1./distd**2.
                     if (omega.gt.omemax) then
@@ -827,14 +827,14 @@
                       if ((verbose.ge.1).and.(nres.eq.1)) then 
                         print*,'================================================'
                         print*,' Progression along the line of sight :',icible
-                        print*,' Horizontal dist. line of sight =',idnint(sqrt((rx_c-rx_obs)**2.+(ry_c-ry_obs)**2.)),' m'
-                        print*,' Vertical dist. line of sight =',idnint(abs(z_c-z_obs)),' m'
+                        print*,' Horizontal dist. line of sight =',idnint(dsqrt((rx_c-rx_obs)**2.+(ry_c-ry_obs)**2.)),' m'
+                        print*,' Vertical dist. line of sight =',idnint(dabs(z_c-z_obs)),' m'
                         write(2,*) '============================================='
                         write(2,*) ' Progression along the line of sight :',icible
-                        write(2,*) ' Horizontal dist. line of sight =',idnint(sqrt((rx_c-rx_obs)**2.+(ry_c-ry_obs)**2.)),' m'
-                        write(2,*) ' Vertical dist. line of sight =',idnint(abs(z_c-z_obs)),' m'
+                        write(2,*) ' Horizontal dist. line of sight =',idnint(dsqrt((rx_c-rx_obs)**2.+(ry_c-ry_obs)**2.)),' m'
+                        write(2,*) ' Vertical dist. line of sight =',idnint(dabs(z_c-z_obs)),' m'
                       endif
-                      dis_obs=sqrt((z_c-z_obs)**2.+(ry_c-ry_obs)**2.+(rx_c-rx_obs)**2.)
+                      dis_obs=dsqrt((z_c-z_obs)**2.+(ry_c-ry_obs)**2.+(rx_c-rx_obs)**2.)
                       if (dis_obs.eq.0.D0) then
                         print*,'ERROR problem with dis_obs',dis_obs
                         stop
@@ -888,7 +888,7 @@
                                         z_sr=altsol(x_sr,y_sr)
                                         if ((x_sr.eq.x_s).and.(y_sr.eq.y_s).and.(z_sr.eq.z_s)) then 
                                         else
-                                          haut=-(rx_s-rx_sr)*tan(inclix(x_sr,y_sr))-(ry_s-ry_sr)*tan(incliy(x_sr,y_sr))+z_s-z_sr ! if haut < 0, ground cell is lighted from below
+                                          haut=-(rx_s-rx_sr)*dtan(inclix(x_sr,y_sr))-(ry_s-ry_sr)*dtan(incliy(x_sr,y_sr))+z_s-z_sr ! if haut < 0, ground cell is lighted from below
                                           if (haut.gt.0.D0) then ! Condition: the ground cell is lighted from above  
                                             if((x_sr.le.nbx).and.(x_sr.ge.1).and.(y_sr.le.nby).and.(y_sr.ge.1)) then
                                               if((x_c.ne.x_sr).and.(y_c.ne.y_sr).and.(z_c.ne.z_sr)) then       ! if the ground is not at the line of sight voxel  
@@ -939,7 +939,7 @@
                                         z_sr=altsol(x_sr,y_sr)
                                         if ((x_sr.eq.x_s).and.(y_sr.eq.y_s).and.(z_sr.eq.z_s)) then ! if the ground is not at the line of sight voxel
                                         else
-                                          haut=-(rx_s-rx_sr)*tan(inclix(x_sr,y_sr))-(ry_s-ry_sr)*tan(incliy(x_sr,y_sr))+z_s-z_sr ! if haut < 0, ground cell is lighted from below
+                                          haut=-(rx_s-rx_sr)*dtan(inclix(x_sr,y_sr))-(ry_s-ry_sr)*dtan(incliy(x_sr,y_sr))+z_s-z_sr ! if haut < 0, ground cell is lighted from below
                                           if (haut.gt.0.D0) then ! Condition: the ground cell is lighted from above                                      
                                             if((x_sr.le.nbx).and.(x_sr.ge.1).and.(y_sr.le.nby).and.(y_sr.ge.1)) then
                                               if((x_c.ne.x_sr).and.(y_c.ne.y_sr).and.(z_c.ne.z_sr)) then 
@@ -996,7 +996,7 @@
                                         z_sr=altsol(x_sr,y_sr)
                                         if ((x_sr.eq.x_s).and.(y_sr.eq.y_s).and.(z_sr.eq.z_s)) then 
                                         else
-                                          haut=-(rx_s-rx_sr)*tan(inclix(x_sr,y_sr))-(ry_s-ry_sr)*tan(incliy(x_sr,y_sr))+z_s-z_sr ! if haut < 0, ground cell is lighted from below
+                                          haut=-(rx_s-rx_sr)*dtan(inclix(x_sr,y_sr))-(ry_s-ry_sr)*dtan(incliy(x_sr,y_sr))+z_s-z_sr ! if haut < 0, ground cell is lighted from below
                                           if (haut.gt.0.D0) then ! Condition: the ground cell is lighted from above
                                             if((x_sr.le.nbx).and.(x_sr.ge.1).and.(y_sr.le.nby).and.(y_sr.ge.1)) then
                                               if((x_c.ne.x_sr).and.(y_c.ne.y_sr).and.(z_c.ne.z_sr)) then    ! if the ground is not at the line of sight voxel      
@@ -1050,12 +1050,12 @@
                       ! computation of the luminous flux reaching the observer
                       ! computation of the zenithal angle between the observer and the line of sight voxel
                       call anglezenithal(rx_c,ry_c,z_c,rx_obs,ry_obs,z_obs,angzen) ! computation of the zenithal angle between the line of sight voxel and the observer.
-                      if (cos(pi-angzen).eq.0.D0) then
+                      if (dcos(pi-angzen).eq.0.D0) then
                         print*,'ERROR perfectly horizontal sight is forbidden'
                         stop
                       endif
                       ! computation of the transmittance between the line of sight voxel and the observer
-                      distd=sqrt((rx_c-rx_obs)**2.+(ry_c-ry_obs)**2.+(z_c-z_obs)**2.)
+                      distd=dsqrt((rx_c-rx_obs)**2.+(ry_c-ry_obs)**2.+(z_c-z_obs)**2.)
                       call transmitm(angzen,z_c,z_obs,distd,transm,tranam,tabs)
                       call transmita(angzen,z_c,z_obs,distd,haer,transa,tranaa)
                       call transmita(angzen,z_c,z_obs,distd,hlay,transl,tranal)
@@ -1104,7 +1104,7 @@
                 do nres=1,6
                   quad=quad+(flux2(nres)-moy)**2.
                 enddo
-                sigma=sqrt(quad/4.)
+                sigma=dsqrt(quad/4.)
                 do nres=1,6
                   if (dabs(flux2(nres)-moy).le.1.5*sigma) then
                     nfit=nfit+1
@@ -1146,7 +1146,7 @@
                     do nres=1,nresp
                       quad=quad+(flux3p(nres)-moy)**2.
                     enddo
-                    sigma=sqrt(quad/dble(nresp-1))
+                    sigma=dsqrt(quad/dble(nresp-1))
                     do nres=1,nresp
                       if (dabs(flux3p(nres)-moy).le.1.5*sigma) then
                         nfit=nfit+1
@@ -1194,7 +1194,7 @@
                         quad=quad+(contrib2(x_s,y_s,nres)-moy)**2.
                       endif
                     enddo
-                    sigma=sqrt(quad/dble(nmoy-1))
+                    sigma=dsqrt(quad/dble(nmoy-1))
                     do nres=1,6
                       if (dabs(contrib2(x_s,y_s,nres)-moy).le.1.5*sigma) then
                         nfit=nfit+1
@@ -1230,7 +1230,7 @@
                           quad=quad+(contrib3(x_s,y_s,nres)-moy)**2.
                         endif
                       enddo
-                      sigma=sqrt(quad/dble(nmoy-1))
+                      sigma=dsqrt(quad/dble(nmoy-1))
                       do nres=1,6
                         if (dabs(contrib3(x_s,y_s,nres)-moy).le.1.5*sigma) then
                           nfit=nfit+1

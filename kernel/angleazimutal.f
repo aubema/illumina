@@ -30,7 +30,7 @@ c
       real*8 x1,y1,x2,y2
       real*8 pi,angazi                                                   
       parameter (pi=3.141592654D0)   
-      if (x2-x1.ne.0.) angazi=abs(atan((y2-y1)/(x2-x1)))
+      if (x2-x1.ne.0.) angazi=dabs(datan((y2-y1)/(x2-x1)))
       if (((x2-x1).eq.0.).and.((y2-y1).eq.0.)) then
          angazi=0.
       else
@@ -52,10 +52,6 @@ c
           print*,'ERREUR angazi=',angazi,x1,y2,x2,y2
           stop
         endif
-c        if ((x1.eq.x2).and.(y1.eq.y2)) then
-c          print*,'ERREUR cant compute angle between identical points!'
-c          stop
-c        endif
       endif
       return
         end 

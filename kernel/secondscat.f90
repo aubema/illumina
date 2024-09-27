@@ -58,14 +58,14 @@
       ! that the value of sky brightness near sources will be affected by this
       ! choice
       omemax=1./((10.D0)**2.D0)
-      rx_sr=real(x_sr)*dx
-      ry_sr=real(y_sr)*dy
-      rx_s=real(x_s)*dx
-      ry_s=real(y_s)*dy
-      rx_c=real(x_c)*dx
-      ry_c=real(y_c)*dy
-      rx_obs=real(x_obs)*dx
-      ry_obs=real(y_obs)*dy     
+      rx_sr=dble(x_sr)*dx
+      ry_sr=dble(y_sr)*dy
+      rx_s=dble(x_s)*dx
+      ry_s=dble(y_s)*dy
+      rx_c=dble(x_c)*dx
+      ry_c=dble(y_c)*dy
+      rx_obs=dble(x_obs)*dx
+      ry_obs=dble(y_obs)*dy     
       dss=1.*siz/2.
       
       
@@ -87,9 +87,9 @@
         z_difa=zondifa(is3a,3)
         if ((z_difa-siz/2..le.altsol(ida,jda)).or.(z_difa.gt.35000.).or.(z_difa.gt.cloudbase)) then ! cell above ground, below cloud and below top of atmosphere
         else        
-          ds1=sqrt((rx_sr-rx_difa)**2.+(ry_sr-ry_difa)**2.+(z_sr-z_difa)**2.)
-          ds2=sqrt((rx_c-rx_dif)**2.+(ry_c-ry_dif)**2.+(z_c-z_dif)**2.)
-          ds3=sqrt((rx_s-rx_difa)**2.+(ry_s-ry_difa)**2.+(z_s-z_difa)**2.)
+          ds1=dsqrt((rx_sr-rx_difa)**2.+(ry_sr-ry_difa)**2.+(z_sr-z_difa)**2.)
+          ds2=dsqrt((rx_c-rx_dif)**2.+(ry_c-ry_dif)**2.+(z_c-z_dif)**2.)
+          ds3=dsqrt((rx_s-rx_difa)**2.+(ry_s-ry_difa)**2.+(z_s-z_difa)**2.)
           if (rho.eq.0) then ! from source
             if ((ds2.lt.dss).or.(ds3.lt.dss)) then
               idif=0.D0
@@ -98,7 +98,7 @@
               call anglezenithal(rx_s,ry_s,z_s,rx_difa,ry_difa,z_difa,zenith)
               call blocking(x_s,y_s,z_s,ida,jda,z_difa,dx,dy,nbx,nby,altsol,drefle,ofill,obsH,hh,ff1,ff2)
               ! computation of the transmittance between the reflection surface and the 2nd scattering voxel
-              distd=sqrt((rx_difa-rx_s)**2.+(ry_difa-ry_s)**2.+(z_difa-z_s)**2.)
+              distd=dsqrt((rx_difa-rx_s)**2.+(ry_difa-ry_s)**2.+(z_difa-z_s)**2.)
               call transmitm(zenith,z_s,z_difa,distd,transm,tranam,tabs)
               call transmita(zenith,z_s,z_difa,distd,haer,transa,tranaa)
               call transmita(zenith,z_s,z_difa,distd,hlay,transl,tranal)
@@ -124,7 +124,7 @@
               idif=0.
             else            
               call anglezenithal(rx_s,ry_s,z_s,rx_sr,ry_sr,z_sr,zenith)
-              distd=sqrt((rx_s-rx_sr)**2.+(ry_s-ry_sr)**2.+(z_s-z_sr)**2.)
+              distd=dsqrt((rx_s-rx_sr)**2.+(ry_s-ry_sr)**2.+(z_s-z_sr)**2.)
               call transmitm(zenith,z_s,z_sr,distd,transm,tranam,tabs)
               call transmita(zenith,z_s,z_sr,distd,haer,transa,tranaa)
               call transmita(zenith,z_s,z_sr,distd,hlay,transl,tranal)
@@ -157,16 +157,16 @@
               endif
               r1x=xc-dble(dxp)/2.-xn ! computation of the composante along x of the first vector.
               r1y=yc+dble(dyp)/2.-yn ! computation of the composante along y of the first vector.
-              r1z=zc-tan(dble(epsilx))*dble(dxp)/2.+tan(dble(epsily))*dble(dyp)/2.-zn ! computation of the composante en z of the first vector.
+              r1z=zc-dtan(dble(epsilx))*dble(dxp)/2.+dtan(dble(epsily))*dble(dyp)/2.-zn ! computation of the composante en z of the first vector.
               r2x=xc+dble(dxp)/2.-xn ! computation of the composante along x of the second vector.
               r2y=yc+dble(dyp)/2.-yn ! computation of the composante along y of the second vector.
-              r2z=zc+tan(dble(epsilx))*dble(dxp)/2.+tan(dble(epsily))*dble(dyp)/2.-zn ! computation of the composante en z of the second vector.
+              r2z=zc+dtan(dble(epsilx))*dble(dxp)/2.+dtan(dble(epsily))*dble(dyp)/2.-zn ! computation of the composante en z of the second vector.
               r3x=xc-dble(dxp)/2.-xn ! computation of the composante along x of the third vector.
               r3y=yc-dble(dyp)/2.-yn ! computation of the composante along y of the third vector.
-              r3z=zc-tan(dble(epsilx))*dble(dxp)/2.-tan(dble(epsily))*dble(dyp)/2.-zn ! computation of the composante en z of the third vector.
+              r3z=zc-dtan(dble(epsilx))*dble(dxp)/2.-dtan(dble(epsily))*dble(dyp)/2.-zn ! computation of the composante en z of the third vector.
               r4x=xc+dble(dxp)/2.-xn ! computation of the composante along x of the fourth vector.
               r4y=yc-dble(dyp)/2.-yn ! computation of the composante along y of the fourth vector.
-              r4z=zc+tan(dble(epsilx))*dble(dxp)/2.-tan(dble(epsily))*dble(dyp)/2.-zn ! computation of the composante en z of the fourth vector.
+              r4z=zc+dtan(dble(epsilx))*dble(dxp)/2.-dtan(dble(epsily))*dble(dyp)/2.-zn ! computation of the composante en z of the fourth vector.
               call anglesolide(omeg2,r1x,r1y,r1z,r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z) ! Call of the routine anglesolide to compute the angle solide.
               if (omeg2.lt.0.) then
                 print*,'ERROR: Solid angle of the reflecting surface < 0.'
@@ -174,7 +174,7 @@
               endif
               ! estimation of the half of the underlying angle of the solid angle ! this angle servira a obtenir un meilleur isime (moyenne) of
               ! P_dir for le cas of grans solid angles the , pvalno varie significativement sur +- ouvang.
-              ouvang=sqrt(omeg2/pi) ! Angle in radian.
+              ouvang=dsqrt(omeg2/pi) ! Angle in radian.
               ouvang=ouvang*180./pi ! Angle in degrees.
               ! computation of the photometric function of the light fixture toward the reflection surface
               anglez=idnint(180.*zenith/pi)
@@ -190,8 +190,8 @@
                 if (naz.lt.0) naz=-naz
                 if (naz.gt.181) naz=362-naz ! symetric function
                 if (naz.eq.0) naz=1
-                P_indir=P_indir+pvalno(naz,stype)*abs(sin(pi*real(naz)/180.))/2.
-                nbang=nbang+1.*abs(sin(pi*real(naz)/180.))/2.
+                P_indir=P_indir+pvalno(naz,stype)*dabs(dsin(pi*dble(naz)/180.))/2.
+                nbang=nbang+1.*dabs(dsin(pi*dble(naz)/180.))/2.
               enddo
               P_indir=P_indir/nbang ! average
               flrefl=lamplu(x_s,y_s,stype)*P_indir*omeg2*transm*transa*transl ! we assume that no blocking can appear between source and ground
@@ -201,7 +201,7 @@
               call anglezenithal(rx_sr,ry_sr,z_sr,rx_difa,ry_difa,z_difa,zenith)
               call blocking(x_sr,y_sr,z_sr,ida,jda,z_difa,dx,dy,nbx,nby,altsol,drefle,ofill,obsH,hh,ff1,ff2)
               ! computation of the transmittance between the reflection surface and the 2nd scattering voxel
-              distd=sqrt((rx_difa-rx_sr)**2.+(ry_difa-ry_sr)**2.+(z_difa-z_sr)**2.)
+              distd=dsqrt((rx_difa-rx_sr)**2.+(ry_difa-ry_sr)**2.+(z_difa-z_sr)**2.)
               call transmitm(zenith,z_sr,z_difa,distd,transm,tranam,tabs)
               call transmita(zenith,z_sr,z_difa,distd,haer,transa,tranaa)
               call transmita(zenith,z_sr,z_difa,distd,hlay,transl,tranal)
@@ -222,7 +222,7 @@
           call anglezenithal(rx_difa,ry_difa,z_difa,rx_c,ry_c,z_c,zenith)
           call blocking(ida,jda,z_difa,x_c,y_c,z_c,dx,dy,nbx,nby,altsol,drefle,ofill,obsH,hh,ff1,ff2)            
           ! computing transmittance between the 2nd scattering voxel 2nd
-          distd=sqrt((rx_difa-rx_c)**2.+(ry_difa-ry_c)**2.+(z_difa-z_c)**2.)
+          distd=dsqrt((rx_difa-rx_c)**2.+(ry_difa-ry_c)**2.+(z_difa-z_c)**2.)
           call transmitm(zenith,z_difa,z_c,distd,transm,tranam,tabs)
           call transmita(zenith,z_difa,z_c,distd,haer,transa,tranaa)
           call transmita(zenith,z_difa,z_c,distd,hlay,transl,tranal)
@@ -249,7 +249,7 @@
               dsc2=(rx_difa-rx_c)**2.+(ry_difa-ry_c)**2.+(z_difa-z_c)**2.
               call cloudreflectance(zenith,cloudt,rcloud) ! cloud intensity from direct illum
               ! computing the cloud intensity toward the observer
-              icloud=icloud+flux/omega*rcloud*doc2*omefov*abs(cos(azcl2)/cos(azcl1))/dsc2/pi ! return to main
+              icloud=icloud+flux/omega*rcloud*doc2*omefov*dabs(dcos(azcl2)/dcos(azcl1))/dsc2/pi ! return to main
             endif
           endif
         endif ! end cell above ground, below cloud and below top of atmosphere 
