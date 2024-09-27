@@ -57,19 +57,19 @@
       ! that the value of sky brightness near sources will be affected by this
       ! choice
       omemax=1./((10.D0)**2.)
-      rx_sr=real(x_sr)*dx
-      ry_sr=real(y_sr)*dy
-      rx_s=real(x_s)*dx
-      ry_s=real(y_s)*dy
-      rx_c=real(x_c)*dx
-      ry_c=real(y_c)*dy
-      rx_obs=real(x_obs)*dx
-      ry_obs=real(y_obs)*dy 
+      rx_sr=dble(x_sr)*dx
+      ry_sr=dble(y_sr)*dy
+      rx_s=dble(x_s)*dx
+      ry_s=dble(y_s)*dy
+      rx_c=dble(x_c)*dx
+      ry_c=dble(y_c)*dy
+      rx_obs=dble(x_obs)*dx
+      ry_obs=dble(y_obs)*dy 
       if (rho.eq.0) then ! from source
         call anglezenithal(rx_s,ry_s,z_s,rx_c,ry_c,z_c,zenith)
         call blocking(x_s,y_s,z_s,x_c,y_c,z_c,dx,dy,nbx,nby,altsol,drefle,ofill,obsH,hh,ff1,ff2)
         ! computation of the transmittance between the reflection surface and the 3rd scattering voxel
-        distd=sqrt((rx_c-rx_s)**2.+(ry_c-ry_s)**2.+(z_c-z_s)**2.)
+        distd=dsqrt((rx_c-rx_s)**2.+(ry_c-ry_s)**2.+(z_c-z_s)**2.)
         call transmitm(zenith,z_s,z_c,distd,transm,tranam,tabs)
         call transmita(zenith,z_s,z_c,distd,haer,transa,tranaa)
         call transmita(zenith,z_s,z_c,distd,hlay,transl,tranal)
@@ -96,7 +96,7 @@
             dsc2=(rx_s-rx_c)**2.+(ry_s-ry_c)**2.+(z_s-z_c)**2.
             call cloudreflectance(zenith,cloudt,rcloud) ! cloud intensity from direct illum
             ! computing the cloud intensity toward the observer
-            icloud=flux/omega*rcloud*doc2*omefov*abs(cos(azcl2)/cos(azcl1))/dsc2/pi ! return to main
+            icloud=flux/omega*rcloud*doc2*omefov*dabs(dcos(azcl2)/dcos(azcl1))/dsc2/pi ! return to main
           endif
         endif
         
@@ -104,7 +104,7 @@
       else ! from ground
         call anglezenithal(rx_s,ry_s,z_s,rx_sr,ry_sr,z_sr,zenith)
         ! computation of the transmittance between the source and the surface
-        distd=sqrt((rx_s-rx_sr)**2.+(ry_s-ry_sr)**2.+(z_s-z_sr)**2.)
+        distd=dsqrt((rx_s-rx_sr)**2.+(ry_s-ry_sr)**2.+(z_s-z_sr)**2.)
         call transmitm(zenith,z_s,z_sr,distd,transm,tranam,tabs)
         call transmita(zenith,z_s,z_sr,distd,haer,transa,tranaa)
         call transmita(zenith,z_s,z_sr,distd,hlay,transl,tranal)
@@ -137,16 +137,16 @@
         endif
         r1x=xc-dble(dxp)/2.-xn ! computation of the composante along x of the first vector.
         r1y=yc+dble(dyp)/2.-yn ! computation of the composante along y of the first vector.
-        r1z=zc-tan(dble(epsilx))*dble(dxp)/2.+tan(dble(epsily))*dble(dyp)/2.-zn ! computation of the composante en z of the first vector.
+        r1z=zc-dtan(dble(epsilx))*dble(dxp)/2.+dtan(dble(epsily))*dble(dyp)/2.-zn ! computation of the composante en z of the first vector.
         r2x=xc+dble(dxp)/2.-xn ! computation of the composante along x of the second vector.
         r2y=yc+dble(dyp)/2.-yn ! computation of the composante along y of the second vector.
-        r2z=zc+tan(dble(epsilx))*dble(dxp)/2.+tan(dble(epsily))*dble(dyp)/2.-zn ! computation of the composante en z of the second vector.
+        r2z=zc+dtan(dble(epsilx))*dble(dxp)/2.+dtan(dble(epsily))*dble(dyp)/2.-zn ! computation of the composante en z of the second vector.
         r3x=xc-dble(dxp)/2.-xn ! computation of the composante along x of the third vector.
         r3y=yc-dble(dyp)/2.-yn ! computation of the composante along y of the third vector.
-        r3z=zc-tan(dble(epsilx))*dble(dxp)/2.-tan(dble(epsily))*dble(dyp)/2.-zn ! computation of the composante en z of the third vector.
+        r3z=zc-dtan(dble(epsilx))*dble(dxp)/2.-dtan(dble(epsily))*dble(dyp)/2.-zn ! computation of the composante en z of the third vector.
         r4x=xc+dble(dxp)/2.-xn ! computation of the composante along x of the fourth vector.
         r4y=yc-dble(dyp)/2.-yn ! computation of the composante along y of the fourth vector.
-        r4z=zc+tan(dble(epsilx))*dble(dxp)/2.-tan(dble(epsily))*dble(dyp)/2.-zn ! computation of the composante en z of the fourth vector.
+        r4z=zc+dtan(dble(epsilx))*dble(dxp)/2.-dtan(dble(epsily))*dble(dyp)/2.-zn ! computation of the composante en z of the fourth vector.
         call anglesolide(omeg2,r1x,r1y,r1z,r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z) ! Call of the routine anglesolide to compute the angle solide.
         if (omeg2.lt.0.D0) then
           print*,'ERROR: Solid angle of the reflecting surface < 0.'
@@ -154,7 +154,7 @@
         endif
         ! estimation of the half of the underlying angle of the solid angle ! this angle servira a obtenir un meilleur isime (moyenne) of
         ! P_dir for le cas of grans solid angles the , pvalno varie significativement sur +- ouvang.
-        ouvang=sqrt(omeg2/pi) ! Angle in radian.
+        ouvang=dsqrt(omeg2/pi) ! Angle in radian.
         ouvang=ouvang*180.D0/pi ! Angle in degrees.
         ! computation of the photometric function of the light fixture toward the reflection surface
         anglez=idnint(180.D0*zenith/pi)
@@ -170,8 +170,8 @@
           if (naz.lt.0) naz=-naz
           if (naz.gt.181) naz=362-naz ! symetric function
           if (naz.eq.0) naz=1
-          P_indir=P_indir+pvalno(naz,stype)*abs(sin(pi*real(naz)/180.D0))/2.
-          nbang=nbang+1.*abs(sin(pi*real(naz)/180.D0))/2.
+          P_indir=P_indir+pvalno(naz,stype)*abs(dsin(pi*dble(naz)/180.D0))/2.
+          nbang=nbang+1.*abs(dsin(pi*dble(naz)/180.D0))/2.
         enddo
         P_indir=P_indir/nbang 
         flrefl=lamplu(x_s,y_s,stype)*P_indir*omeg2*transm*transa*transl
@@ -181,7 +181,7 @@
         call anglezenithal(rx_sr,ry_sr,z_sr,rx_c,ry_c,z_c,zenith)
         call blocking(x_sr,y_sr,z_sr,x_c,y_c,z_c,dx,dy,nbx,nby,altsol,drefle,ofill,obsH,hh,ff1,ff2)
         ! computation of the transmittance between the reflection surface and the 3rd scattering voxel
-        distd=sqrt((rx_c-rx_sr)**2.+(ry_c-ry_sr)**2.+(z_c-z_sr)**2.)
+        distd=dsqrt((rx_c-rx_sr)**2.+(ry_c-ry_sr)**2.+(z_c-z_sr)**2.)
         call transmitm(zenith,z_sr,z_c,distd,transm,tranam,tabs)
         call transmita(zenith,z_sr,z_c,distd,haer,transa,tranaa)
         call transmita(zenith,z_sr,z_c,distd,hlay,transl,tranal)
@@ -209,7 +209,7 @@
             dsc2=(rx_sr-rx_c)**2.+(ry_sr-ry_c)**2.+(z_sr-z_c)**2.
             call cloudreflectance(zenith,cloudt,rcloud) ! cloud intensity from direct illum
             ! computing the cloud intensity toward the observer
-            icloud=flux/omega*rcloud*doc2*omefov*abs(cos(azcl2)/cos(azcl1))/dsc2/pi ! return to main
+            icloud=flux/omega*rcloud*doc2*omefov*dabs(dcos(azcl2)/dcos(azcl1))/dsc2/pi ! return to main
         endif
         endif                 
       endif ! end of source vs ground cell cases

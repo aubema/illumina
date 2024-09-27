@@ -92,11 +92,6 @@ c
       a123=4.*datan(dsqrt(dtan(s/2.)*dtan((s-a)/2.)*dtan((s-b)/2.)*       ! Calcul de l'aire du triangle spherique borne par les vecteurs 1,2 et 3.
      +   dtan((s-c)/2.)))      
       endif
-c         alp=2.*atan(sqrt(sin(s-b)*sin(s-c)/(sin(s)*sin(s-a))))          ! Autre methode pour calculer l'angle solide non utilisee.     
-c         bet=asin(sin(b)*sin(alp)/sin(a))                                ! Autre methode pour calculer l'angle solide non utilisee.
-c         gam=asin(sin(c)*sin(alp)/sin(a))                                ! Autre methode pour calculer l'angle solide non utilisee. 
-c         a123=alp+bet+gam-pi                                             ! Autre methode pour calculer l'angle solide non utilisee. 
-
       a=tet23                                                        
       b=tet34
       c=tet24
@@ -111,11 +106,7 @@ c         a123=alp+bet+gam-pi                                             ! Autr
      +   dtan((s-c)/2.)))  
      
       endif
-c         alp=2.*atan(sqrt(sin(s-b)*sin(s-c)/(sin(s)*sin(s-a))))          ! Autre methode pour calculer l'angle solide non utilisee.
-c         bet=asin(sin(b)*sin(alp)/sin(a))                                ! Autre methode pour calculer l'angle solide non utilisee.
-c         gam=asin(sin(c)*sin(alp)/sin(a))                                ! Autre methode pour calculer l'angle solide non utilisee.
-c         a234=alp+bet+gam-pi                                             ! Autre methode pour calculer l'angle solide non utilisee.
-      omega=real(a123+a234)                                               ! L'angle solide est la somme des aires des deux triangles spheriques.
+      omega=dble(a123+a234)                                               ! L'angle solide est la somme des aires des deux triangles spheriques.
       
       return                                                              ! Retour au programme.
       end                                                                 ! Fin de la routine sterad.

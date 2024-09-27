@@ -36,13 +36,13 @@ c
       hh=1.
       rx_1=dble(x_1)*dx
       ry_1=dble(y_1)*dy
-      rx_2=dble(x_1)*dx
-      ry_2=dble(y_1)*dy
-      dho=sqrt((rx_1-rx_2)**2.+(ry_1-ry_2)**2.)
+      rx_2=dble(x_2)*dx
+      ry_2=dble(y_2)*dy
+      dho=dsqrt((rx_1-rx_2)**2.+(ry_1-ry_2)**2.)
       if (dho.gt.0.) then
         call anglezenithal(rx_1,ry_1,z_1,rx_2,ry_2,z_2,azen)
         call angleazimutal(rx_1,ry_1,rx_2,ry_2,angazi)
-        if (azen.gt.pi/4.) then                                          ! 45deg. it is unlikely to have a 1km high mountain less than 1
+        if (azen.gt.pi/4.) then                                          ! 45deg. it is unlikely to have a 1km high mountain less than 1km away
           call horizon(x_1,y_1,z_1,dx,dy,altsol,angazi,zhoriz,dh)
           if ((dho.le.dh).or.((dho.gt.dh).and.
      +    (azen-zhoriz.lt.0.00001))) then
@@ -59,7 +59,6 @@ c sub-grid obstacles
           if (dho.gt.drefle(x_1,y_1)) then               ! light path to observer larger than the mean free path -> subgrid obstacles
             angmin=pi/2.-datan2((altsol(x_1,y_1)+
      +      obsH(x_1,y_1)-z_1),drefle(x_1,y_1))
-       
             if (azen.ge.angmin) then                                     ! condition sub-grid obstacles direct.
               ff1=ofill(x_1,y_1)
             endif
@@ -78,5 +77,6 @@ c sub-grid obstacles
             endif
           endif  
         endif
-      endif                                                            ! end light path to the observer larger than mean free path  
+      endif                                                            ! end light path to the observer larger than mean free path
+      return
       end

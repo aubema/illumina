@@ -50,8 +50,8 @@ c
          print*,x1,y1,z1,x2,y2,z2,x3,y3,z3
          stop
       endif
-      argume=(xu*xv+yu*yv+zu*zv)/(sqrt(xu**2.+yu**2.+zu**2.)*
-     a        sqrt(xv**2.+yv**2.+zv**2.))
+      argume=(xu*xv+yu*yv+zu*zv)/(dsqrt(xu**2.+yu**2.+zu**2.)*
+     a        dsqrt(xv**2.+yv**2.+zv**2.))
       if (argume.ge.1.) then
          an3pts=0.
       elseif (argume.le.-1.) then
