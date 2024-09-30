@@ -30,9 +30,9 @@ c    Contact: martin.aube@cegepsherbrooke.qc.ca
 c
 c
       subroutine angle3points(x1,y1,z1,x2,y2,z2,x3,y3,z3,an3pts)
-      real x1,y1,x2,y2,x3,y3
-      real z1,z2,z3,an3pts,argume
-      real xu,yu,zu,xv,yv,zv,dx,dy,pi,comp
+      real*8 x1,y1,x2,y2,x3,y3
+      real*8 z1,z2,z3,an3pts,argume
+      real*8 xu,yu,zu,xv,yv,zv,dx,dy,pi,comp
       parameter (pi = 3.141592654)
       xu=x2-x1                                                            ! Voici les composantes du vecteur u.
       yu=y2-y1
@@ -50,14 +50,14 @@ c
          print*,x1,y1,z1,x2,y2,z2,x3,y3,z3
          stop
       endif
-      argume=(xu*xv+yu*yv+zu*zv)/(sqrt(xu**2.+yu**2.+zu**2.)*
-     a        sqrt(xv**2.+yv**2.+zv**2.))
+      argume=(xu*xv+yu*yv+zu*zv)/(dsqrt(xu**2.+yu**2.+zu**2.)*
+     a        dsqrt(xv**2.+yv**2.+zv**2.))
       if (argume.ge.1.) then
          an3pts=0.
       elseif (argume.le.-1.) then
          an3pts=pi
       else
-         an3pts=acos(argume)
+         an3pts=dacos(argume)
       endif 
       if (an3pts.lt.0.) then
          print*,'ERREUR an3pts < 0'

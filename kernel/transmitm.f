@@ -34,11 +34,11 @@ c    Contact: martin.aube@cegepsherbrooke.qc.ca
 c
 c
       subroutine transmitm(angz,z_i,z_f,distd,transm,tranam,tabs)
-      real transm                                                         ! Declaration des variables.
-      real tranam                                                         ! vertical transmittance of the complete atmosphere (molecules)
-      real angz
-      real distd
-      real z_i,z_f,z1,z2
+      real*8 transm                                                         ! Declaration des variables.
+      real*8 tranam                                                         ! vertical transmittance of the complete atmosphere (molecules)
+      real*8 angz
+      real*8 distd
+      real*8 z_i,z_f,z1,z2
       if (z_i.gt.z_f) then
         z2=z_i
         z1=z_f
@@ -47,10 +47,10 @@ c
         z2=z_f
       endif
       if (z1.ne.z2) then    
-        transm=exp((log(tranam*tabs)/abs(cos(angz)))*(exp(-1.*z1/8000.)-
-     +  exp(-1.*z2/8000.)))
+        transm=dexp((dlog(tranam*tabs)/dabs(dcos(angz)))*(dexp(-1.*z1/
+     +  8000.)-dexp(-1.*z2/8000.)))
       else
-        transm=exp((log(tranam*tabs))*exp(-1.*z1/8000.)*distd/8000.)  
+        transm=dexp((dlog(tranam*tabs))*dexp(-1.*z1/8000.)*distd/8000.)  
       endif
       if (distd.eq.0.) transm=1.
       if ((transm.lt.0.).or.(transm.gt.1.)) then

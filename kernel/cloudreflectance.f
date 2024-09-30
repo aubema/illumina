@@ -35,8 +35,8 @@ c cloud no 2 are thick cirrus & cirrostratus
 c cloud no 3 are altostratus & altocumulus
 c cloud no 4 are stratocumulus & stratus
 c cloud no 5 are cumulus & cumulonimbus
-      real rhocld(5,4)
-      real angzen,rcloud                                               
+      real*8 rhocld(5,4)
+      real*8 angzen,rcloud                                               
 
       rhocld(1,1)=0.25674
       rhocld(1,2)=-0.18077
@@ -59,8 +59,8 @@ c cloud no 5 are cumulus & cumulonimbus
       rhocld(5,3)=-0.10895
       rhocld(5,4)=0.09460
        rcloud=rhocld(cloudt,1)+rhocld(cloudt,2)*cos(angzen)
-     + +rhocld(cloudt,3)*(cos(angzen))**2.+rhocld(cloudt,4)*
-     + (cos(angzen))**3.
+     + +rhocld(cloudt,3)*(dcos(angzen))**2.+rhocld(cloudt,4)*
+     + (dcos(angzen))**3.
 c        print*,rcloud,angzen,cos(angzen)
       return
       end

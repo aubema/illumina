@@ -23,14 +23,14 @@ c    Contact: martin.aube@cegepsherbrooke.qc.ca
 
       subroutine transtoa(lambm,bandw,taua,layaod,pressi,tranam,tranaa
      +,tranal,tabs)
-      real m,lambm,taua,pressi,tranam,tranaa,tranal,layaod,tabs,bandw
+      real*8 m,lambm,taua,pressi,tranam,tranaa,tranal,layaod,tabs,bandw
       m=(pressi/101.325)
 c  transmittance taken from Bodhaine et al. (1999)
-      tranam=exp(-1.*m*0.0021520*(1.0455996-341.29061*(lambm/1000.)**
+      tranam=dexp(-1.*m*0.0021520*(1.0455996-341.29061*(lambm/1000.)**
      +-2.-0.90230850*(lambm/1000.)**2.)/(1.+0.0027059889*(lambm/1000.)
      +**-2.-85.968563*(lambm/1000.)**2.))
       call molabs(lambm,bandw,tabs)
-      tranaa=exp(-1.*taua)
-      tranal=exp(-1.*layaod)
+      tranaa=dexp(-1.*taua)
+      tranal=dexp(-1.*layaod)
       return
       end

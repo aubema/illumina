@@ -33,17 +33,17 @@ c
 c
       subroutine diffusion(angdif,tranam,tranaa,tranal,un,secdif,secdil,
      +   fonc_a,fonc_l,haer,hlay,pdif,altit)
-      real angdif,pdif,prob_a,prob_m,prob_l,secdif,secdil
-      real fctmol,pi,fonc_a(181),fonc_l(181),fonc_ae,fonc_le
-      real angdeg,tranam,tranaa,tranal
-      real altit,un,hlay,haer
+      real*8 angdif,pdif,prob_a,prob_m,prob_l,secdif,secdil
+      real*8 fctmol,pi,fonc_a(181),fonc_l(181),fonc_ae,fonc_le
+      real*8 angdeg,tranam,tranaa,tranal
+      real*8 altit,un,hlay,haer
       integer rang,na,naz
       parameter (pi=3.1415926)
 c--------------------------------------------------------      
       if (angdif.lt.0.) angdif=-angdif      
       if (angdif-pi.gt.0.00001) angdif=pi
       angdeg=((angdif*180.)/pi)
-      rang=int(angdeg)+1   
+      rang=dint(angdeg)+1   
 c----------------------------------------
 c  Calculate scattering probability per unit of steradian                 ! The probability is for a voxel of 1x1x1m refer to equation 1 in Aubé et al.
 c
@@ -55,20 +55,20 @@ c  497(3), 2501-2516.
 c---------------------------------------- 
       if ((tranaa.le.1.).and.(tranaa.gt.0.)) then
          fonc_ae=fonc_a(rang)                                             ! value of the aerosol phase function
-         prob_a=(1.-exp(log(tranaa)*exp(-1.*altit/haer)*un/haer))*        ! Functions are normalized in the main code. See their division by 4pi
+         prob_a=(1.-dexp(dlog(tranaa)*dexp(-1.*altit/haer)*un/haer))*        ! Functions are normalized in the main code. See their division by 4pi
      +   secdif*fonc_ae
       else
          prob_a=0.
       endif      
       if ((tranal.le.1.).and.(tranal.gt.0.)) then
          fonc_le=fonc_l(rang)                                             ! value of the layer phase function
-         prob_l=(1.-exp(log(tranal)*exp(-1.*altit/hlay)*un/hlay))*           
+         prob_l=(1.-dexp(dlog(tranal)*dexp(-1.*altit/hlay)*un/hlay))*           
      +   secdil*fonc_le
       else
          prob_l=0.
       endif
-      fctmol=0.75*(1.+((cos(angdif))**2.))/(4.*pi)                        ! value of the molecule phase function
-      prob_m=(1.-exp(log(tranam)*exp(-1.*altit/8000.)*un/8000.))*
+      fctmol=0.75*(1.+((dcos(angdif))**2.))/(4.*pi)                        ! value of the molecule phase function
+      prob_m=(1.-dexp(dlog(tranam)*dexp(-1.*altit/8000.)*un/8000.))*
      +fctmol
 
       pdif = prob_a+prob_m+prob_l                                         ! This is an approximation valide if 1-transa,

@@ -35,11 +35,11 @@ c    Contact: martin.aube@cegepsherbrooke.qc.ca
 c
 c
       subroutine transmita(angz,z_i,z_f,distd,haer,transa,tranaa)
-      real transa                                                         ! Declaration des variables.
-      real tranaa                                                         ! vertical transmittance of the complete atmosphere (aerosols)
-      real angz,haer
-      real z_i,z_f,z1,z2
-      real distd
+      real*8 transa                                                         ! Declaration des variables.
+      real*8 tranaa                                                         ! vertical transmittance of the complete atmosphere (aerosols)
+      real*8 angz,haer
+      real*8 z_i,z_f,z1,z2
+      real*8 distd
 
 
       if (z_i.gt.z_f) then
@@ -50,10 +50,10 @@ c
         z2=z_f
       endif
       if (z1.ne.z2) then    
-        transa=exp((log(tranaa)/abs(cos(angz)))*(exp(-1.*z1/haer)-
-     +  exp(-1.*z2/haer)))
+        transa=dexp((dlog(tranaa)/dabs(dcos(angz)))*(dexp(-1.*z1/haer)-
+     +  dexp(-1.*z2/haer)))
       else
-        transa=exp((log(tranaa))*exp(-1.*z1/haer)*distd/haer)  
+        transa=dexp((log(tranaa))*dexp(-1.*z1/haer)*distd/haer)  
       endif
       if (distd.eq.0.) transa=1.
          if (transa.eq.0.) then

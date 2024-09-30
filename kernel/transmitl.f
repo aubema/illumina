@@ -33,11 +33,11 @@ c    Contact: martin.aube@cegepsherbrooke.qc.ca
 c
 c
       subroutine transmitl(angz,z_i,z_f,distd,hlay,transl,tranal)
-      real transl                                                         ! Declaration des variables.
-      real tranal                                                         ! vertical transmittance of the complete atmosphere (aerosols)
-      real angz,hlay
-      real z_i,z_f,z1,z2
-      real distd
+      real*8 transl                                                         ! Declaration des variables.
+      real*8 tranal                                                         ! vertical transmittance of the complete atmosphere (aerosols)
+      real*8 angz,hlay
+      real*8 z_i,z_f,z1,z2
+      real*8 distd
 
 
       if (z_i.gt.z_f) then
@@ -48,10 +48,10 @@ c
         z2=z_f
       endif
       if (z1.ne.z2) then    
-        transl=exp((log(tranal)/abs(cos(angz)))*(exp(-1.*z1/hlay)-
-     +  exp(-1.*z2/hlay)))
+        transl=dexp((dlog(tranal)/dabs(dcos(angz)))*(dexp(-1.*z1/hlay)-
+     +  dexp(-1.*z2/hlay)))
       else
-        transl=exp((log(tranal))*exp(-1.*z1/hlay)*distd/hlay)  
+        transl=dexp((dlog(tranal))*dexp(-1.*z1/hlay)*distd/hlay)  
       endif
          if (transl.eq.0.) then
             print*,'ERREUR transl - no transmission',z_i,z_f,angz

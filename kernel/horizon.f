@@ -29,26 +29,26 @@ c
       integer width                                                       ! Matrix dimension in Length/width and height
       parameter (width=512)
       integer x,y,nx,ny
-      real dx,dy,altsol(width,width),anga,zout,pi,angaz1,ix,iy
-      real hcur,distc                                                           ! Earth curvature terrain
-      real posx,posy,scalef,zhoriz,z,d,dout
+      real*8 dx,dy,altsol(width,width),anga,zout,pi,angaz1,ix,iy
+      real*8 hcur,distc                                                           ! Earth curvature terrain
+      real*8 posx,posy,scalef,zhoriz,z,d,dout
       pi=3.141592654
       angaz1=anga
-      ix = (cos(angaz1))                                                  ! viewing vector components
-      iy = (sin(angaz1))
+      ix = (dcos(angaz1))                                                  ! viewing vector components
+      iy = (dsin(angaz1))
       scalef=dx/3.
-      posx=real(x)*dx
-      posy=real(y)*dy
+      posx=dble(x)*dx
+      posy=dble(y)*dy
       zhoriz=pi
-      d=(real(width))*sqrt(1.+tan(angaz1)**2.)
-      do while (((posx.le.real(width)*dx).and.(posx.ge.1.*dx)).and.
-     +((posy.le.real(width)*dy).and.(posy.ge.1.*dy)))
+      d=(dble(width))*dsqrt(1.+dtan(angaz1)**2.)
+      do while (((posx.le.dble(width)*dx).and.(posx.ge.1.*dx)).and.
+     +((posy.le.dble(width)*dy).and.(posy.ge.1.*dy)))
         posx=posx+ix*scalef
         posy=posy+iy*scalef
-        nx=nint(posx/dx)
-        ny=nint(posy/dy)
+        nx=dnint(posx/dx)
+        ny=dnint(posy/dy)
 c earth curvature (first order correction)
-        distc=sqrt((dx*real(nx-x))**2.+(dy*real(ny-y))**2.)
+        distc=dsqrt((dx*dble(nx-x))**2.+(dy*dble(ny-y))**2.)
         call curvature(distc,hcur)
         if ((nx.eq.x).and.(ny.eq.y)) then                                  ! to forbid division by zero
            if (z.gt.altsol(nx,ny)-hcur) then                               ! reverse curvature to limit horizontal distance. curv is negative. This is a hack
@@ -60,7 +60,7 @@ c earth curvature (first order correction)
            endif
         else
         dout=distc
-        zout=pi/2.-atan((altsol(nx,ny)-hcur-z)/dout)
+        zout=pi/2.-datan((altsol(nx,ny)-hcur-z)/dout)
         if (altsol(nx,ny)-hcur.eq.z) then
            zout=pi/2.-0.0001*pi/180.                                      ! bug for zhoriz=pi, anyway in the real world pi is almost impossible
         endif

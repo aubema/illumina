@@ -33,10 +33,10 @@ c
        integer i,j,k
        integer ncell,neffet,imin,imax,jmin,jmax,kmin,kmax,nvol
        integer keep,stepdi
-       real x0,y0,z0
-       real effet,dmin,d
-       real zondif(3000000,3),siz
-       real pi
+       real*8 x0,y0,z0
+       real*8 effet,dmin,d
+       real*8 zondif(3000000,3),siz
+       real*8 pi
        pi=3.141592654
        keep=0
        neffet=nint(effet/siz)
@@ -51,12 +51,12 @@ c limits of the calculations loops
        kmax=neffet
        ncell=0
        do i=imin,imax
-         x0=real(i)*siz
+         x0=dble(i)*siz
          do j=jmin,jmax
-           y0=real(j)*siz
+           y0=dble(j)*siz
            do k=kmin,kmax                                                     
-             z0=real(k)*siz
-             d=sqrt(x0**2.+y0**2.+z0**2.)
+             z0=dble(k)*siz
+             d=dsqrt(x0**2.+y0**2.+z0**2.)
                if (d.le.dmin) then
                  keep=keep+1
                  if (keep.eq.stepdi) then

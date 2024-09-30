@@ -3,7 +3,8 @@
        parameter (width=512)
 c read double precision array in binary
        integer nbx,nby,i,j
-       real bindata(width,width)
+       real*8 bindata(width,width)
+       real rbindata(width,width)
        character*72 filename
        open(unit=1,form='unformatted',file=filename,action='read')
          read(1) nbx,nby
@@ -16,7 +17,8 @@ c read double precision array in binary
          endif
          do j=nby,1,-1
             do i=1,nbx
-               read(1) bindata(i,j)
+               read(1)
+               bindata(i,j)=dble(rbindata(i,j))
             enddo
          enddo
        close(unit=1)
