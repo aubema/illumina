@@ -103,6 +103,6 @@ c
        a234=4.*datan(dsqrt(dtan(s/2.)*dtan((s-a)/2.)*dtan((s-b)/2.)*      ! Calcul de l'aire du triangle spherique borne par les vecteurs 2,3 et 4.
      +   dtan((s-c)/2.)))  
       endif
-      omega=real(a123+a234)                                               ! L'angle solide est la somme des aires des deux triangles spheriques.
+      omega=dble(a123+a234)                                               ! L'angle solide est la somme des aires des deux triangles spheriques.
       return                                                              ! Retour au programme.
       end                                                                 ! Fin de la routine sterad.
