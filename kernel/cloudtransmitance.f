@@ -30,8 +30,8 @@ c=======================================================================
       integer cloudt
 c  fitted parameters for the cloud reflectance as a function of the incident zenith angle
 c  rho(z)=b0+b1*cos z + b2 * cos^2 z + b3 * cos^3 z according to Shapiro 1982 Table 11
-      real thocld(5,4)
-      real angzen,tcloud                                               
+      real*8 thocld(5,4)
+      real*8 angzen,tcloud                                               
 
       thocld(1,1)=0.63547
       thocld(1,2)=0.35229
