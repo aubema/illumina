@@ -822,8 +822,16 @@
                     else
                       portio=(omefov/omega)
                     endif
+                    
+                    
+                    
+                    
                     if( (rx_c.gt.dble(nbx*dx)).or.(rx_c.lt.dx).or.(ry_c.gt.(nby*dy)).or.(ry_c.lt.dy)) then ! Condition line of sight inside the modelling domain
+                    ! I think these limits are not required
                     else
+                    
+                    
+                    
                       if ((verbose.ge.1).and.(nres.eq.1)) then 
                         print*,'================================================'
                         print*,' Progression along the line of sight :',icible
@@ -1075,7 +1083,13 @@
                         enddo
                       enddo
                       
+                      
+                      
                     endif ! end of the condition line of sight voxel inside the modelling domain
+                    
+                    
+                    
+                    
                   else
                     !print*,'Stoplim activated',flux,flux_total/stoplim,stoplim
                   endif ! end condition line of sight voxel 1/stoplim
