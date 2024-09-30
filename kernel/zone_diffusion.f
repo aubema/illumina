@@ -51,11 +51,11 @@ c limits of the calculations loops
        kmax=neffet
        ncell=0
        do i=imin,imax
-         x0=real(i)*siz
+         x0=dble(i)*siz
          do j=jmin,jmax
-           y0=real(j)*siz
+           y0=dble(j)*siz
            do k=kmin,kmax                                                     
-             z0=real(k)*siz
+             z0=dble(k)*siz
              d=sqrt(x0**2.+y0**2.+z0**2.)
                if (d.le.dmin) then
                  keep=keep+1

@@ -472,20 +472,20 @@ c computation of the tilt of the pixels along x and along y
         do i=1,nbx                                                        ! beginning of the loop over the column (longitude) of the domain.
           do j=1,nby                                                      ! beginning of the loop over the rows (latitu) of the domain.
             if (i.eq.1) then                                              ! specific case close to the border of the domain (vertical side left).
-              inclix(i,j)=atan((altsol(i+1,j)-altsol(i,j))/real(dx))      ! computation of the tilt along x of the surface.
+              inclix(i,j)=atan((altsol(i+1,j)-altsol(i,j))/dble(dx))      ! computation of the tilt along x of the surface.
             elseif (i.eq.nbx) then                                        ! specific case close to the border of the domain (vertical side right).
-              inclix(i,j)=atan((altsol(i-1,j)-altsol(i,j))/(real(dx)))    ! computation of the tilt along x of the surface.
+              inclix(i,j)=atan((altsol(i-1,j)-altsol(i,j))/(dble(dx)))    ! computation of the tilt along x of the surface.
             else
               inclix(i,j)=atan((altsol(i+1,j)-altsol(i-1,j))/(2.          ! computation of the tilt along x of the surface.
-     1        *real(dx)))
+     1        *dble(dx)))
             endif
             if (j.eq.1) then                                              ! specific case close to the border of the domain (horizontal side down).
-              incliy(i,j)=atan((altsol(i,j+1)-altsol(i,j))/(real(dy)))    ! computation of the tilt along y of the surface.
+              incliy(i,j)=atan((altsol(i,j+1)-altsol(i,j))/(dble(dy)))    ! computation of the tilt along y of the surface.
             elseif (j.eq.nby) then                                        ! specific case close to the border of the domain (horizontal side up).
-              incliy(i,j)=atan((altsol(i,j-1)-altsol(i,j))/(real(dy)))    ! computation of the tilt along y of the surface.
+              incliy(i,j)=atan((altsol(i,j-1)-altsol(i,j))/(dble(dy)))    ! computation of the tilt along y of the surface.
             else
               incliy(i,j)=atan((altsol(i,j+1)-altsol(i,j-1))/(2.          ! computation of the tilt along y of the surface
-     1        *real(dy)))
+     1        *dble(dy)))
             endif
           enddo                                                           ! end of the loop over the rows (latitu) of the domain
         enddo                                                             ! end of the loop over the column (longitude) of the domain
@@ -566,7 +566,7 @@ c reading photometry files
             do i=1,181                                                    ! beginning of the loop for the 181 data points
               read(1,*) pval(i,stype)                                     ! reading of the data in the array pval.
               pvalto=pvalto+pval(i,stype)*2.*pi*                          ! Sum of the values of the  photometric function
-     a        sin(real(i-1)*dtheta)*dtheta                                ! (pvaleur x 2pi x sin theta x dtheta) (ou theta egale (i-1) x 1 degrees).
+     a        sin(dble(i-1)*dtheta)*dtheta                                ! (pvaleur x 2pi x sin theta x dtheta) (ou theta egale (i-1) x 1 degrees).
             enddo                                                         ! end of the loop over the 181 donnees of the fichier pa#.dat.
           close(1)                                                        ! closing file pa#.dat, angular photometry.
           do i=1,181
@@ -648,11 +648,11 @@ c flux arrays (lumlp)
         dy=dx
         omefov=0.00000001                                                 ! solid angle of the spectrometer slit on the sky. Here we only need a small value
         z_obs=z_o+altsol(x_obs,y_obs)                                     ! z_obs = the local observer elevation plus the height of observation above ground (z_o)
-        rx_obs=real(x_obs)*dx
-        ry_obs=real(y_obs)*dy
+        rx_obs=dble(x_obs)*dx
+        ry_obs=dble(y_obs)*dy
         if (z_obs.eq.0.) z_obs=0.001
-        largx=dx*real(nbx)                                                ! computation of the Width along x of the case.
-        largy=dy*real(nby)                                                ! computation of the Width along y of the case.
+        largx=dx*dble(nbx)                                                ! computation of the Width along x of the case.
+        largy=dy*dble(nby)                                                ! computation of the Width along y of the case.
         write(2,*) 'Width of the domain [NS](m):',largx,'#cases:',nbx
         write(2,*) 'Width of the domain [EO](m):',largy,'#cases:',nby
         write(2,*) 'Size of a cell (m):',dx,' X ',dy
@@ -683,8 +683,8 @@ c
               itodif=0.
               itotrd=0.
               isourc=0.
-              rx_s=real(x_s)*dx
-              ry_s=real(y_s)*dy
+              rx_s=dble(x_s)*dx
+              ry_s=dble(y_s)*dy
               if (lamplu(x_s,y_s,stype) .ne. 0.) then                     ! if the luminosite of the case is null, the program ignore this case.
                 z_s=(altsol(x_s,y_s)+lampal(x_s,y_s))                     ! Definition of the position (metre) vertical of the source.
 c
@@ -803,9 +803,9 @@ c
                 ysrma=y_s+boxy
                 if (ysrma.gt.nby) ysrma=nby
                 do x_sr=xsrmi,xsrma                                       ! beginning of the loop over the column (longitude) reflecting.
-                  rx_sr=real(x_sr)*dx
+                  rx_sr=dble(x_sr)*dx
                   do y_sr=ysrmi,ysrma                                     ! beginning of the loop over the rows (latitu) reflecting.
-                    ry_sr=real(y_sr)*dy
+                    ry_sr=dble(y_sr)*dy
                     irefl=0.
                     z_sr=altsol(x_sr,y_sr)
                     if((x_sr.gt.nbx).or.(x_sr.lt.1).or.
@@ -922,10 +922,10 @@ c average +- ouvang
                               if (naz.gt.181) naz=362-naz                 ! symetric function
                               if (naz.eq.0) naz=1
                               P_indir=P_indir+pvalno(naz,
-     +                        stype)*abs(sin(pi*real(naz)
+     +                        stype)*abs(sin(pi*dble(naz)
      +                        /180.))/2.
                               nbang=nbang+1.*abs(sin(pi*
-     +                        real(naz)/180.))/2.
+     +                        dble(naz)/180.))/2.
                             enddo
                             P_indir=P_indir/nbang
 c computation of the flux reaching the reflecting surface
@@ -1059,8 +1059,8 @@ c temporaire !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         ftocap=0.                                                         ! Initialisation of the value of flux received by the sensor
         call horizon(x_obs,y_obs,z_obs,dx,dy,altsol,angaz1,zhoriz,        ! calculating the distance before the line of sight beeing blocked by topography
      +  dhmax)
-        rx_c=real(x_obs)*dx-ix*scal/2.
-        ry_c=real(y_obs)*dx-iy*scal/2.
+        rx_c=dble(x_obs)*dx-ix*scal/2.
+        ry_c=dble(y_obs)*dx-iy*scal/2.
         z_c=z_obs-iz*scal/2.
         do icible=1,ncible                                                ! beginning of the loop over the line of sight voxels
           rx_c=rx_c+ix*(scalo/2.+scal/2.)
@@ -1109,7 +1109,7 @@ c computation of the Solid angle of the line of sight voxel seen from the observ
                 ITC(i,j)=0.
               enddo
             enddo
-            if( (rx_c.gt.real(nbx*dx)).or.(rx_c.lt.dx).or.                ! Condition line of sight inside the modelling domain
+            if( (rx_c.gt.dble(nbx*dx)).or.(rx_c.lt.dx).or.                ! Condition line of sight inside the modelling domain
      +      (ry_c.gt.(nby*dy)).or.(ry_c.lt.dy)) then
             else
               if (verbose.ge.1) print*,'================================
@@ -1155,8 +1155,8 @@ c beginning of the loop over the types of light sources
                       itodif=0.
                       itotrd=0.
                       isourc=0.
-                      rx_s=real(x_s)*dx
-                      ry_s=real(y_s)*dy
+                      rx_s=dble(x_s)*dx
+                      ry_s=dble(y_s)*dy
                       if (lamplu(x_s,y_s,stype) .ne. 0.) then             ! if the luminosite of the case is null, the program ignore this case.
                         z_s=(altsol(x_s,y_s)+lampal(x_s,y_s))             ! Definition of the position (metre) vertical of the source.
 c
@@ -1295,9 +1295,9 @@ c etablissement of the conditions ands boucles
                             ysrma=y_s+boxy
                             if (ysrma.gt.nby) ysrma=nby
                             do x_sr=xsrmi,xsrma                           ! beginning of the loop over the column (longitude) reflecting.
-                              rx_sr=real(x_sr)*dx
+                              rx_sr=dble(x_sr)*dx
                               do y_sr=ysrmi,ysrma                         ! beginning of the loop over the rows (latitu) reflecting.
-                                ry_sr=real(y_sr)*dy
+                                ry_sr=dble(y_sr)*dy
                                 irefl=0.
                                 z_sr=altsol(x_sr,y_sr)
                                 if((x_sr.gt.nbx).or.(x_sr.lt.1).or.
@@ -1410,10 +1410,10 @@ c average +- ouvang
                                           if (naz.gt.181) naz=362-naz     ! symetric function
                                           if (naz.eq.0) naz=1
                                           P_indir=P_indir+pvalno(naz,
-     +                                    stype)*abs(sin(pi*real(naz)
+     +                                    stype)*abs(sin(pi*dble(naz)
      +                                    /180.))/2.
                                           nbang=nbang+1.*abs(sin(pi*
-     +                                    real(naz)/180.))/2.
+     +                                    dble(naz)/180.))/2.
                                 enddo
                                         P_indir=P_indir/nbang
 c computation of the flux reaching the reflecting surface
@@ -1568,8 +1568,8 @@ c computation of the scattering probability of the scattered light toward the ob
             endif
 c computing scattered intensity toward the observer from the line of sight voxel
             idif2p=fdif2*pdifd2
-            idif2p=idif2p*real(stepdi)*real(ndiff-ndi)/
-     +      real(ndiff-ndi-nss)                                           ! Correct the result for the skipping of 2nd scattering voxels to accelerate the calculation
+            idif2p=idif2p*dble(stepdi)*dble(ndiff-ndi)/
+     +      dble(ndiff-ndi-nss)                                           ! Correct the result for the skipping of 2nd scattering voxels to accelerate the calculation
             itotrd=itotrd+idif2p
 c ********************************************************************************
 c *  section for the calculation of the 2nd scat from the source without reflexion
@@ -1697,8 +1697,8 @@ c computation of the scattering probability of the scattered light toward the ob
               endif
 c computing scattered intensity toward the observer from the line of sight voxel
               idiff2=fldiff*pdifd2
-              idiff2=idiff2*real(stepdi)*real(ndiff-ndi)/
-     +        real(ndiff-ndi-nss)                                         ! Correct the result for the skipping of 2nd scattering voxels to accelerate the calculation
+              idiff2=idiff2*dble(stepdi)*dble(ndiff-ndi)/
+     +        dble(ndiff-ndi-nss)                                         ! Correct the result for the skipping of 2nd scattering voxels to accelerate the calculation
               itodif=itodif+idiff2                                        ! sum over the scattering voxels
             endif                                                         ! end condition source = reflection for the computation of the source scat line of sight
           endif                                                           ! end of the case scattering pos = Source pos or line of sight pos

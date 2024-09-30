@@ -115,7 +115,7 @@ c         alp=2.*atan(sqrt(sin(s-b)*sin(s-c)/(sin(s)*sin(s-a))))          ! Autr
 c         bet=asin(sin(b)*sin(alp)/sin(a))                                ! Autre methode pour calculer l'angle solide non utilisee.
 c         gam=asin(sin(c)*sin(alp)/sin(a))                                ! Autre methode pour calculer l'angle solide non utilisee.
 c         a234=alp+bet+gam-pi                                             ! Autre methode pour calculer l'angle solide non utilisee.
-      omega=real(a123+a234)                                               ! L'angle solide est la somme des aires des deux triangles spheriques.
+      omega=dble(a123+a234)                                               ! L'angle solide est la somme des aires des deux triangles spheriques.
       
       return                                                              ! Retour au programme.
       end                                                                 ! Fin de la routine sterad.
