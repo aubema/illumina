@@ -45,8 +45,8 @@ c
      +((posy.le.dble(width)*dy).and.(posy.ge.1.*dy)))
         posx=posx+ix*scalef
         posy=posy+iy*scalef
-        nx=dnint(posx/dx)
-        ny=dnint(posy/dy)
+        nx=idnint(posx/dx)
+        ny=idnint(posy/dy)
 c earth curvature (first order correction)
         distc=dsqrt((dx*dble(nx-x))**2.+(dy*dble(ny-y))**2.)
         call curvature(distc,hcur)

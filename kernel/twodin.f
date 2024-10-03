@@ -17,7 +17,7 @@ c read double precision array in binary
          endif
          do j=nby,1,-1
             do i=1,nbx
-               read(1)
+               read(1) rbindata(i,j)
                bindata(i,j)=dble(rbindata(i,j))
             enddo
          enddo

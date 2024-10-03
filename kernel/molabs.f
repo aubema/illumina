@@ -18,5 +18,6 @@ c
         enddo
         if (bwabs.gt.0.) tabs=tabs/bwabs
       close(unit=1)
+      if (tabs.lt.0.) print*,'debug',tabs,ta,bwa,bwabs
       return
       end

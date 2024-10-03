@@ -36,6 +36,7 @@ c
       subroutine transmitm(angz,z_i,z_f,distd,transm,tranam,tabs)
       real*8 transm                                                         ! Declaration des variables.
       real*8 tranam                                                         ! vertical transmittance of the complete atmosphere (molecules)
+      real*8 tabs
       real*8 angz
       real*8 distd
       real*8 z_i,z_f,z1,z2
@@ -49,8 +50,10 @@ c
       if (z1.ne.z2) then    
         transm=dexp((dlog(tranam*tabs)/dabs(dcos(angz)))*(dexp(-1.*z1/
      +  8000.)-dexp(-1.*z2/8000.)))
+           print*,'debug1',transm,tranam,tabs,angz,z1,z2
       else
-        transm=dexp((dlog(tranam*tabs))*dexp(-1.*z1/8000.)*distd/8000.)  
+        transm=dexp((dlog(tranam*tabs))*dexp(-1.*z1/8000.)*distd/8000.)
+              print*,'debug2',transm,tranam,tabs,angz,z1
       endif
       if (distd.eq.0.) transm=1.
       if ((transm.lt.0.).or.(transm.gt.1.)) then
