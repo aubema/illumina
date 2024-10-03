@@ -404,6 +404,7 @@
         ometif=0.D0
         omefov=0.D0
         hh=1.
+        flux_all=0.D0
         itodif1=0.D0
         ! determination of the vertical atmospheric transmittance
         call transtoa(lambda,bandw,taua,layaod,pressi,tranam,tranaa,tranal,tabs) ! tranam and tranaa are the top of atmosphere transmittance (molecules and aerosols)
