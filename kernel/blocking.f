@@ -78,5 +78,18 @@ c sub-grid obstacles
           endif  
         endif
       endif                                                            ! end light path to the observer larger than mean free path
+      if ((ff1.lt.0.).or.(ff1.gt.1.)) then
+         print*,'ff1 can not be negative  or larger than 1!',ff1
+         stop
+      endif
+       if ((ff2.lt.0.).or.(ff2.gt.1.)) then
+         print*,'ff2 can not be negative or larger than 1!',ff2
+         stop
+      endif     
+      if ((hh.gt.1.).or.(hh.lt.0.)) then
+         print*,'hh can not be larger than 1 or lower than 0!',hh
+         stop
+      endif      
+      
       return
       end
