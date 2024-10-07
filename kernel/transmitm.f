@@ -50,10 +50,8 @@ c
       if (z1.ne.z2) then    
         transm=dexp((dlog(tranam*tabs)/dabs(dcos(angz)))*(dexp(-1.*z1/
      +  8000.)-dexp(-1.*z2/8000.)))
-           print*,'debug1',transm,tranam,tabs,angz,z1,z2
       else
         transm=dexp((dlog(tranam*tabs))*dexp(-1.*z1/8000.)*distd/8000.)
-              print*,'debug2',transm,tranam,tabs,angz,z1
       endif
       if (distd.eq.0.) transm=1.
       if ((transm.lt.0.).or.(transm.gt.1.)) then
