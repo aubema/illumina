@@ -868,26 +868,26 @@ c computation of the solid angle of the reflecting cell seen from the source
                             else
                               dyp=dy
                             endif
-                            r1x=xc-dble(dxp)/2.-xn                        ! computation of the composante along x of the first vector.
-                            r1y=yc+dble(dyp)/2.-yn                        ! computation of the composante along y of the first vector.
-                            r1z=zc-dtan(dble(epsilx))*
-     +                      dble(dxp)/2.+dtan(dble(epsily))                ! computation of the composante en z of the first vector.
-     +                      *dble(dyp)/2.-zn
-                            r2x=xc+dble(dxp)/2.-xn                        ! computation of the composante along x of the second vector.
-                            r2y=yc+dble(dyp)/2.-yn                        ! computation of the composante along y of the second vector.
-                            r2z=zc+dtan(dble(epsilx))*
-     +                      dble(dxp)/2.+dtan(dble(epsily))                ! computation of the composante en z of the second vector.
-     +                      *dble(dyp)/2.-zn
-                            r3x=xc-dble(dxp)/2.-xn                        ! computation of the composante along x of the third vector.
-                            r3y=yc-dble(dyp)/2.-yn                        ! computation of the composante along y of the third vector.
-                            r3z=zc-dtan(dble(epsilx))*
-     +                      dble(dxp)/2.-dtan(dble(epsily))                ! computation of the composante en z of the third vector.
-     +                      *dble(dyp)/2.-zn
-                            r4x=xc+dble(dxp)/2.-xn                        ! computation of the composante along x of the fourth vector.
-                            r4y=yc-dble(dyp)/2.-yn                        ! computation of the composante along y of the fourth vector.
-                            r4z=zc+dtan(dble(epsilx))*
-     +                      dble(dxp)/2.-dtan(dble(epsily))                ! computation of the composante en z of the fourth vector.
-     +                      *dble(dyp)/2.-zn
+                            r1x=xc-dxp/2.-xn                        ! computation of the composante along x of the first vector.
+                            r1y=yc+dyp/2.-yn                        ! computation of the composante along y of the first vector.
+                            r1z=zc-dtan(epsilx)*
+     +                      dxp/2.+dtan(epsily)               ! computation of the composante en z of the first vector.
+     +                      *dyp/2.-zn
+                            r2x=xc+dxp/2.-xn                        ! computation of the composante along x of the second vector.
+                            r2y=yc+dyp/2.-yn                        ! computation of the composante along y of the second vector.
+                            r2z=zc+dtan(epsilx)*
+     +                      dxp/2.+dtan(epsily)               ! computation of the composante en z of the second vector.
+     +                      *dyp/2.-zn
+                            r3x=xc-dxp/2.-xn                        ! computation of the composante along x of the third vector.
+                            r3y=yc-dyp/2.-yn                        ! computation of the composante along y of the third vector.
+                            r3z=zc-dtan(epsilx)*
+     +                      dxp/2.-dtan(epsily)                ! computation of the composante en z of the third vector.
+     +                      *dyp/2.-zn
+                            r4x=xc+dxp/2.-xn                        ! computation of the composante along x of the fourth vector.
+                            r4y=yc-dyp/2.-yn                        ! computation of the composante along y of the fourth vector.
+                            r4z=zc+dtan(epsilx)*
+     +                      dxp/2.-dtan(epsily)                ! computation of the composante en z of the fourth vector.
+     +                      *dyp/2.-zn
                             call anglesolide(omega,r1x,                   ! Call of the routine anglesolide to compute the angle solide.
      +                      r1y,r1z,r2x,r2y,r2z,r3x,r3y,
      +                      r3z,r4x,r4y,r4z)
@@ -1343,26 +1343,26 @@ c computation of the solid angle of the reflecting cell seen from the source
                                         else
                                           dyp=dy
                                         endif
-                                        r1x=xc-dble(dxp)/2.-xn            ! computation of the composante along x of the first vector.
-                                        r1y=yc+dble(dyp)/2.-yn            ! computation of the composante along y of the first vector.
-                                        r1z=zc-tan(dble(epsilx))*
-     +                                  dble(dxp)/2.+dtan(dble(epsily))    ! computation of the composante en z of the first vector.
-     +                                  *dble(dyp)/2.-zn
-                                        r2x=xc+dble(dxp)/2.-xn            ! computation of the composante along x of the second vector.
-                                        r2y=yc+dble(dyp)/2.-yn            ! computation of the composante along y of the second vector.
-                                        r2z=zc+dtan(dble(epsilx))*
-     +                                  dble(dxp)/2.+tan(dble(epsily))    ! computation of the composante en z of the second vector.
-     +                                  *dble(dyp)/2.-zn
-                                        r3x=xc-dble(dxp)/2.-xn            ! computation of the composante along x of the third vector.
-                                        r3y=yc-dble(dyp)/2.-yn            ! computation of the composante along y of the third vector.
-                                        r3z=zc-dtan(dble(epsilx))*
-     +                                  dble(dxp)/2.-dtan(dble(epsily))    ! computation of the composante en z of the third vector.
-     +                                  *dble(dyp)/2.-zn
-                                        r4x=xc+dble(dxp)/2.-xn            ! computation of the composante along x of the fourth vector.
-                                        r4y=yc-dble(dyp)/2.-yn            ! computation of the composante along y of the fourth vector.
-                                        r4z=zc+dtan(dble(epsilx))*
-     +                                  dble(dxp)/2.-dtan(dble(epsily))    ! computation of the composante en z of the fourth vector.
-     +                                  *dble(dyp)/2.-zn
+                                        r1x=xc-dxp/2.-xn            ! computation of the composante along x of the first vector.
+                                        r1y=yc+dyp/2.-yn            ! computation of the composante along y of the first vector.
+                                        r1z=zc-dtan(epsilx)*
+     +                                  dxp/2.+dtan(epsily)    ! computation of the composante en z of the first vector.
+     +                                  *dyp/2.-zn
+                                        r2x=xc+dxp/2.-xn            ! computation of the composante along x of the second vector.
+                                        r2y=yc+dyp/2.-yn            ! computation of the composante along y of the second vector.
+                                        r2z=zc+dtan(epsilx)*
+     +                                  dxp/2.+dtan(epsily)    ! computation of the composante en z of the second vector.
+     +                                  *dyp/2.-zn
+                                        r3x=xc-dxp/2.-xn            ! computation of the composante along x of the third vector.
+                                        r3y=yc-dyp/2.-yn            ! computation of the composante along y of the third vector.
+                                        r3z=zc-dtan(epsilx)*
+     +                                  dxp/2.-dtan(epsily)    ! computation of the composante en z of the third vector.
+     +                                  *dyp/2.-zn
+                                        r4x=xc+dxp/2.-xn            ! computation of the composante along x of the fourth vector.
+                                        r4y=yc-dyp/2.-yn            ! computation of the composante along y of the fourth vector.
+                                        r4z=zc+dtan(epsilx)*
+     +                                  dxp/2.-dtan(epsily)    ! computation of the composante en z of the fourth vector.
+     +                                  *dyp/2.-zn
                                         call anglesolide(omega,r1x,       ! Call of the routine anglesolide to compute the angle solide.
      +                                  r1y,r1z,r2x,r2y,r2z,r3x,r3y,
      +                                  r3z,r4x,r4y,r4z)
