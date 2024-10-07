@@ -470,6 +470,9 @@
         do i=1,nbx ! beginning of the loop over all cells along x.
           do j=1,nby ! beginning of the loop over all cells along y.
             ofill(i,j)=val2d(i,j) ! Filling of the array 0-1
+            
+            !ofill(i,j)=0.
+            
           enddo ! end of the loop over all cells along y.
         enddo
         ! reading viirs flag
