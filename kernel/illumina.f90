@@ -452,7 +452,7 @@
             obsH(i,j)=val2d(i,j) ! filling of the array
             
             
-            !obsH(i,j)=0.
+            obsH(i,j)=0.
             
             
           enddo ! end of the loop over all cells along y.
@@ -472,6 +472,10 @@
             ofill(i,j)=val2d(i,j) ! Filling of the array 0-1
             
             !ofill(i,j)=0.
+            if ((ofill(i,j).lt.0.).or.(ofill(i,j).gt.1.)) then
+               print*,'Filling factor must be between 0 and 1!',ofill(i,j)
+               stop
+            endif
             
           enddo ! end of the loop over all cells along y.
         enddo
