@@ -58,7 +58,7 @@ c cloud no 5 are cumulus & cumulonimbus
       rhocld(5,2)=-0.13805
       rhocld(5,3)=-0.10895
       rhocld(5,4)=0.09460
-       rcloud=rhocld(cloudt,1)+rhocld(cloudt,2)*cos(angzen)
+       rcloud=rhocld(cloudt,1)+rhocld(cloudt,2)*dcos(angzen)
      + +rhocld(cloudt,3)*(dcos(angzen))**2.+rhocld(cloudt,4)*
      + (dcos(angzen))**3.
 c        print*,rcloud,angzen,cos(angzen)
