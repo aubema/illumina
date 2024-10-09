@@ -51,10 +51,10 @@ c
             hh=0.
           endif
         endif   
-!        if ((x_1.lt.1).or.(x_1.gt.nbx).or.(y_1.lt.1).or.
-!     +  (y_1.gt.nby)) then
-!          ff1=0.
-!        else
+        if ((x_1.lt.1).or.(x_1.gt.nbx).or.(y_1.lt.1).or.
+     +  (y_1.gt.nby)) then
+          ff1=0. ! no blocking if the position if outside the domain
+        else
 c sub-grid obstacles
           if (dho.gt.drefle(x_1,y_1)) then               ! light path to observer larger than the mean free path -> subgrid obstacles
             angmin=pi/2.-datan2((altsol(x_1,y_1)+
@@ -63,12 +63,12 @@ c sub-grid obstacles
               ff1=ofill(x_1,y_1)
             endif
           endif
-!        endif                                                            ! end light path to the observer larger than mean free path
+        endif                                                            ! end light path to the observer larger than mean free path
         call anglezenithal(rx_2,ry_2,z_2,rx_1,ry_1,z_1,azen)
-!        if ((x_2.lt.1).or.(x_2.gt.nbx).or.(y_2.lt.1).or.
-!     +  (y_2.gt.nby)) then
-!          ff2=0.
-!        else
+        if ((x_2.lt.1).or.(x_2.gt.nbx).or.(y_2.lt.1).or.
+     +  (y_2.gt.nby)) then
+          ff2=0. ! no blocking if the position if outside the domain
+        else
           if (dho.gt.drefle(x_2,y_2)) then                               ! light path from source larger than the mean free path -> subgrid obstacles
             angmin=pi/2.-datan2((altsol(x_2,y_2)+
      +      obsH(x_2,y_2)-z_2),drefle(x_2,y_2))
@@ -76,7 +76,7 @@ c sub-grid obstacles
               ff2=ofill(x_2,y_2)
             endif
           endif  
-!        endif
+        endif
       endif                                                            ! end light path to the observer larger than mean free path
       if ((ff1.lt.0.).or.(ff1.gt.1.)) then
          print*,'ff1 can not be negative  or larger than 1!',ff1
