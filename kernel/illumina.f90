@@ -224,7 +224,7 @@
       real*8 resofit(6),fluxfit(6)
       real*8 moy,quad,sigma
       real*8 dho
-      integer nres,nresp,nfit,nmoy ! resolution number used to extrapolate the scattered flux to infinite resolution
+      integer nres,nresmax,nresp,nfit,nmoy ! resolution number used to extrapolate the scattered flux to infinite resolution
       verbose=1                                                    ! Very little printout=0, Many printout = 1, even more=2
       diamobj=1.D0                                                   ! A dummy value for the diameter of the objective of the instrument used by the observer.
       volu2=0.D0
@@ -406,6 +406,7 @@
         hh=1.
         flux_all=0.D0
         itodif1=0.D0
+        nresmax=6
         ! determination of the vertical atmospheric transmittance
         call transtoa(lambda,bandw,taua,layaod,pressi,tranam,tranaa,tranal,tabs) ! tranam and tranaa are the top of atmosphere transmittance (molecules and aerosols)
         ! reading of the environment variables
@@ -782,8 +783,21 @@
           do icible=1,ncible ! beginning of the loop over the line of sight voxels
             flux1=0.D0
             itodif1=0.D0
+            rx_c=rx_c+ix*(scalo/2.+scal/2.)
+            ry_c=ry_c+iy*(scalo/2.+scal/2.)
+            dh0=dsqrt((rx_c-rx_obs)**2.+(ry_c-ry_obs)**2)
+            x_c=idnint(rx_c/dx)
+            if (x_c.lt.1) x_c=1
+            if (x_c.gt.width) x_c=width
+            y_c=idnint(ry_c/dy)
+            if (y_c.lt.1) y_c=1
+            if (y_c.gt.width) y_c=width
+            z_c=z_c+iz*(scalo/2.+scal/2.)            
+            
+            
+            if (scat_level.eq.1) nresmax=1 ! dont do the multi resolution extrapolation for single scat
             ! scan 6 coarse resolution to extrapolate the infinite resolution of the multiple scat
-            do nres=1,6
+            do nres=1,nresmax
               siz2_0=size_0+dble(nres-1)*300.D0 ! scanning resolutions of 2000m 1500m and 1000m
               resolut2(nres)=siz2_0
               siz3_0=size_0+dble(nres-1)*500.D0
@@ -794,19 +808,6 @@
               flux2(nres)=0.D0
               flux3(nres)=0.D0
               flux3p(nres)=0.D0
-              if (nres.eq.1) then
-                rx_c=rx_c+ix*(scalo/2.+scal/2.)
-                ry_c=ry_c+iy*(scalo/2.+scal/2.)
-                dh0=dsqrt((rx_c-rx_obs)**2.+(ry_c-ry_obs)**2)
-                x_c=idnint(rx_c/dx)
-                if (x_c.lt.1) x_c=1
-                if (x_c.gt.width) x_c=width
-                y_c=idnint(ry_c/dy)
-                if (y_c.lt.1) y_c=1
-                if (y_c.gt.width) y_c=width
-                z_c=z_c+iz*(scalo/2.+scal/2.)
-              endif
-
               if ((dh0.le.dhmax).or.((dh0.gt.dhmax).and.(angze1-zhoriz.lt.0.00001))) then ! the line of sight is not yet blocked by the topography
                 if (z_c.gt.altsol(x_c,y_c)) then
                   if ((flux_all.ge.flux_total/(2.*stoplim)).and.(z_c.lt.cloudbase).and.(z_c.lt.35000.D0)) then

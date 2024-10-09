@@ -57,7 +57,7 @@ c
       elseif (argume.le.-1.) then
          an3pts=pi
       else
-         an3pts=acos(argume)
+         an3pts=dacos(argume)
       endif 
       if (an3pts.lt.0.) then
          print*,'ERREUR an3pts < 0'
