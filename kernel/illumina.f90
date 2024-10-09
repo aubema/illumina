@@ -452,7 +452,7 @@
             obsH(i,j)=val2d(i,j) ! filling of the array
             
             
-            obsH(i,j)=0.
+            !obsH(i,j)=0.
             
             
           enddo ! end of the loop over all cells along y.
