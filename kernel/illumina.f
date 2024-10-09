@@ -514,7 +514,7 @@ c reading subgrid obstacles average height
           do j=1,nby                                                      ! beginning of the loop over all cells along y.
             obsH(i,j)=val2d(i,j)                                          ! filling of the array
             
-            obsH(i,j)=0.
+            !obsH(i,j)=0.
             
             
           enddo                                                           ! end of the loop over all cells along y.
