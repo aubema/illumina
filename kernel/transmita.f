@@ -53,7 +53,7 @@ c
         transa=dexp((dlog(tranaa)/dabs(dcos(angz)))*(dexp(-1.*z1/haer)-
      +  dexp(-1.*z2/haer)))
       else
-        transa=dexp((log(tranaa))*dexp(-1.*z1/haer)*distd/haer)  
+        transa=dexp((dlog(tranaa))*dexp(-1.*z1/haer)*distd/haer)  
       endif
       if (distd.eq.0.) transa=1.
          if (transa.eq.0.) then
