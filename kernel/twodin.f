@@ -1,4 +1,4 @@
-       subroutine twodin(nbx,nby,filename,bindata)
+       subroutine twodin(nbx,nby,filename,dbindata)
        integer width                                                      ! Matrix dimension in Length/width and height
        parameter (width=512)
 c read double precision array in binary
