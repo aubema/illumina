@@ -6,6 +6,12 @@ c read double precision array in binary
        real bindata(width,width)
        real*8 dbindata(width,width)
        character*72 filename
+       do i=1,width
+         do j=1,width
+           dbindata(i,j)=0.D0
+           bindata(i,j)=0.
+         enddo
+       enddo
        open(unit=1,form='unformatted',file=filename,action='read')
          read(1) nbx,nby
          if ((nbx.gt.width).or.(nby.gt.width)) then
@@ -18,7 +24,7 @@ c read double precision array in binary
          do j=nby,1,-1
             do i=1,nbx
                read(1) bindata(i,j)
-               dbindata(i,j)=DBLE(bindata(i,j))
+               dbindata(i,j)=dble(bindata(i,j))
             enddo
          enddo
        close(unit=1)

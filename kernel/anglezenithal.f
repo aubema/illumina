@@ -30,7 +30,8 @@ c
 c
       subroutine anglezenithal(x1,y1,z1,x2,y2,z2,angzen) 
       real*8 x1,y1,x2,y2
-      real*8 z1,z2,pi,angzen                                                    
+      real*8 z1,z2,pi,angzen
+      real*8 hdist                                                    
       parameter (pi=3.141592654D0)   
       hdist=dsqrt((x2-x1)**2.
      a    +(y2-y1)**2.)

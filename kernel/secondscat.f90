@@ -26,13 +26,13 @@
 !
       subroutine secondscat(rho,x_s,y_s,z_s,x_c,y_c,z_c,x_sr,y_sr,z_sr,x_obs,y_obs,z_obs,iz,lamplu,ofill,srefl,drefle, &
       reflsiz,obsH,altsol,inclix,incliy,pvalno,stype,zondifa,siz,volu,ndif,tranam,tabs,tranaa,tranal,secdif,secdil, &
-      fdifan,fdifl,haer,hlay,dx,dy,cloudt,cloudbase,omefov,scal,portio,idift,icloud)
+      fdifan,fdifl,haer,hlay,dx,dy,nbx,nby,cloudt,cloudbase,omefov,scal,portio,idift,icloud)
       integer width,nzon
       real*8 pi                                                 
       parameter (width=512,nzon=256)
       parameter (pi=3.141592654D0)
       integer rho,x_s,y_s,x_c,y_c,x_sr,y_sr,stype,ndif,is3a,jda,ida,anglez,na,naz,cloudt
-      integer x_obs,y_obs
+      integer x_obs,y_obs,nbx,nby
       real*8 z_s,z_c,z_sr,lamplu(width,width,nzon),zondifa(3000000,3)
       real*8 haer,hlay,dx,dy,cloudbase,ofill(width,width),drefle(width,width),obsH(width,width)
       real*8 altsol(width,width),fdifan(181),fdifl(181),pvalno(181,nzon)
@@ -72,7 +72,7 @@
       !dss=1000.
       
       
-      icloud=0.
+      icloud=0.D0
       idif=0.D0
       idift=0.D0
       do is3a=1,ndif ! beginning of the loop over the scattering voxels.
@@ -88,7 +88,7 @@
         if ((z_difa-siz/2..le.altsol(ida,jda)).or.(z_difa.gt.35000.).or.(z_difa.gt.cloudbase)) then ! cell above ground, below cloud and below top of atmosphere
         else        
           ds1=dsqrt((rx_sr-rx_difa)**2.+(ry_sr-ry_difa)**2.+(z_sr-z_difa)**2.)
-          ds2=dsqrt((rx_c-rx_dif)**2.+(ry_c-ry_dif)**2.+(z_c-z_dif)**2.)
+          ds2=dsqrt((rx_c-rx_difa)**2.+(ry_c-ry_difa)**2.+(z_c-z_difa)**2.)
           ds3=dsqrt((rx_s-rx_difa)**2.+(ry_s-ry_difa)**2.+(z_s-z_difa)**2.)
           if (rho.eq.0) then ! from source
             if ((ds2.lt.dss).or.(ds3.lt.dss)) then
@@ -177,10 +177,10 @@
               ouvang=dsqrt(omeg2/pi) ! Angle in radian.
               ouvang=ouvang*180./pi ! Angle in degrees.
               ! computation of the photometric function of the light fixture toward the reflection surface
-              anglez=idnint(180.*zenith/pi)
+              anglez=idnint(180.*zenith/pi)+1
+              
               if (anglez.lt.0) anglez=-anglez
               if (anglez.gt.180) anglez=360-anglez
-              anglez=anglez+1 ! Transform the angle in integer degree into the position in the array.
               ! average +- ouvang
               naz=0
               nbang=0.

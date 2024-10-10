@@ -28,7 +28,7 @@ c
       parameter (width=512)
       real*8 hh,ff1,ff2,ofill(width,width),drefle(width,width)
       real*8 altsol(width,width),dx,dy,z_1,z_2,rx_1,rx_2,ry_1,ry_2,dho
-      real*8 angazi,zhoriz,dh,obsH(width,width),azen,pi
+      real*8 angazi,zhoriz,dh,obsH(width,width),azen,pi,angmin
       integer nbx,nby,x_1,x_2,y_1,y_2
       pi=3.141592653589793238462
       ff1=0.
@@ -51,8 +51,8 @@ c
             hh=0.
           endif
         endif   
-        if ((x_1.lt.1).or.(x_1.gt.nbx).or.(y_1.lt.1).or.
-     +  (y_1.gt.nby)) then
+        if ((x_1.lt.1).or.(x_1.gt.nbx+1).or.(y_1.lt.1).or.
+     +  (y_1.gt.nby+1)) then
           ff1=0. ! no blocking if the position if outside the domain
         else
 c sub-grid obstacles
@@ -65,8 +65,8 @@ c sub-grid obstacles
           endif
         endif                                                            ! end light path to the observer larger than mean free path
         call anglezenithal(rx_2,ry_2,z_2,rx_1,ry_1,z_1,azen)
-        if ((x_2.lt.1).or.(x_2.gt.nbx).or.(y_2.lt.1).or.
-     +  (y_2.gt.nby)) then
+        if ((x_2.lt.1).or.(x_2.gt.nbx+1).or.(y_2.lt.1).or.
+     +  (y_2.gt.nby+1)) then
           ff2=0. ! no blocking if the position if outside the domain
         else
           if (dho.gt.drefle(x_2,y_2)) then                               ! light path from source larger than the mean free path -> subgrid obstacles

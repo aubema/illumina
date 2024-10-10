@@ -26,19 +26,18 @@
 !
       subroutine firstscat(rho,x_s,y_s,z_s,x_c,y_c,z_c,x_sr,y_sr,z_sr,x_obs,y_obs,z_obs,iz,lamplu,ofill,srefl,drefle, &
       reflsiz,obsH,altsol,inclix,incliy,pvalno,stype,tranam,tabs,tranaa,tranal,secdif,secdil, &
-      fdifan,fdifl,haer,hlay,dx,dy,cloudt,cloudbase,omefov,scal,portio,idif,icloud)
+      fdifan,fdifl,haer,hlay,dx,dy,nbx,nby,cloudt,cloudbase,omefov,scal,portio,idif,icloud)
       integer width,nzon
       real*8 pi                                                 
       parameter (width=512,nzon=256)
       parameter (pi=3.141592654)
-      integer rho,x_s,y_s,x_c,y_c,x_sr,y_sr,stype,is3a,jda,ida,anglez,na,naz,cloudt
-      integer x_obs,y_obs
+      integer rho,x_s,y_s,x_c,y_c,x_sr,y_sr,stype,anglez,na,naz,cloudt
+      integer x_obs,y_obs,nbx,nby
       real*8 z_s,z_c,z_sr,lamplu(width,width,nzon)
       real*8 haer,hlay,dx,dy,cloudbase,ofill(width,width),drefle(width,width),obsH(width,width)
       real*8 altsol(width,width),fdifan(181),fdifl(181),pvalno(181,nzon)
-      real*8 un,zenith,rx_difa,ry_difa,z_difa,dxp,dyp
+      real*8 un,zenith,dxp,dyp
       real*8 rx_sr,ry_sr,rx_s,ry_s,rx_c,ry_c
-      real*8 ds1,ds3
       real*8 angdif,inclix(width,width),incliy(width,width),epsilx,epsily,reflsiz
       real*8 ouvang,iz,rcloud,doc2,dsc2,azcl1,azcl2
       real*8 rx_obs,ry_obs,z_obs,nbang
@@ -49,6 +48,10 @@
       real*8 xc,yc,zc,xn,yn,zn                                            ! Position (meter) of the elements (starting point, final point) for the calculation of the solid angle.
       real*8 r1x,r1y,r1z,r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z              ! Components of the vectors used in the solid angle calculation routine.    
       un=1.
+      transm=1.
+      icloud=0.D0
+      dxp=dx
+      dyp=dy
       ! omemax: exclude calculations too close (<10m) this is a sustended angle of 1 deg.
       ! the calculated flux is highly sensitive to that number for a very high
       ! pixel resolution (a few 10th of meters). We assume anyway that somebody
@@ -77,9 +80,17 @@
         omega=1./distd**2.
         if (omega.gt.omemax) omega=0.D0
         anglez=idnint(180.D0*zenith/pi)+1
+        if ((anglez.lt.1).or.(anglez.gt.181).or.(stype.lt.1).or.(stype.gt.nzon)) then
+          print*,'pvalno out of bound',anglez
+          stop
+        endif
         P_dif=pvalno(anglez,stype)
+        if ((x_s.lt.1).or.(x_s.gt.nbx).or.(y_s.lt.1).or.(y_s.gt.nby).or.(stype.lt.1).or.(stype.gt.nzon)) then
+          print*,'lamplu out of bound',x_s,y_s,stype,nbx,nby
+          stop
+        endif
+
         flux=lamplu(x_s,y_s,stype)*P_dif*omega*transm*transa*transl*(1.-ff1)*(1.-ff2)*hh ! flux crossing line of sight voxel
-        !flux=lamplu(x_s,y_s,stype)*P_dif*omega*transm*transa*transl*(1.-ff1)*hh
         ! computing the scattering probability toward 2nd scat voxel
         if (omega.ne.0.D0) then
           call angle3points(rx_s,ry_s,z_s,rx_c,ry_c,z_c,rx_obs,ry_obs,z_obs,angdif) ! scattering angle.
@@ -116,7 +127,7 @@
         yn=dble(y_s)*dble(dy) ! Position in meters of the source (latitu).
         zn=dble(z_s) ! Position in meters of the source (altitude).
         epsilx=inclix(x_sr,y_sr) ! tilt along x of the ground reflectance
-        epsily=incliy(x_sr,y_sr) ! tilt along x of the ground reflectance
+        epsily=incliy(x_sr,y_sr) ! tilt along y of the ground reflectance
         if (dx.gt.reflsiz) then ! use a sub-grid surface when the reflectance radius is smaller than the cell size
           if ((x_sr.eq.x_s).and.(y_sr.eq.y_s)) then
             dxp=reflsiz
@@ -157,10 +168,10 @@
         ouvang=dsqrt(omeg2/pi) ! Angle in radian.
         ouvang=ouvang*180.D0/pi ! Angle in degrees.
         ! computation of the photometric function of the light fixture toward the reflection surface
-        anglez=idnint(180.D0*zenith/pi)
+        anglez=idnint(180.D0*zenith/pi)+1
         if (anglez.lt.0) anglez=-anglez
         if (anglez.gt.180) anglez=360-anglez
-        anglez=anglez+1 ! Transform the angle in integer degree into the position in the array.
+ 
         ! average +- ouvang
         naz=0
         nbang=0.D0
@@ -170,8 +181,8 @@
           if (naz.lt.0) naz=-naz
           if (naz.gt.181) naz=362-naz ! symetric function
           if (naz.eq.0) naz=1
-          P_indir=P_indir+pvalno(naz,stype)*abs(dsin(pi*dble(naz)/180.D0))/2.
-          nbang=nbang+1.*abs(dsin(pi*dble(naz)/180.D0))/2.
+          P_indir=P_indir+pvalno(naz,stype)*dabs(dsin(pi*dble(naz)/180.D0))/2.
+          nbang=nbang+1.*dabs(dsin(pi*dble(naz)/180.D0))/2.
         enddo
         P_indir=P_indir/nbang 
         flrefl=lamplu(x_s,y_s,stype)*P_indir*omeg2*transm*transa*transl

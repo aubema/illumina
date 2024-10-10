@@ -38,7 +38,10 @@
        real*8 pi
        pi=3.141592654D0
        dmax=dsqrt((xf-xi)**2.+(yf-yi)**2.+(zf-zi)**2.)
-       siz=siz_0*(((4.*effet**3.)/3.+dmax*effet**2.)/((4.*effet**3.)/3.))**(1./3.)  
+       siz=siz_0*(((4.*effet**3.)/3.+dmax*effet**2.)/((4.*effet**3.)/3.))**(1./3.)  ! explain that calculation
+       ! I think this is to keep the number of cells approximately constant but the possible problem is that 
+       ! we do not use the right resolution to perform the extrapolation of the radiance à infinite resolution. 
+       ! I assume this error is not so important but that should be investigated. MA
        dmax=dmax+effet
        xmin=3000000.
        ymin=3000000.

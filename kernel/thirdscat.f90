@@ -26,13 +26,13 @@
 !
       subroutine thirdscat(rho,x_s,y_s,z_s,x_c,y_c,z_c,x_sr,y_sr,z_sr,x_obs,y_obs,z_obs,iz,lamplu,ofill,srefl,drefle, &
       reflsiz,obsH,altsol,inclix,incliy,pvalno,stype,zondif,siz,volu,ndif,tranam,tabs,tranaa,tranal,secdif,secdil, &
-      fdifan,fdifl,haer,hlay,dx,dy,cloudt,cloudbase,omefov,scal,portio,idift,icloud)
+      fdifan,fdifl,haer,hlay,dx,dy,nbx,nby,cloudt,cloudbase,omefov,scal,portio,idift,icloud)
       integer width,nzon
       real*8 pi                                                 
       parameter (width=512,nzon=256)
       parameter (pi=3.141592654D0)
       integer rho,x_s,y_s,x_c,y_c,x_sr,y_sr,ndif,is3a,is3b,jda,jdb,ida,idb,stype,anglez,na,naz,cloudt
-      integer x_obs,y_obs
+      integer x_obs,y_obs,nbx,nby
       real*8 z_s,z_c,z_sr,lamplu(width,width,nzon),zondif(3000000,3),siz,tranam,tranaa,tranal,secdif,secdil
       real*8 haer,hlay,dx,dy,cloudbase,volu,icloud,ofill(width,width),drefle(width,width),obsH(width,width)
       real*8 altsol(width,width),fdifan(181),fdifl(181),pvalno(181,nzon)
@@ -183,10 +183,9 @@
                   ouvang=dsqrt(omeg2/pi) ! Angle in radian.
                   ouvang=ouvang*180./pi ! Angle in degrees.
                   ! computation of the photometric function of the light fixture toward the reflection surface
-                  anglez=idnint(180.*zenith/pi)
+                  anglez=idnint(180.*zenith/pi)+1
                   if (anglez.lt.0) anglez=-anglez
                   if (anglez.gt.180) anglez=360-anglez
-                  anglez=anglez+1 ! Transform the angle in integer degree into the position in the array.
                   ! average +- ouvang
                   naz=0
                   nbang=0.
