@@ -38,13 +38,13 @@ c
       real*8 angdeg,tranam,tranaa,tranal
       real*8 altit,un,hlay,haer
       real*8 pdif,prob_a,prob_m,prob_l
-      integer rang,na,naz
+      integer rang
       parameter (pi=3.1415926D0)
 c--------------------------------------------------------      
       if (angdif.lt.0.) angdif=-angdif      
       if (angdif-pi.gt.0.00001) angdif=pi
       angdeg=((angdif*180.)/pi)
-      rang=dint(angdeg)+1   
+      rang=idnint(angdeg)+1   
 c----------------------------------------
 c  Calculate scattering probability per unit of steradian                 ! The probability is for a voxel of 1x1x1m refer to equation 1 in Aubé et al.
 c

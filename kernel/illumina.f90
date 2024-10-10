@@ -95,7 +95,7 @@
       real*8 dx,dy,dxp,dyp                                           ! Width of the voxel (meter)
       integer boxx,boxy                                            ! reflection window size (pixels)
       real*8 fdifa(181),fdifan(181)                                  ! Aerosol scattering functions (unnormalized and normalized)
-      real*8 extinc,scatte,anglea(181)                               ! Aerosol cross sections (extinction and scattering), scattering angle (degree)
+      real*8 anglea(181)                               ! Aerosol cross sections (extinction and scattering), scattering angle (degree)
       real*8 secdif                                                  ! Contribution of the scattering to the extinction
       real*8 inclix(width,width)                                     ! tilt of the ground pixel along x (radian)
       real*8 incliy(width,width)                                     ! tilt of the ground pixel along y (radian)
@@ -108,12 +108,12 @@
       real*8 rx_c,ry_c 
       real*8 z_c                                                     ! Height of the line of sight voxel (meter)
       integer x_s,y_s,x_sr,y_sr                                    ! Positions of the source, the reflecting surface, and the scattering voxels
-      real*8 z_s,z_sr,z_dif2,z_dif3                                  ! Heights of the source, the reflecting surface, and the scattering voxel (metre).
-      real*8 rx_s,ry_s,rx_sr,ry_sr,rx_dif2,ry_dif2,rx_dif3,ry_dif3
+      real*8 z_s,z_sr                                 ! Heights of the source, the reflecting surface, and the scattering voxel (metre).
+      real*8 rx_s,ry_s,rx_sr,ry_sr
       real*8 angzen,ouvang                                           ! Zenithal angle between two voxels (radians) and opening angle of the solid angle in degrees.
       integer anglez                                               ! Emitting zenithal angle from the luminaire.
       real*8 zenith                                                   ! zenith angle used for blocking
-      real*8 P_indir,P_dif1                                    ! photometric function of the light sources (direct,indirect,scattered)
+      real*8 P_indir                                   ! photometric function of the light sources (direct,indirect,scattered)
       real*8 P_dir
       real*8 transa,transm,transl                                    ! Transmittance between two voxels (aerosols,molecules,particle layer).
       real*8 taua                                                    ! Aerosol optical depth @ 500nm.
@@ -122,13 +122,12 @@
       real*8 r1x,r1y,r1z,r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z       ! Components of the vectors used in the solid angle calculation routine.
       real*8 omega                                                   ! Solid angles
       real*8 idif3                                                   ! 3rd scat  intensity
-      real*8 itodif                                                  ! Total contribution of the source to the scattered intensity toward the sensor.
       real*8 flux1,flux2(6),flux3(6),flux3p(6)                      ! Flux reaching the observer voxel from all FOV voxels in a given model level
       real*8 flux_total,flux_total_1,flux_total_2,flux_total_3                    ! Total flux reaching the observer voxel
       real*8 haut                                                    ! Haut (negative indicate that the surface is lighted from inside the ground. I.e. not considered in the calculation
       real*8 epsilx,epsily                                           ! tilt of the ground pixel
       real*8 flrefl                                                  ! flux reaching a reflecting surface (watts).
-      real*8 irefl,irefl1                                            ! intensity leaving a reflecting surface toward the line of sight voxel.
+      real*8 irefl1                                            ! intensity leaving a reflecting surface toward the line of sight voxel.
       real*8 radius_2,radius_3                                         ! Distance around the source voxel and line of sight voxel considered to compute the 2nd order of scattering.
       real*8 zondi2(3000000,3),zondi3(3000000,3)                   ! Array for the scattering voxels positions
       integer ndiff2                                               ! Number of 2nd scattering voxels, counter of the loop over the 2nd scattering voxels
@@ -152,7 +151,6 @@
       real*8 contrimap1(width,width),contrimap2(width,width),contrimap3(width,width)
       character*3 lampno                                           ! lamp number string
       integer imin(nzon),imax(nzon),jmin(nzon),jmax(nzon)          ! x and y limits containing a type of lamp
-      real*8 latitu                                                  ! approximate latitude of the domain center
       integer prmaps                                               ! flag to enable the tracking of contribution and sensitivity maps
       integer cloudt                                               ! cloud type 0=clear, 1=Thin Cirrus/Cirrostratus, 2=Thick Cirrus/Cirrostratus, 3=Altostratus/Altocumulus,
                                                                    ! 4=Stratocumulus/stratus, 5=Cumulus/Cumulonimbus
@@ -181,8 +179,6 @@
       real*8 ix,iy,iz                                                ! base vector of the viewing (length=1)
       real*8 omemax                                                  ! max solid angle allowed
       real*8 flcld(width,width)                                      ! flux crossing a low cloud
-      real*8 ds1,ds2,ds3,ds4,dss2,dss3                               ! double scattering distances
-      integer ndi2,ndi3                                              ! number of cell under ground
       real*8 diamobj                                                 ! instrument objective diameter
       integer i,j,k
       integer dirck                                                       ! Test for the position of the source (case source=line of sight voxel)
@@ -233,7 +229,11 @@
       un=1.D0
       ff1=0.D0
       ff2=0.D0
+      flux_1=0.D0
+      flux_2=0.D0
+      flux_3=0.D0
       ncible=1024
+      cloudt=0
       cloudslope=-0.013D0
       cloudfrac=100.D0
       stoplim=500. 
@@ -337,7 +337,7 @@
         if (cloudt.eq.0) then
           cloudbase=1000000000.D0
         endif
-        prmaps=1
+        prmaps=1 ! activate the contribution maps (1=enable)
         icloud=0.D0
         do i=1,width
           do j=1,width
@@ -396,7 +396,6 @@
         idif2=0.D0
         idif3=0.D0
         flrefl=0.D0
-        irefl=0.D0
         irefl1=0.D0
         portio=0.D0
         fccld=0.D0
@@ -535,7 +534,7 @@
                 print*,'***Negative lamp flux!, stopping execution'
                 stop
               endif              
-              if (lamplu(i,j,stype).ne.0.D0) then ! searching of the smallest rectangle containing the zone of non-null luminosity to speedup the calculation
+              if (lamplu(i,j,stype).ge.0.D0) then ! searching of the smallest rectangle containing the zone of non-null luminosity to speedup the calculation
                 if (i.lt.imin(stype)) imin(stype)=i
                 if (j.lt.jmin(stype)) jmin(stype)=j 
                 if (i.gt.imax(stype)) imax(stype)=i
@@ -556,10 +555,20 @@
               totlu(stype)=totlu(stype)+lamplu(i,j,stype) ! the total lamp flux should be non-null to proceed to the calculations
             enddo ! end of the loop over all cells along y.
           enddo ! end of the loop over all cells along x.
+          
+          
+
+          
+          
           if (imin(stype).eq.nbx+1) imin(stype)=1
-          if (jmin(stype).eq.nbx+1) jmin(stype)=1
+          if (jmin(stype).eq.nby+1) jmin(stype)=1
           print*,'Zone',stype,'bounding box: x=',imin(stype),imax(stype),'y=',jmin(stype),jmax(stype)
+
+
+          
         enddo ! end of the loop 1 over the nzon types of sources.
+
+        
         dy=dx
         omefov=0.00000001 ! solid angle of the spectrometer slit on the sky. Here we only need a small value
         z_obs=z_o+altsol(x_obs,y_obs) ! z_obs = the local observer elevation plus the height of observation above ground (z_o)
@@ -571,7 +580,6 @@
         write(2,*) 'Width of the domain [NS](m):',largx,'#cases:',nbx
         write(2,*) 'Width of the domain [EO](m):',largy,'#cases:',nby
         write(2,*) 'Size of a cell (m):',dx,' X ',dy
-        write(2,*) 'latitu center:',latitu
         direct=0.D0 ! initialize the total direct radiance from sources to observer
         rdirect=0.D0 ! initialize the total reflected radiance from surface to observer
         irdirect=0.D0 ! initialize the total direct irradiance from sources to observer
@@ -630,7 +638,7 @@
                       rx_sr=dble(x_sr)*dx
                       do y_sr=ysrmi,ysrma ! beginning of the loop reflection y
                         ry_sr=dble(y_sr)*dy
-                        irefl=0.D0
+                        irefl1=0.D0
                         z_sr=altsol(x_sr,y_sr)
                         if((x_sr.gt.nbx).or.(x_sr.lt.1).or.(y_sr.gt.nby).or.(y_sr.lt.1)) then ! condition out of borders
                           if (verbose.eq.2) then
@@ -792,7 +800,20 @@
             y_c=idnint(ry_c/dy)
             if (y_c.lt.1) y_c=1
             if (y_c.gt.width) y_c=width
-            z_c=z_c+iz*(scalo/2.+scal/2.)            
+            z_c=z_c+iz*(scalo/2.+scal/2.)   
+            
+            
+            
+            
+            
+            if ((x_c.lt.1).or.(x_c.gt.nbx).or.(y_c.lt.1).or.(y_c.gt.nby)) then 
+               print*,'out of bounds',x_c,y_c
+               stop
+            endif
+            
+            
+            
+            
             
             
             if (scat_level.eq.1) nresmax=1 ! dont do the multi resolution extrapolation for single scat
@@ -870,7 +891,7 @@
 ! 1st scattering from source and ground                              
                               rho=0 ! from source                   
                               icloud=0.D0
-                              if (lamplu(x_s,y_s,stype).ne.0.D0) then ! if the luminosity is null, ignore this case.
+                              if (lamplu(x_s,y_s,stype).gt.0.D0) then ! if the luminosity is null, ignore this case.
                                 z_s=(altsol(x_s,y_s)+lampal(x_s,y_s)) ! Definition of the vertical position of the source (meter)
                                 dirck=0
                                 if ((x_s.eq.x_c).and.(y_s.eq.y_c).and.(z_s.eq.z_c)) then ! if the source is not at the line of sight voxel
@@ -878,17 +899,20 @@
                                   if (verbose.ge.1) then
                                     print*,'Source = line of sight'
                                   endif
-                                endif   
+                                endif
+                                idif1=0.D0
+                                idif2=0.D0
+                                idif3=0.D0
                                 if (dirck.ne.1) then ! the source is not at the line of sight voxel position
                                   if (nres.eq.1) then ! calculate single scat only once, do not depend on the resolution
-                                    idif1=0.D0                             
                                     call firstscat(rho,x_s,y_s,z_s,x_c,y_c,z_c,x_sr,y_sr,z_sr,x_obs,y_obs,z_obs,iz,lamplu,ofill, &
                                     srefl,drefle,reflsiz,obsH,altsol,inclix,incliy,pvalno,stype,tranam,tabs,tranaa,tranal,secdif, &
-                                    secdil,fdifan,fdifl,haer,hlay,dx,dy,cloudt,cloudbase,omefov,scal,portio,idif1,icloud)
+                                    secdil,fdifan,fdifl,haer,hlay,dx,dy,nbx,nby,cloudt,cloudbase,omefov,scal,portio,idif1,icloud)
                                     itoclou=itoclou+icloud
                                     itodif1=itodif1+idif1 
                                     ! outputs are idif1 and icloud
                                     rho=1 ! from ground
+                                    idif1=0.D0
                                     xsrmi=x_s-boxx
                                     if (xsrmi.lt.1) xsrmi=1
                                     xsrma=x_s+boxx
@@ -912,8 +936,8 @@
                                                 idif1=0.D0                         
                                                 call firstscat(rho,x_s,y_s,z_s,x_c,y_c,z_c,x_sr,y_sr,z_sr,x_obs,y_obs,z_obs,iz, &
                                                 lamplu,ofill,srefl,drefle,reflsiz,obsH,altsol,inclix,incliy,pvalno,stype,tranam, &
-                                                tabs,tranaa,tranal,secdif,secdil,fdifan,fdifl,haer,hlay,dx,dy,cloudt,cloudbase, &
-                                                omefov,scal,portio,idif1,icloud)
+                                                tabs,tranaa,tranal,secdif,secdil,fdifan,fdifl,haer,hlay,dx,dy,nbx,nby,cloudt, &
+                                                cloudbase,omefov,scal,portio,idif1,icloud)
                                                 itoclou=itoclou+icloud
                                                 itodif1=itodif1+idif1
                                               endif
@@ -934,8 +958,8 @@
                                     volu2=siz2**3.D0
                                     call secondscat(rho,x_s,y_s,z_s,x_c,y_c,z_c,x_sr,y_sr,z_sr,x_obs,y_obs,z_obs,iz,lamplu, &
                                     ofill,srefl,drefle,reflsiz,obsH,altsol,inclix,incliy,pvalno,stype,zondi2,siz2,volu2,ndiff2, &
-                                    tranam,tabs,tranaa,tranal,secdif,secdil,fdifan,fdifl,haer,hlay,dx,dy,cloudt,cloudbase,omefov, &
-                                    scal,portio,idif2,icloud)
+                                    tranam,tabs,tranaa,tranal,secdif,secdil,fdifan,fdifl,haer,hlay,dx,dy,nbx,nby,cloudt, &
+                                    cloudbase,omefov,scal,portio,idif2,icloud)
                                     itoclou=itoclou+icloud
                                     itodif2(nres)=itodif2(nres)+idif2 ! Correct the result for the skipping of scattering voxels to accelerate the calculation
                                     ! outputs are idif2 and icloud
@@ -966,7 +990,7 @@
                                                 call secondscat(rho,x_s,y_s,z_s,x_c,y_c,z_c,x_sr,y_sr,z_sr,x_obs,y_obs,z_obs,iz, &
                                                 lamplu,ofill,srefl,drefle,reflsiz,obsH,altsol,inclix,incliy,pvalno,stype,zondi2, &
                                                 siz2,volu2,ndiff2,tranam,tabs,tranaa,tranal,secdif,secdil,fdifan,fdifl,haer,hlay, &
-                                                dx,dy,cloudt,cloudbase,omefov,scal,portio,idif2,icloud)
+                                                dx,dy,nbx,nby,cloudt,cloudbase,omefov,scal,portio,idif2,icloud)
                                                 itoclou=itoclou+icloud
                                                 itodif2(nres)=itodif2(nres)+idif2
                                               endif
@@ -991,8 +1015,8 @@
                                     volu3=siz3**3.D0                
                                     call thirdscat(rho,x_s,y_s,z_s,x_c,y_c,z_c,x_sr,y_sr,z_sr,x_obs,y_obs,z_obs,iz,lamplu, &
                                     ofill,srefl,drefle,reflsiz,obsH,altsol,inclix,incliy,pvalno,stype,zondi3,siz3,volu3, &
-                                    ndiff3,tranam,tabs,tranaa,tranal,secdif,secdil,fdifan,fdifl,haer,hlay,dx,dy,cloudt,cloudbase, &
-                                    omefov,scal,portio,idif3,icloud)
+                                    ndiff3,tranam,tabs,tranaa,tranal,secdif,secdil,fdifan,fdifl,haer,hlay,dx,dy,nbx,nby, &
+                                    cloudt,cloudbase,omefov,scal,portio,idif3,icloud)
                                     itodif3(nres)=itodif3(nres)+idif3
                                     itoclou=itoclou+icloud
                                     ! outputs are idif3 and icloud
@@ -1022,7 +1046,7 @@
                                                 call thirdscat(rho,x_s,y_s,z_s,x_c,y_c,z_c,x_sr,y_sr,z_sr,x_obs,y_obs,z_obs, &
                                                 iz,lamplu,ofill,srefl,drefle,reflsiz,obsH,altsol,inclix,incliy,pvalno,stype, &
                                                 zondi3,siz3,volu3,ndiff3,tranam,tabs,tranaa,tranal,secdif,secdil,fdifan,fdifl, &
-                                                haer,hlay,dx,dy,cloudt,cloudbase,omefov,scal,portio,idif3,icloud)
+                                                haer,hlay,dx,dy,nbx,nby,cloudt,cloudbase,omefov,scal,portio,idif3,icloud)
                                                 itodif3(nres)=itodif3(nres)+idif3
                                                 itoclou=itoclou+icloud    
                                               endif
@@ -1116,6 +1140,10 @@
               ! 2ND and 3RD ORDER extrapolation TO INFINITE RESOLUTION
               if (scat_level.gt.1) then
                 ! filter the data for abnormal variations.
+                do nfit=1,6
+                  resofit(nfit)=0.D0
+                  fluxfit(nfit)=0.D0
+                enddo
                 nfit=0
                 moy=0.D0
                 quad=0.D0
@@ -1149,6 +1177,10 @@
                 if (scat_level.gt.2) then
                   print*,'flux3',flux3
                   ! filter the data for abnormal variations.
+                  do nfit=1,6
+                    resofit(nfit)=0.D0
+                    fluxfit(nfit)=0.D0
+                  enddo
                   nfit=0
                   moy=0.D0
                   quad=0.D0
@@ -1181,7 +1213,7 @@
                     print*,'nfit3=',nfit,sigma
                     call linearfit(resofit,fluxfit,nfit,acoef,bcoef)
                     print*,bcoef,acoef
-!                    flux_3=EXP(bcoef) 
+!                    flux_3=dexp(bcoef) 
                     flux_3=bcoef**3.
                   else
                     print*,'LESS THAN 4 points for 3rd order'
@@ -1231,6 +1263,7 @@
                       ! filter the data for abnormal variations.
                       nfit=0
                       moy=0.D0
+                      nmoy=0
                       quad=0.D0
                       do nres=1,6
                         if (contrib3(x_s,y_s,nres).eq.0.D0) then
@@ -1240,7 +1273,6 @@
                       do nres=1,6
                         contrib3(x_s,y_s,nres)=(contrib3(x_s,y_s,nres))**(1./3.)
                       enddo
-                      nmoy=0
                       do nres=1,6
                         if (contrib3(x_s,y_s,nres).ne.0.D0) then
                           moy=contrib3(x_s,y_s,nres)+moy

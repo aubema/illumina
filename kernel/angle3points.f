@@ -32,7 +32,7 @@ c
       subroutine angle3points(x1,y1,z1,x2,y2,z2,x3,y3,z3,an3pts)
       real*8 x1,y1,x2,y2,x3,y3
       real*8 z1,z2,z3,an3pts,argume
-      real*8 xu,yu,zu,xv,yv,zv,dx,dy,pi,comp
+      real*8 xu,yu,zu,xv,yv,zv,pi
       parameter (pi = 3.141592654D0)
       xu=x2-x1                                                            ! Voici les composantes du vecteur u.
       yu=y2-y1
