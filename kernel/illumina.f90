@@ -524,9 +524,9 @@
           ! reading luminosity files
           call twodin(nbx,nby,lufile,val2d)
           imin(stype)=nbx+1
-          imax(stype)=1
+          imax(stype)=0
           jmin(stype)=nby+1
-          jmax(stype)=1
+          jmax(stype)=0
           do i=1,nbx ! beginning of the loop over all cells along x.
             do j=1,nby ! beginning of the loop over all cells along y.
               lamplu(i,j,stype)=val2d(i,j) ! remplir the array of the lamp type: stype
@@ -534,12 +534,7 @@
                 print*,'***Negative lamp flux!, stopping execution'
                 stop
               endif              
-              if (lamplu(i,j,stype).ge.0.D0) then ! searching of the smallest rectangle containing the zone of non-null luminosity to speedup the calculation
-                if (i.lt.imin(stype)) imin(stype)=i
-                if (j.lt.jmin(stype)) jmin(stype)=j 
-                if (i.gt.imax(stype)) imax(stype)=i
-                if (j.gt.jmax(stype)) jmax(stype)=j                 
-              endif
+
               ! Atmospheric correction and obstacles masking corrections to the lamp
               ! flux arrays (lumlp)
               if (viirs(i,j).eq.1) then
@@ -560,8 +555,12 @@
 
           
           
-          if (imin(stype).eq.nbx+1) imin(stype)=1
-          if (jmin(stype).eq.nby+1) jmin(stype)=1
+          imin(stype)=1
+          imax(stype)=nbx
+          jmin(stype)=1
+          jmax(stype)=nby         
+          
+          
           print*,'Zone',stype,'bounding box: x=',imin(stype),imax(stype),'y=',jmin(stype),jmax(stype)
 
 
@@ -856,9 +855,9 @@
                     
                     
                     
-                    if( (rx_c.gt.dble(nbx*dx)).or.(rx_c.lt.dx).or.(ry_c.gt.(nby*dy)).or.(ry_c.lt.dy)) then ! Condition line of sight inside the modelling domain
+                    !if( (rx_c.gt.dble(nbx*dx)).or.(rx_c.lt.dx).or.(ry_c.gt.(nby*dy)).or.(ry_c.lt.dy)) then ! Condition line of sight inside the modelling domain
                     ! I think these limits are not required
-                    else
+                    !else
                     
                     
                     
@@ -1118,7 +1117,7 @@
                       
                       
                       
-                    endif ! end of the condition line of sight voxel inside the modelling domain
+                    !endif ! end of the condition line of sight voxel inside the modelling domain
                     
                     
                     
