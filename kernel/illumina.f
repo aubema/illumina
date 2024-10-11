@@ -179,7 +179,6 @@ c                                                                         ! a li
       real*8 FCA(width,width)                                               ! sensor flux array
       real*8 lpluto(width,width)                                            ! total luminosity of the ground cell for all lamps
       character*3 lampno                                                  ! lamp number string
-      integer imin(nzon),imax(nzon),jmin(nzon),jmax(nzon)                 ! x and y limits containing a type of lamp
       real*8 angazi                                                         ! azimuth angle between two points in rad, max dist for the horizon determination
       real*8 latitu                                                         ! approximate latitude of the domain center
       integer prmaps                                                      ! flag to enable the tracking of contribution and sensitivity maps
@@ -561,10 +560,6 @@ c reading scattering parameters of particle layer
         close(1)
 c Some preliminary tasks
         do stype=1,ntype                                                  ! beginning of the loop 1 for the nzon types of sources.
-          imin(stype)=nbx
-          jmin(stype)=nby
-          imax(stype)=1
-          jmax(stype)=1
           pvalto=0.D0
           write(lampno, '(I3.3)' ) stype                                  ! support of nzon different sources (3 digits)
           pafile=basenm(1:lenbase)//'_fctem_'//lampno//'.dat'             ! setting the file name of angular photometry.
@@ -590,46 +585,7 @@ c reading luminosity files
               endif
             enddo                                                         ! end of the loop over all cells along y.
           enddo
-          do i=1,nbx                                                      ! searching of the smallest rectangle containing the zone
-            do j=1,nby                                                    ! of non-null luminosity to speedup the calculation
-              if (val2d(i,j).ne.0.D0) then
-                if (i-1.lt.imin(stype)) imin(stype)=i-2
-                if (imin(stype).lt.1) imin(stype)=1
-                goto 333
-              endif
-            enddo
-          enddo
-          imin(stype)=1
- 333      do i=nbx,1,-1
-            do j=1,nby
-              if (val2d(i,j).ne.0.D0) then
-                if (i+1.gt.imax(stype)) imax(stype)=i+2
-                if (imax(stype).gt.nbx) imax(stype)=nbx
-                goto 334
-              endif
-            enddo
-          enddo
-          imax(stype)=1
- 334      do j=1,nby
-            do i=1,nbx
-              if (val2d(i,j).ne.0.D0) then
-                if (j-1.lt.jmin(stype)) jmin(stype)=j-2
-                if (jmin(stype).lt.1) jmin(stype)=1
-                goto 335
-              endif
-            enddo
-          enddo
-          jmin(stype)=1
- 335      do j=nby,1,-1
-            do i=1,nbx
-              if (val2d(i,j).ne.0.D0) then
-                if (j+1.gt.jmax(stype)) jmax(stype)=j+2
-                if (jmax(stype).gt.nby) jmax(stype)=nby
-                goto 336
-              endif
-            enddo
-          enddo
-          jmax(stype)=1
+
  336      do i=1,nbx                                                      ! beginning of the loop over all cells along x.
             do j=1,nby                                                    ! beginning of the loop over all cells along y.
               lamplu(i,j,stype)=val2d(i,j)                                ! remplir the array of the lamp type: stype
@@ -650,8 +606,6 @@ c flux arrays (lumlp)
               totlu(stype)=totlu(stype)+lamplu(i,j,stype)                 ! the total lamp flux should be non-null to proceed to the calculations
             enddo                                                         ! end of the loop over all cells along y.
           enddo                                                           ! end of the loop over all cells along x.
-          print*,'Zone',stype,'bounding box: x=',imin(stype),
-     + imax(stype),'y=',jmin(stype),jmax(stype)
         enddo                                                             ! end of the loop 1 over the nzon types of sources.
         dy=dx
         omefov=0.00000001                                                 ! solid angle of the spectrometer slit on the sky. Here we only need a small value
@@ -684,8 +638,8 @@ c
             if (verbose.ge.1) print*,' Turning on lamps',stype
             if (verbose.ge.1) write(2,*) ' Turning on lamps',
      +      stype
-            do x_s=imin(stype),imax(stype)                                ! beginning of the loop over the column (longitude the) of the domain.
-            do y_s=jmin(stype),jmax(stype)                                ! beginning of the loop over the rows (latitud) of the domain.
+            do x_s=1,nbx                                ! beginning of the loop over the column (longitude the) of the domain.
+            do y_s=1,nby                                ! beginning of the loop over the rows (latitud) of the domain.
               intdir=0.D0
               itotind=0.D0
               itodif=0.D0
@@ -1149,8 +1103,8 @@ c beginning of the loop over the types of light sources
                       ITT(x_s,y_s,stype)=0.D0
                     enddo
                   enddo
-                  do x_s=imin(stype),imax(stype)                          ! beginning of the loop over the column (longitude the) of the domain.
-                    do y_s=jmin(stype),jmax(stype)                        ! beginning of the loop over the rows (latitud) of the domain.
+                  do x_s=1,nbx                          ! beginning of the loop over the column (longitude the) of the domain.
+                    do y_s=1,nby                        ! beginning of the loop over the rows (latitud) of the domain.
                       intdir=0.D0
                       itotind=0.D0
                       itodif=0.D0
@@ -1842,8 +1796,8 @@ c**********************************************************************
                     enddo                                                 ! end the loop over the column (longitude) of the domain (x_s).
 c end of the computation of the intensity of one source type
                     itotci=itotci+itotty                                  ! Sum of the intensities all source all type to a line of sight element
-                    do x_s=imin(stype),imax(stype)
-                      do y_s=jmin(stype),jmax(stype)
+                    do x_s=1,nbx
+                      do y_s=1,nby
                         ITC(x_s,y_s)=ITC(x_s,y_s)+ITT(x_s,y_s,stype)
                       enddo
                     enddo
