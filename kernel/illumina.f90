@@ -150,7 +150,6 @@
       real*8 contribution_1(width,width),contribution_2(width,width),contribution_3(width,width)
       real*8 contrimap1(width,width),contrimap2(width,width),contrimap3(width,width)
       character*3 lampno                                           ! lamp number string
-      integer imin(nzon),imax(nzon),jmin(nzon),jmax(nzon)          ! x and y limits containing a type of lamp
       integer prmaps                                               ! flag to enable the tracking of contribution and sensitivity maps
       integer cloudt                                               ! cloud type 0=clear, 1=Thin Cirrus/Cirrostratus, 2=Thick Cirrus/Cirrostratus, 3=Altostratus/Altocumulus,
                                                                    ! 4=Stratocumulus/stratus, 5=Cumulus/Cumulonimbus
@@ -523,10 +522,6 @@
           enddo
           ! reading luminosity files
           call twodin(nbx,nby,lufile,val2d)
-          imin(stype)=nbx+1
-          imax(stype)=0
-          jmin(stype)=nby+1
-          jmax(stype)=0
           do i=1,nbx ! beginning of the loop over all cells along x.
             do j=1,nby ! beginning of the loop over all cells along y.
               lamplu(i,j,stype)=val2d(i,j) ! remplir the array of the lamp type: stype
@@ -550,21 +545,6 @@
               totlu(stype)=totlu(stype)+lamplu(i,j,stype) ! the total lamp flux should be non-null to proceed to the calculations
             enddo ! end of the loop over all cells along y.
           enddo ! end of the loop over all cells along x.
-          
-          
-
-          
-          
-          imin(stype)=1
-          imax(stype)=nbx
-          jmin(stype)=1
-          jmax(stype)=nby         
-          
-          
-          print*,'Zone',stype,'bounding box: x=',imin(stype),imax(stype),'y=',jmin(stype),jmax(stype)
-
-
-          
         enddo ! end of the loop 1 over the nzon types of sources.
 
         
@@ -589,8 +569,8 @@
           if (totlu(stype).ne.0.D0) then ! check if there are any flux in that source type otherwise skip this lamp
             if (verbose.ge.1) print*,' Turning on lamps zone',stype
             if (verbose.ge.1) write(2,*) ' Turning on lamps zone',stype
-            do x_s=imin(stype),imax(stype) ! beginning of the loop over the source in x
-              do y_s=jmin(stype),jmax(stype) ! beginning of the loop over source in y
+            do x_s=1,nbx ! beginning of the loop over the source in x
+              do y_s=1,nby ! beginning of the loop over source in y
               
               ! initialiser ?
               
@@ -855,9 +835,9 @@
                     
                     
                     
-                    !if( (rx_c.gt.dble(nbx*dx)).or.(rx_c.lt.dx).or.(ry_c.gt.(nby*dy)).or.(ry_c.lt.dy)) then ! Condition line of sight inside the modelling domain
-                    ! I think these limits are not required
-                    !else
+                    if( (rx_c.gt.dble(nbx*dx)).or.(rx_c.lt.dx).or.(ry_c.gt.(nby*dy)).or.(ry_c.lt.dy)) then ! Condition line of sight inside the modelling domain
+                    
+                    else
                     
                     
                     
@@ -883,8 +863,8 @@
                           idnint(siz3_0),")"
                           if (verbose.ge.1) write(2,*) ' Turning on lamps zone',stype,'@ resolutions',nres,"(",idnint(siz2_0), &
                           idnint(siz3_0),")"
-                          do x_s=imin(stype),imax(stype) ! beginning of the loop over the column (longitude the) of the domain.
-                            do y_s=jmin(stype),jmax(stype)
+                          do x_s=1,nbx ! beginning of the loop over the column (longitude the) of the domain.
+                            do y_s=1,nby
                               rx_s=dble(x_s)*dx
                               ry_s=dble(y_s)*dy
 ! 1st scattering from source and ground                              
@@ -1107,8 +1087,8 @@
                       
                       
 
-                      do x_s=imin(stype),imax(stype)
-                        do y_s=jmin(stype),jmax(stype)
+                      do x_s=1,nbx
+                        do y_s=1,nby
                           if (nres.eq.1) contrib1(x_s,y_s)=contrib1(x_s,y_s)*ometif*transa*transm*transl
                           contrib2(x_s,y_s,nres)=contrib2(x_s,y_s,nres)*ometif*transa*transm*transl     
                           contrib3(x_s,y_s,nres)=contrib3(x_s,y_s,nres)*ometif*transa*transm*transl                 
@@ -1117,7 +1097,7 @@
                       
                       
                       
-                    !endif ! end of the condition line of sight voxel inside the modelling domain
+                    endif ! end of the condition line of sight voxel inside the modelling domain
                     
                     
                     
@@ -1228,8 +1208,8 @@
               endif
               flux_1=flux1
               flux_all=flux_1+flux_2+flux_3
-              do x_s=imin(stype),imax(stype)
-                do y_s=jmin(stype),jmax(stype)
+              do x_s=1,nbx
+                do y_s=1,nby
                   if (scat_level.gt.1) then  
                     ! filter the data for abnormal variations.
                     nfit=0
@@ -1311,8 +1291,8 @@
               flux_total_3=flux_total_3+flux_3
               flux_total=flux_total+flux_all
               print*,'Components:',flux_total_1,flux_total_2,flux_total_3,flux_total
-              do x_s=imin(stype),imax(stype)
-                do y_s=jmin(stype),jmax(stype)
+              do x_s=1,nbx
+                do y_s=1,nby
                   contrimap1(x_s,y_s)=contrimap1(x_s,y_s)+contribution_1(x_s,y_s)
                   contrimap2(x_s,y_s)=contrimap2(x_s,y_s)+contribution_2(x_s,y_s)
                   contrimap3(x_s,y_s)=contrimap3(x_s,y_s)+contribution_3(x_s,y_s)
