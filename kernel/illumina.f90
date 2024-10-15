@@ -853,6 +853,14 @@ program illumina ! Beginning
                                  idnint(siz3_0),")"
                               do x_s=1,nbx ! beginning of the loop over the column (longitude the) of the domain.
                                  do y_s=1,nby
+                                 
+                                 !!! IN THE OLD CODE INTDIR, ITOTIND, ITODIF, ITOTRD AND ISOURCE WERE INITIALIZED HERE
+                                 !itodif1=0.D0
+                                
+                                 
+                                 
+                                 
+                                 
                                     rx_s=dble(x_s)*dx
                                     ry_s=dble(y_s)*dy
 ! 1st scattering from source and ground
