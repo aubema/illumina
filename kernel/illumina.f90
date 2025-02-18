@@ -164,7 +164,6 @@ program illumina ! Beginning
    real*8 cloudfrac ! cloud fraction in percentage
    integer xsrmi,xsrma,ysrmi,ysrma ! limits of the loop valeur for the reflecting surfaces
    real*8 icloud ! cloud reflected intensity
-   real*8 fccld ! correction for the FOV to the flux reaching the intrument from the cloud voxel
    real*8 fctcld ! total flux from cloud at the sensor level
    real*8 totlu(nzon) ! total flux of a source type
    real*8 stoplim ! Stop computation when the new voxel contribution is less than 1/stoplim of the cumulated flux
@@ -398,7 +397,6 @@ program illumina ! Beginning
    flrefl=0.D0
    irefl1=0.D0
    portio=0.D0
-   fccld=0.D0
    fctcld=0.D0
    ometif=0.D0
    omefov=0.D0
@@ -736,6 +734,198 @@ program illumina ! Beginning
    ! end of direct calculations
 
 
+
+
+
+
+
+
+
+   ! Calcul de la radiance des nuages provenant de la directe source-nuage et ground-nuage
+   ! A TERMINER
+   ! POUR CETTE SECTION, IL FAUT DECLARER LES VARIABLES
+   
+   
+                  do x_s=1,nbx                          ! beginning of the loop over the column (longitude the) of the domain.
+                    do y_s=1,nby                        ! beginning of the loop over the rows (latitud) of the domain.
+   call anglezenithal(rx_s,ry_s,z_s,rx_c,ry_c,z_c,angzen)                      ! computation of the zenithal angle between the source and the line of sight voxel.
+   call angleazimutal(rx_s,ry_s,rx_c,ry_c,angazi)
+   ! computation of the transmittance between the source and the line of sight
+   distd=sqrt((rx_c-rx_s)**2.+(ry_c-ry_s)**2.+(z_c-z_s)**2.)
+   call transmitm(angzen,z_s,z_c,distd,transm,tranam,tabs)
+   call transmita(angzen,z_s,z_c,distd,haer,transa,tranaa)
+   call transmitl(angzen,z_s,z_c,distd,hlay,transl,tranal)
+   ! computation of the solid angle of the line of sight voxel seen from the source
+   omega=1./distd**2.
+   if (omega.gt.omemax) omega=0.
+   anglez=nint(180.*angzen/pi)+1
+   P_dir=pvalno(anglez,stype)
+   call blocking(x_s,y_s,z_s,x_c,y_c,z_c,dx,dy,nbx,nby,altsol,drefle,ofill,obsH,hh,ff1,ff2)
+   fluxdir=lamplu(x_s,y_s,stype)*P_dir*omega*transm*transa*transl*(1.-ff)*hh       ! correction for obstacle filling factor
+   
+
+   if (cloudt.ne.0) then ! line of sight voxel = cloud
+     if (cloudbase-z_c.le.iz*scal) then ! this is the cloud base interface
+       call anglezenithal(rx_c,ry_c,z_c,rx_obs,ry_obs,z_obs,azcl1) ! zenith angle from cloud to observer
+       call anglezenithal(rx_c,ry_c,z_c,rx_s,ry_s,z_s,azcl2) ! zenith angle from source to cloud
+       doc2=(rx_c-rx_obs)**2.+(ry_c-ry_obs)**2.+(z_c-z_obs)**2.
+       dsc2=(rx_s-rx_c)**2.+(ry_s-ry_c)**2.+(z_s-z_c)**2.
+       call cloudreflectance(zenith,cloudt,rcloud) ! cloud intensity from direct illum
+       ! computing the cloud intensity toward the observer
+       icloud=fluxdir/omega*rcloud*doc2*omefov*dabs(dcos(azcl2)/dcos(azcl1))/dsc2/pi ! return to main
+     endif
+   endif
+
+
+
+
+
+
+
+   ! reflected light
+   xsrmi=x_s-boxx
+   if (xsrmi.lt.1) xsrmi=1
+   xsrma=x_s+boxx
+   if (xsrma.gt.nbx) xsrma=nbx
+   ysrmi=y_s-boxy
+   if (ysrmi.lt.1) ysrmi=1
+   ysrma=y_s+boxy
+   if (ysrma.gt.nby) ysrma=nby
+   do x_sr=xsrmi,xsrma                           ! beginning of the loop over the column (longitude) reflecting.
+     rx_sr=real(x_sr)*dx
+     do y_sr=ysrmi,ysrma                         ! beginning of the loop over the rows (latitu) reflecting.
+       ry_sr=real(y_sr)*dy
+       irefl=0.
+       z_sr=altsol(x_sr,y_sr)
+       if((x_sr.gt.nbx).or.(x_sr.lt.1).or.(y_sr.gt.nby).or.(y_sr.lt.1)) then
+         if (verbose.eq.2) then
+           print*,'Ground cell out of borders'
+         endif
+       else
+         if((x_s.eq.x_sr).and.(y_s.eq.y_sr).and.(z_s.eq.z_sr)) then
+           if (verbose.eq.2) then
+             print*,'Source pos = Ground cell'
+           endif
+         else
+           haut=-(rx_s-rx_sr)*tan(inclix(x_sr,y_sr))-(ry_s-ry_sr)*tan(incliy(x_sr,y_sr))+z_s-z_sr            ! if haut is negative, the ground cell is lighted from below
+           if (haut .gt. 0.) then              ! Condition: the ground cell is lighted from above
+! computation of the zenithal angle between the source and the surface reflectance
+             call anglezenithal(rx_s,ry_s,z_s,rx_sr,ry_sr,z_sr,angzen)             ! end of the case "observer at the same latitu/longitude than the source".
+! computation of the zenithal angle between the source and the line of sight voxel.
+                                 
+! computation of the transmittance between the source and the ground surface
+             distd=sqrt((rx_s-rx_sr)**2.+(ry_s-ry_sr)**2.+(z_s-z_sr)**2.)
+             call transmitm(angzen,z_s,z_sr,distd,transm,tranam,tabs)
+             call transmita(angzen,z_s,z_sr,distd,haer,transa,tranaa)
+             call transmitl(angzen,z_s,z_sr,distd,hlay,transl,tranal)
+! computation of the solid angle of the reflecting cell seen from the source
+             xc=dble(x_sr)*dble(dx)            ! Position in meters of the observer voxel (longitude).
+             yc=dble(y_sr)*dble(dy)            ! Position in meters of the observer voxel (latitu).
+             zc=dble(z_sr)                     ! Position in meters of the observer voxel (altitude).
+             xn=dble(x_s)*dble(dx)             ! Position in meters of the source (longitude).
+             yn=dble(y_s)*dble(dy)             ! Position in meters of the source (latitu).
+             zn=dble(z_s)                      ! Position in meters of the source (altitude).
+             epsilx=inclix(x_sr,y_sr)          ! tilt along x of the ground reflectance
+             epsily=incliy(x_sr,y_sr)          ! tilt along x of the ground reflectance
+             if (dx.gt.reflsiz) then           ! use a sub-grid surface when the reflectance radius is smaller than the cell size
+               if ((x_sr.eq.x_s).and.(y_sr.eq.y_s)) then
+                 dxp=reflsiz
+               else
+                 dxp=dx
+               endif
+             else
+               dxp=dx
+             endif
+             if (dy.gt.reflsiz) then
+               if ((x_sr.eq.x_s).and.(y_sr.eq.y_s)) then
+                 dyp=reflsiz
+               else
+                 dyp=dy
+               endif
+             else
+               dyp=dy
+             endif
+             r1x=xc-dble(dxp)/2.-xn            ! computation of the composante along x of the first vector.
+             r1y=yc+dble(dyp)/2.-yn            ! computation of the composante along y of the first vector.
+             r1z=zc-tan(dble(epsilx))*dble(dxp)/2.+tan(dble(epsily))*dble(dyp)/2.-zn    ! computation of the composante en z of the first vector.
+             r2x=xc+dble(dxp)/2.-xn            ! computation of the composante along x of the second vector.
+             r2y=yc+dble(dyp)/2.-yn            ! computation of the composante along y of the second vector.
+             r2z=zc+tan(dble(epsilx))*dble(dxp)/2.+tan(dble(epsily))*dble(dyp)/2.-zn    ! computation of the composante en z of the second vector.
+             r3x=xc-dble(dxp)/2.-xn            ! computation of the composante along x of the third vector.
+             r3y=yc-dble(dyp)/2.-yn            ! computation of the composante along y of the third vector.
+             r3z=zc-tan(dble(epsilx))*dble(dxp)/2.-tan(dble(epsily))*dble(dyp)/2.-zn    ! computation of the composante en z of the third vector.
+             r4x=xc+dble(dxp)/2.-xn            ! computation of the composante along x of the fourth vector.
+             r4y=yc-dble(dyp)/2.-yn            ! computation of the composante along y of the fourth vector.
+             r4z=zc+tan(dble(epsilx))*dble(dxp)/2.-tan(dble(epsily))*dble(dyp)/2.-zn    ! computation of the composante en z of the fourth vector.
+             call anglesolide(omega,r1x,r1y,r1z,r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z)       ! Call of the routine anglesolide to compute the angle solide.
+             if (omega.lt.0.) then
+               print*,'ERROR: Solid angle of the reflecting surface < 0.'
+               stop
+             endif   
+! estimation of the half of the underlying angle of the solid angle       ! this angle servira a obtenir un meilleur isime (moyenne) of
+!                                                                         ! P_dir for le cas of grans solid angles the , pvalno varie significativement sur +- ouvang.
+             ouvang=sqrt(omega/pi)             ! Angle in radian.
+             ouvang=ouvang*180./pi             ! Angle in degrees.
+! computation of the photometric function of the light fixture toward the reflection surface
+             anglez=nint(180.*angzen/pi)
+             if (anglez.lt.0) anglez=-anglez
+             if (anglez.gt.180) anglez=360-anglez
+             anglez=anglez+1                   ! Transform the angle in integer degree into the position in the array.
+! average +- ouvang
+             naz=0
+             nbang=0.
+             P_indir=0.
+             do na=-nint(ouvang),nint(ouvang)
+               naz=anglez+na
+               if (naz.lt.0) naz=-naz
+               if (naz.gt.181) naz=362-naz     ! symetric function
+               if (naz.eq.0) naz=1
+               P_indir=P_indir+pvalno(naz,stype)*abs(sin(pi*real(naz)/180.))/2.
+               nbang=nbang+1.*abs(sin(pi*real(naz)/180.))/2.
+             enddo
+             P_indir=P_indir/nbang
+! computation of the flux reaching the reflecting surface
+             flrefl=lamplu(x_s,y_s,stype)*P_indir*omega*transm*transa*transl
+             irefl=flrefl*srefl/pi            ! The factor 1/pi comes from the normalisation of the fonction
+             call anglezenithal(rx_sr,ry_sr,z_sr,rx_c,ry_c,z_c,angzen)
+             call angleazimutal(rx_sr,ry_sr,rx_c,ry_c,angazi)
+             distd=sqrt((rx_sr-rx_c)**2.+(ry_sr-ry_c)**2.+(z_sr-z_c)**2.)
+! computation of the transmittance between the ground surface and the line of sight voxel
+             call transmitm(angzen,z_sr,z_c,distd,transm,tranam,tabs)
+             call transmita(angzen,z_sr,z_c,distd,haer,transa,tranaa)
+             call transmitl(angzen,z_sr,z_c,distd,hlay,transl,tranal)
+! computation of the solid angle of the line of sight voxel seen from the reflecting cell
+             omega=1./distd**2.
+             if (omega.gt.omemax) omega=0.
+! computation of the flux reflected reaching the line of sight voxel
+             call blocking(x_sr,y_sr,z_sr,x_c,y_c,z_c,dx,dy,nbx,nby,altsol,drefle,ofill,obsH,hh,ff1,ff2)
+             fluxref=irefl*omega*transm*transa*transl*(1.-ff)*hh        ! obstacles correction      
+             if (cloudt.ne.0) then ! line of sight voxel = cloud
+               if (cloudbase-z_c.le.iz*scal) then ! this is the cloud base interface
+                 call anglezenithal(rx_c,ry_c,z_c,rx_obs,ry_obs,z_obs,azcl1) ! zenith angle from cloud to observer
+                 call anglezenithal(rx_c,ry_c,z_c,rx_sr,ry_sr,z_sr,azcl2) ! zenith angle from source to cloud
+                 doc2=(rx_c-rx_obs)**2.+(ry_c-ry_obs)**2.+(z_c-z_obs)**2.
+                 dsc2=(rx_sr-rx_c)**2.+(ry_sr-ry_c)**2.+(z_sr-z_c)**2.
+                 call cloudreflectance(zenith,cloudt,rcloud) ! cloud intensity from direct illum
+        !   computing the cloud intensity toward the observer
+                 icloud=fluxref/omega*rcloud*doc2*omefov*dabs(dcos(azcl2)/dcos(azcl1))/dsc2/pi ! return to main
+               endif
+             endif   
+           endif !fin condition haut
+         endif
+       endif
+     enddo ! end of the loop over the rows (latitu) reflecting.
+   enddo ! end of the loop over the column (longitude) reflecting.
+               enddo
+               enddo
+   
+   
+   
+   
+   
+   
+   
+   
    radius_2=7000.D0
    radius_3=8000.D0
    size_0=2000.D0
@@ -767,7 +957,7 @@ program illumina ! Beginning
       ry_c=dble(y_obs)*dx-iy*scal/2.
       z_c=z_obs-iz*scal/2.
       do icible=1,ncible ! beginning of the loop over the line of sight voxels
-
+         icloud=0.D0
          itodif1=0.D0
          do nres=1,nresmax
             itodif2(nres)=0.D0
@@ -790,6 +980,13 @@ program illumina ! Beginning
                   if ((flux_all.ge.flux_total/(2.*stoplim)).and.(z_c.lt.cloudbase).and.(z_c.lt.35000.D0)) then
                      ! stop the calculation of the viewing line when the increment is lower than 1/stoplim
                      ! or when hitting a cloud or when z>35km (scattering probability =0 (given precision)
+                     
+                     
+                     
+                     fctcld=0.D0
+                     itoclou=0.D0
+                     
+                     
                      if ((x_c.lt.1).or.(x_c.gt.nbx).or.(y_c.lt.1).or.(y_c.gt.nby)) then
                         print*,'out of bounds',x_c,y_c
                         stop
@@ -1279,8 +1476,7 @@ program illumina ! Beginning
                      ! correction for the FOV to the flux reaching the intrument from the cloud voxel
                      if (cloudt.ne.0) then
                         ! computation of the flux reaching the intrument from the cloud voxel
-                        fccld=itoclou*ometif*transa*transm*transl
-                        fctcld=fctcld+fccld ! cloud flux for all source all type all line of sight element
+                        fctcld=itoclou*ometif*transa*transm*transl ! cloud flux for all source all type all line of sight element
                      endif
                      if (verbose.ge.1) print*,'Added radiance =',flux_all/omefov/(pi*(diamobj/2.)**2.)
                      if (verbose.ge.1) print*,'Radiance accumulated =',flux_total/omefov/(pi*(diamobj/2.)**2.)
@@ -1296,8 +1492,9 @@ program illumina ! Beginning
    endif ! end of scattered light
 
 
-
-   write(*,2002) flux_total_2/flux_total_1,flux_total_3/flux_total_1
+   if (flux_total_1.gt.0.D0) then
+     write(*,2002) flux_total_2/flux_total_1,flux_total_3/flux_total_1
+   endif
    fctcld=fctcld*10**(0.4*(100.D0-cloudfrac)*cloudslope) ! correction for the cloud fraction (defined from 0 to 100)
    if (prmaps.eq.1) then
       if (verbose.eq.2) then
