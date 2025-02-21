@@ -98,7 +98,7 @@
         else
           pdif=0.D0
         endif
-        idif=flux*pdif*scal*portio        
+        idif=flux*pdif*scal*portio  
         if (cloudt.ne.0) then ! line of sight voxel = cloud
           if (cloudbase-z_c.le.1.2*iz*scal) then ! this is the cloud base interface
             call anglezenithal(rx_c,ry_c,z_c,rx_obs,ry_obs,z_obs,azcl1) ! zenith angle from cloud to observer
