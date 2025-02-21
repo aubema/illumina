@@ -421,7 +421,7 @@ c Initialisation of the arrays and variables
         enddo
         idif1=0.
         idif2=0.
-        fdif2=0
+        fdif2=0.
         idif2p=0.
         fldir=0.
         flindi=0.
@@ -1518,6 +1518,7 @@ c computing the solid angle of the line of sight voxel as seen from the scatteri
 c computation of the scattered flux reaching the line of sight voxel
             fdif2=idif2*omega*transm*transa*transl*(1.-ff)*hh
 c cloud contribution for double scat from a reflecting pixel
+            if (z_dif.lt.cloudbase) then
             if (cloudt.ne.0) then                                         ! line of sight voxel = cloud
               if (cloudbase-z_c.le.1.20*iz*scal) then
                 call anglezenithal(rx_c,ry_c,z_c,
@@ -1531,9 +1532,10 @@ c cloud contribution for double scat from a reflecting pixel
                 call cloudreflectance(angzen,                             ! cloud intensity from direct illum
      +          cloudt,rcloud)
                 icloud=icloud+
-     +          fldif2/omega*rcloud*doc2*omefov*
+     +          fdif2/omega*rcloud*doc2*omefov*
      +          abs(cos(azcl2)/cos(azcl1))/dsc2/pi
               endif
+            endif
             endif
 c computation of the scattering probability of the scattered light toward the observer voxel (exiting voxel_c)
             if (omega.ne.0.) then
@@ -1645,6 +1647,7 @@ c computing the solid angle of the line of sight voxel as seen from the scatteri
 c computation of the scattered flux reaching the line of sight voxel
               fldiff=idif1*omega*transm*transa*transl*(1.-ff)*hh
 c cloud contribution to the double scattering from a source
+              if (z_dif.lt.cloudbase) then
               if (cloudt.ne.0) then                                       ! line of sight voxel = cloud
                 if (cloudbase-z_c.le.1.20*iz*scal) then
                   call anglezenithal(rx_c,ry_c,z_c,
@@ -1661,6 +1664,7 @@ c cloud contribution to the double scattering from a source
      +            fldiff/omega*rcloud*doc2*omefov*
      +            abs(cos(azcl2)/cos(azcl1))/dsc2/pi
                 endif
+              endif
               endif
 c computation of the scattering probability of the scattered light toward the observer voxel (exiting voxel_c)
               if (omega.ne.0.) then
