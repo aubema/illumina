@@ -275,7 +275,7 @@
               ! computing scattered intensity at the line of sight voxel toward the observer 
               idift=idift+flux*pdif*scal*portio
 
-
+              if (z_difb.lt.cloudbase) then
               if (cloudt.ne.0) then ! line of sight voxel = cloud
                 if (cloudbase-z_c.le.iz*scal) then ! this is the cloud base interface
                   call anglezenithal(rx_c,ry_c,z_c,rx_obs,ry_obs,z_obs,azcl1) ! zenith angle from cloud to observer
@@ -286,6 +286,7 @@
                   ! computing the cloud intensity toward the observer
                   icloud=icloud+flux/omega*rcloud*doc2*omefov*dabs(dcos(azcl2)/dcos(azcl1))/dsc2/pi ! return to main
                 endif
+              endif
               endif
               
               
