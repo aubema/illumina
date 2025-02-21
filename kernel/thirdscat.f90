@@ -119,6 +119,11 @@
                     pdif=0.
                   endif
                   idif=flux*pdif*volu
+                  ! AJOUTER LES NUAGES ICI
+                  
+                  
+                  
+                  
                 endif
               else ! from ground
                 if ((ds1.lt.dss).or.(ds2.lt.dss).or.(ds3.lt.dss)) then
@@ -269,6 +274,8 @@
               endif
               ! computing scattered intensity at the line of sight voxel toward the observer 
               idift=idift+flux*pdif*scal*portio
+
+
               if (cloudt.ne.0) then ! line of sight voxel = cloud
                 if (cloudbase-z_c.le.iz*scal) then ! this is the cloud base interface
                   call anglezenithal(rx_c,ry_c,z_c,rx_obs,ry_obs,z_obs,azcl1) ! zenith angle from cloud to observer
@@ -280,8 +287,14 @@
                   icloud=icloud+flux/omega*rcloud*doc2*omefov*dabs(dcos(azcl2)/dcos(azcl1))/dsc2/pi ! return to main
                 endif
               endif
-            endif
-          endif                     
+              
+              
+            endif ! above ground below clouds and below 35km
+            
+
+            
+            
+          endif ! 2nd and 3rd scat cells not equal
         enddo ! end scattering volume b
       enddo ! end scattering volume a
       return
