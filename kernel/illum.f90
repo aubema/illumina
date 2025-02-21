@@ -64,155 +64,155 @@
 program illumina ! Beginning
    implicit none
    ! Variables declaration
-   integer width,nzon ! Arrays dimension in Length/width and zones
+   integer width,nzon                                           ! Arrays dimension in Length/width and zones
    parameter (width=512,nzon=256)
    real*8 pi,pix4
-   real*8 zero,un ! value of 0. and 1.
-   integer verbose ! verbose = 1 to have more print out, 0 for silent
+   real*8 zero,un                                                 ! value of 0. and 1.
+   integer verbose                                              ! verbose = 1 to have more print out, 0 for silent
    parameter (pi=3.141592654)
    parameter (pix4=4.*pi)
-   character*72 mnaf ! Terrain elevation file
-   character*72 diffil ! Aerosol file
-   character*72 outfile ! Results file
+   character*72 mnaf                                            ! Terrain elevation file
+   character*72 diffil                                          ! Aerosol file
+   character*72 outfile                                         ! Results file
    character*72 pclimg1,pclimg2,pclimg3
-   character*72 basenm ! Base name of files
-   integer lenbase ! Length of the Base name of the experiment
-   real*8 lambda,pressi,drefle(width,width) ! Wavelength (nanometer), atmospheric pressure (kPa), mean free path to the ground (meter).
-   real*8 reflsiz ! Size of the reflecting surface
-   integer ntype ! Number of light source types or zones considered
-   real*8 largx ! Width (x axis) of the modeling domain (meter)
-   real*8 largy ! Length (y axis) of the modeling domain (meter)
-   integer nbx,nby ! Number of pixels in the modeling domain
-   real*8 val2d(width,width) ! Temporary input array 2d
-   real*8 altsol(width,width) ! Ground elevation (meter)
-   real*8 srefl ! Ground reflectance
-   integer stype ! Source type or zone index
-   character*72 pafile,lufile,alfile,ohfile,odfile,offile ! Files related to light sources and obstacles (photometric function of the sources 
-   ! (sr-1), flux (W), height (m), obstacles height (m), obstacle distance (m), obstacle filling factor (0-1).
-   real*8 lamplu(width,width,nzon) ! Source fluxes
-   real*8 lampal(width,width) ! Height of the light sources relative to the ground (meter)
-   real*8 pval(181,nzon),pvalto,pvalno(181,nzon) ! Values of the angular photometry functions (unnormalized, integral, normalized)
-   real*8 dtheta ! Angle increment of the photometric function of the sources
-   real*8 dx,dy,dxp,dyp ! Width of the voxel (meter)
-   integer boxx,boxy ! reflection window size (pixels)
-   real*8 fdifa(181),fdifan(181) ! Aerosol scattering functions (unnormalized and normalized)
-   real*8 anglea(181) ! Aerosol cross sections (extinction and scattering), scattering angle (degree)
-   real*8 secdif ! Contribution of the scattering to the extinction
-   real*8 inclix(width,width) ! tilt of the ground pixel along x (radian)
-   real*8 incliy(width,width) ! tilt of the ground pixel along y (radian)
-   integer x_obs,y_obs ! Position of the observer (INTEGER)
+   character*72 basenm                                          ! Base name of files
+   integer lenbase                                              ! Length of the Base name of the experiment
+   real*8 lambda,pressi,drefle(width,width)                       ! Wavelength (nanometer), atmospheric pressure (kPa), mean free path to the ground (meter).
+   real*8 reflsiz                                                 ! Size of the reflecting surface
+   integer ntype                                                ! Number of light source types or zones considered
+   real*8 largx                                                   ! Width (x axis) of the modeling domain (meter)
+   real*8 largy                                                   ! Length (y axis) of the modeling domain (meter)
+   integer nbx,nby                                              ! Number of pixels in the modeling domain
+   real*8 val2d(width,width)                                      ! Temporary input array 2d
+   real*8 altsol(width,width)                                     ! Ground elevation (meter)
+   real*8 srefl                                                   ! Ground reflectance
+   integer stype                                                ! Source type or zone index
+   character*72 pafile,lufile,alfile,ohfile,odfile,offile       ! Files related to light sources and obstacles (photometric function of the sources (sr-1), flux (W), height (m), obstacles c                                                                  ! height (m), obstacle distance (m), obstacle filling factor (0-1).
+   real*8 lamplu(width,width,nzon)                                ! Source fluxes
+   real*8 lampal(width,width)                                     ! Height of the light sources relative to the ground (meter)
+   real*8 pval(181,nzon),pvalto,pvalno(181,nzon)                  ! Values of the angular photometry functions (unnormalized, integral, normalized)
+   real*8 dtheta                                                  ! Angle increment of the photometric function of the sources
+   real*8 dx,dy,dxp,dyp                                           ! Width of the voxel (meter)
+   integer boxx,boxy                                            ! reflection window size (pixels)
+   real*8 fdifa(181),fdifan(181)                                  ! Aerosol scattering functions (unnormalized and normalized)
+   real*8 anglea(181)                               ! Aerosol cross sections (extinction and scattering), scattering angle (degree)
+   real*8 secdif                                                  ! Contribution of the scattering to the extinction
+   real*8 inclix(width,width)                                     ! tilt of the ground pixel along x (radian)
+   real*8 incliy(width,width)                                     ! tilt of the ground pixel along y (radian)
+   integer x_obs,y_obs                                          ! Position of the observer (INTEGER)
    real*8 rx_obs,ry_obs
-   real*8 z_o ! observer height relative to the ground (meter)
-   real*8 z_obs ! Height of the observer (meter) to the vertical grid scale
-   integer ncible,icible ! Number of line of sight voxels, number loops over the voxels
-   integer x_c,y_c ! Position of the line of sight voxel (INTEGER)
+   real*8 z_o                                                     ! observer height relative to the ground (meter)
+   real*8 z_obs                                                   ! Height of the observer (meter) to the vertical grid scale
+   integer ncible,icible                                        ! Number of line of sight voxels, number loops over the voxels
+   integer x_c,y_c                                              ! Position of the line of sight voxel (INTEGER)
    real*8 rx_c,ry_c
-   real*8 z_c ! Height of the line of sight voxel (meter)
-   integer x_s,y_s,x_sr,y_sr ! Positions of the source, the reflecting surface, and the scattering voxels
-   real*8 z_s,z_sr ! Heights of the source, the reflecting surface, and the scattering voxel (metre).
+   real*8 z_c                                                     ! Height of the line of sight voxel (meter)
+   integer x_s,y_s,x_sr,y_sr                                    ! Positions of the source, the reflecting surface, and the scattering voxels
+   real*8 z_s,z_sr                                 ! Heights of the source, the reflecting surface, and the scattering voxel (metre).
    real*8 rx_s,ry_s,rx_sr,ry_sr
-   real*8 angzen,ouvang ! Zenithal angle between two voxels (radians) and opening angle of the solid angle in degrees.
-   integer anglez ! Emitting zenithal angle from the luminaire.
-   real*8 zenith ! zenith angle used for blocking
-   real*8 P_indir ! photometric function of the light sources (direct,indirect,scattered)
+   real*8 angzen,ouvang                                           ! Zenithal angle between two voxels (radians) and opening angle of the solid angle in degrees.
+   integer anglez                                               ! Emitting zenithal angle from the luminaire.
+   real*8 zenith                                                   ! zenith angle used for blocking
+   real*8 P_indir                                   ! photometric function of the light sources (direct,indirect,scattered)
    real*8 P_dir
-   real*8 transa,transm,transl ! Transmittance between two voxels (aerosols,molecules,particle layer).
-   real*8 taua ! Aerosol optical depth @ 500nm.
-   real*8 alpha ! Angstrom coefficient of aerosol AOD
-   real*8 xc,yc,zc,xn,yn,zn ! Position (meter) of the elements (starting point, final point) for the calculation of the solid angle.
-   real*8 r1x,r1y,r1z,r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z ! Components of the vectors used in the solid angle calculation routine.
-   real*8 omega ! Solid angles
-   real*8 idif3 ! 3rd scat  intensity
-   real*8 flux2(6),flux3(6),flux3p(6) ! Flux reaching the observer voxel from all FOV voxels in a given model level
-   real*8 flux_total,flux_total_1,flux_total_2,flux_total_3 ! Total flux reaching the observer voxel
-   real*8 haut ! Haut (negative indicate that the surface is lighted from inside the ground. I.e. not considered in the calculation
-   real*8 epsilx,epsily ! tilt of the ground pixel
-   real*8 flrefl ! flux reaching a reflecting surface (watts).
-   real*8 irefl1 ! intensity leaving a reflecting surface toward the line of sight voxel.
-   real*8 radius_2,radius_3 ! Distance around the source voxel and line of sight voxel considered to compute the 2nd order of scattering.
-   real*8 zondi2(3000000,3),zondi3(3000000,3) ! Array for the scattering voxels positions
-   integer ndiff2 ! Number of 2nd scattering voxels, counter of the loop over the 2nd scattering voxels
-   integer ndiff3 ! Number of 3rd scattering voxels, counter of the loop over the 3rd scattering voxels
-   integer scat_level ! activate single double and triple scattering (0= direct only, 1= 1st scat max, 2= 2nd scat max, 3= 3rd scat max)
-   real*8 idif1 ! intensity toward a line of sight voxel from a scattering voxel (without and with reflexion).
+   real*8 transa,transm,transl                                    ! Transmittance between two voxels (aerosols,molecules,particle layer).
+   real*8 taua                                                    ! Aerosol optical depth @ 500nm.
+   real*8 alpha                                                   ! Angstrom coefficient of aerosol AOD
+   real*8 xc,yc,zc,xn,yn,zn                                     ! Position (meter) of the elements (starting point, final point) for the calculation of the solid angle.
+   real*8 r1x,r1y,r1z,r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z       ! Components of the vectors used in the solid angle calculation routine.
+   real*8 omega                                                   ! Solid angles
+   real*8 idif3                                                   ! 3rd scat  intensity
+   real*8 flux1,flux2(6),flux3(6),flux3p(6)                      ! Flux reaching the observer voxel from all FOV voxels in a given model level
+   real*8 flux_total,flux_total_1,flux_total_2,flux_total_3                    ! Total flux reaching the observer voxel
+   real*8 haut                                                    ! Haut (negative indicate that the surface is lighted from inside the ground. I.e. not considered in the calculation
+   real*8 epsilx,epsily                                           ! tilt of the ground pixel
+   real*8 flrefl                                                  ! flux reaching a reflecting surface (watts).
+   real*8 irefl1                                            ! intensity leaving a reflecting surface toward the line of sight voxel.
+   real*8 radius_2,radius_3                                         ! Distance around the source voxel and line of sight voxel considered to compute the 2nd order of scattering.
+   real*8 zondi2(3000000,3),zondi3(3000000,3)                   ! Array for the scattering voxels positions
+   integer ndiff2                                               ! Number of 2nd scattering voxels, counter of the loop over the 2nd scattering voxels
+   integer ndiff3                                               ! Number of 3rd scattering voxels, counter of the loop over the 3rd scattering voxels
+   integer scat_level                                               ! activate single double and triple scattering (0= direct only, 1= 1st scat max, 2= 2nd scat max, 3= 3rd scat max)
+   real*8 idif1                                                   ! intensity toward a line of sight voxel from a scattering voxel (without and with reflexion).
    real*8 idif2
-   real*8 portio ! ratio of voxel surface to the solid angle of the sensor field of view.
-   real*8 dis_obs ! Distance between the line of sight and the observer.
-   real*8 ometif ! Solid angle of the telescope objective as seen from the line of sight voxel
-   real*8 omefov ! Solid angle of the spectrometer slit.
-   real*8 angvis,azim ! viewing angles of the sensor.
+   real*8 portio                                                  ! ratio of voxel surface to the solid angle of the sensor field of view.
+   real*8 dis_obs                                                 ! Distance between the line of sight and the observer.
+   real*8 ometif                                                  ! Solid angle of the telescope objective as seen from the line of sight voxel
+   real*8 omefov                                                  ! Solid angle of the spectrometer slit.
+   real*8 angvis,azim                                             ! viewing angles of the sensor.
    ! Useful for the calculation of the lambertian reflectance.
-   real*8 nbang ! for the averaging of the photometric function
-   real*8 obsH(width,width) ! averaged height of the sub-grid obstacles, minimum angle under wich
+   real*8 nbang                                                   ! for the averaging of the photometric function
+   real*8 obsH(width,width)                                       ! averaged height of the sub-grid obstacles, minimum angle under wich
    ! a light ray cannot propagate because it is blocked by a sub-grid obstable
-   real*8 ofill(width,width) ! fill factor giving the probability to hit an obstacle when pointing in its direction real 0-1
+   real*8 ofill(width,width)                                      ! fill factor giving the probability to hit an obstacle when pointing in its direction real 0-1
    integer naz,na
    real*8 contrib1(width,width),contrib2(width,width,6),contrib3(width,width,6) ! contribution maps
    real*8 contribution_1(width,width),contribution_2(width,width),contribution_3(width,width)
    real*8 contrimap1(width,width),contrimap2(width,width),contrimap3(width,width)
-   character*3 lampno ! lamp number string
-   integer prmaps ! flag to enable the tracking of contribution and sensitivity maps
-   integer cloudt ! cloud type 0=clear, 1=Thin Cirrus/Cirrostratus, 2=Thick Cirrus/Cirrostratus, 3=Altostratus/Altocumulus,
+   character*3 lampno                                           ! lamp number string
+   integer prmaps                                               ! flag to enable the tracking of contribution and sensitivity maps
+   integer cloudt                                               ! cloud type 0=clear, 1=Thin Cirrus/Cirrostratus, 2=Thick Cirrus/Cirrostratus, 3=Altostratus/Altocumulus,
    ! 4=Stratocumulus/stratus, 5=Cumulus/Cumulonimbus
-   real*8 cloudslope ! slope of the radiance dependency on the cloud fraction (in percentage) According to
+   real*8 cloudslope                                              ! slope of the radiance dependency on the cloud fraction (in percentage) According to
    ! Sciezoras 2020 the slope vary depending on the level of LP and how it is distributed.
    ! We decided instead to simplify this by using an average slope of -0.013.
    ! Rad=Rad_100 * 10**(0.4*(100-cloudfrac)*cloudslope) this equation is derived from
    ! Tomasz Sciezor , The impact of clouds on the brightness of the night sky, Journal of
    ! Quantitative Spectroscopy & Radiative Transfer (2020),
    ! doi: https://doi.org/10.1016/j.jqsrt.2020.106962
-   real*8 cloudfrac ! cloud fraction in percentage
-   integer xsrmi,xsrma,ysrmi,ysrma ! limits of the loop valeur for the reflecting surfaces
-   real*8 icloud ! cloud reflected intensity
-   real*8 fctcld ! total flux from cloud at the sensor level
-   real*8 totlu(nzon) ! total flux of a source type
-   real*8 stoplim ! Stop computation when the new voxel contribution is less than 1/stoplim of the cumulated flux
-   real*8 ff1,ff2,hh ! temporary obstacle filling factor and horizon blocking factor
-   real*8 cloudbase,cloudtop ! cloud base and top altitude (m)
-   real*8 distd ! distance to compute the scattering probability
-   real*8 volu2,volu3 ! volume of a voxel
-   real*8 scal ! stepping along the line of sight
-   real*8 scalo ! previous value of scal
-   real*8 siz2,siz3,siz2_0,siz3_0,size_0 ! resolution of the 2nd scat grid in meter
-   real*8 angvi1,angaz1,angze1 ! viewing angles in radian
-   real*8 ix,iy,iz ! base vector of the viewing (length=1)
-   real*8 omemax ! max solid angle allowed
-   real*8 flcld(width,width) ! flux crossing a low cloud
-   real*8 diamobj ! instrument objective diameter
+   real*8 cloudfrac                                               ! cloud fraction in percentage
+   integer xsrmi,xsrma,ysrmi,ysrma                               ! limits of the loop valeur for the reflecting surfaces
+   real*8 icloud                                                  ! cloud reflected intensity
+   real*8 fccld                                                   ! correction for the FOV to the flux reaching the intrument from the cloud voxel
+   real*8 fctcld                                                  ! total flux from cloud at the sensor level
+   real*8 totlu(nzon)                                             ! total flux of a source type
+   real*8 stoplim                                                 ! Stop computation when the new voxel contribution is less than 1/stoplim of the cumulated flux
+   real*8 ff1,ff2,hh                                              ! temporary obstacle filling factor and horizon blocking factor
+   real*8 cloudbase,cloudtop                                      ! cloud base and top altitude (m)
+   real*8 distd                                                   ! distance to compute the scattering probability
+   real*8 volu2,volu3                                             ! volume of a voxel
+   real*8 scal                                                    ! stepping along the line of sight
+   real*8 scalo                                                   ! previous value of scal
+   real*8 siz2,siz3,siz2_0,siz3_0,size_0                          ! resolution of the 2nd scat grid in meter
+   real*8 angvi1,angaz1,angze1                                    ! viewing angles in radian
+   real*8 ix,iy,iz                                                ! base vector of the viewing (length=1)
+   real*8 omemax                                                  ! max solid angle allowed
+   real*8 flcld(width,width)                                      ! flux crossing a low cloud
+   real*8 diamobj                                                 ! instrument objective diameter
    integer i,j,k
-   integer dirck ! Test for the position of the source (case source=line of sight voxel)
-   real*8 tranam,tranaa ! atmospheric transmittancess of a path (molecular, aerosol)
-   real*8 zhoriz ! zenith angle of the horizon
-   real*8 direct ! direct radiance from sources on a surface normal to the line of sight (no scattering)
-   real*8 rdirect ! direct radiance from a reflecting surface on a surface normal to the line of sight (no scattering)
-   real*8 irdirect ! direct irradiance from sources on a surface normal to the line of sight (no scattering)
-   real*8 irrdirect ! direct irradiance from a reflecting surface on a surface normal to the line of sight (no scattering)
-   real*8 dang ! Angle between the line of sight and the direction of a source
-   real*8 ddir_obs ! distance between the source and the observer
-   real*8 rx,ry,rz ! driving vector for the calculation of the projection angle for direct radiance. It is 20km long
-   real*8 dfov ! field of view in degrees for the calculation of the direct radiance this number will be a kind of smoothing
+   integer dirck                                                       ! Test for the position of the source (case source=line of sight voxel)
+   real*8 tranam,tranaa                                           ! atmospheric transmittancess of a path (molecular, aerosol)
+   real*8 zhoriz                                                  ! zenith angle of the horizon
+   real*8 direct                                                  ! direct radiance from sources on a surface normal to the line of sight (no scattering)
+   real*8 rdirect                                                 ! direct radiance from a reflecting surface on a surface normal to the line of sight (no scattering)
+   real*8 irdirect                                                ! direct irradiance from sources on a surface normal to the line of sight (no scattering)
+   real*8 irrdirect                                               ! direct irradiance from a reflecting surface on a surface normal to the line of sight (no scattering)
+   real*8 dang                                                    ! Angle between the line of sight and the direction of a source
+   real*8 ddir_obs                                                ! distance between the source and the observer
+   real*8 rx,ry,rz                                                ! driving vector for the calculation of the projection angle for direct radiance. It is 20km long
+   real*8 dfov                                                    ! field of view in degrees for the calculation of the direct radiance this number will be a kind of smoothing
    ! effect. The angular grid resolution to create a direct radiance panorama should be finer than that number
-   real*8 Fo ! flux correction factor for obstacles
-   real*8 thetali ! limit angle for the obstacles blocking of viirs
-   integer viirs(width,width) ! viirs flag 1=yes 0=no
-   character*72 vifile ! name of the viirs flag file
-   real*8 dh0,dhmax ! horizontal distance along the line of sight and maximum distance before beeing blocked by topography
-   character*72 layfile ! filename of the optical properties of the particle layer
-   real*8 layaod ! 500 nm aod of the particle layer
-   real*8 layalp ! spectral exponent of the aod for the particle layer
-   real*8 hlay ! exponential vertical scale height of the particle layer
-   real*8 secdil ! scattering/extinction ratio for the particle layer
-   real*8 fdifl(181) ! scattering phase function of the particle layer
-   real*8 tranal ! top of atmos transmission of the particle layer
-   real*8 haer ! exponential vertical scale height of the background aerosol layer
-   real*8 bandw ! bandwidth of the spectral bin
-   real*8 tabs ! TOA transmittance related to molecule absorption
+   real*8 Fo                                                      ! flux correction factor for obstacles
+   real*8 thetali                                                 ! limit angle for the obstacles blocking of viirs
+   integer viirs(width,width)                                   ! viirs flag 1=yes 0=no
+   character*72 vifile                                          ! name of the viirs flag file
+   real*8 dh0,dhmax                                               ! horizontal distance along the line of sight and maximum distance before beeing blocked by topography
+   character*72 layfile                                         ! filename of the optical properties of the particle layer
+   real*8 layaod                                                  ! 500 nm aod of the particle layer
+   real*8 layalp                                                  ! spectral exponent of the aod for the particle layer
+   real*8 hlay                                                    ! exponential vertical scale height of the particle layer
+   real*8 secdil                                                  ! scattering/extinction ratio for the particle layer
+   real*8 fdifl(181)                                              ! scattering phase function of the particle layer
+   real*8 tranal                                                  ! top of atmos transmission of the particle layer
+   real*8 haer                                                    ! exponential vertical scale height of the background aerosol layer
+   real*8 bandw                                                   ! bandwidth of the spectral bin
+   real*8 tabs                                                    ! TOA transmittance related to molecule absorption
 
-   real*8 itoclou ! cloud intensity
-   real*8 itodif1 ! First scattering intensity
-   real*8 itodif2(6) ! Second scattering intensity
-   real*8 itodif3(6) ! total 3rd order intentity
-   integer rho ! switch between source (rho=0) or ground pixel (rho=1)
+   real*8 itoclou                                                 ! cloud intensity
+   real*8 itodif1                                                 ! First scattering intensity
+   real*8 itodif2(6)                                                ! Second scattering intensity
+   real*8 itodif3(6)                                                 ! total 3rd order intentity
+   integer rho                                                  ! switch between source (rho=0) or ground pixel (rho=1)
    real*8 flux_all,flux_1,flux_2,flux_3
    real*8 acoef,bcoef ! 2nd order polynomial extrapolation coefficients
    real*8 resolut2(6),resolut3(6),resolut3p(6)
@@ -220,8 +220,8 @@ program illumina ! Beginning
    real*8 moy,quad,sigma
    real*8 dho
    integer nres,nresmax,nresp,nfit,nmoy ! resolution number used to extrapolate the scattered flux to infinite resolution
-   verbose=1 ! Very little printout=0, Many printout = 1, even more=2
-   diamobj=1.D0 ! A dummy value for the diameter of the objective of the instrument used by the observer.
+   verbose=1                                                    ! Very little printout=0, Many printout = 1, even more=2
+   diamobj=1.D0                                                   ! A dummy value for the diameter of the objective of the instrument used by the observer.
    volu2=0.D0
    volu3=0.D0
    zero=0.D0
@@ -287,7 +287,7 @@ program illumina ! Beginning
    angvi1=(pi*angvis)/180.D0
    angze1=pi/2.-angvi1
    angaz1=(pi*azim)/180.D0
-   ix=(dsin((pi/2.)-angvi1))*(dcos(angaz1)) ! viewing vector components
+   ix=(dsin((pi/2.)-angvi1))*(dcos(angaz1))                        ! viewing vector components
    iy=(dsin((pi/2.)-angvi1))*(dsin(angaz1))
    iz=(dsin(angvi1))
    dfov=(dfov*pi/180.D0)/2.
@@ -397,10 +397,12 @@ program illumina ! Beginning
    flrefl=0.D0
    irefl1=0.D0
    portio=0.D0
+   fccld=0.D0
    fctcld=0.D0
    ometif=0.D0
    omefov=0.D0
    hh=1.
+   flux1=0.D0
    flux_all=0.D0
    itodif1=0.D0
    nresmax=6
@@ -570,6 +572,10 @@ program illumina ! Beginning
          if (verbose.ge.1) write(2,*) ' Turning on lamps zone',stype
          do x_s=1,nbx ! beginning of the loop over the source in x
             do y_s=1,nby ! beginning of the loop over source in y
+
+               ! initialiser ?
+
+
                rx_s=dble(x_s)*dx
                ry_s=dble(y_s)*dy
                if (lamplu(x_s,y_s,stype).ne.0.D0) then ! ignore null luminosity
@@ -732,7 +738,7 @@ program illumina ! Beginning
    enddo ! end of the loop over the source types.
    ! end of direct calculations
 
-   
+
    radius_2=7000.D0
    radius_3=8000.D0
    size_0=2000.D0
@@ -747,13 +753,13 @@ program illumina ! Beginning
    if (scat_level.gt.0) then ! if any need for scattering calculations
 ! Calculation of the scattered radiances - 1st, 2nd, and 3rd scattering
       flux_total_1=0.D0
-      flux_total_2=0.D0
-      flux_total_3=0.D0
       flux_total=0.D0
       itoclou=0.D0
       fctcld=0.D0
       scal=19.D0
       scalo=scal
+      flux_total_2=0.D0
+      flux_total_3=0.D0
       cloudtop=100000.D0
       if ((z_obs.ge.cloudbase).and.(z_obs.le.cloudtop)) then
          print*,'The observer is inside the cloud! Abort computing.',z_obs,cloudbase
@@ -764,12 +770,8 @@ program illumina ! Beginning
       ry_c=dble(y_obs)*dx-iy*scal/2.
       z_c=z_obs-iz*scal/2.
       do icible=1,ncible ! beginning of the loop over the line of sight voxels
-         icloud=0.D0
+
          itodif1=0.D0
-         do nres=1,nresmax
-            itodif2(nres)=0.D0
-            itodif3(nres)=0.D0
-         enddo
          rx_c=rx_c+ix*(scalo/2.+scal/2.)
          ry_c=ry_c+iy*(scalo/2.+scal/2.)
          dh0=dsqrt((rx_c-rx_obs)**2.+(ry_c-ry_obs)**2)
@@ -787,13 +789,6 @@ program illumina ! Beginning
                   if ((flux_all.ge.flux_total/(2.*stoplim)).and.(z_c.lt.cloudbase).and.(z_c.lt.35000.D0)) then
                      ! stop the calculation of the viewing line when the increment is lower than 1/stoplim
                      ! or when hitting a cloud or when z>35km (scattering probability =0 (given precision)
-                     
-                     
-                     
-                     fctcld=0.D0
-                     itoclou=0.D0
-                     
-                     
                      if ((x_c.lt.1).or.(x_c.gt.nbx).or.(y_c.lt.1).or.(y_c.gt.nby)) then
                         print*,'out of bounds',x_c,y_c
                         stop
@@ -830,6 +825,8 @@ program illumina ! Beginning
                         siz3_0=size_0+dble(nres-1)*500.D0
                         resolut3(nres)=siz3_0
                         resolut3p(nres)=0.D0
+                        itodif2(nres)=0.D0
+                        itodif3(nres)=0.D0
                         flux2(nres)=0.D0
                         flux3(nres)=0.D0
                         flux3p(nres)=0.D0
@@ -851,14 +848,6 @@ program illumina ! Beginning
                                  idnint(siz3_0),")"
                               do x_s=1,nbx ! beginning of the loop over the column (longitude the) of the domain.
                                  do y_s=1,nby
-                                 
-                                 !!! IN THE OLD CODE INTDIR, ITOTIND, ITODIF, ITOTRD AND ISOURCE WERE INITIALIZED HERE
-                                 !itodif1=0.D0
-                                
-                                 
-                                 
-                                 
-                                 
                                     rx_s=dble(x_s)*dx
                                     ry_s=dble(y_s)*dy
 ! 1st scattering from source and ground
@@ -1076,10 +1065,7 @@ program illumina ! Beginning
                         call transmita(angzen,z_c,z_obs,distd,haer,transa,tranaa)
                         call transmita(angzen,z_c,z_obs,distd,hlay,transl,tranal)
                         ! computation of the flux reaching the objective of the telescope from the line of sight voxel
-                        if (nres.eq.1) then
-                          flux_1=itodif1*ometif*transa*transm*transl
-                          print*,'toto',flux_1
-                        endif
+                        if (nres.eq.1) flux1=itodif1*ometif*transa*transm*transl
                         flux2(nres)=itodif2(nres)*ometif*transa*transm*transl
                         flux3(nres)=itodif3(nres)*ometif*transa*transm*transl
                         do x_s=1,nbx
@@ -1186,6 +1172,7 @@ program illumina ! Beginning
                         flux_2=0.D0
                         flux_3=0.D0
                      endif
+                     flux_1=flux1
                      flux_all=flux_1+flux_2+flux_3
                      do x_s=1,nbx
                         do y_s=1,nby
@@ -1279,7 +1266,8 @@ program illumina ! Beginning
                      ! correction for the FOV to the flux reaching the intrument from the cloud voxel
                      if (cloudt.ne.0) then
                         ! computation of the flux reaching the intrument from the cloud voxel
-                        fctcld=itoclou*ometif*transa*transm*transl ! cloud flux for all source all type all line of sight element
+                        fccld=itoclou*ometif*transa*transm*transl
+                        fctcld=fctcld+fccld ! cloud flux for all source all type all line of sight element
                      endif
                      if (verbose.ge.1) print*,'Added radiance =',flux_all/omefov/(pi*(diamobj/2.)**2.)
                      if (verbose.ge.1) print*,'Radiance accumulated =',flux_total/omefov/(pi*(diamobj/2.)**2.)
@@ -1295,9 +1283,8 @@ program illumina ! Beginning
    endif ! end of scattered light
 
 
-   if (flux_total_1.gt.0.D0) then
-     write(*,2002) flux_total_2/flux_total_1,flux_total_3/flux_total_1
-   endif
+
+   write(*,2002) flux_total_2/flux_total_1,flux_total_3/flux_total_1
    fctcld=fctcld*10**(0.4*(100.D0-cloudfrac)*cloudslope) ! correction for the cloud fraction (defined from 0 to 100)
    if (prmaps.eq.1) then
       if (verbose.eq.2) then

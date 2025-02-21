@@ -117,6 +117,8 @@
                 pdif=0.
               endif
               idif=flux*pdif*volu ! intensity toward line of sight voxel
+
+  
             endif
           else ! from ground
             flux=0.
@@ -219,6 +221,10 @@
               idif=flux*pdif*volu ! intensity toward line of sight voxel
             endif
           endif ! end of source vs ground cell cases   
+          
+          
+          
+          
           call anglezenithal(rx_difa,ry_difa,z_difa,rx_c,ry_c,z_c,zenith)
           call blocking(ida,jda,z_difa,x_c,y_c,z_c,dx,dy,nbx,nby,altsol,drefle,ofill,obsH,hh,ff1,ff2)            
           ! computing transmittance between the 2nd scattering voxel 2nd
@@ -241,8 +247,9 @@
           endif
           ! computing scattered intensity at the 2nd scat voxel toward the line of sight voxel
           idift=idift+flux*pdif*scal*portio ! still need to correct for the line of sight path step and for the FOV
+
           if (cloudt.ne.0) then ! line of sight voxel = cloud
-            if (cloudbase-z_c.le.iz*scal) then ! this is the cloud base interface
+            if (cloudbase-z_c.le.1.2*iz*scal) then ! this is the cloud base interface
               call anglezenithal(rx_c,ry_c,z_c,rx_obs,ry_obs,z_obs,azcl1) ! zenith angle from cloud to observer
               call anglezenithal(rx_c,ry_c,z_c,rx_difa,ry_difa,z_difa,azcl2) ! zenith angle from source to cloud
               doc2=(rx_c-rx_obs)**2.+(ry_c-ry_obs)**2.+(z_c-z_obs)**2.
@@ -252,7 +259,13 @@
               icloud=icloud+flux/omega*rcloud*doc2*omefov*dabs(dcos(azcl2)/dcos(azcl1))/dsc2/pi ! return to main
             endif
           endif
-        endif ! end cell above ground, below cloud and below top of atmosphere 
+
+
+        endif ! end cell above ground, below cloud and below top of atmosphere
+        
+        
+
+        
       enddo ! end scattering volume a
       return
       end
