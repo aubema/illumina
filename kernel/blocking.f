@@ -42,18 +42,18 @@ c
       if (dho.gt.0.) then
         call anglezenithal(rx_1,ry_1,z_1,rx_2,ry_2,z_2,azen)
         call angleazimutal(rx_1,ry_1,rx_2,ry_2,angazi)
-        if (azen.gt.pi/4.) then                                          ! 45deg. it is unlikely to have a 1km high mountain less than 1km away
+        if (azen.gt.pi/8.) then                                          ! 45deg. it is unlikely to have a 1km high mountain less than 1km away
           call horizon(x_1,y_1,z_1,dx,dy,altsol,angazi,zhoriz,dh)
           if ((dho.le.dh).or.((dho.gt.dh).and.
-     +    (azen-zhoriz.lt.0.00001))) then
+     +    (azen.lt.zhoriz))) then
             hh=1.
           else
             hh=0.
           endif
-        endif   
-        if ((x_1.lt.1).or.(x_1.gt.nbx+1).or.(y_1.lt.1).or.
-     +  (y_1.gt.nby+1)) then
-          ff1=0. ! no blocking if the position if outside the domain
+        endif
+        if ((x_1.lt.1).or.(x_1.gt.nbx).or.(y_1.lt.1).or.
+     +  (y_1.gt.nby)) then
+          ff1=0. ! no blocking if the position is outside the domain
         else
 c sub-grid obstacles
           if (dho.gt.drefle(x_1,y_1)) then               ! light path to observer larger than the mean free path -> subgrid obstacles
@@ -65,8 +65,8 @@ c sub-grid obstacles
           endif
         endif                                                            ! end light path to the observer larger than mean free path
         call anglezenithal(rx_2,ry_2,z_2,rx_1,ry_1,z_1,azen)
-        if ((x_2.lt.1).or.(x_2.gt.nbx+1).or.(y_2.lt.1).or.
-     +  (y_2.gt.nby+1)) then
+        if ((x_2.lt.1).or.(x_2.gt.nbx).or.(y_2.lt.1).or.
+     +  (y_2.gt.nby)) then
           ff2=0. ! no blocking if the position if outside the domain
         else
           if (dho.gt.drefle(x_2,y_2)) then                               ! light path from source larger than the mean free path -> subgrid obstacles
@@ -82,7 +82,7 @@ c sub-grid obstacles
          print*,'ff1 can not be negative  or larger than 1!',ff1
          stop
       endif
-       if ((ff2.lt.0.).or.(ff2.gt.1.)) then
+      if ((ff2.lt.0.).or.(ff2.gt.1.)) then
          print*,'ff2 can not be negative or larger than 1!',ff2
          stop
       endif     

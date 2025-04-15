@@ -545,8 +545,6 @@ program illumina ! Beginning
          enddo ! end of the loop over all cells along y.
       enddo ! end of the loop over all cells along x.
    enddo ! end of the loop 1 over the nzon types of sources.
-
-
    dy=dx
    omefov=0.00000001 ! solid angle of the spectrometer slit on the sky. Here we only need a small value
    z_obs=z_o+altsol(x_obs,y_obs) ! z_obs = the local observer elevation plus the height of observation above ground (z_o)
@@ -731,11 +729,9 @@ program illumina ! Beginning
       endif ! check if there are any flux in that source type otherwise skip this lamp
    enddo ! end of the loop over the source types.
    ! end of direct calculations
-
-   
    radius_2=7000.D0
-   radius_3=8000.D0
-   size_0=2000.D0
+   radius_3=7000.D0
+   size_0=2500.D0
    if (scat_level.gt.1) then
       print*,'Action radius of 2nd scattering =',radius_2
       write(2,*) ' Action radius of 2nd scattering =',radius_2
@@ -929,7 +925,8 @@ program illumina ! Beginning
                                                 rho=0 ! from source
                                                 icloud=0.D0
                                                 idif2=0.D0
-                                                call zone_scat(rx_s,ry_s,z_s,rx_c,ry_c,z_c,radius_2,zondi2,ndiff2,siz2,siz2_0)
+                                                call zone_scat(rx_s,ry_s,z_s,rx_c,ry_c,z_c,radius_2,zondi2,ndiff2,siz2, &
+                                                siz2_0)
                                                 volu2=siz2**3.D0
                                                 call secondscat(rho,x_s,y_s,z_s,x_c,y_c,z_c,x_sr,y_sr,z_sr,x_obs,y_obs,z_obs,iz, &
                                                    lamplu,ofill,srefl,drefle,reflsiz,obsH,altsol,inclix,incliy,pvalno,stype, &
@@ -961,8 +958,8 @@ program illumina ! Beginning
                                                             if((x_sr.le.nbx).and.(x_sr.ge.1).and.(y_sr.le.nby).and.(y_sr.ge.1)) then
                                                                if((x_c.ne.x_sr).and.(y_c.ne.y_sr).and.(z_c.ne.z_sr)) then
                                                                   idif2=0.D0
-                                                                  call zone_scat(rx_sr,ry_sr,z_sr,rx_c,ry_c,z_c,radius_2,zondi2, &
-                                                                     ndiff2,siz2,siz2_0)
+                                                                  call zone_scat(rx_sr,ry_sr,z_sr,rx_c,ry_c,z_c,radius_2, &
+                                                                     zondi2,ndiff2,siz2,siz2_0)
                                                                   volu2=siz2**3.D0
                                                                   call secondscat(rho,x_s,y_s,z_s,x_c,y_c,z_c,x_sr,y_sr,z_sr, &
                                                                      x_obs,y_obs,z_obs,iz,lamplu,ofill,srefl,drefle,reflsiz, &
@@ -985,7 +982,8 @@ program illumina ! Beginning
                                              if ((flux_3.gt.flux_total/(30.D0*stoplim)).or.(flux_total_3.eq.0.D0)) then
                                                 rho=0 ! from source
                                                 icloud=0.D0
-                                                call zone_scat(rx_s,ry_s,z_s,rx_c,ry_c,z_c,radius_3,zondi3,ndiff3,siz3,siz3_0)
+                                                call zone_scat(rx_s,ry_s,z_s,rx_c,ry_c,z_c,radius_3,zondi3,ndiff3,siz3 &
+                                                ,siz3_0)
                                                 volu3=siz3**3.D0
                                                 call thirdscat(rho,x_s,y_s,z_s,x_c,y_c,z_c,x_sr,y_sr,z_sr,x_obs,y_obs,z_obs,iz, &
                                                    lamplu,ofill,srefl,drefle,reflsiz,obsH,altsol,inclix,incliy,pvalno,stype, &
@@ -1078,7 +1076,6 @@ program illumina ! Beginning
                         ! computation of the flux reaching the objective of the telescope from the line of sight voxel
                         if (nres.eq.1) then
                           flux_1=itodif1*ometif*transa*transm*transl
-                          print*,'toto',flux_1
                         endif
                         flux2(nres)=itodif2(nres)*ometif*transa*transm*transl
                         flux3(nres)=itodif3(nres)*ometif*transa*transm*transl
@@ -1091,11 +1088,6 @@ program illumina ! Beginning
                         enddo
                      enddo ! end of loop over resolutions for interpolation of each line of sight voxel value
                      ! accelerate the computation as we get away from the sources
-
-
-
-
-
                      scalo=scal
                      if (scal.le.3000.D0)  scal=scal*1.12
                      ! 2ND and 3RD ORDER extrapolation TO INFINITE RESOLUTION
@@ -1128,13 +1120,14 @@ program illumina ! Beginning
                         if (nfit.ge.3) then
                            call linearfit(resofit,fluxfit,nfit,acoef,bcoef)
                            flux_2=bcoef
+                           if (flux_2.lt.flux2(1)) flux_2=flux2(1)
                         else
                            print*,'LESS THAN 4 points for 2nd order'
-                           flux_2=0.D0
+                           flux_2=flux2(1)
                         endif
-                        print*,'flux2',flux2
-                        print*,fluxfit
-                        print*,flux_2
+                        print*,'Flux 2nd sca:',flux2
+                        print*,'Used for fit:',fluxfit
+                        print*,'Extrapolated:',flux_2
                         if (scat_level.gt.2) then
                            print*,'flux3',flux3
                            ! filter the data for abnormal variations.
@@ -1173,11 +1166,15 @@ program illumina ! Beginning
                               ! linear interpolation in the LN space
                               print*,'nfit3=',nfit,sigma
                               call linearfit(resofit,fluxfit,nfit,acoef,bcoef)
-                              print*,bcoef,acoef
                               flux_3=bcoef**3.
+                              print*,'3rd order extrapol:',flux_3
+                              if (flux_3.lt.flux3(1)) then
+                                flux_2=flux3(1)
+                                print*,'bad extrapolation'
+                              endif
                            else
                               print*,'LESS THAN 4 points for 3rd order'
-                              flux_3=0.D0
+                              flux_3=flux3(1)
                            endif
                         else
                            flux_3=0.D0

@@ -30,7 +30,7 @@
       subroutine zone_scat(xi,yi,zi,xf,yf,zf,effet,zondif,ncell,siz,siz_0)
        implicit none
        integer i,j,k
-       integer ncell,neffet,imin,imax,jmin,jmax,kmin,kmax
+       integer ncell,neffet,imin,imax,jmin,jmax,kmin,kmax,stepdi
        real*8 x0,y0,z0,xi,yi,zi,xf,yf,zf
        real*8 effet,dmax,d
        real*8 xmin,xmax,ymin,ymax,zmin,zmax
@@ -77,7 +77,7 @@
          x0=dble(i)*siz
          do j=jmin,jmax
            y0=dble(j)*siz
-           do k=kmin,kmax                                                     
+           do k=kmin,kmax                                                    
              z0=dble(k)*siz
              d=dsqrt((x0-xi)**2.+(y0-yi)**2.+(z0-zi)**2.)+dsqrt((x0-xf)**2.+(y0-yf)**2.+(z0-zf)**2.)
              if (d.le.dmax) then                                                ! ensure spherical zone r<dmax
@@ -89,6 +89,7 @@
            enddo
          enddo
        enddo
+
        
 !       open(unit=1,file='scatzon.txt',status='unknown')
 !         do i=1,ncell
