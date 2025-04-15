@@ -179,7 +179,6 @@ c                                                                         ! a li
       real FCA(width,width)                                               ! sensor flux array
       real lpluto(width,width)                                            ! total luminosity of the ground cell for all lamps
       character*3 lampno                                                  ! lamp number string
-      integer imin(nzon),imax(nzon),jmin(nzon),jmax(nzon)                 ! x and y limits containing a type of lamp
       real angazi                                                         ! azimuth angle between two points in rad, max dist for the horizon determination
       real latitu                                                         ! approximate latitude of the domain center
       integer prmaps                                                      ! flag to enable the tracking of contribution and sensitivity maps
@@ -419,6 +418,9 @@ c Initialisation of the arrays and variables
             zondif(i,j)=1.
           enddo
         enddo
+        do i=1,nzon
+          totlu(i)=0.
+        enddo
         idif1=0.
         idif2=0.
         fdif2=0.
@@ -551,10 +553,6 @@ c reading scattering parameters of particle layer
         close(1)
 c Some preliminary tasks
         do stype=1,ntype                                                  ! beginning of the loop 1 for the nzon types of sources.
-          imin(stype)=nbx
-          jmin(stype)=nby
-          imax(stype)=1
-          jmax(stype)=1
           pvalto=0.
           write(lampno, '(I3.3)' ) stype                                  ! support of nzon different sources (3 digits)
           pafile=basenm(1:lenbase)//'_fctem_'//lampno//'.dat'             ! setting the file name of angular photometry.
@@ -580,46 +578,6 @@ c reading luminosity files
               endif
             enddo                                                         ! end of the loop over all cells along y.
           enddo
-          do i=1,nbx                                                      ! searching of the smallest rectangle containing the zone
-            do j=1,nby                                                    ! of non-null luminosity to speedup the calculation
-              if (val2d(i,j).ne.0.) then
-                if (i-1.lt.imin(stype)) imin(stype)=i-2
-                if (imin(stype).lt.1) imin(stype)=1
-                goto 333
-              endif
-            enddo
-          enddo
-          imin(stype)=1
- 333      do i=nbx,1,-1
-            do j=1,nby
-              if (val2d(i,j).ne.0.) then
-                if (i+1.gt.imax(stype)) imax(stype)=i+2
-                if (imax(stype).gt.nbx) imax(stype)=nbx
-                goto 334
-              endif
-            enddo
-          enddo
-          imax(stype)=1
- 334      do j=1,nby
-            do i=1,nbx
-              if (val2d(i,j).ne.0.) then
-                if (j-1.lt.jmin(stype)) jmin(stype)=j-2
-                if (jmin(stype).lt.1) jmin(stype)=1
-                goto 335
-              endif
-            enddo
-          enddo
-          jmin(stype)=1
- 335      do j=nby,1,-1
-            do i=1,nbx
-              if (val2d(i,j).ne.0.) then
-                if (j+1.gt.jmax(stype)) jmax(stype)=j+2
-                if (jmax(stype).gt.nby) jmax(stype)=nby
-                goto 336
-              endif
-            enddo
-          enddo
-          jmax(stype)=1
  336      do i=1,nbx                                                      ! beginning of the loop over all cells along x.
             do j=1,nby                                                    ! beginning of the loop over all cells along y.
               lamplu(i,j,stype)=val2d(i,j)                                ! remplir the array of the lamp type: stype
@@ -640,8 +598,6 @@ c flux arrays (lumlp)
               totlu(stype)=totlu(stype)+lamplu(i,j,stype)                 ! the total lamp flux should be non-null to proceed to the calculations
             enddo                                                         ! end of the loop over all cells along y.
           enddo                                                           ! end of the loop over all cells along x.
-          print*,'Zone',stype,'bounding box: x=',imin(stype),
-     + imax(stype),'y=',jmin(stype),jmax(stype)
         enddo                                                             ! end of the loop 1 over the nzon types of sources.
         dy=dx
         omefov=0.00000001                                                 ! solid angle of the spectrometer slit on the sky. Here we only need a small value
@@ -655,12 +611,6 @@ c flux arrays (lumlp)
         write(2,*) 'Width of the domain [EO](m):',largy,'#cases:',nby
         write(2,*) 'Size of a cell (m):',dx,' X ',dy
         write(2,*) 'latitu center:',latitu
-
-
-
-
-
-
         direct=0.                                                         ! initialize the total direct radiance from sources to observer
         rdirect=0.                                                        ! initialize the total reflected radiance from surface to observer
         irdirect=0.                                                       ! initialize the total direct irradiance from sources to observer
@@ -674,8 +624,8 @@ c
             if (verbose.ge.1) print*,' Turning on lamps',stype
             if (verbose.ge.1) write(2,*) ' Turning on lamps',
      +      stype
-            do x_s=imin(stype),imax(stype)                                ! beginning of the loop over the column (longitude the) of the domain.
-            do y_s=jmin(stype),jmax(stype)                                ! beginning of the loop over the rows (latitud) of the domain.
+            do x_s=1,nbx                                ! beginning of the loop over the column (longitude the) of the domain.
+            do y_s=1,nby                                 ! beginning of the loop over the rows (latitud) of the domain.
               intdir=0.
               itotind=0.
               itodif=0.
@@ -700,17 +650,15 @@ c ******************************************************************************
      +            ,rx_s,ry_s,z_s,dzen)
                   call angleazimutal(rx_obs,ry_obs,rx_s,                  ! computation of the angle azimutal direct line of sight-source
      +            ry_s,angazi)
-                  if (dzen.gt.pi/4.) then                                 ! 45deg. it is unlikely to have a 1km high mountain less than 1
+                  hh=1.
+                  if (dzen.gt.pi/8.) then                                 ! 45deg. it is unlikely to have a 1km high mountain less than 1
                     call horizon(x_obs,y_obs,z_obs,dx,dy,
      +              altsol,angazi,zhoriz,dh)
-                    if (dh.le.dho) then
-                      if (dzen-zhoriz.lt.0.00001) then                    ! shadow the path line of sight-source is not below the horizon => we compute
-                        hh=1.
-                      else
-                        hh=0.
-                      endif
-                    else
+                    if ((dho.le.dh).or.((dho.gt.dh).and.
+     +              (dzen.lt.zhoriz))) then
                       hh=1.
+                    else
+                      hh=0.
                     endif
                   else
                     hh=1.
@@ -729,11 +677,6 @@ c sub-grid obstacles
                     endif
                   endif                                                   ! end light path to the observer larger than mean free path
                endif
-                  
- 
- 
- 
-                  
                   call anglezenithal(rx_s,ry_s,z_s                        ! zenithal angle source-observer
      +            ,rx_obs,ry_obs,z_obs,dzen)                  
                   ff2=0.
@@ -749,11 +692,6 @@ c sub-grid obstacles
                   endif                                                   ! end light path to the observer larger than mean free path                  
                   call anglezenithal(rx_obs,ry_obs,z_obs                  ! zenithal angle source-observer
      +            ,rx_s,ry_s,z_s,dzen)                  
-                  
-                  
-                  
-                  
-                  
 c projection angle of line to the lamp and the viewing angle
                   call angle3points (rx_s,ry_s,z_s,rx_obs,                ! scattering angle.
      +            ry_obs,z_obs,rx,ry,rz,dang)
@@ -935,18 +873,16 @@ c ******************************************************************************
      +                        ,rx_sr,ry_sr,z_sr,dzen)
                               call angleazimutal(rx_obs,ry_obs,rx_sr,     ! computation of the angle azimutal direct line of sight-source
      +                        ry_sr,angazi)
-                              if (dzen.gt.pi/4.) then                     ! 45deg. it is unlikely to have a 1km high mountain less than 1
+                              hh=1.
+                              if (dzen.gt.pi/8.) then                     ! 45deg. it is unlikely to have a 1km high mountain less than 1
                                 call horizon(x_obs,y_obs,z_obs,dx,dy,
      +                          altsol,angazi,zhoriz,dh)
-                                if (dh.le.dho) then
-                                  if (dzen-zhoriz.lt.0.00001) then        ! shadow the path line of sight-source is not below the horizon => we compute
-                                    hh=1.
-                                  else
-                                    hh=0.
-                                  endif
-                                else
+                                if ((dho.le.dh).or.((dho.gt.dh).and.
+     +                          (dzen.lt.zhoriz))) then
                                   hh=1.
-                                endif
+                                else
+                                  hh=0.
+                                endif     
                               else
                                 hh=1.
                               endif
@@ -965,9 +901,6 @@ c sub-grid obstacles
                                 endif
                               endif                                       ! end light path to the observer larger than mean free path
                endif
-                              
-                              
-                              
                   call anglezenithal(rx_sr,ry_sr,z_sr                     ! zenithal angle surface-observer
      +            ,rx_obs,ry_obs,z_obs,dzen)                  
                   ff2=0.
@@ -983,14 +916,10 @@ c sub-grid obstacles
                   endif                                                   ! end light path to the observer larger than mean free path                                                
                               call anglezenithal(rx_obs,ry_obs,z_obs      ! zenithal angle source-observer
      +                        ,rx_sr,ry_sr,z_sr,dzen)                              
-                              
-                              
-                              
 c projection angle of line to the lamp and the viewing angle
                               call angle3points (rx_sr,ry_sr,z_sr,        ! scattering angle.
      +                        rx_obs,ry_obs,z_obs,rx,ry,rz,dang)
                               dang=pi-dang
-
 c computation of the flux direct reaching the line of sight voxel
                               if ((cos(dang).gt.0.).and.(dang.lt.pi/2.))
      +                        then
@@ -1019,7 +948,6 @@ c computation of the solid angle of the line of sight voxel seen from the source
                     endif
                   enddo
                 enddo
-
               endif
             enddo
             enddo
@@ -1140,8 +1068,8 @@ c beginning of the loop over the types of light sources
                       ITT(x_s,y_s,stype)=0.
                     enddo
                   enddo
-                  do x_s=imin(stype),imax(stype)                          ! beginning of the loop over the column (longitude the) of the domain.
-                    do y_s=jmin(stype),jmax(stype)                        ! beginning of the loop over the rows (latitud) of the domain.
+                  do x_s=1,nbx                            ! beginning of the loop over the column (longitude the) of the domain.
+                    do y_s=1,nby                         ! beginning of the loop over the rows (latitud) of the domain.
                       intdir=0.
                       itotind=0.
                       itodif=0.
@@ -1177,18 +1105,16 @@ c computation of the horizon for the resolved shadows direct              ! hori
      +                        ,rx_c,ry_c,z_c,angzen)                      ! computation of the zenithal angle between the source and the line of sight voxel.
                               call angleazimutal(rx_s,ry_s,rx_c,          ! computation of the angle azimutal direct line of sight-source
      +                        ry_c,angazi)
-                              if (angzen.gt.pi/4.) then                   ! 45deg. it is unlikely to have a 1km high mountain less than 1
+                              hh=1.
+                              if (angzen.gt.pi/8.) then                   ! 45deg. it is unlikely to have a 1km high mountain less than 1
                                 call horizon(x_s,y_s,z_s,dx,dy,altsol,
      +                          angazi,zhoriz,dh)
-                                if (dh.le.dho) then
-                                  if (angzen-zhoriz.lt.0.00001) then      ! shadow the path line of sight-source is not below the horizon => we compute
-                                    hh=1.
-                                  else
-                                    hh=0.
-                                  endif
-                                else
+                                if ((dho.le.dh).or.((dho.gt.dh).and.
+     +                          (angzen.lt.zhoriz))) then
                                   hh=1.
-                                endif
+                                else
+                                  hh=0.
+                                endif     
                               else
                                 hh=1.
                               endif
@@ -1705,18 +1631,16 @@ c verify if there is shadow between sr and line of sight voxel
      +                                  +(z_sr-z_c)**2.)
                                         dho=sqrt((rx_sr-rx_c)**2.
      +                                  +(ry_sr-ry_c)**2.)
-                                        if (angzen.gt.pi/4.) then         ! 45deg. it is unlikely to have a 1km high mountain less than 1
+                                        hh=1.
+                                        if (angzen.gt.pi/8.) then         ! 45deg. it is unlikely to have a 1km high mountain less than 1
         call horizon(x_sr,y_sr,z_sr,dx,dy,altsol,angazi,zhoriz,dh)
-                                          if (dh.le.dho) then
-                                            if (angzen-zhoriz.lt.
-     +                                      0.00001) then                 ! the path line of sight-reflec is not below the horizon => we compute
-                                              hh=1.
-                                            else
-                                              hh=0.
-                                            endif                         ! end condition reflecting surf. above horizon
-                                          else
+                                          if ((dho.le.dh).or.((dho.gt
+     +                                    .dh).and.(angzen.lt.zhoriz)))
+     +                                    then
                                             hh=1.
-                                          endif
+                                          else
+                                            hh=0.
+                                          endif        
                                         else
                                           hh=1.
                                         endif
@@ -1835,8 +1759,8 @@ c**********************************************************************
                     enddo                                                 ! end the loop over the column (longitude) of the domain (x_s).
 c end of the computation of the intensity of one source type
                     itotci=itotci+itotty                                  ! Sum of the intensities all source all type to a line of sight element
-                    do x_s=imin(stype),imax(stype)
-                      do y_s=jmin(stype),jmax(stype)
+                    do x_s=1,nbx 
+                      do y_s=1,nby 
                         ITC(x_s,y_s)=ITC(x_s,y_s)+ITT(x_s,y_s,stype)
                       enddo
                     enddo
