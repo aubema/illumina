@@ -30,7 +30,7 @@
       subroutine zone_scat(xi,yi,zi,xf,yf,zf,effet,zondif,ncell,siz,siz_0)
        implicit none
        integer i,j,k
-       integer ncell,neffet,imin,imax,jmin,jmax,kmin,kmax,stepdi
+       integer ncell,neffet,imin,imax,jmin,jmax,kmin,kmax
        real*8 x0,y0,z0,xi,yi,zi,xf,yf,zf
        real*8 effet,dmax,d
        real*8 xmin,xmax,ymin,ymax,zmin,zmax
@@ -89,16 +89,5 @@
            enddo
          enddo
        enddo
-
-       
-!       open(unit=1,file='scatzon.txt',status='unknown')
-!         do i=1,ncell
-!            write(1,*) zondif(i,1),zondif(i,2),zondif(i,3)
-!         enddo
-!       close(1)
-!       open(unit=1,file='points.txt',status='unknown')
-!          write(1,*) xi,yi,zi
-!          write(1,*) xf,yf,zf
-!       close(1)
        return
        end 

@@ -460,7 +460,9 @@ program illumina ! Beginning
    do i=1,nbx ! beginning of the loop over all cells along x.
       do j=1,nby ! beginning of the loop over all cells along y.
          drefle(i,j)=val2d(i,j)/2.
-         if (drefle(i,j).eq.0.D0) drefle(i,j)=dx ! when outside a zone, block to the size of the cell (typically 1km)
+         if (drefle(i,j).eq.0.D0) then
+           drefle(i,j)=dx ! when outside a zone, block to the size of the cell (typically 1km)
+         endif
       enddo ! end of the loop over all cells along y.
    enddo
    ! reading subgrid obstacles filling factor
@@ -730,7 +732,7 @@ program illumina ! Beginning
    enddo ! end of the loop over the source types.
    ! end of direct calculations
    radius_2=7000.D0
-   radius_3=7000.D0
+   radius_3=6000.D0
    size_0=2500.D0
    if (scat_level.gt.1) then
       print*,'Action radius of 2nd scattering =',radius_2
@@ -823,7 +825,7 @@ program illumina ! Beginning
                      do nres=1,nresmax
                         siz2_0=size_0+dble(nres-1)*300.D0 ! scanning resolutions of 2000m 1500m and 1000m
                         resolut2(nres)=siz2_0
-                        siz3_0=size_0+dble(nres-1)*500.D0
+                        siz3_0=size_0+dble(nres-1)*300.D0
                         resolut3(nres)=siz3_0
                         resolut3p(nres)=0.D0
                         flux2(nres)=0.D0
@@ -841,9 +843,9 @@ program illumina ! Beginning
                         endif
                         do stype=1,ntype ! beginning of the loop over the source types.
                            if (totlu(stype).ne.0.D0) then ! check if there are any flux in that source type otherwise skip this lamp
-                              if (verbose.ge.1) print*,' Turning on lamps zone',stype,'@ resolutions',nres,"(",idnint(siz2_0), &
+                              if (verbose.ge.1) print*,' Turning on lamps zone',stype,'@ resolution',nres,"(",idnint(siz2_0), &
                                  idnint(siz3_0),")"
-                              if (verbose.ge.1) write(2,*) ' Turning on lamps zone',stype,'@ resolutions',nres,"(",idnint(siz2_0), &
+                              if (verbose.ge.1) write(2,*) ' Turning on lamps zone',stype,'@ resolution',nres,"(",idnint(siz2_0), &
                                  idnint(siz3_0),")"
                               do x_s=1,nbx ! beginning of the loop over the column (longitude the) of the domain.
                                  do y_s=1,nby
@@ -1127,9 +1129,8 @@ program illumina ! Beginning
                         endif
                         print*,'Flux 2nd sca:',flux2
                         print*,'Used for fit:',fluxfit
-                        print*,'Extrapolated:',flux_2
+                        print*,'2nd extrapol:',flux_2
                         if (scat_level.gt.2) then
-                           print*,'flux3',flux3
                            ! filter the data for abnormal variations.
                            do nfit=1,6
                               resofit(nfit)=0.D0
@@ -1166,19 +1167,21 @@ program illumina ! Beginning
                               ! linear interpolation in the LN space
                               print*,'nfit3=',nfit,sigma
                               call linearfit(resofit,fluxfit,nfit,acoef,bcoef)
-                              flux_3=bcoef**3.
-                              print*,'3rd order extrapol:',flux_3
                               if (flux_3.lt.flux3(1)) then
-                                flux_2=flux3(1)
+                                flux_3=flux3(1)
                                 print*,'bad extrapolation'
                               endif
                            else
-                              print*,'LESS THAN 4 points for 3rd order'
+                              print*,'LESS THAN 3 points for 3rd order'
                               flux_3=flux3(1)
                            endif
                         else
                            flux_3=0.D0
                         endif
+                        flux_3=bcoef**3.
+                        print*,'Flux 3rd sca:',flux3
+                        print*,'Used for fit:',fluxfit
+                        print*,'3rd extrapol:',flux_3
                      else
                         flux_2=0.D0
                         flux_3=0.D0
@@ -1335,7 +1338,7 @@ program illumina ! Beginning
    write(2,*) '         Diffuse radiance (W/str/m**2/nm) including clouds       '
    write(2,2001) (flux_total+fctcld)/omefov/(pi*(diamobj/2.)**2.)
    close(2)
-2001 format('                   ',E10.3E2)
+2001 format('                   ',E14.7E2)
 2002 format(' Ratio 2nd/1st scat=',F6.3,'     Ratio 3rd/1st scat=',F6.3)
    stop
 end
