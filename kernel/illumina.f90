@@ -403,7 +403,7 @@ program illumina ! Beginning
    hh=1.
    flux_all=0.D0
    itodif1=0.D0
-   nresmax=3
+   nresmax=6 ! maximum = 6 minimum = 1
    ! determination of the vertical atmospheric transmittance
    call transtoa(lambda,bandw,taua,layaod,pressi,tranam,tranaa,tranal,tabs) ! tranam and tranaa are the top of atmosphere transmittance (molecules and aerosols)
    ! reading of the environment variables
@@ -1119,12 +1119,12 @@ program illumina ! Beginning
                            endif
                         enddo
                         print*,'nfit2=',nfit,sigma
-                        if (nfit.ge.3) then
+                        if (nfit.ge.3) then ! augmenter a 3 ?
                            call linearfit(resofit,fluxfit,nfit,acoef,bcoef)
                            flux_2=bcoef
                            if (flux_2.lt.flux2(1)) flux_2=flux2(1)
                         else
-                           print*,'LESS THAN 4 points for 2nd order'
+                           print*,'LESS THAN 3 points for 2nd order'
                            flux_2=flux2(1)
                         endif
                         print*,'Flux 2nd sca:',flux2
@@ -1148,7 +1148,7 @@ program illumina ! Beginning
                                  resolut3p(nresp)=resolut3(nres)
                               endif
                            enddo
-                           if (nresp.ge.3) then
+                           if (nresp.ge.3) then  ! augmenter a 3 ?
                               do nres=1,nresp
                                  moy=flux3p(nres)+moy
                               enddo
@@ -1216,7 +1216,7 @@ program illumina ! Beginning
                               enddo
                               call linearfit(resofit,fluxfit,nfit,acoef,bcoef)
                               contribution_2(x_s,y_s)=bcoef
-                              if (scat_level.gt.2) then    ! ICI remettre 2
+                              if (scat_level.gt.2) then
                                  ! filter the data for abnormal variations.
                                  nfit=0
                                  moy=0.D0
@@ -1284,8 +1284,6 @@ program illumina ! Beginning
                      if (verbose.ge.1) print*,'Radiance accumulated =',flux_total/omefov/(pi*(diamobj/2.)**2.)
                      if (verbose.ge.1) write(2,*) 'Added radiance =',flux_all/omefov/(pi*(diamobj/2.)**2.)
                      if (verbose.ge.1) write(2,*) 'Radiance accumulated =',flux_total/omefov/(pi*(diamobj/2.)**2.)
-
-
                   endif ! end condition stoplimit general
                endif ! end of the condition line of sight voxel inside the modelling domain
             endif ! line of sight voxel above ground
