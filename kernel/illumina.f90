@@ -1271,18 +1271,20 @@ program illumina ! Beginning
                                        resofit(nfit)=resolut3(nres)
                                     endif
                                  enddo
-                                 if (contribution_3(x_s,y_s).lt.contrib3(x_s,y_s,1)) then
-                                   contribution_3(x_s,y_s)=contrib3(x_s,y_s,1)**3.
-                                 endif                                 
+                               
                                  if (nfit.ge.3) then                                 
                                    call linearfit(resofit,fluxfit,nfit,acoef,bcoef)
                                    contribution_3(x_s,y_s)=bcoef**3.
                                  else
                                    contribution_3(x_s,y_s)=contrib3(x_s,y_s,1)**3.
                                  endif
+                                 if (contribution_3(x_s,y_s).lt.contrib3(x_s,y_s,1)**3.) then
+                                    contribution_3(x_s,y_s)=contrib3(x_s,y_s,1)**3.
+                                 endif 
                               else
                                  contribution_3(x_s,y_s)=0.D0
                               endif
+ 
                            else
                               contribution_2(x_s,y_s)=0.D0
                               contribution_3(x_s,y_s)=0.D0
