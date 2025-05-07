@@ -161,7 +161,7 @@ program illumina ! Beginning
    ! Tomasz Sciezor , The impact of clouds on the brightness of the night sky, Journal of
    ! Quantitative Spectroscopy & Radiative Transfer (2020),
    ! doi: https://doi.org/10.1016/j.jqsrt.2020.106962
-   real*8 cloudfrac ! cloud fraction in percentage
+   real*8 cloudfrac ! cloud fraction in percentage, 100 means overcast
    integer xsrmi,xsrma,ysrmi,ysrma ! limits of the loop valeur for the reflecting surfaces
    real*8 icloud ! cloud reflected intensity
    real*8 fctcld ! total flux from cloud at the sensor level
@@ -403,7 +403,7 @@ program illumina ! Beginning
    hh=1.
    flux_all=0.D0
    itodif1=0.D0
-   nresmax=6
+   nresmax=3
    ! determination of the vertical atmospheric transmittance
    call transtoa(lambda,bandw,taua,layaod,pressi,tranam,tranaa,tranal,tabs) ! tranam and tranaa are the top of atmosphere transmittance (molecules and aerosols)
    ! reading of the environment variables
@@ -732,7 +732,7 @@ program illumina ! Beginning
    enddo ! end of the loop over the source types.
    ! end of direct calculations
    radius_2=7000.D0
-   radius_3=6000.D0
+   radius_3=7000.D0
    size_0=2500.D0
    if (scat_level.gt.1) then
       print*,'Action radius of 2nd scattering =',radius_2
@@ -821,7 +821,7 @@ program illumina ! Beginning
                      endif
                      ometif=pi*(diamobj/2.)**2./dis_obs**2.
                      if (scat_level.eq.1) nresmax=1 ! dont do the multi resolution extrapolation for single scat
-                     ! scan 6 coarse resolution to extrapolate the infinite resolution of the multiple scat
+                     ! scan nresmax coarse resolution to extrapolate the infinite resolution of the multiple scat
                      do nres=1,nresmax
                         siz2_0=size_0+dble(nres-1)*300.D0 ! scanning resolutions of 2000m 1500m and 1000m
                         resolut2(nres)=siz2_0
@@ -1095,7 +1095,7 @@ program illumina ! Beginning
                      ! 2ND and 3RD ORDER extrapolation TO INFINITE RESOLUTION
                      if (scat_level.gt.1) then
                         ! filter the data for abnormal variations.
-                        do nfit=1,6
+                        do nfit=1,nresmax
                            resofit(nfit)=0.D0
                            fluxfit(nfit)=0.D0
                         enddo
@@ -1103,15 +1103,15 @@ program illumina ! Beginning
                         moy=0.D0
                         quad=0.D0
                         sigma=0.D0
-                        do nres=1,6
+                        do nres=1,nresmax
                            moy=flux2(nres)+moy
                         enddo
-                        moy=moy/6.
-                        do nres=1,6
+                        moy=moy/dble(nresmax)
+                        do nres=1,nresmax
                            quad=quad+(flux2(nres)-moy)**2.
                         enddo
                         sigma=dsqrt(quad/4.)
-                        do nres=1,6
+                        do nres=1,nresmax
                            if (dabs(flux2(nres)-moy).le.1.5*sigma) then
                               nfit=nfit+1
                               fluxfit(nfit)=flux2(nres)
@@ -1132,7 +1132,7 @@ program illumina ! Beginning
                         print*,'2nd extrapol:',flux_2
                         if (scat_level.gt.2) then
                            ! filter the data for abnormal variations.
-                           do nfit=1,6
+                           do nfit=1,nresmax
                               resofit(nfit)=0.D0
                               fluxfit(nfit)=0.D0
                            enddo
@@ -1141,7 +1141,7 @@ program illumina ! Beginning
                            quad=0.D0
                            nresp=0
                            sigma=0.D0
-                           do nres=1,6
+                           do nres=1,nresmax
                               if (flux3(nres).ne.0.D0) then
                                  nresp=nresp+1
                                  flux3p(nresp)=flux3(nres)**(1./3.)
@@ -1175,13 +1175,12 @@ program illumina ! Beginning
                               print*,'LESS THAN 3 points for 3rd order'
                               flux_3=flux3(1)
                            endif
+                           flux_3=bcoef**3.
+                           print*,'Flux 3rd sca:',flux3
+                           print*,'3rd extrapol:',flux_3                          
                         else
                            flux_3=0.D0
                         endif
-                        flux_3=bcoef**3.
-                        print*,'Flux 3rd sca:',flux3
-                        print*,'Used for fit:',fluxfit
-                        print*,'3rd extrapol:',flux_3
                      else
                         flux_2=0.D0
                         flux_3=0.D0
@@ -1195,20 +1194,20 @@ program illumina ! Beginning
                               moy=0.D0
                               quad=0.D0
                               nmoy=0
-                              do nres=1,6
+                              do nres=1,nresmax
                                  if (contrib2(x_s,y_s,nres).ne.0.D0) then
                                     moy=contrib2(x_s,y_s,nres)+moy
                                     nmoy=nmoy+1
                                  endif
                               enddo
                               moy=moy/dble(nmoy)
-                              do nres=1,6
+                              do nres=1,nresmax
                                  if (contrib2(x_s,y_s,nres).ne.0.D0) then
                                     quad=quad+(contrib2(x_s,y_s,nres)-moy)**2.
                                  endif
                               enddo
                               sigma=dsqrt(quad/dble(nmoy-1))
-                              do nres=1,6
+                              do nres=1,nresmax
                                  if (dabs(contrib2(x_s,y_s,nres)-moy).le.1.5*sigma) then
                                     nfit=nfit+1
                                     fluxfit(nfit)=contrib2(x_s,y_s,nres)
@@ -1223,28 +1222,28 @@ program illumina ! Beginning
                                  moy=0.D0
                                  nmoy=0
                                  quad=0.D0
-                                 do nres=1,6
+                                 do nres=1,nresmax
                                     if (contrib3(x_s,y_s,nres).eq.0.D0) then
                                        contrib3(x_s,y_s,nres)=MAXVAL(contrib3(x_s,y_s,:))
                                     endif
                                  enddo
-                                 do nres=1,6
+                                 do nres=1,nresmax
                                     contrib3(x_s,y_s,nres)=(contrib3(x_s,y_s,nres))**(1./3.)
                                  enddo
-                                 do nres=1,6
+                                 do nres=1,nresmax
                                     if (contrib3(x_s,y_s,nres).ne.0.D0) then
                                        moy=contrib3(x_s,y_s,nres)+moy
                                        nmoy=nmoy+1
                                     endif
                                  enddo
                                  moy=moy/dble(nmoy)
-                                 do nres=1,6
+                                 do nres=1,nresmax
                                     if (contrib3(x_s,y_s,nres).ne.0.D0) then
                                        quad=quad+(contrib3(x_s,y_s,nres)-moy)**2.
                                     endif
                                  enddo
                                  sigma=dsqrt(quad/dble(nmoy-1))
-                                 do nres=1,6
+                                 do nres=1,nresmax
                                     if (dabs(contrib3(x_s,y_s,nres)-moy).le.1.5*sigma) then
                                        nfit=nfit+1
                                        fluxfit(nfit)=contrib3(x_s,y_s,nres)
