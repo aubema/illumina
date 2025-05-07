@@ -1272,13 +1272,13 @@ program illumina ! Beginning
                                     endif
                                  enddo
                                  if (contribution_3(x_s,y_s).lt.contrib3(x_s,y_s,1)) then
-                                   contribution_3(x_s,y_s)=contrib3(x_s,y_s,1)
+                                   contribution_3(x_s,y_s)=contrib3(x_s,y_s,1)**3.
                                  endif                                 
                                  if (nfit.ge.3) then                                 
                                    call linearfit(resofit,fluxfit,nfit,acoef,bcoef)
                                    contribution_3(x_s,y_s)=bcoef**3.
                                  else
-                                   contribution_3(x_s,y_s)=contrib3(x_s,y_s,1)
+                                   contribution_3(x_s,y_s)=contrib3(x_s,y_s,1)**3.
                                  endif
                               else
                                  contribution_3(x_s,y_s)=0.D0
@@ -1303,18 +1303,15 @@ program illumina ! Beginning
                            contrimap3(x_s,y_s)=contrimap3(x_s,y_s)+contribution_3(x_s,y_s)
                         enddo
                      enddo
-                     
-                     
-                     
                      ! correction for the FOV to the flux reaching the intrument from the cloud voxel
                      if (cloudt.ne.0) then
                         ! computation of the flux reaching the intrument from the cloud voxel
                         fctcld=itoclou*ometif*transa*transm*transl ! cloud flux for all source all type all line of sight element
                      endif
-                     if (verbose.ge.1) print*,'Added radiance =',flux_all/omefov/(pi*(diamobj/2.)**2.)
-                     if (verbose.ge.1) print*,'Radiance accumulated =',flux_total/omefov/(pi*(diamobj/2.)**2.)
-                     if (verbose.ge.1) write(2,*) 'Added radiance =',flux_all/omefov/(pi*(diamobj/2.)**2.)
-                     if (verbose.ge.1) write(2,*) 'Radiance accumulated =',flux_total/omefov/(pi*(diamobj/2.)**2.)
+                     if (verbose.ge.1) write(*,2003) flux_all/omefov/(pi*(diamobj/2.)**2.)
+                     if (verbose.ge.1) write(*,2004) flux_total/omefov/(pi*(diamobj/2.)**2.)
+                     if (verbose.ge.1) write(2,2003) flux_all/omefov/(pi*(diamobj/2.)**2.)
+                     if (verbose.ge.1) write(2,2004) flux_total/omefov/(pi*(diamobj/2.)**2.)
                   endif ! end condition stoplimit general
                endif ! end of the condition line of sight voxel inside the modelling domain
             endif ! line of sight voxel above ground
@@ -1324,7 +1321,6 @@ program illumina ! Beginning
          endif ! end the line of sight is not yet blocked by the topography
       enddo ! end of the loop over the line of sight voxels.
    endif ! end of scattered light
-
    fctcld=fctcld*10**(0.4*(100.D0-cloudfrac)*cloudslope) ! correction for the cloud fraction (defined from 0 to 100)
    if (verbose.eq.2) then
      print*,'Writing contribution arrays'
@@ -1341,15 +1337,19 @@ program illumina ! Beginning
    ! flt is calculated from the extrapolated contribution maps from single sources while flux_total is calculated  
    ! from extrapolation of each line of sight for integrated sources.
    do x_s=1,nbx
-     do y_s=1,nby      
-       fl1=fl1+contrimap1(x_s,y_s)
-       fl2=fl2+contrimap2(x_s,y_s)
-       fl3=fl3+contrimap3(x_s,y_s)
-     enddo
+      do y_s=1,nby      
+         fl1=fl1+contrimap1(x_s,y_s)
+         fl2=fl2+contrimap2(x_s,y_s)
+         fl3=fl3+contrimap3(x_s,y_s)
+      enddo
    enddo
+   
+   print*,flux_3,fl3
+   
+   
    flt=fl1+fl2+fl3
    if (fl1.gt.0.D0) then
-     write(*,2002) fl2/fl1,fl3/fl1
+      write(*,2002) fl2/fl1,fl3/fl1
    endif
    ! End of calculation of the scattered radiances
    if (verbose.ge.1) print*,'====================================================='
@@ -1383,6 +1383,8 @@ program illumina ! Beginning
    close(2)
 2001 format('                   ',E14.7E2)
 2002 format(' Ratio 2nd/1st scat=',F6.3,'     Ratio 3rd/1st scat=',F6.3)
+2003 format('Added diffuse radiance =',E9.2E2)
+2004 format('Accumulated diffuse radiance =',E9.2E2)
    stop
 end
 ! ***********************************************************************
