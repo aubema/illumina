@@ -151,7 +151,6 @@ program illumina ! Beginning
    real*8 contribution_1(width,width),contribution_2(width,width),contribution_3(width,width)
    real*8 contrimap1(width,width),contrimap2(width,width),contrimap3(width,width)
    character*3 lampno ! lamp number string
-   integer prmaps ! flag to enable the tracking of contribution and sensitivity maps
    integer cloudt ! cloud type 0=clear, 1=Thin Cirrus/Cirrostratus, 2=Thick Cirrus/Cirrostratus, 3=Altostratus/Altocumulus,
    ! 4=Stratocumulus/stratus, 5=Cumulus/Cumulonimbus
    real*8 cloudslope ! slope of the radiance dependency on the cloud fraction (in percentage) According to
@@ -219,9 +218,14 @@ program illumina ! Beginning
    real*8 resofit(6),fluxfit(6)
    real*8 moy,quad,sigma
    real*8 dho
+   real*8 fl1,fl2,fl3,flt
    integer nres,nresmax,nresp,nfit,nmoy ! resolution number used to extrapolate the scattered flux to infinite resolution
    verbose=1 ! Very little printout=0, Many printout = 1, even more=2
    diamobj=1.D0 ! A dummy value for the diameter of the objective of the instrument used by the observer.
+   fl1=0.D0
+   fl2=0.D0
+   fl3=0.D0
+   flt=0.D0
    volu2=0.D0
    volu3=0.D0
    zero=0.D0
@@ -336,7 +340,6 @@ program illumina ! Beginning
    if (cloudt.eq.0) then
       cloudbase=1000000000.D0
    endif
-   prmaps=1 ! activate the contribution maps (1=enable)
    icloud=0.D0
    do i=1,width
       do j=1,width
@@ -779,6 +782,9 @@ program illumina ! Beginning
             if (y_c.lt.1) y_c=1
             if (y_c.gt.width) y_c=width
             z_c=z_c+iz*(scalo/2.+scal/2.)
+            
+            if (icible.gt.1) then
+            
             if (z_c.gt.altsol(x_c,y_c)) then  ! line of sight voxel above ground
                if( (rx_c.gt.dble(nbx)*dx).or.(rx_c.lt.dx).or.(ry_c.gt.dble(nby)*dy).or.(ry_c.lt.dy)) then ! Condition line of sight inside the modelling domain
                else
@@ -833,11 +839,11 @@ program illumina ! Beginning
                         flux3p(nres)=0.D0
                         if ((verbose.ge.1).and.(nres.eq.1)) then
                            print*,'================================================'
-                           print*,' Progression along the line of sight :',icible
+                           print*,' Progression along the line of sight :',icible-1
                            print*,' Horizontal dist. line of sight =',idnint(dsqrt((rx_c-rx_obs)**2.+(ry_c-ry_obs)**2.)),' m'
                            print*,' Vertical dist. line of sight =',idnint(dabs(z_c-z_obs)),' m'
                            write(2,*) '============================================='
-                           write(2,*) ' Progression along the line of sight :',icible
+                           write(2,*) ' Progression along the line of sight :',icible-1
                            write(2,*) ' Horizontal dist. line of sight =',idnint(dsqrt((rx_c-rx_obs)**2.+(ry_c-ry_obs)**2.)),' m'
                            write(2,*) ' Vertical dist. line of sight =',idnint(dabs(z_c-z_obs)),' m'
                         endif
@@ -882,6 +888,11 @@ program illumina ! Beginning
                                                 cloudbase,omefov,scal,portio,idif1,icloud)
                                              itoclou=itoclou+icloud
                                              itodif1=itodif1+idif1
+                                             
+                                             
+                                             if (nres.eq.1) contrib1(x_s,y_s)=contrib1(x_s,y_s)+idif1
+                                             
+                                             
                                              ! outputs are idif1 and icloud
                                              rho=1 ! from ground
                                              idif1=0.D0
@@ -914,6 +925,11 @@ program illumina ! Beginning
                                                                   omefov,scal,portio,idif1,icloud)
                                                                itoclou=itoclou+icloud
                                                                itodif1=itodif1+idif1
+                                                                                                            
+                                             
+                                                               if (nres.eq.1) contrib1(x_s,y_s)=contrib1(x_s,y_s)+idif1
+                                             
+                                             
                                                             endif
                                                          endif
                                                       endif
@@ -936,6 +952,7 @@ program illumina ! Beginning
                                                    haer,hlay,dx,dy,nbx,nby,cloudt,cloudbase,omefov,scal,portio,idif2,icloud)
                                                 itoclou=itoclou+icloud
                                                 itodif2(nres)=itodif2(nres)+idif2 ! Correct the result for the skipping of scattering voxels to accelerate the calculation
+                                                contrib2(x_s,y_s,nres)=contrib2(x_s,y_s,nres)+idif2
                                                 ! outputs are idif2 and icloud
                                                 rho=1 ! from ground
                                                 xsrmi=x_s-boxx
@@ -971,6 +988,7 @@ program illumina ! Beginning
                                                                      portio,idif2,icloud)
                                                                   itoclou=itoclou+icloud
                                                                   itodif2(nres)=itodif2(nres)+idif2
+                                                                  contrib2(x_s,y_s,nres)=contrib2(x_s,y_s,nres)+idif2
                                                                endif
                                                             endif
                                                          endif
@@ -992,6 +1010,7 @@ program illumina ! Beginning
                                                    zondi3,siz3,volu3,ndiff3,tranam,tabs,tranaa,tranal,secdif,secdil,fdifan, &
                                                    fdifl,haer,hlay,dx,dy,nbx,nby,cloudt,cloudbase,omefov,scal,portio,idif3,icloud)
                                                 itodif3(nres)=itodif3(nres)+idif3
+                                                contrib3(x_s,y_s,nres)=contrib3(x_s,y_s,nres)+idif3
                                                 itoclou=itoclou+icloud
                                                 ! outputs are idif3 and icloud
                                                 rho=1 ! from ground
@@ -1026,6 +1045,7 @@ program illumina ! Beginning
                                                                      fdifl,haer,hlay,dx,dy,nbx,nby,cloudt,cloudbase,omefov, &
                                                                      scal,portio,idif3,icloud)
                                                                   itodif3(nres)=itodif3(nres)+idif3
+                                                                  contrib3(x_s,y_s,nres)=contrib3(x_s,y_s,nres)+idif3
                                                                   itoclou=itoclou+icloud
                                                                endif
                                                             endif
@@ -1052,12 +1072,6 @@ program illumina ! Beginning
                                              stop
                                           endif
                                        endif
-
-
-                                       if (nres.eq.1) contrib1(x_s,y_s)=contrib1(x_s,y_s)+idif1
-                                       contrib2(x_s,y_s,nres)=contrib2(x_s,y_s,nres)+idif2
-                                       contrib3(x_s,y_s,nres)=contrib3(x_s,y_s,nres)+idif3
-
                                     endif ! lamplu greater than zero
                                  enddo ! end the loop over the lines (latitude) of the domain (y_s).
                               enddo ! end the loop over the column (longitude) of the domain (x_s).
@@ -1106,7 +1120,7 @@ program illumina ! Beginning
                         do nres=1,nresmax
                            moy=flux2(nres)+moy
                         enddo
-                        moy=moy/dble(nresmax)
+                        if (nresmax.ne.0) moy=moy/dble(nresmax)
                         do nres=1,nresmax
                            quad=quad+(flux2(nres)-moy)**2.
                         enddo
@@ -1118,8 +1132,8 @@ program illumina ! Beginning
                               resofit(nfit)=resolut2(nres)
                            endif
                         enddo
-                        print*,'nfit2=',nfit,sigma
-                        if (nfit.ge.3) then ! augmenter a 3 ?
+                        !print*,'nfit2=',nfit,sigma
+                        if (nfit.ge.3) then
                            call linearfit(resofit,fluxfit,nfit,acoef,bcoef)
                            flux_2=bcoef
                            if (flux_2.lt.flux2(1)) flux_2=flux2(1)
@@ -1127,9 +1141,9 @@ program illumina ! Beginning
                            print*,'LESS THAN 3 points for 2nd order'
                            flux_2=flux2(1)
                         endif
-                        print*,'Flux 2nd sca:',flux2
-                        print*,'Used for fit:',fluxfit
-                        print*,'2nd extrapol:',flux_2
+                        !print*,'Flux 2nd sca:',flux2
+                        !print*,'Used for fit:',fluxfit
+                        !print*,'2nd extrapol:',flux_2
                         if (scat_level.gt.2) then
                            ! filter the data for abnormal variations.
                            do nfit=1,nresmax
@@ -1148,11 +1162,11 @@ program illumina ! Beginning
                                  resolut3p(nresp)=resolut3(nres)
                               endif
                            enddo
-                           if (nresp.ge.3) then  ! augmenter a 3 ?
+                           if (nresp.ge.3) then
                               do nres=1,nresp
                                  moy=flux3p(nres)+moy
                               enddo
-                              moy=moy/dble(nresp)
+                              if (nresp.ne.0) moy=moy/dble(nresp)
                               do nres=1,nresp
                                  quad=quad+(flux3p(nres)-moy)**2.
                               enddo
@@ -1165,8 +1179,9 @@ program illumina ! Beginning
                                  endif
                               enddo
                               ! linear interpolation in the LN space
-                              print*,'nfit3=',nfit,sigma
+                              !print*,'nfit3=',nfit,sigma
                               call linearfit(resofit,fluxfit,nfit,acoef,bcoef)
+                              flux_3=bcoef**3.                              
                               if (flux_3.lt.flux3(1)) then
                                 flux_3=flux3(1)
                                 print*,'bad extrapolation'
@@ -1175,9 +1190,8 @@ program illumina ! Beginning
                               print*,'LESS THAN 3 points for 3rd order'
                               flux_3=flux3(1)
                            endif
-                           flux_3=bcoef**3.
-                           print*,'Flux 3rd sca:',flux3
-                           print*,'3rd extrapol:',flux_3                          
+                           !print*,'Flux 3rd sca:',flux3
+                           !print*,'3rd extrapol:',flux_3                          
                         else
                            flux_3=0.D0
                         endif
@@ -1200,7 +1214,7 @@ program illumina ! Beginning
                                     nmoy=nmoy+1
                                  endif
                               enddo
-                              moy=moy/dble(nmoy)
+                              if (nmoy.ne.0) moy=moy/dble(nmoy)
                               do nres=1,nresmax
                                  if (contrib2(x_s,y_s,nres).ne.0.D0) then
                                     quad=quad+(contrib2(x_s,y_s,nres)-moy)**2.
@@ -1214,8 +1228,15 @@ program illumina ! Beginning
                                     resofit(nfit)=resolut2(nres)
                                  endif
                               enddo
-                              call linearfit(resofit,fluxfit,nfit,acoef,bcoef)
-                              contribution_2(x_s,y_s)=bcoef
+                              if (nfit.ge.3) then
+                                call linearfit(resofit,fluxfit,nfit,acoef,bcoef)
+                                contribution_2(x_s,y_s)=bcoef
+                              else
+                                contribution_2(x_s,y_s)=contrib2(x_s,y_s,1)
+                              endif
+                              if (contribution_2(x_s,y_s).lt.contrib2(x_s,y_s,1)) then
+                                contribution_2(x_s,y_s)=contrib2(x_s,y_s,1)
+                              endif
                               if (scat_level.gt.2) then
                                  ! filter the data for abnormal variations.
                                  nfit=0
@@ -1236,7 +1257,7 @@ program illumina ! Beginning
                                        nmoy=nmoy+1
                                     endif
                                  enddo
-                                 moy=moy/dble(nmoy)
+                                 if (nmoy.ne.0) moy=moy/dble(nmoy)
                                  do nres=1,nresmax
                                     if (contrib3(x_s,y_s,nres).ne.0.D0) then
                                        quad=quad+(contrib3(x_s,y_s,nres)-moy)**2.
@@ -1250,8 +1271,15 @@ program illumina ! Beginning
                                        resofit(nfit)=resolut3(nres)
                                     endif
                                  enddo
-                                 call linearfit(resofit,fluxfit,nfit,acoef,bcoef)
-                                 contribution_3(x_s,y_s)=bcoef**3.
+                                 if (contribution_3(x_s,y_s).lt.contrib3(x_s,y_s,1)) then
+                                   contribution_3(x_s,y_s)=contrib3(x_s,y_s,1)
+                                 endif                                 
+                                 if (nfit.ge.3) then                                 
+                                   call linearfit(resofit,fluxfit,nfit,acoef,bcoef)
+                                   contribution_3(x_s,y_s)=bcoef**3.
+                                 else
+                                   contribution_3(x_s,y_s)=contrib3(x_s,y_s,1)
+                                 endif
                               else
                                  contribution_3(x_s,y_s)=0.D0
                               endif
@@ -1267,7 +1295,7 @@ program illumina ! Beginning
                      flux_total_2=flux_total_2+flux_2
                      flux_total_3=flux_total_3+flux_3
                      flux_total=flux_total+flux_all
-                     print*,'Components:',flux_total_1,flux_total_2,flux_total_3,flux_total
+                     !print*,'Components:',flux_total_1,flux_total_2,flux_total_3,flux_total
                      do x_s=1,nbx
                         do y_s=1,nby
                            contrimap1(x_s,y_s)=contrimap1(x_s,y_s)+contribution_1(x_s,y_s)
@@ -1275,6 +1303,9 @@ program illumina ! Beginning
                            contrimap3(x_s,y_s)=contrimap3(x_s,y_s)+contribution_3(x_s,y_s)
                         enddo
                      enddo
+                     
+                     
+                     
                      ! correction for the FOV to the flux reaching the intrument from the cloud voxel
                      if (cloudt.ne.0) then
                         ! computation of the flux reaching the intrument from the cloud voxel
@@ -1287,26 +1318,39 @@ program illumina ! Beginning
                   endif ! end condition stoplimit general
                endif ! end of the condition line of sight voxel inside the modelling domain
             endif ! line of sight voxel above ground
+            
+            endif ! not the first element of the line of sight
+            
          endif ! end the line of sight is not yet blocked by the topography
       enddo ! end of the loop over the line of sight voxels.
    endif ! end of scattered light
 
-
-   if (flux_total_1.gt.0.D0) then
-     write(*,2002) flux_total_2/flux_total_1,flux_total_3/flux_total_1
-   endif
    fctcld=fctcld*10**(0.4*(100.D0-cloudfrac)*cloudslope) ! correction for the cloud fraction (defined from 0 to 100)
-   if (prmaps.eq.1) then
-      if (verbose.eq.2) then
-         print*,'Writing contribution arrays'
-         print*,'Warning Cloud contrib. excluded from that array.'
-      endif
-      print*,'Saving contribution maps...'
-      call twodout(nbx,nby,pclimg1,contrimap1)
-      call twodout(nbx,nby,pclimg2,contrimap2)
-      call twodout(nbx,nby,pclimg3,contrimap3)
-   endif ! end of condition for creating contrib and sensit maps
-
+   if (verbose.eq.2) then
+     print*,'Writing contribution arrays'
+     print*,'Warning Cloud contrib. excluded from that array.'
+   endif
+   print*,'Saving contribution maps...'
+   call twodout(nbx,nby,pclimg1,contrimap1)
+   call twodout(nbx,nby,pclimg2,contrimap2)
+   call twodout(nbx,nby,pclimg3,contrimap3)
+   fl1=0.
+   fl2=0.
+   fl3=0.
+   ! integrate radiances from extrapolated contribution maps 
+   ! flt is calculated from the extrapolated contribution maps from single sources while flux_total is calculated  
+   ! from extrapolation of each line of sight for integrated sources.
+   do x_s=1,nbx
+     do y_s=1,nby      
+       fl1=fl1+contrimap1(x_s,y_s)
+       fl2=fl2+contrimap2(x_s,y_s)
+       fl3=fl3+contrimap3(x_s,y_s)
+     enddo
+   enddo
+   flt=fl1+fl2+fl3
+   if (fl1.gt.0.D0) then
+     write(*,2002) fl2/fl1,fl3/fl1
+   endif
    ! End of calculation of the scattered radiances
    if (verbose.ge.1) print*,'====================================================='
    print*,'         Direct irradiance from sources (W/m**2/nm)'
@@ -1320,7 +1364,8 @@ program illumina ! Beginning
    print*,'             Cloud radiance (W/str/m**2/nm)'
    write(*,2001) fctcld/omefov/(pi*(diamobj/2.)**2.)
    print*,'            Diffuse radiance (W/str/m**2/nm) including clouds'
-   write(*,2001) (flux_total+fctcld)/omefov/(pi*(diamobj/2.)**2.)
+!   write(*,2001) (flux_total+fctcld)/omefov/(pi*(diamobj/2.)**2.)
+   write(*,2001) (flt+fctcld)/omefov/(pi*(diamobj/2.)**2.)
    if (verbose.ge.1) write(2,*) '==================================================='
    write(2,*) '     Direct irradiance from sources (W/m**2/nm)'
    write(2,2001)  irdirect
@@ -1333,7 +1378,8 @@ program illumina ! Beginning
    write(2,*) '           Cloud radiance (W/str/m**2/nm)         '
    write(2,2001) fctcld/omefov/(pi*(diamobj/2.)**2.)
    write(2,*) '         Diffuse radiance (W/str/m**2/nm) including clouds       '
-   write(2,2001) (flux_total+fctcld)/omefov/(pi*(diamobj/2.)**2.)
+!   write(2,2001) (flux_total+fctcld)/omefov/(pi*(diamobj/2.)**2.)
+   write(2,2001) (flt+fctcld)/omefov/(pi*(diamobj/2.)**2.)   
    close(2)
 2001 format('                   ',E14.7E2)
 2002 format(' Ratio 2nd/1st scat=',F6.3,'     Ratio 3rd/1st scat=',F6.3)
