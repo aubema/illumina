@@ -147,7 +147,7 @@ program illumina ! Beginning
    ! a light ray cannot propagate because it is blocked by a sub-grid obstable
    real*8 ofill(width,width) ! fill factor giving the probability to hit an obstacle when pointing in its direction real 0-1
    integer naz,na
-   real*8 contrib1(width,width),contrib2(width,width,6),contrib3(width,width,6) ! contribution maps
+   real*8 contrib1(width,width),contrib2(width,width,6),contrib3(width,width,6),contrib3p(width,width,6) ! contribution maps
    real*8 contribution_1(width,width),contribution_2(width,width),contribution_3(width,width)
    real*8 contrimap1(width,width),contrimap2(width,width),contrimap3(width,width)
    character*3 lampno ! lamp number string
@@ -363,6 +363,7 @@ program illumina ! Beginning
          do k=1,6
             contrib2(i,j,k)=0.D0
             contrib3(i,j,k)=0.D0
+            contrib3p(i,j,k)=0.D0
          enddo
          do k=1,nzon
             lamplu(i,j,k)=0.D0
@@ -1243,32 +1244,36 @@ program illumina ! Beginning
                                  moy=0.D0
                                  nmoy=0
                                  quad=0.D0
-                                 do nres=1,nresmax
-                                    if (contrib3(x_s,y_s,nres).eq.0.D0) then
-                                       contrib3(x_s,y_s,nres)=MAXVAL(contrib3(x_s,y_s,:))
-                                    endif
-                                 enddo
-                                 do nres=1,nresmax
-                                    contrib3(x_s,y_s,nres)=(contrib3(x_s,y_s,nres))**(1./3.)
-                                 enddo
+                                 nresp=0
                                  do nres=1,nresmax
                                     if (contrib3(x_s,y_s,nres).ne.0.D0) then
-                                       moy=contrib3(x_s,y_s,nres)+moy
-                                       nmoy=nmoy+1
+                                       nresp=nresp+1
+                                       contrib3p(x_s,y_s,nresp)=contrib3(x_s,y_s,nres)**(1./3.)
+                                       resolut3p(nresp)=resolut3(nres)
                                     endif
+                                 enddo                                 
+
+
+                                 do nres=1,nresp
+                                       moy=contrib3p(x_s,y_s,nres)+moy
+                                       nmoy=nmoy+1
                                  enddo
                                  if (nmoy.ne.0) moy=moy/dble(nmoy)
-                                 do nres=1,nresmax
-                                    if (contrib3(x_s,y_s,nres).ne.0.D0) then
-                                       quad=quad+(contrib3(x_s,y_s,nres)-moy)**2.
+                                 do nres=1,nresp
+                                    if (contrib3p(x_s,y_s,nres).ne.0.D0) then
+                                       quad=quad+(contrib3p(x_s,y_s,nres)-moy)**2.
                                     endif
                                  enddo
-                                 sigma=dsqrt(quad/dble(nmoy-1))
-                                 do nres=1,nresmax
-                                    if (dabs(contrib3(x_s,y_s,nres)-moy).le.1.5*sigma) then
+                                 if (nmoy.gt.1) then
+                                    sigma=dsqrt(quad/dble(nmoy-1))
+                                 else
+                                    sigma=0.D0
+                                 endif
+                                 do nres=1,nresp
+                                    if (dabs(contrib3p(x_s,y_s,nres)-moy).le.1.5*sigma) then
                                        nfit=nfit+1
-                                       fluxfit(nfit)=contrib3(x_s,y_s,nres)
-                                       resofit(nfit)=resolut3(nres)
+                                       fluxfit(nfit)=contrib3p(x_s,y_s,nres)
+                                       resofit(nfit)=resolut3p(nres)
                                     endif
                                  enddo
                                
@@ -1276,10 +1281,10 @@ program illumina ! Beginning
                                    call linearfit(resofit,fluxfit,nfit,acoef,bcoef)
                                    contribution_3(x_s,y_s)=bcoef**3.
                                  else
-                                   contribution_3(x_s,y_s)=contrib3(x_s,y_s,1)**3.
+                                   contribution_3(x_s,y_s)=contrib3p(x_s,y_s,1)**3.
                                  endif
-                                 if (contribution_3(x_s,y_s).lt.contrib3(x_s,y_s,1)**3.) then
-                                    contribution_3(x_s,y_s)=contrib3(x_s,y_s,1)**3.
+                                 if (contribution_3(x_s,y_s).lt.contrib3p(x_s,y_s,1)**3.) then
+                                    contribution_3(x_s,y_s)=contrib3p(x_s,y_s,1)**3.
                                  endif 
                               else
                                  contribution_3(x_s,y_s)=0.D0
@@ -1346,7 +1351,7 @@ program illumina ! Beginning
       enddo
    enddo
    
-   print*,flux_3,fl3
+   print*,flux_total_3,fl3
    
    
    flt=fl1+fl2+fl3
