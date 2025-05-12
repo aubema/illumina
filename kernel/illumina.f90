@@ -123,7 +123,7 @@ program illumina ! Beginning
    real*8 r1x,r1y,r1z,r2x,r2y,r2z,r3x,r3y,r3z,r4x,r4y,r4z ! Components of the vectors used in the solid angle calculation routine.
    real*8 omega ! Solid angles
    real*8 idif3 ! 3rd scat  intensity
-   real*8 flux2(6),flux3(6),flux3p(6) ! Flux reaching the observer voxel from all FOV voxels in a given model level
+   real*8 flux2(7),flux3(7),flux3p(7) ! Flux reaching the observer voxel from all FOV voxels in a given model level
    real*8 flux_total,flux_total_1,flux_total_2,flux_total_3 ! Total flux reaching the observer voxel
    real*8 haut ! Haut (negative indicate that the surface is lighted from inside the ground. I.e. not considered in the calculation
    real*8 epsilx,epsily ! tilt of the ground pixel
@@ -147,7 +147,7 @@ program illumina ! Beginning
    ! a light ray cannot propagate because it is blocked by a sub-grid obstable
    real*8 ofill(width,width) ! fill factor giving the probability to hit an obstacle when pointing in its direction real 0-1
    integer naz,na
-   real*8 contrib1(width,width),contrib2(width,width,6),contrib3(width,width,6),contrib3p(width,width,6) ! contribution maps
+   real*8 contrib1(width,width),contrib2(width,width,7),contrib3(width,width,7),contrib3p(width,width,7) ! contribution maps
    real*8 contribution_1(width,width),contribution_2(width,width),contribution_3(width,width)
    real*8 contrimap1(width,width),contrimap2(width,width),contrimap3(width,width)
    character*3 lampno ! lamp number string
@@ -209,13 +209,13 @@ program illumina ! Beginning
 
    real*8 itoclou ! cloud intensity
    real*8 itodif1 ! First scattering intensity
-   real*8 itodif2(6) ! Second scattering intensity
-   real*8 itodif3(6) ! total 3rd order intentity
+   real*8 itodif2(7) ! Second scattering intensity
+   real*8 itodif3(7) ! total 3rd order intentity
    integer rho ! switch between source (rho=0) or ground pixel (rho=1)
    real*8 flux_all,flux_1,flux_2,flux_3
    real*8 acoef,bcoef ! 2nd order polynomial extrapolation coefficients
-   real*8 resolut2(6),resolut3(6),resolut3p(6)
-   real*8 resofit(6),fluxfit(6)
+   real*8 resolut2(7),resolut3(7),resolut3p(7)
+   real*8 resofit(7),fluxfit(7)
    real*8 moy,quad,sigma
    real*8 dho
    real*8 fl1,fl2,fl3,flt
@@ -360,7 +360,7 @@ program illumina ! Beginning
          contribution_1(i,j)=0.D0
          contribution_2(i,j)=0.D0
          contribution_3(i,j)=0.D0
-         do k=1,6
+         do k=1,7
             contrib2(i,j,k)=0.D0
             contrib3(i,j,k)=0.D0
             contrib3p(i,j,k)=0.D0
@@ -380,7 +380,7 @@ program illumina ! Beginning
          pvalno(i,j)=0.D0
       enddo
    enddo
-   do i=1,6
+   do i=1,7
       itodif3(i)=0.D0
       itodif2(i)=0.D0
       resofit(i)=0.D0
@@ -407,7 +407,7 @@ program illumina ! Beginning
    hh=1.
    flux_all=0.D0
    itodif1=0.D0
-   nresmax=6 ! maximum = 6 minimum = 1
+   nresmax=6 ! maximum = 7 minimum = 1
    ! determination of the vertical atmospheric transmittance
    call transtoa(lambda,bandw,taua,layaod,pressi,tranam,tranaa,tranal,tabs) ! tranam and tranaa are the top of atmosphere transmittance (molecules and aerosols)
    ! reading of the environment variables
@@ -569,9 +569,9 @@ program illumina ! Beginning
 ! Calculation of the direct radiances and irradiances
    if (verbose.ge.1) print*,' Calculating obtrusive light...'
    do stype=1,ntype ! beginning of the loop over the source types
-      if (totlu(stype).ne.0.D0) then ! check if there are any flux in that source type otherwise skip this lamp
-         if (verbose.ge.1) print*,' Turning on lamps zone',stype
-         if (verbose.ge.1) write(2,*) ' Turning on lamps zone',stype
+      if (totlu(stype).ne.0.D0) then ! check if there are any flux in that zone type otherwise skip this zone
+         if (verbose.ge.1) print*,' Turning on zone',stype
+         if (verbose.ge.1) write(2,*) ' Turning on zone',stype
          do x_s=1,nbx ! beginning of the loop over the source in x
             do y_s=1,nby ! beginning of the loop over source in y
                rx_s=dble(x_s)*dx
@@ -732,7 +732,7 @@ program illumina ! Beginning
                endif ! ignore null luminosity
             enddo ! end of the loop over source in y
          enddo ! end of the loop over the source in x
-      endif ! check if there are any flux in that source type otherwise skip this lamp
+      endif ! check if there are any flux in that source type otherwise skip this zone
    enddo ! end of the loop over the source types.
    ! end of direct calculations
    radius_2=7000.D0
@@ -850,9 +850,9 @@ program illumina ! Beginning
                         endif
                         do stype=1,ntype ! beginning of the loop over the source types.
                            if (totlu(stype).ne.0.D0) then ! check if there are any flux in that source type otherwise skip this lamp
-                              if (verbose.ge.1) print*,' Turning on lamps zone',stype,'@ resolution',nres,"(",idnint(siz2_0), &
+                              if (verbose.ge.1) print*,' Turning on zone',stype,'@ resolution',nres,"(",idnint(siz2_0), &
                                  idnint(siz3_0),")"
-                              if (verbose.ge.1) write(2,*) ' Turning on lamps zone',stype,'@ resolution',nres,"(",idnint(siz2_0), &
+                              if (verbose.ge.1) write(2,*) ' Turning on zone',stype,'@ resolution',nres,"(",idnint(siz2_0), &
                                  idnint(siz3_0),")"
                               do x_s=1,nbx ! beginning of the loop over the column (longitude the) of the domain.
                                  do y_s=1,nby
@@ -1350,12 +1350,15 @@ program illumina ! Beginning
          fl3=fl3+contrimap3(x_s,y_s)
       enddo
    enddo
-   
-   print*,flux_total_3,fl3
-   
-   
    flt=fl1+fl2+fl3
+   print*,'flux1',flux_total_1,fl1 
+   print*,'flux2',flux_total_2,fl2
+   print*,'flux3',flux_total_3,fl3
+   print*,'fluxt',flux_total,flt
+   
+
    if (fl1.gt.0.D0) then
+      write(*,2002) flux_total_2/flux_total_1,flux_total_3/flux_total_1
       write(*,2002) fl2/fl1,fl3/fl1
    endif
    ! End of calculation of the scattered radiances
