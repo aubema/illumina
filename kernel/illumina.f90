@@ -764,6 +764,9 @@ program illumina ! Beginning
       ry_c=dble(y_obs)*dx-iy*scal/2.
       z_c=z_obs-iz*scal/2.
       do icible=1,ncible ! beginning of the loop over the line of sight voxels
+            
+ !     print*,'toto1',icible,ncible
+      
          icloud=0.D0
          itodif1=0.D0
          do nres=1,nresmax
@@ -847,6 +850,9 @@ program illumina ! Beginning
                            write(2,*) ' Vertical dist. line of sight =',idnint(dabs(z_c-z_obs)),' m'
                         endif
                         do stype=1,ntype ! beginning of the loop over the source types.
+                        
+!                        print*,'toto2',stype
+                        
                            if (totlu(stype).ne.0.D0) then ! check if there are any flux in that source type otherwise skip this lamp
                               if (verbose.ge.1) print*,' Turning on zone',stype,'@ resolution',nres,"(",idnint(siz2_0), &
                                  idnint(siz3_0),")"
@@ -887,8 +893,6 @@ program illumina ! Beginning
                                                 cloudbase,omefov,scal,portio,idif1,icloud)
                                              itoclou=itoclou+icloud
                                              itodif1=itodif1+idif1
-                                             
-                                             
                                              if (nres.eq.1) contrib1(x_s,y_s)=contrib1(x_s,y_s)+idif1
                                              
                                              
@@ -924,8 +928,6 @@ program illumina ! Beginning
                                                                   omefov,scal,portio,idif1,icloud)
                                                                itoclou=itoclou+icloud
                                                                itodif1=itodif1+idif1
-                                                                                                            
-                                             
                                                                if (nres.eq.1) contrib1(x_s,y_s)=contrib1(x_s,y_s)+idif1
                                              
                                              
@@ -936,6 +938,10 @@ program illumina ! Beginning
                                                 enddo
                                              enddo
                                           endif ! end if nres = 1
+                                                                                                                                                      
+                                                                                          
+!                                             print*,'toto3'
+                                             
 ! 2nd scattering from source and ground
                                           if (scat_level.gt.1) then ! 2nd scatterint
                                              if ((flux_2.gt.flux_total/(20.D0*stoplim)).or.(flux_total_2.eq.0.D0)) then
@@ -1061,6 +1067,9 @@ program illumina ! Beginning
                                           itodif2(nres)=0.D0
                                           itodif3(nres)=0.D0
                                        endif ! end the source is not at the line of sight voxel position
+                                       
+!                                       print*,'toto4'
+                                       
                                        if (verbose.eq.2) then
                                           print*,' Total intensity per component for type ',ntype,':'
                                           print*,' First scattering=',itodif1
@@ -1076,9 +1085,15 @@ program illumina ! Beginning
                               enddo ! end the loop over the column (longitude) of the domain (x_s).
                            endif ! totlu not equal to zero
                         enddo ! end of the loop over the types of sources (stype).
+                                                                                    
+!                                       print*,'toto6'
+                          
                         ! computation of the luminous flux reaching the observer
                         ! computation of the zenithal angle between the observer and the line of sight voxel
                         call anglezenithal(rx_c,ry_c,z_c,rx_obs,ry_obs,z_obs,angzen) ! computation of the zenithal angle between the line of sight voxel and the observer.
+                                                                                    
+!                                       print*,'toto7'
+                          
                         if (dcos(pi-angzen).eq.0.D0) then
                            print*,'ERROR perfectly horizontal sight is forbidden'
                            stop
@@ -1088,20 +1103,45 @@ program illumina ! Beginning
                         call transmitm(angzen,z_c,z_obs,distd,transm,tranam,tabs)
                         call transmita(angzen,z_c,z_obs,distd,haer,transa,tranaa)
                         call transmita(angzen,z_c,z_obs,distd,hlay,transl,tranal)
+                                                                                    
+!                                       print*,'toto8'
+                          
                         ! computation of the flux reaching the objective of the telescope from the line of sight voxel
                         if (nres.eq.1) then
                           flux_1=itodif1*ometif*transa*transm*transl
                         endif
                         flux2(nres)=itodif2(nres)*ometif*transa*transm*transl
                         flux3(nres)=itodif3(nres)*ometif*transa*transm*transl
+                                                                                    
+!                                       print*,'toto9',nbx,nby
+
+                          
                         do x_s=1,nbx
                            do y_s=1,nby
-                              if (nres.eq.1) contrib1(x_s,y_s)=contrib1(x_s,y_s)*ometif*transa*transm*transl
-                              contrib2(x_s,y_s,nres)=contrib2(x_s,y_s,nres)*ometif*transa*transm*transl
-                              contrib3(x_s,y_s,nres)=contrib3(x_s,y_s,nres)*ometif*transa*transm*transl
+                           
+!                           print*,'toto110',idif1,contrib1(x_s,y_s),ometif,transa,transm,transl
+                           
+! commente car il semble y avoir un bug avec la contrib qui tombe parfois dans une valeur extremement petite.
+! pour le moment les cartes de contrib sont considerees non validees 
+!                              if (nres.eq.1) contrib1(x_s,y_s)=contrib1(x_s,y_s)*ometif*transa*transm*transl
+!                              contrib2(x_s,y_s,nres)=contrib2(x_s,y_s,nres)*ometif*transa*transm*transl
+!                              contrib3(x_s,y_s,nres)=contrib3(x_s,y_s,nres)*ometif*transa*transm*transl
+                              
+!                             print*,'toto111',contrib1(x_s,y_s),contrib2(x_s,y_s,nres),contrib3(x_s,y_s,nres)
+                              
+                              
                            enddo
+                                                                                                              
+!                                       print*,'toto10'
+                           
                         enddo
+                                                                                    
+!                                       print*,'toto11'
+                          
                      enddo ! end of loop over resolutions for interpolation of each line of sight voxel value
+                                                            
+!                                       print*,'toto20'
+                                       
                      ! accelerate the computation as we get away from the sources
                      scalo=scal
                      if (scal.le.3000.D0)  scal=scal*1.12
@@ -1374,7 +1414,7 @@ program illumina ! Beginning
    write(*,2001) fctcld/omefov/(pi*(diamobj/2.)**2.)
    print*,'            Diffuse radiance (W/str/m**2/nm) including clouds'
 !   write(*,2001) (flux_total+fctcld)/omefov/(pi*(diamobj/2.)**2.)
-   write(*,2001) (flt+fctcld)/omefov/(pi*(diamobj/2.)**2.)
+   write(*,2001) (flux_total+fctcld)/omefov/(pi*(diamobj/2.)**2.)
    if (verbose.ge.1) write(2,*) '==================================================='
    write(2,*) '     Direct irradiance from sources (W/m**2/nm)'
    write(2,2001)  irdirect
@@ -1388,7 +1428,7 @@ program illumina ! Beginning
    write(2,2001) fctcld/omefov/(pi*(diamobj/2.)**2.)
    write(2,*) '         Diffuse radiance (W/str/m**2/nm) including clouds       '
 !   write(2,2001) (flux_total+fctcld)/omefov/(pi*(diamobj/2.)**2.)
-   write(2,2001) (flt+fctcld)/omefov/(pi*(diamobj/2.)**2.)   
+   write(2,2001) (flux_total+fctcld)/omefov/(pi*(diamobj/2.)**2.)   
    close(2)
 2001 format('                   ',E14.7E2)
 2002 format(' Ratio 2nd/1st scat=',F6.3,'     Ratio 3rd/1st scat=',F6.3)
