@@ -259,7 +259,6 @@ program illumina ! Beginning
    read(1,*) taua,alpha,haer
    read(1,*) ntype
    read(1,*)
-   read(1,*)
    read(1,*) x_obs,y_obs,z_o
    read(1,*) angvis,azim
    read(1,*) dfov
@@ -1171,6 +1170,7 @@ program illumina ! Beginning
                                  quad=quad+(flux3p(nres)-moy)**2.
                               enddo
                               sigma=dsqrt(quad/dble(nresp-1))
+                              print*,sigma
                               do nres=1,nresp
                                  if (dabs(flux3p(nres)-moy).le.1.5*sigma) then
                                     nfit=nfit+1
@@ -1356,7 +1356,7 @@ program illumina ! Beginning
    print*,'fluxt',flux_total,flt
    
 
-   if (fl1.gt.0.D0) then
+   if ((fl1.gt.0.D0).and.(flux_total_1.gt.0.D0)) then
       write(*,2002) flux_total_2/flux_total_1,flux_total_3/flux_total_1
       write(*,2002) fl2/fl1,fl3/fl1
    endif
