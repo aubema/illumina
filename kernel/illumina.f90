@@ -1413,7 +1413,7 @@ program illumina ! Beginning
    print*,'             Cloud radiance (W/str/m**2/nm)'
    write(*,2001) fctcld/omefov/(pi*(diamobj/2.)**2.)
    print*,'            Diffuse radiance (W/str/m**2/nm) including clouds'
-!   write(*,2001) (flux_total+fctcld)/omefov/(pi*(diamobj/2.)**2.)
+!   write(*,2001) (flt+fctcld)/omefov/(pi*(diamobj/2.)**2.)
    write(*,2001) (flux_total+fctcld)/omefov/(pi*(diamobj/2.)**2.)
    if (verbose.ge.1) write(2,*) '==================================================='
    write(2,*) '     Direct irradiance from sources (W/m**2/nm)'
@@ -1427,7 +1427,7 @@ program illumina ! Beginning
    write(2,*) '           Cloud radiance (W/str/m**2/nm)         '
    write(2,2001) fctcld/omefov/(pi*(diamobj/2.)**2.)
    write(2,*) '         Diffuse radiance (W/str/m**2/nm) including clouds       '
-!   write(2,2001) (flux_total+fctcld)/omefov/(pi*(diamobj/2.)**2.)
+!   write(2,2001) (flt+fctcld)/omefov/(pi*(diamobj/2.)**2.)
    write(2,2001) (flux_total+fctcld)/omefov/(pi*(diamobj/2.)**2.)   
    close(2)
 2001 format('                   ',E14.7E2)
