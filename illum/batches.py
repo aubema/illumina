@@ -304,7 +304,7 @@ def batches(
                 (256, "Observer Y position"),
                 (P["observer_elevation"], "Observer elevation above ground [m]"),
             ),
-            ((P["observer_obstacles"] * 1, "Obstacles around observer"),),
+#            ((P["observer_obstacles"] * 1, "Obstacles around observer"),),
             (
                 (P["elevation_angle"], "Elevation viewing angle"),
                 ((P["azimuth_angle"] + bearing) % 360, "Azimuthal viewing angle"),
