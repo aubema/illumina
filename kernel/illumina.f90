@@ -261,7 +261,6 @@ program illumina ! Beginning
    read(1,*)
    read(1,*)
    read(1,*) x_obs,y_obs,z_o
-   read(1,*)
    read(1,*) angvis,azim
    read(1,*) dfov
    read(1,*)
