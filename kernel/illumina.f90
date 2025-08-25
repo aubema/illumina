@@ -1227,7 +1227,7 @@ program illumina ! Beginning
                                 print*,'bad extrapolation'
                               endif
                            else
-                              print*,'LESS THAN 3 points for 3rd order'
+                              print*,'LESS THAN 3 points for 3rd order',flux3(1),flux3(2),flux3(3),flux3(4),flux3(5),flux3(6)
                               flux_3=flux3(1)
                            endif
                            !print*,'Flux 3rd sca:',flux3

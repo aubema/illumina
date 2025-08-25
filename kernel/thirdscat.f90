@@ -94,7 +94,7 @@
               ds3=dsqrt((rx_s-rx_difa)**2.+(ry_s-ry_difa)**2.+(z_s-z_difa)**2.)
               ds4=dsqrt((rx_c-rx_difb)**2.+(ry_c-ry_difb)**2.+(z_c-z_difb)**2.)
               if (rho.eq.0) then ! from source
-                if ((ds2.lt.dss).or.(ds3.lt.dss).or.(ds2.lt.dss)) then
+                if ((ds2.lt.dss).or.(ds3.lt.dss).or.(ds4.lt.dss)) then
                   idif=0.D0
                 else
                   call anglezenithal(rx_s,ry_s,z_s,rx_difa,ry_difa,z_difa,zenith)
