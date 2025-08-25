@@ -1410,7 +1410,7 @@ program illumina ! Beginning
    write(2,2001) (flux_total+fctcld)/omefov/(pi*(diamobj/2.)**2.)   
    close(2)
 2001 format('                   ',E14.7E2)
-2002 format(' Ratio 2nd/1st scat=',F8.5,'     Ratio 3rd/1st scat=',F8.5)
+2002 format(' Ratio 2nd/1st scat=',F9.6,'     Ratio 3rd/1st scat=',F9.6)
 2003 format('Added diffuse radiance =',E9.2E2)
 2004 format('Accumulated diffuse radiance =',E9.2E2)
    stop
