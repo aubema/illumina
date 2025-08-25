@@ -366,9 +366,9 @@ def batches(
             f.write("cp %s.in illumina.in\n" % unique_ID)
             f.write("./illumina\n")
             f.write(f"mv {exp_name}.out {exp_name}_{unique_ID}.out\n")
-            f.write(f"mv {exp_name}_pcl1.bin {exp_name}_pcl1_{unique_ID}.bin\n")
-            f.write(f"mv {exp_name}_pcl2.bin {exp_name}_pcl2_{unique_ID}.bin\n")
-            f.write(f"mv {exp_name}_pcl3.bin {exp_name}_pcl3_{unique_ID}.bin\n")           
+            #f.write(f"mv {exp_name}_pcl1.bin {exp_name}_pcl1_{unique_ID}.bin\n")
+            #f.write(f"mv {exp_name}_pcl2.bin {exp_name}_pcl2_{unique_ID}.bin\n")
+            #f.write(f"mv {exp_name}_pcl3.bin {exp_name}_pcl3_{unique_ID}.bin\n")           
 
     print("Final count:", count)
 
