@@ -934,7 +934,7 @@ program illumina ! Beginning
                                           endif ! end if nres = 1
 ! 2nd scattering from source and ground
                                           if (scat_level.gt.1) then ! 2nd scatterint
-                                             if ((flux_2.gt.flux_total/(50.D0*stoplim)).or.(flux_total_2.eq.0.D0)) then
+                                             if ((flux_2.gt.flux_total/(25.D0*stoplim)).or.(flux_total_2.eq.0.D0)) then
                                                 rho=0 ! from source
                                                 icloud=0.D0
                                                 idif2=0.D0
@@ -994,7 +994,7 @@ program illumina ! Beginning
                                           endif ! end 2nd scat
 ! 3rd scattering from source and ground
                                           if (scat_level.gt.2) then ! 3rd scattering
-                                             if ((flux_3.gt.flux_total/(2500.D0*stoplim)).or.(flux_total_3.eq.0.D0)) then
+                                             if ((flux_3.gt.flux_total/(50.D0*stoplim)).or.(flux_total_3.eq.0.D0)) then
                                                 rho=0 ! from source
                                                 icloud=0.D0
                                                 call zone_scat(rx_s,ry_s,z_s,rx_c,ry_c,z_c,radius_3,zondi3,ndiff3,siz3 &
@@ -1313,6 +1313,7 @@ program illumina ! Beginning
                      if (verbose.ge.1) write(*,2004) flux_total/omefov/(pi*(diamobj/2.)**2.)
                      if (verbose.ge.1) write(2,2003) flux_all/omefov/(pi*(diamobj/2.)**2.)
                      if (verbose.ge.1) write(2,2004) flux_total/omefov/(pi*(diamobj/2.)**2.)
+                     if (verbose.ge.1) write(*,2002) flux_total_2/flux_total_1,flux_total_3/flux_total_1
                   endif ! end condition stoplimit general
                endif ! end of the condition line of sight voxel inside the modelling domain
             endif ! line of sight voxel above ground
