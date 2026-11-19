@@ -1755,8 +1755,8 @@ c                            isourc=isourc+icloud
 c**********************************************************************
 c computation of the total intensity coming from all the sources of a given type
 c**********************************************************************
-                            itotty=itotty+isourc                          ! Sum of the intensities all sources of the same typeand a given line of sight element
-                            ITT(x_s,y_s,stype)=ITT(x_s,y_s,stype)+isourc  ! ITT stores itotty in a matrix
+                           itotty=itotty+isourc                           ! Sum of the intensities all sources of the same typeand a given line of sight element
+                           ITT(x_s,y_s,stype)=ITT(x_s,y_s,stype)+isourc   ! ITT stores itotty in a matrix
                         endif                                             ! end of the condition "the luminosity of the ground pixel x_s,y_s in not null".
                       enddo                                               ! end the loop over the lines (latitude) of the domain (y_s).
                     enddo                                                 ! end the loop over the column (longitude) of the domain (x_s).
