@@ -596,11 +596,10 @@ c flux arrays (lumlp)
                 endif
               endif
               totlu(stype)=totlu(stype)+lamplu(i,j,stype)                 ! the total lamp flux should be non-null to proceed to the calculations
-              lpluto(x_s,y_s)=lpluto(x_s,y_s)+
+              lpluto(x_s,y_s)=lpluto(x_s,y_s)+                            ! calculate total lamp flux matrix for all lamp types
      +        lamplu(x_s,y_s,stype)
             enddo                                                         ! end of the loop over all cells along y.
           enddo 
-          c calculate total lamp flux matrix for all lamp types
         enddo                                                             ! end of the loop 1 over the nzon types of sources.
         dy=dx
         omefov=0.00000001                                                 ! solid angle of the spectrometer slit on the sky. Here we only need a small value
@@ -1362,7 +1361,8 @@ c ******************************************************************************
      +    (z_c-z_dif)**2.
           ds3=(rx_s-rx_dif)**2.+(ry_s-ry_dif)**2.+
      +    (z_s-z_dif)**2.
-          if ((ds1.lt.dss**2.).or.(ds2.lt.dss**2.).or.(ds3.lt.dss**2.)) then
+          if ((ds1.lt.dss**2.).or.(ds2.lt.dss**2.).or.
+     +    (ds3.lt.dss**2.)) then
             nss=nss+1
 c       print*,ds1,ds2,ds3,'c',rx_c,ry_c,z_c,'d',rx_dif,ry_dif,z_dif
           else
