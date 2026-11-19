@@ -382,8 +382,8 @@ c Initialisation of the arrays and variables
         iun=0
         ideux=1
         icloud=0.
-        do i=1,width
-          do j=1,width
+        do j=1,width
+          do i=1,width
             val2d(i,j)=0.
             altsol(i,j)=0.
             obsH(i,j)=0.
@@ -413,9 +413,9 @@ c Initialisation of the arrays and variables
             pvalno(i,j)=0.
           enddo
         enddo
-        do i=1,3000000
-          do j=1,3
-            zondif(i,j)=1.
+        do j=1,3
+           do i=1,3000000
+           zondif(i,j)=1.
           enddo
         enddo
         do i=1,nzon
@@ -469,8 +469,8 @@ c reading of the environment variables
 c reading of the elevation file
         call twodin(nbx,nby,mnaf,altsol)
 c computation of the tilt of the pixels along x and along y
-        do i=1,nbx                                                        ! beginning of the loop over the column (longitude) of the domain.
-          do j=1,nby                                                      ! beginning of the loop over the rows (latitu) of the domain.
+        do j=1,nby                                                        ! beginning of the loop over the column (longitude) of the domain.
+          do i=1,nbx                                                      ! beginning of the loop over the rows (latitu) of the domain.
             if (i.eq.1) then                                              ! specific case close to the border of the domain (vertical side left).
               inclix(i,j)=atan((altsol(i+1,j)-altsol(i,j))/real(dx))      ! computation of the tilt along x of the surface.
             elseif (i.eq.nbx) then                                        ! specific case close to the border of the domain (vertical side right).
@@ -499,37 +499,37 @@ c of the sources, obstacle height and distance
         dtheta=.017453293                                                 ! one degree
 c reading lamp heights
         call twodin(nbx,nby,alfile,val2d)
-        do i=1,nbx                                                        ! beginning of the loop over all cells along x.
-          do j=1,nby                                                      ! beginning of the loop over all cells along y.
+        do j=1,nby                                                        ! beginning of the loop over all cells along x.
+          do i=1,nbx                                                      ! beginning of the loop over all cells along y.
             lampal(i,j)=val2d(i,j)                                        ! filling of the array for the lamp stype
           enddo                                                           ! end of the loop over all cells along y.
         enddo                                                             ! end of the loop over all cells along x.
 c reading subgrid obstacles average height
         call twodin(nbx,nby,ohfile,val2d)
-        do i=1,nbx                                                        ! beginning of the loop over all cells along x.
-          do j=1,nby                                                      ! beginning of the loop over all cells along y.
+        do j=1,nby                                                        ! beginning of the loop over all cells along x.
+          do i=1,nbx                                                      ! beginning of the loop over all cells along y.
             obsH(i,j)=val2d(i,j)                                          ! filling of the array
           enddo                                                           ! end of the loop over all cells along y.
         enddo
 c reading subgrid obstacles average distance
         call twodin(nbx,nby,odfile,val2d)
-        do i=1,nbx                                                        ! beginning of the loop over all cells along x.
-          do j=1,nby                                                      ! beginning of the loop over all cells along y.
+        do j=1,nby                                                        ! beginning of the loop over all cells along x.
+          do i=1,nbx                                                      ! beginning of the loop over all cells along y.
             drefle(i,j)=val2d(i,j)/2.
             if (drefle(i,j).eq.0.) drefle(i,j)=dx                         ! when outside a zone, block to the size of the cell (typically 1km)
           enddo                                                           ! end of the loop over all cells along y.
         enddo
 c reading subgrid obstacles filling factor
         call twodin(nbx,nby,offile,val2d)
-        do i=1,nbx                                                        ! beginning of the loop over all cells along x.
-          do j=1,nby                                                      ! beginning of the loop over all cells along y.
+        do j=1,nby                                                        ! beginning of the loop over all cells along x.
+          do i=1,nbx                                                      ! beginning of the loop over all cells along y.
             ofill(i,j)=val2d(i,j)                                         ! Filling of the array 0-1
           enddo                                                           ! end of the loop over all cells along y.
         enddo
 c reading viirs flag
         call twodin(nbx,nby,vifile,val2d)
-        do i=1,nbx                                                        ! beginning of the loop over all cells along x.
-          do j=1,nby                                                      ! beginning of the loop over all cells along y.
+        do j=1,nby                                                        ! beginning of the loop over all cells along x.
+          do i=1,nbx                                                      ! beginning of the loop over all cells along y.
             viirs(i,j)=nint(val2d(i,j))                                   ! viirs flag array 0 or 1
           enddo                                                           ! end of the loop over all cells along y.
         enddo
@@ -570,16 +570,16 @@ c reading photometry files
           enddo
 c reading luminosity files
           call twodin(nbx,nby,lufile,val2d)
-          do i=1,nbx                                                      ! beginning of the loop over all cells along x.
-            do j=1,nby                                                    ! beginning of the loop over all cells along y.
+          do j=1,nby                                                      ! beginning of the loop over all cells along x.
+            do i=1,nbx                                                    ! beginning of the loop over all cells along y.
               if (val2d(i,j).lt.0.) then                                  ! searching of negative fluxes
                 print*,'***Negative lamp flux!, stopping execution'
                 stop
               endif
             enddo                                                         ! end of the loop over all cells along y.
           enddo
- 336      do i=1,nbx                                                      ! beginning of the loop over all cells along x.
-            do j=1,nby                                                    ! beginning of the loop over all cells along y.
+ 336      do j=1,nby                                                      ! beginning of the loop over all cells along x.
+            do i=1,nbx                                                   ! beginning of the loop over all cells along y.
               lamplu(i,j,stype)=val2d(i,j)                                ! remplir the array of the lamp type: stype
 c Atmospheric correction and obstacles masking corrections to the lamp
 c flux arrays (lumlp)
@@ -624,8 +624,8 @@ c
             if (verbose.ge.1) print*,' Turning on lamps',stype
             if (verbose.ge.1) write(2,*) ' Turning on lamps',
      +      stype
-            do x_s=1,nbx                                ! beginning of the loop over the column (longitude the) of the domain.
-            do y_s=1,nby                                 ! beginning of the loop over the rows (latitud) of the domain.
+            do y_s=1,nby                                ! beginning of the loop over the column (longitude the) of the domain.
+            do x_s=1,nbx                                 ! beginning of the loop over the rows (latitud) of the domain.
               intdir=0.
               itotind=0.
               itodif=0.
@@ -734,10 +734,10 @@ c
                 if (ysrmi.lt.1) ysrmi=1
                 ysrma=y_s+boxy
                 if (ysrma.gt.nby) ysrma=nby
-                do x_sr=xsrmi,xsrma                                       ! beginning of the loop over the column (longitude) reflecting.
-                  rx_sr=real(x_sr)*dx
-                  do y_sr=ysrmi,ysrma                                     ! beginning of the loop over the rows (latitu) reflecting.
-                    ry_sr=real(y_sr)*dy
+                do y_sr=ysrmi,ysrma                                       ! beginning of the loop over the column (longitude) reflecting.
+                  ry_sr=real(y_sr)*dy
+                  do x_sr=xsrmi,xsrma                                     ! beginning of the loop over the rows (latitu) reflecting.
+                    rx_sr=real(x_sr)*dx
                     irefl=0.
                     z_sr=altsol(x_sr,y_sr)
                     if((x_sr.gt.nbx).or.(x_sr.lt.1).or.
@@ -999,8 +999,8 @@ c temporaire !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      +    (z_c.lt.35000.)) then                                           ! or when hitting a cloud or when z>35km (scattering probability =0 (given precision)
             fctcld=0.
             fcapt=0.
-            do i=1,nbx
-              do j=1,nby
+            do j=1,nby
+              do i=1,nbx
                 FCA(i,j)=0.
               enddo
             enddo
@@ -1024,8 +1024,8 @@ c computation of the Solid angle of the line of sight voxel seen from the observ
               portio=(omefov/omega)
             endif
             itotci=0.                                                     ! Initialisation of the contribution of the line of sight at the sensor level
-            do i=1,nbx
-              do j=1,nby
+            do j=1,nby
+              do i=1,nbx
                 ITC(i,j)=0.
               enddo
             enddo
@@ -1063,13 +1063,13 @@ c beginning of the loop over the types of light sources
                   if (verbose.ge.1) write(2,*) ' Turning on lamps',
      +            stype
                   itotty=0.                                               ! Initialisation of the contribution of a source types to
-                  do x_s=1,nbx                                            ! the intensity toward the sensor by a line of sight voxel.
-                    do y_s=1,nby
+                  do y_s=1,nby                                            ! the intensity toward the sensor by a line of sight voxel.
+                    do x_s=1,nbx
                       ITT(x_s,y_s,stype)=0.
                     enddo
                   enddo
-                  do x_s=1,nbx                            ! beginning of the loop over the column (longitude the) of the domain.
-                    do y_s=1,nby                         ! beginning of the loop over the rows (latitud) of the domain.
+                  do y_s=1,nby                            ! beginning of the loop over the column (longitude the) of the domain.
+                    do x_s=1,nbx                         ! beginning of the loop over the rows (latitud) of the domain.
                       intdir=0.
                       itotind=0.
                       itodif=0.
@@ -1198,10 +1198,10 @@ c etablissement of the conditions ands boucles
                             if (ysrmi.lt.1) ysrmi=1
                             ysrma=y_s+boxy
                             if (ysrma.gt.nby) ysrma=nby
-                            do x_sr=xsrmi,xsrma                           ! beginning of the loop over the column (longitude) reflecting.
-                              rx_sr=real(x_sr)*dx
-                              do y_sr=ysrmi,ysrma                         ! beginning of the loop over the rows (latitu) reflecting.
-                                ry_sr=real(y_sr)*dy
+                            do y_sr=ysrmi,ysrma                           ! beginning of the loop over the column (longitude) reflecting.
+                              ry_sr=real(y_sr)*dy
+                              do x_sr=xsrmi,xsrma                         ! beginning of the loop over the rows (latitu) reflecting.
+                                rx_sr=real(x_sr)*dx
                                 irefl=0.
                                 z_sr=altsol(x_sr,y_sr)
                                 if((x_sr.gt.nbx).or.(x_sr.lt.1).or.
@@ -1759,14 +1759,14 @@ c**********************************************************************
                     enddo                                                 ! end the loop over the column (longitude) of the domain (x_s).
 c end of the computation of the intensity of one source type
                     itotci=itotci+itotty                                  ! Sum of the intensities all source all type to a line of sight element
-                    do x_s=1,nbx 
-                      do y_s=1,nby 
+                    do y_s=1,nby 
+                      do x_s=1,nbx 
                         ITC(x_s,y_s)=ITC(x_s,y_s)+ITT(x_s,y_s,stype)
                       enddo
                     enddo
 c calculate total lamp flux matrix for all lamp types
-                    do x_s=1,nbx
-                      do y_s=1,nby
+                    do y_s=1,nby
+                      do x_s=1,nbx
                         lpluto(x_s,y_s)=lpluto(x_s,y_s)+
      +                  lamplu(x_s,y_s,stype)
                       enddo
@@ -1796,8 +1796,8 @@ c computation of the transmittance between the line of sight voxel and the obser
      +          distd,hlay,transl,tranal)
 c computation of the flux reaching the objective of the telescope from the line of sight voxel
                 fcapt=itotci*ometif*transa*transm*transl                         ! computation of the flux reaching the intrument from the line of sight voxel
-                do x_s=1,nbx
-                  do y_s=1,nby
+                do y_s=1,nby
+                  do x_s=1,nbx
                     FCA(x_s,y_s)=ITC(x_s,y_s)*ometif*transa*transm*
      +              transl
                   enddo
@@ -1808,8 +1808,8 @@ c computation of the flux reaching the objective of the telescope from the line 
                 endif
 c end of the computation of the flux reaching the observer voxel from the line of sight voxel
                 ftocap=ftocap+fcapt                                       ! flux for all source all type all line of sight element
-                do x_s=1,nbx
-                  do y_s=1,nby
+                do y_s=1,nby
+                  do x_s=1,nbx
                     FTC(x_s,y_s)=FTC(x_s,y_s)+FCA(x_s,y_s)                ! FTC is the array of the flux total at the sensor to identify
                                                                           ! the contribution of each ground pixel to the total flux at the observer level
                                                                           ! The % is simply given by the ratio FTC/ftocap
@@ -1841,8 +1841,8 @@ c           print*,'End of line of sight - touching the ground'
         fctcld=fctcld*10**(0.4*(100.-cloudfrac)*cloudslope)               ! correction for the cloud fraction (defined from 0 to 100)
         if (prmaps.eq.1) then
 c          open(unit=9,file=pclf,status='unknown')
-            do x_s=1,nbx
-              do y_s=1,nby
+            do y_s=1,nby
+              do x_s=1,nbx
                 FTC(x_s,y_s)=FTC(x_s,y_s)/ftocap                          ! Here FTC becomes the flux fraction of each pixel. The sum of FTC values over all pixels give the total flux
               enddo
             enddo
@@ -1850,8 +1850,8 @@ c          open(unit=9,file=pclf,status='unknown')
               print*,'Writing normalized contribution array'
               print*,'Warning Cloud contrib. excluded from that array.'
             endif
-c            do x_s=1,nbx
-c              do y_s=1,nby
+c            do y_s=1,nby
+c              do x_s=1,nbx
 c                write(9,*) x_s,y_s,FTC(x_s,y_s)                           ! emettrice au sol, c'est un % par unite of watt installes
 c              enddo
 c            enddo
