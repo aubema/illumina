@@ -218,7 +218,7 @@ c                                                                         ! a li
       real tcloud                                                         ! low cloud transmission
       real rx_sp,ry_sp                                                    ! position of a low cloud pixel
       real flcld(width,width)                                             ! flux crossing a low cloud
-      real ds1,ds2,ds3,dss                                                ! double scattering distances
+      real ds1,ds2,ds3,dss                                                ! double scattering square distances (dss is not to the square)
       integer nss                                                         ! number of skipped 2nd scat elements
       integer ndi                                                         ! number of cell under ground
       integer nvol                                                        ! number of cell for second scat calc un full resolution
@@ -596,8 +596,11 @@ c flux arrays (lumlp)
                 endif
               endif
               totlu(stype)=totlu(stype)+lamplu(i,j,stype)                 ! the total lamp flux should be non-null to proceed to the calculations
+              lpluto(x_s,y_s)=lpluto(x_s,y_s)+
+     +        lamplu(x_s,y_s,stype)
             enddo                                                         ! end of the loop over all cells along y.
-          enddo                                                           ! end of the loop over all cells along x.
+          enddo 
+          c calculate total lamp flux matrix for all lamp types
         enddo                                                             ! end of the loop 1 over the nzon types of sources.
         dy=dx
         omefov=0.00000001                                                 ! solid angle of the spectrometer slit on the sky. Here we only need a small value
@@ -1353,13 +1356,13 @@ c ******************************************************************************
      +  (z_dif.gt.cloudbase)) then                                        ! beginning diffusing cell underground
           ndi=ndi+1
         else
-          ds1=sqrt((rx_sr-rx_dif)**2.+(ry_sr-ry_dif)**2.+
-     +    (z_sr-z_dif)**2.)
-          ds2=sqrt((rx_c-rx_dif)**2.+(ry_c-ry_dif)**2.+
-     +    (z_c-z_dif)**2.)
-          ds3=sqrt((rx_s-rx_dif)**2.+(ry_s-ry_dif)**2.+
-     +    (z_s-z_dif)**2.)
-          if ((ds1.lt.dss).or.(ds2.lt.dss).or.(ds3.lt.dss)) then
+          ds1=(rx_sr-rx_dif)**2.+(ry_sr-ry_dif)**2.+
+     +    (z_sr-z_dif)**2.
+          ds2=(rx_c-rx_dif)**2.+(ry_c-ry_dif)**2.+
+     +    (z_c-z_dif)**2.
+          ds3=(rx_s-rx_dif)**2.+(ry_s-ry_dif)**2.+
+     +    (z_s-z_dif)**2.
+          if ((ds1.lt.dss**2.).or.(ds2.lt.dss**2.).or.(ds3.lt.dss**2.)) then
             nss=nss+1
 c       print*,ds1,ds2,ds3,'c',rx_c,ry_c,z_c,'d',rx_dif,ry_dif,z_dif
           else
@@ -1762,13 +1765,6 @@ c end of the computation of the intensity of one source type
                     do y_s=1,nby 
                       do x_s=1,nbx 
                         ITC(x_s,y_s)=ITC(x_s,y_s)+ITT(x_s,y_s,stype)
-                      enddo
-                    enddo
-c calculate total lamp flux matrix for all lamp types
-                    do y_s=1,nby
-                      do x_s=1,nbx
-                        lpluto(x_s,y_s)=lpluto(x_s,y_s)+
-     +                  lamplu(x_s,y_s,stype)
                       enddo
                     enddo
                   endif                                                   ! end of condition if there are any flux in that source type
