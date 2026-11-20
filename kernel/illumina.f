@@ -635,8 +635,16 @@ c
               isourc=0.
               rx_s=real(x_s)*dx
               ry_s=real(y_s)*dy
+              z_s=(altsol(x_s,y_s)+lampal(x_s,y_s))                     ! Definition of the position (metre) vertical of the source.
+              
+              
+              
+              if (cloudbase.gt.z_s) then
+              
+              
+              
               if (lamplu(x_s,y_s,stype) .ne. 0.) then                     ! if the luminosite of the case is null, the program ignore this case.
-                z_s=(altsol(x_s,y_s)+lampal(x_s,y_s))                     ! Definition of the position (metre) vertical of the source.
+
 c
 c *********************************************************************************************************
 c calculation of the direct radiance of sources falling on a surface perpendicular
@@ -951,6 +959,13 @@ c computation of the solid angle of the line of sight voxel seen from the source
                   enddo
                 enddo
               endif
+              
+              
+              
+              endif                                                        ! condition lamp under cloud
+              
+              
+              
             enddo
             enddo
           endif
@@ -1079,8 +1094,16 @@ c beginning of the loop over the types of light sources
                       isourc=0.
                       rx_s=real(x_s)*dx
                       ry_s=real(y_s)*dy
+                      z_s=(altsol(x_s,y_s)+lampal(x_s,y_s))               ! Definition of the position (metre) vertical of the source.
+                      
+                      
+                      
+                      if (cloudbase.gt.z_s) then
+                      
+                      
+                      
                       if (lamplu(x_s,y_s,stype) .ne. 0.) then             ! if the luminosite of the case is null, the program ignore this case.
-                        z_s=(altsol(x_s,y_s)+lampal(x_s,y_s))             ! Definition of the position (metre) vertical of the source.
+                        
 c
 c *********************************************************************************************************
 c * computation of the scattered intensity toward the observer by a line of sight voxel from the source   *
@@ -1758,6 +1781,13 @@ c**********************************************************************
                            itotty=itotty+isourc                           ! Sum of the intensities all sources of the same typeand a given line of sight element
                            ITT(x_s,y_s,stype)=ITT(x_s,y_s,stype)+isourc   ! ITT stores itotty in a matrix
                         endif                                             ! end of the condition "the luminosity of the ground pixel x_s,y_s in not null".
+                        
+                        
+                        
+                        endif                                             ! end condition lamp under cloud
+                        
+                        
+                        
                       enddo                                               ! end the loop over the lines (latitude) of the domain (y_s).
                     enddo                                                 ! end the loop over the column (longitude) of the domain (x_s).
 c end of the computation of the intensity of one source type
